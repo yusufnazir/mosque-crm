@@ -62,7 +62,7 @@ export default function FamilyTree({
           : 'bg-white border-gray-300 hover:border-emerald-400 hover:shadow-md'
         }
       `}
-      onClick={() => !isCurrentMember && router.push(`/members/${person.personId}`)}
+      onClick={() => !isCurrentMember && router.push(`/members/${person.personId || person.id}`)}
     >
       {isCurrentMember && (
         <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow">
@@ -128,7 +128,7 @@ export default function FamilyTree({
                 const memberAge = formatAge(member.dateOfBirth);
                 return siblingAge > memberAge;
               }).map((sibling) => (
-                <div key={sibling.personId} className="flex flex-col items-center">
+                <div key={sibling.personId || sibling.id} className="flex flex-col items-center">
                   <div className="w-0.5 h-8 bg-gray-300" />
                   <MemberCard person={sibling} role="Sibling" />
                 </div>
@@ -151,7 +151,7 @@ export default function FamilyTree({
                 const memberAge = formatAge(member.dateOfBirth);
                 return siblingAge <= memberAge;
               }).map((sibling) => (
-                <div key={sibling.personId} className="flex flex-col items-center">
+                <div key={sibling.personId || sibling.id} className="flex flex-col items-center">
                   <div className="w-0.5 h-8 bg-gray-300" />
                   <MemberCard person={sibling} role="Sibling" />
                 </div>
@@ -197,7 +197,7 @@ export default function FamilyTree({
               {/* Children Level */}
               <div className="flex items-start justify-center gap-4 flex-wrap max-w-4xl">
                 {children.map((child) => (
-                  <div key={child.personId} className="flex flex-col items-center">
+                  <div key={child.personId || child.id} className="flex flex-col items-center">
                     <div className="w-0.5 h-8 bg-gray-300" />
                     <MemberCard person={child} role="Child" />
                   </div>

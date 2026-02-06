@@ -67,32 +67,39 @@ export default function ProfilePage() {
         if (profileData.personId) {
           try {
             const relationships = await relationshipApi.getRelationships(profileData.personId);
-            // Fetch all members for mapping
-            const allMembers: Member[] = await memberApi.getAll() as Member[];
+            // Fetch all persons for mapping
+            // Note: /persons API returns PersonDTO with 'id' (Long) but no 'personId' field.
+            // We normalize so that personId is always set as a string for consistent matching.
+            const rawMembers: any[] = await memberApi.getAll() as any[];
+            const allMembers: Member[] = rawMembers.map((m: any) => ({
+              ...m,
+              id: String(m.id),
+              personId: String(m.personId || m.id),
+            }));
 
             // Partner
             const spouseRel = relationships.find((r: any) => r.relationshipType === 'SPOUSE');
             if (spouseRel) {
-              const spouse = allMembers.find((m) => m.personId === spouseRel.relatedPersonId);
+              const spouse = allMembers.find((m) => m.personId === String(spouseRel.relatedPersonId));
               if (spouse) setPartner(spouse);
             }
             // Father
             const fatherRel = relationships.find((r: any) => r.relationshipType === 'FATHER');
             if (fatherRel) {
-              const fatherMember = allMembers.find((m) => m.personId === fatherRel.relatedPersonId);
+              const fatherMember = allMembers.find((m) => m.personId === String(fatherRel.relatedPersonId));
               if (fatherMember) setFather(fatherMember);
             }
             // Mother
             const motherRel = relationships.find((r: any) => r.relationshipType === 'MOTHER');
             if (motherRel) {
-              const motherMember = allMembers.find((m) => m.personId === motherRel.relatedPersonId);
+              const motherMember = allMembers.find((m) => m.personId === String(motherRel.relatedPersonId));
               if (motherMember) setMother(motherMember);
             }
             // Children
             const childRels = relationships.filter((r: any) => r.relationshipType === 'CHILD');
             if (childRels.length > 0) {
               const childMembers = childRels
-                .map((rel: any) => allMembers.find((m) => m.personId === rel.relatedPersonId))
+                .map((rel: any) => allMembers.find((m) => m.personId === String(rel.relatedPersonId)))
                 .filter(Boolean);
               setChildren(childMembers as Member[]);
             }
