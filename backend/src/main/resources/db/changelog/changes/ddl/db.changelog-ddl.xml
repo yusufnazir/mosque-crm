@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <include file="db/changelog/changes/ddl/create-table-sequence.xml"/>
+
+    <!-- GEDCOM Tables -->
+    <include file="db/changelog/changes/ddl/002-create-membership-fees-table.xml"/>
+    <include file="db/changelog/changes/ddl/003-create-gedcom-individuals.xml"/>
+    <include file="db/changelog/changes/ddl/004-create-gedcom-families.xml"/>
+    <include file="db/changelog/changes/ddl/005-create-gedcom-family-children.xml"/>
+    <include file="db/changelog/changes/ddl/006-create-gedcom-events.xml"/>
+    <include file="db/changelog/changes/ddl/007-create-gedcom-event-participants.xml"/>
+    <include file="db/changelog/changes/ddl/008-create-gedcom-sources.xml"/>
+    <include file="db/changelog/changes/ddl/009-create-gedcom-citations.xml"/>
+    <include file="db/changelog/changes/ddl/010-create-gedcom-notes.xml"/>
+    <include file="db/changelog/changes/ddl/011-create-gedcom-note-links.xml"/>
+    <include file="db/changelog/changes/ddl/012-create-gedcom-media.xml"/>
+    
+
+
+    <!-- Security Tables -->
+    <include file="db/changelog/changes/ddl/010-create-users-table.xml"/>
+    <include file="db/changelog/changes/ddl/011-create-roles-table.xml"/>
+    <include file="db/changelog/changes/ddl/012-create-user-roles-table.xml"/>
+    <include file="db/changelog/changes/ddl/016-create-persons-table.xml"/>
+    <include file="db/changelog/changes/ddl/013-create-user-member-link-table.xml"/>
+    <include file="db/changelog/changes/ddl/007-create-user-preferences-table.xml"/>
+    <include file="db/changelog/changes/ddl/008-create-password-reset-tokens-table.xml"/>
+    <include file="db/changelog/changes/ddl/009-create-configurations-table.xml"/>
+
+    <!-- Person-Centric Architecture Tables -->
+    <include file="db/changelog/changes/ddl/017-create-memberships-table.xml"/>
+    <include file="db/changelog/changes/ddl/018-create-subscriptions-table.xml"/>
+    <include file="db/changelog/changes/ddl/019-create-donations-table.xml"/>
+    <include file="db/changelog/changes/ddl/020-create-gedcom-person-links-table.xml"/>
+
+    <!-- Foreign Key Constraints (Always Last) -->
+    <!--<include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>-->
+   
+</databaseChangeLog>

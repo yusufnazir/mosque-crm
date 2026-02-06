@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="020-create-gedcom-person-links-table" author="system">
+        <createTable tableName="gedcom_person_links">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="gedcom_individual_id" type="VARCHAR(20)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="linked_by" type="VARCHAR(100)"/>
+            <column name="link_reason" type="VARCHAR(500)"/>
+            <column name="linked_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_person_links"
+                baseColumnNames="person_id"
+                constraintName="fk_gedcom_person_links_person"
+                referencedTableName="persons"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_person_links"
+                baseColumnNames="gedcom_individual_id"
+                constraintName="fk_gedcom_person_links_individual"
+                referencedTableName="gedcom_individuals"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="gedcom_person_links" indexName="idx_gedcom_person_links_person">
+            <column name="person_id"/>
+        </createIndex>
+
+        <createIndex tableName="gedcom_person_links" indexName="idx_gedcom_person_links_individual">
+            <column name="gedcom_individual_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

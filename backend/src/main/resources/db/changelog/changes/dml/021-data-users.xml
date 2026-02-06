@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+	<!-- Admin user: admin / admin123 -->
+	<changeSet id="data_user_1_0" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataUser">
+			<param name="id"><![CDATA[1]]></param>
+			<param name="username"><![CDATA[admin]]></param>
+			<param name="password"><![CDATA[$2a$12$7BEY4T.DQ21/eC899q46G.ujaeTLPU1P4EqiyLv/xzOU1xBLE/lCu]]></param>
+			<param name="email"><![CDATA[admin@mosque.local]]></param>
+			<param name="accountEnabled"><![CDATA[true]]></param>
+			<param name="accountLocked"><![CDATA[false]]></param>
+			<param name="credentialsExpired"><![CDATA[false]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- Test member user: ahmed / password123 -->
+	<changeSet id="data_user_2" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataUser">
+			<param name="id"><![CDATA[2]]></param>
+			<param name="username"><![CDATA[ahmed]]></param>
+			<param name="password"><![CDATA[$2a$10$FNnp90K0hhTjR.JOHOOgz.ZRzE3ooHGPpTGlFhMPG4pO/5P5xQ9sS]]></param>
+			<param name="email"><![CDATA[ahmed@example.com]]></param>
+			<param name="accountEnabled"><![CDATA[true]]></param>
+			<param name="accountLocked"><![CDATA[false]]></param>
+			<param name="credentialsExpired"><![CDATA[false]]></param>
+		</customChange>
+	</changeSet>
+
+</databaseChangeLog>

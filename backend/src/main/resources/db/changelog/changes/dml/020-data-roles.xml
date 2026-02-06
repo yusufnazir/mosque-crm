@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+	<!-- ADMIN Role -->
+	<changeSet id="data_role_1" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRole">
+			<param name="id"><![CDATA[1]]></param>
+			<param name="name"><![CDATA[ADMIN]]></param>
+			<param name="description"><![CDATA[Administrator with full access to all features]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- MEMBER Role -->
+	<changeSet id="data_role_2" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRole">
+			<param name="id"><![CDATA[2]]></param>
+			<param name="name"><![CDATA[MEMBER]]></param>
+			<param name="description"><![CDATA[Regular member with limited access to personal data]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- TREASURER Role -->
+	<changeSet id="data_role_3" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRole">
+			<param name="id"><![CDATA[3]]></param>
+			<param name="name"><![CDATA[TREASURER]]></param>
+			<param name="description"><![CDATA[Financial officer with access to fee management]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- IMAM Role -->
+	<changeSet id="data_role_4" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRole">
+			<param name="id"><![CDATA[4]]></param>
+			<param name="name"><![CDATA[IMAM]]></param>
+			<param name="description"><![CDATA[Religious leader with member viewing access]]></param>
+		</customChange>
+	</changeSet>
+
+</databaseChangeLog>

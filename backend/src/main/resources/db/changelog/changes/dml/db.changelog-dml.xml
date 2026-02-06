@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Security Data -->
+    <include file="db/changelog/changes/dml/020-data-roles.xml"/>
+    <include file="db/changelog/changes/dml/021-data-users.xml"/>
+    <include file="db/changelog/changes/dml/022-data-user-roles.xml"/>
+    
+    <!-- GEDCOM Data -->
+<!--    <include file="db/changelog/changes/dml/005-data-gedcom-individuals-families.xml"/>-->
+<!--    <include file="db/changelog/changes/dml/006-data-gedcom-events.xml"/>-->
+
+    <!-- Person Data (Foundational identity layer) -->
+<!--    <include file="db/changelog/changes/dml/024-data-persons.xml"/>-->
+
+    <!-- GEDCOM-Person Links (Connect persons to family tree) -->
+<!--    <include file="db/changelog/changes/dml/025-data-gedcom-person-links.xml"/>-->
+
+    <!-- Membership Data (Mosque membership status for persons) -->
+<!--    <include file="db/changelog/changes/dml/026-data-memberships.xml"/>-->
+
+</databaseChangeLog>

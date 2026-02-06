@@ -1,0 +1,104 @@
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+	<!-- SEQUENCES TABLE -->
+	<changeSet onValidationFail="MARK_RAN" failOnError="true"
+		author="simplesolutions" id="1538430449815">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="sequences_" />
+			</not>
+		</preConditions>
+		<createTable tableName="sequences_">
+			<column name="PK_NAME" type="VARCHAR(255)">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="PK_VALUE" type="BIGINT" />
+		</createTable>
+	</changeSet>
+	
+	<changeSet id="create-initial-sequences" author="system">
+        <!-- Insert initial values for all sequences -->
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="persons_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="gedcom_person_links_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="gedcom_individuals_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="gedcom_families_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="gedcom_family_children_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="users_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="roles_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="user_member_link_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="memberships_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="membership_fees_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="members_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="subscriptions_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="donations_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="user_preferences_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="password_reset_tokens_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+        
+        <insert tableName="sequences_">
+            <column name="PK_NAME" value="configurations_seq"/>
+            <column name="PK_VALUE" valueNumeric="1000"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

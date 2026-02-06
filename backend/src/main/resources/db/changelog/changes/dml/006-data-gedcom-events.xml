@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Birth Events for Generation 1 (Grandparents) -->
+    
+    <changeSet id="gedcom-event-001-birth-hassan" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[1]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1945-03-15]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Birth of Hassan Al-Rahman]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[1]]></param>
+            <param name="individualId"><![CDATA[@I1@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-002-birth-zainab" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[2]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1948-07-22]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Birth of Zainab Al-Masri]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[2]]></param>
+            <param name="individualId"><![CDATA[@I2@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-003-birth-mahmoud" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[3]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1943-11-08]]></param>
+            <param name="place"><![CDATA[Damascus, Syria]]></param>
+            <param name="description"><![CDATA[Birth of Mahmoud Ibrahim]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[3]]></param>
+            <param name="individualId"><![CDATA[@I3@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-004-birth-khadija" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[4]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1946-05-30]]></param>
+            <param name="place"><![CDATA[Damascus, Syria]]></param>
+            <param name="description"><![CDATA[Birth of Khadija Al-Sham]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[4]]></param>
+            <param name="individualId"><![CDATA[@I4@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Marriage Events for Generation 1 -->
+    
+    <changeSet id="gedcom-event-005-marriage-hassan-zainab" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[5]]></param>
+            <param name="type"><![CDATA[MARR]]></param>
+            <param name="date"><![CDATA[1968-06-10]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Marriage of Hassan and Zainab]]></param>
+            <param name="familyId"><![CDATA[@F1@]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[5]]></param>
+            <param name="individualId"><![CDATA[@I1@]]></param>
+            <param name="role"><![CDATA[HUSBAND]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[5]]></param>
+            <param name="individualId"><![CDATA[@I2@]]></param>
+            <param name="role"><![CDATA[WIFE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-006-marriage-mahmoud-khadija" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[6]]></param>
+            <param name="type"><![CDATA[MARR]]></param>
+            <param name="date"><![CDATA[1966-09-15]]></param>
+            <param name="place"><![CDATA[Damascus, Syria]]></param>
+            <param name="description"><![CDATA[Marriage of Mahmoud and Khadija]]></param>
+            <param name="familyId"><![CDATA[@F2@]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[6]]></param>
+            <param name="individualId"><![CDATA[@I3@]]></param>
+            <param name="role"><![CDATA[HUSBAND]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[6]]></param>
+            <param name="individualId"><![CDATA[@I4@]]></param>
+            <param name="role"><![CDATA[WIFE]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Birth Events for Generation 2 (Parents) -->
+    
+    <changeSet id="gedcom-event-007-birth-ibrahim" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[7]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1970-08-12]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Birth of Ibrahim Al-Rahman]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[7]]></param>
+            <param name="individualId"><![CDATA[@I5@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-008-birth-fatima" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[8]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1972-04-18]]></param>
+            <param name="place"><![CDATA[Damascus, Syria]]></param>
+            <param name="description"><![CDATA[Birth of Fatima Ibrahim]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[8]]></param>
+            <param name="individualId"><![CDATA[@I6@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-009-birth-ahmed" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[9]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1973-02-25]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Birth of Ahmed Al-Rahman]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[9]]></param>
+            <param name="individualId"><![CDATA[@I7@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-010-birth-zahra" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[10]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1975-09-10]]></param>
+            <param name="place"><![CDATA[Damascus, Syria]]></param>
+            <param name="description"><![CDATA[Birth of Zahra Ibrahim]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[10]]></param>
+            <param name="individualId"><![CDATA[@I8@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-011-birth-amina" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[11]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1976-12-05]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Birth of Amina Al-Rahman]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[11]]></param>
+            <param name="individualId"><![CDATA[@I9@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-012-birth-abdullah" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[12]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1978-03-28]]></param>
+            <param name="place"><![CDATA[Damascus, Syria]]></param>
+            <param name="description"><![CDATA[Birth of Abdullah Ibrahim]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[12]]></param>
+            <param name="individualId"><![CDATA[@I10@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Marriage Events for Generation 2 -->
+    
+    <changeSet id="gedcom-event-013-marriage-ibrahim-fatima" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[13]]></param>
+            <param name="type"><![CDATA[MARR]]></param>
+            <param name="date"><![CDATA[1992-11-20]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Marriage of Ibrahim and Fatima]]></param>
+            <param name="familyId"><![CDATA[@F3@]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[13]]></param>
+            <param name="individualId"><![CDATA[@I5@]]></param>
+            <param name="role"><![CDATA[HUSBAND]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[13]]></param>
+            <param name="individualId"><![CDATA[@I6@]]></param>
+            <param name="role"><![CDATA[WIFE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-014-marriage-ahmed-zahra" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[14]]></param>
+            <param name="type"><![CDATA[MARR]]></param>
+            <param name="date"><![CDATA[1998-05-15]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Marriage of Ahmed and Zahra]]></param>
+            <param name="familyId"><![CDATA[@F4@]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[14]]></param>
+            <param name="individualId"><![CDATA[@I7@]]></param>
+            <param name="role"><![CDATA[HUSBAND]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[14]]></param>
+            <param name="individualId"><![CDATA[@I8@]]></param>
+            <param name="role"><![CDATA[WIFE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-015-marriage-abdullah-amina" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[15]]></param>
+            <param name="type"><![CDATA[MARR]]></param>
+            <param name="date"><![CDATA[1999-08-07]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Marriage of Abdullah and Amina]]></param>
+            <param name="familyId"><![CDATA[@F5@]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[15]]></param>
+            <param name="individualId"><![CDATA[@I10@]]></param>
+            <param name="role"><![CDATA[HUSBAND]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[15]]></param>
+            <param name="individualId"><![CDATA[@I9@]]></param>
+            <param name="role"><![CDATA[WIFE]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Birth Events for Generation 3 (Children) -->
+    
+    <changeSet id="gedcom-event-016-birth-omar" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[16]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1995-06-14]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Birth of Omar Al-Rahman]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[16]]></param>
+            <param name="individualId"><![CDATA[@I11@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-017-birth-maryam" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[17]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[1997-11-22]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Birth of Maryam Al-Rahman]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[17]]></param>
+            <param name="individualId"><![CDATA[@I12@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-018-birth-yusuf" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[18]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[2000-03-10]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Birth of Yusuf Al-Rahman]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[18]]></param>
+            <param name="individualId"><![CDATA[@I13@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-019-birth-sarah" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[19]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[2003-07-19]]></param>
+            <param name="place"><![CDATA[Cairo, Egypt]]></param>
+            <param name="description"><![CDATA[Birth of Sarah Al-Rahman]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[19]]></param>
+            <param name="individualId"><![CDATA[@I14@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-020-birth-ali" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[20]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[2002-01-08]]></param>
+            <param name="place"><![CDATA[Damascus, Syria]]></param>
+            <param name="description"><![CDATA[Birth of Ali Ibrahim]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[20]]></param>
+            <param name="individualId"><![CDATA[@I15@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-021-birth-layla" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[21]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[2005-10-12]]></param>
+            <param name="place"><![CDATA[Damascus, Syria]]></param>
+            <param name="description"><![CDATA[Birth of Layla Ibrahim]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[21]]></param>
+            <param name="individualId"><![CDATA[@I16@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="gedcom-event-022-birth-mohammed" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEvent">
+            <param name="id"><![CDATA[22]]></param>
+            <param name="type"><![CDATA[BIRT]]></param>
+            <param name="date"><![CDATA[2008-04-25]]></param>
+            <param name="place"><![CDATA[Damascus, Syria]]></param>
+            <param name="description"><![CDATA[Birth of Mohammed Ibrahim]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataGedcomEventParticipant">
+            <param name="eventId"><![CDATA[22]]></param>
+            <param name="individualId"><![CDATA[@I17@]]></param>
+            <param name="role"><![CDATA[PRIMARY]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- 
+        Person Data - All 17 individuals from GEDCOM family tree
+        Creates foundational Person records linked to GEDCOM individuals
+    -->
+
+    <!-- Generation 1: Grandparents (4 persons) -->
+    <changeSet id="550e8400-e29b-41d4-a716-446655440001" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440001]]></param>
+            <param name="firstName"><![CDATA[Hassan]]></param>
+            <param name="lastName"><![CDATA[Al-Rahman]]></param>
+            <param name="gender"><![CDATA[M]]></param>
+            <param name="dateOfBirth"><![CDATA[1945-03-15]]></param>
+            <param name="email"><![CDATA[hassan.alrahman@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440002" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440002]]></param>
+            <param name="firstName"><![CDATA[Zainab]]></param>
+            <param name="lastName"><![CDATA[Al-Masri]]></param>
+            <param name="gender"><![CDATA[F]]></param>
+            <param name="dateOfBirth"><![CDATA[1948-07-22]]></param>
+            <param name="email"><![CDATA[zainab.almasri@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440003" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440003]]></param>
+            <param name="firstName"><![CDATA[Mahmoud]]></param>
+            <param name="lastName"><![CDATA[Ibrahim]]></param>
+            <param name="gender"><![CDATA[M]]></param>
+            <param name="dateOfBirth"><![CDATA[1943-11-08]]></param>
+            <param name="email"><![CDATA[mahmoud.ibrahim@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440004" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440004]]></param>
+            <param name="firstName"><![CDATA[Khadija]]></param>
+            <param name="lastName"><![CDATA[Al-Sham]]></param>
+            <param name="gender"><![CDATA[F]]></param>
+            <param name="dateOfBirth"><![CDATA[1946-05-30]]></param>
+            <param name="email"><![CDATA[khadija.alsham@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Generation 2: Parents (5 persons) -->
+    <changeSet id="550e8400-e29b-41d4-a716-446655440005" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440005]]></param>
+            <param name="firstName"><![CDATA[Ibrahim]]></param>
+            <param name="lastName"><![CDATA[Al-Rahman]]></param>
+            <param name="gender"><![CDATA[M]]></param>
+            <param name="dateOfBirth"><![CDATA[1970-08-12]]></param>
+            <param name="email"><![CDATA[ibrahim.alrahman@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440006" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440006]]></param>
+            <param name="firstName"><![CDATA[Fatima]]></param>
+            <param name="lastName"><![CDATA[Ibrahim]]></param>
+            <param name="gender"><![CDATA[F]]></param>
+            <param name="dateOfBirth"><![CDATA[1972-04-18]]></param>
+            <param name="email"><![CDATA[fatima.ibrahim@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440007" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440007]]></param>
+            <param name="firstName"><![CDATA[Ahmed]]></param>
+            <param name="lastName"><![CDATA[Al-Rahman]]></param>
+            <param name="gender"><![CDATA[M]]></param>
+            <param name="dateOfBirth"><![CDATA[1973-02-25]]></param>
+            <param name="email"><![CDATA[ahmed.alrahman@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440008" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440008]]></param>
+            <param name="firstName"><![CDATA[Zahra]]></param>
+            <param name="lastName"><![CDATA[Ibrahim]]></param>
+            <param name="gender"><![CDATA[F]]></param>
+            <param name="dateOfBirth"><![CDATA[1975-09-10]]></param>
+            <param name="email"><![CDATA[zahra.ibrahim@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440009" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440009]]></param>
+            <param name="firstName"><![CDATA[Amina]]></param>
+            <param name="lastName"><![CDATA[Al-Rahman]]></param>
+            <param name="gender"><![CDATA[F]]></param>
+            <param name="dateOfBirth"><![CDATA[1976-12-05]]></param>
+            <param name="email"><![CDATA[amina.alrahman@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440010" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440010]]></param>
+            <param name="firstName"><![CDATA[Abdullah]]></param>
+            <param name="lastName"><![CDATA[Ibrahim]]></param>
+            <param name="gender"><![CDATA[M]]></param>
+            <param name="dateOfBirth"><![CDATA[1978-03-28]]></param>
+            <param name="email"><![CDATA[abdullah.ibrahim@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Generation 3: Children (8 persons) -->
+    <changeSet id="550e8400-e29b-41d4-a716-446655440011" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440011]]></param>
+            <param name="firstName"><![CDATA[Omar]]></param>
+            <param name="lastName"><![CDATA[Al-Rahman]]></param>
+            <param name="gender"><![CDATA[M]]></param>
+            <param name="dateOfBirth"><![CDATA[1995-06-14]]></param>
+            <param name="email"><![CDATA[omar.alrahman@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440012" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440012]]></param>
+            <param name="firstName"><![CDATA[Maryam]]></param>
+            <param name="lastName"><![CDATA[Al-Rahman]]></param>
+            <param name="gender"><![CDATA[F]]></param>
+            <param name="dateOfBirth"><![CDATA[1997-11-22]]></param>
+            <param name="email"><![CDATA[maryam.alrahman@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440013" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440013]]></param>
+            <param name="firstName"><![CDATA[Yusuf]]></param>
+            <param name="lastName"><![CDATA[Al-Rahman]]></param>
+            <param name="gender"><![CDATA[M]]></param>
+            <param name="dateOfBirth"><![CDATA[2000-03-10]]></param>
+            <param name="email"><![CDATA[yusuf.alrahman@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440014" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440014]]></param>
+            <param name="firstName"><![CDATA[Sarah]]></param>
+            <param name="lastName"><![CDATA[Al-Rahman]]></param>
+            <param name="gender"><![CDATA[F]]></param>
+            <param name="dateOfBirth"><![CDATA[2003-07-19]]></param>
+            <param name="email"><![CDATA[sarah.alrahman@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440015" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440015]]></param>
+            <param name="firstName"><![CDATA[Ali]]></param>
+            <param name="lastName"><![CDATA[Ibrahim]]></param>
+            <param name="gender"><![CDATA[M]]></param>
+            <param name="dateOfBirth"><![CDATA[2002-01-08]]></param>
+            <param name="email"><![CDATA[ali.ibrahim@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440016" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440016]]></param>
+            <param name="firstName"><![CDATA[Layla]]></param>
+            <param name="lastName"><![CDATA[Ibrahim]]></param>
+            <param name="gender"><![CDATA[F]]></param>
+            <param name="dateOfBirth"><![CDATA[2005-10-12]]></param>
+            <param name="email"><![CDATA[layla.ibrahim@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="550e8400-e29b-41d4-a716-446655440017" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataPerson">
+            <param name="id"><![CDATA[550e8400-e29b-41d4-a716-446655440017]]></param>
+            <param name="firstName"><![CDATA[Mohammed]]></param>
+            <param name="lastName"><![CDATA[Ibrahim]]></param>
+            <param name="gender"><![CDATA[M]]></param>
+            <param name="dateOfBirth"><![CDATA[2008-04-25]]></param>
+            <param name="email"><![CDATA[mohammed.ibrahim@mosque.org]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

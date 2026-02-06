@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- 
+        Membership Data - All 17 active memberships for persons
+        Maps each person to their mosque membership status
+    -->
+
+    <!-- Generation 1: Grandparents (4 memberships) -->
+    <changeSet id="770e8400-e29b-41d4-a716-446655440001" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440001]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440001]]></param>
+            <param name="membershipType"><![CDATA[SENIOR]]></param>
+            <param name="startDate"><![CDATA[1990-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="770e8400-e29b-41d4-a716-446655440002" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440002]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440002]]></param>
+            <param name="membershipType"><![CDATA[SENIOR]]></param>
+            <param name="startDate"><![CDATA[1990-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="770e8400-e29b-41d4-a716-446655440003" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440003]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440003]]></param>
+            <param name="membershipType"><![CDATA[SENIOR]]></param>
+            <param name="startDate"><![CDATA[1990-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="770e8400-e29b-41d4-a716-446655440004" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440004]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440004]]></param>
+            <param name="membershipType"><![CDATA[SENIOR]]></param>
+            <param name="startDate"><![CDATA[1990-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Generation 2: Parents (5 memberships) -->
+    <changeSet id="770e8400-e29b-41d4-a716-446655440005" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440005]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440005]]></param>
+            <param name="membershipType"><![CDATA[FAMILY]]></param>
+            <param name="startDate"><![CDATA[2000-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="770e8400-e29b-41d4-a716-446655440006" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440006]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440006]]></param>
+            <param name="membershipType"><![CDATA[FAMILY]]></param>
+            <param name="startDate"><![CDATA[2000-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="770e8400-e29b-41d4-a716-446655440007" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440007]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440007]]></param>
+            <param name="membershipType"><![CDATA[FAMILY]]></param>
+            <param name="startDate"><![CDATA[2005-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="770e8400-e29b-41d4-a716-446655440008" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440008]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440008]]></param>
+            <param name="membershipType"><![CDATA[FAMILY]]></param>
+            <param name="startDate"><![CDATA[2005-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="770e8400-e29b-41d4-a716-446655440009" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440009]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440009]]></param>
+            <param name="membershipType"><![CDATA[FAMILY]]></param>
+            <param name="startDate"><![CDATA[2010-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Generation 3: Children (8 memberships) -->
+    <changeSet id="880e8400-e29b-41d4-a716-446655440010" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440010]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440010]]></param>
+            <param name="membershipType"><![CDATA[YOUTH]]></param>
+            <param name="startDate"><![CDATA[2015-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="880e8400-e29b-41d4-a716-446655440011" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440011]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440011]]></param>
+            <param name="membershipType"><![CDATA[YOUTH]]></param>
+            <param name="startDate"><![CDATA[2018-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="880e8400-e29b-41d4-a716-446655440012" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440012]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440012]]></param>
+            <param name="membershipType"><![CDATA[YOUTH]]></param>
+            <param name="startDate"><![CDATA[2020-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="880e8400-e29b-41d4-a716-446655440013" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440013]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440013]]></param>
+            <param name="membershipType"><![CDATA[YOUTH]]></param>
+            <param name="startDate"><![CDATA[2022-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="880e8400-e29b-41d4-a716-446655440014" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440014]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440014]]></param>
+            <param name="membershipType"><![CDATA[FULL]]></param>
+            <param name="startDate"><![CDATA[2016-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="880e8400-e29b-41d4-a716-446655440015" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440015]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440015]]></param>
+            <param name="membershipType"><![CDATA[YOUTH]]></param>
+            <param name="startDate"><![CDATA[2019-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="880e8400-e29b-41d4-a716-446655440016" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440016]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440016]]></param>
+            <param name="membershipType"><![CDATA[YOUTH]]></param>
+            <param name="startDate"><![CDATA[2021-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="880e8400-e29b-41d4-a716-446655440017" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataMembership">
+            <param name="id"><![CDATA[770e8400-e29b-41d4-a716-446655440017]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440017]]></param>
+            <param name="membershipType"><![CDATA[YOUTH]]></param>
+            <param name="startDate"><![CDATA[2023-01-01]]></param>
+            <param name="status"><![CDATA[ACTIVE]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

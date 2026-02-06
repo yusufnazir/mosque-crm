@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="e8f6g1h4-7i5d-7g2e-1h0f-6d4e5f6g7h8i" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_member_link"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user_member_link">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="linked_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+
+
+        <createIndex tableName="user_member_link" indexName="idx_user_member_link_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="user_member_link" indexName="idx_user_member_link_person_id">
+            <column name="person_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

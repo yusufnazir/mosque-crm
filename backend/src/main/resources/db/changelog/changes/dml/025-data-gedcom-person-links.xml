@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--  GEDCOM Person Links - All 17 links for complete family tree integration -->
+
+    <!-- Generation 1: Grandparents -->
+    <changeSet id="660e8400-e29b-41d4-a716-446655440001" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440001]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440001]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I1@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440002" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440002]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440002]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I2@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440003" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440003]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440003]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I3@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440004" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440004]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440004]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I4@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Generation 2: Parents -->
+    <changeSet id="660e8400-e29b-41d4-a716-446655440005" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440005]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440005]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I5@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440006" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440006]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440006]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I6@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440007" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440007]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440007]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I7@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440008" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440008]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440008]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I8@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440009" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440009]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440009]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I9@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440010" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440010]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440010]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I10@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Generation 3: Children -->
+    <changeSet id="660e8400-e29b-41d4-a716-446655440011" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440011]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440011]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I11@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440012" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440012]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440012]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I12@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440013" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440013]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440013]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I13@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440014" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440014]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440014]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I14@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440015" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440015]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440015]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I15@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440016" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440016]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440016]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I16@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="660e8400-e29b-41d4-a716-446655440017" author="system">
+        <customChange class="com.mosque.crm.liquibase.DataGedcomPersonLink">
+            <param name="id"><![CDATA[660e8400-e29b-41d4-a716-446655440017]]></param>
+            <param name="personId"><![CDATA[550e8400-e29b-41d4-a716-446655440017]]></param>
+            <param name="gedcomIndividualId"><![CDATA[@I17@]]></param>
+            <param name="linkedBy"><![CDATA[system]]></param>
+            <param name="linkReason"><![CDATA[Initial data setup]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

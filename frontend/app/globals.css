@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FAFAF9;
+  --foreground: #1C1917;
+  --emerald: #047857;
+  --gold: #D4AF37;
+  --cream: #FAFAF9;
+  --charcoal: #1C1917;
+  --emerald-light: #059669;
+  --emerald-dark: #065f46;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-emerald-600: var(--emerald);
+  --color-emerald-700: var(--emerald-light);
+  --color-emerald-800: var(--emerald-dark);
+  --color-gold: var(--gold);
+  --color-cream: var(--cream);
+  --color-charcoal: var(--charcoal);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+* {
+  transition: colors 200ms ease-in-out;
+}

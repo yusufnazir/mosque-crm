@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="999-add-all-foreign-keys" author="system">
+        <!-- GEDCOM Foreign Keys -->
+        <!-- Removed family relationship constraints to allow flexible import -->
+        <!--
+        <addForeignKeyConstraint
+                baseTableName="gedcom_families"
+                baseColumnNames="husband_id"
+                constraintName="fk_family_husband"
+                referencedTableName="gedcom_individuals"
+                referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_families"
+                baseColumnNames="wife_id"
+                constraintName="fk_family_wife"
+                referencedTableName="gedcom_individuals"
+                referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_family_children"
+                baseColumnNames="family_id"
+                constraintName="fk_family_child_family"
+                referencedTableName="gedcom_families"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_family_children"
+                baseColumnNames="child_id"
+                constraintName="fk_family_child_individual"
+                referencedTableName="gedcom_individuals"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+        -->
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_events"
+                baseColumnNames="family_id"
+                constraintName="fk_event_family"
+                referencedTableName="gedcom_families"
+                referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_event_participants"
+                baseColumnNames="event_id"
+                constraintName="fk_event_participant_event"
+                referencedTableName="gedcom_events"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_event_participants"
+                baseColumnNames="individual_id"
+                constraintName="fk_event_participant_individual"
+                referencedTableName="gedcom_individuals"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_citations"
+                baseColumnNames="source_id"
+                constraintName="fk_citation_source"
+                referencedTableName="gedcom_sources"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_citations"
+                baseColumnNames="event_id"
+                constraintName="fk_citation_event"
+                referencedTableName="gedcom_events"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_note_links"
+                baseColumnNames="note_id"
+                constraintName="fk_note_link_note"
+                referencedTableName="gedcom_notes"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <!-- Security Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="user_roles"
+                baseColumnNames="user_id"
+                constraintName="fk_user_roles_user"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="user_roles"
+                baseColumnNames="role_id"
+                constraintName="fk_user_roles_role"
+                referencedTableName="roles"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="user_member_link"
+                baseColumnNames="user_id"
+                constraintName="fk_user_member_link_user"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="user_member_link"
+                baseColumnNames="person_id"
+                constraintName="fk_user_member_link_person"
+                referencedTableName="persons"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+
+
+        <!-- Person-Centric Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="memberships"
+                baseColumnNames="person_id"
+                constraintName="fk_membership_person"
+                referencedTableName="persons"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="subscriptions"
+                baseColumnNames="person_id"
+                constraintName="fk_subscription_person"
+                referencedTableName="persons"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="donations"
+                baseColumnNames="person_id"
+                constraintName="fk_donation_person"
+                referencedTableName="persons"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_person_links"
+                baseColumnNames="person_id"
+                constraintName="fk_gedcom_person_link_person"
+                referencedTableName="persons"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="gedcom_person_links"
+                baseColumnNames="gedcom_individual_id"
+                constraintName="fk_gedcom_person_link_individual"
+                referencedTableName="gedcom_individuals"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+                
+           <addForeignKeyConstraint
+            baseTableName="membership_fees"
+            baseColumnNames="member_id"
+            constraintName="fk_membership_fees_member"
+            referencedTableName="members"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

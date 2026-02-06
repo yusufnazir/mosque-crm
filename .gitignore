@@ -1,0 +1,29 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+.factorypath
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tool-installed JDK and Maven (auto-downloaded by VS Code extensions)
+.jdk/
+.maven/
+
+# Node
+node_modules/
+package-lock.json
+
+# Backend build output
+backend/target/
+
+# Environment files
+.env
+.env.local
+.env.*.local

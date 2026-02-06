@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="f8b3d7a2-9c4e-4d1f-a5b6-3e8c7d2f1a4b" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="members"/>
+            </not>
+        </preConditions>
+        <createTable tableName="members">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <!-- Link to GEDCOM Individual (optional) -->
+            <column name="individual_id" type="VARCHAR(20)">
+                <constraints foreignKeyName="fk_member_gedcom_individual" 
+                           references="gedcom_individuals(id)"/>
+            </column>
+            <!-- Contact Information -->
+            <column name="email" type="VARCHAR(255)">
+                <constraints unique="true"/>
+            </column>
+            <column name="phone" type="VARCHAR(20)"/>
+            <column name="address" type="VARCHAR(500)"/>
+            <column name="city" type="VARCHAR(100)"/>
+            <column name="country" type="VARCHAR(100)"/>
+            <column name="postal_code" type="VARCHAR(20)"/>
+            <!-- Membership Management -->
+            <column name="membership_status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_since" type="DATE"/>
+            <!-- Audit -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

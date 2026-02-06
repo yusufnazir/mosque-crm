@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="005-create-gedcom-family-children" author="system">
+        <createTable tableName="gedcom_family_children">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="family_id" type="VARCHAR(20)">
+                <!-- Removed NOT NULL constraint to allow flexible import -->
+            </column>
+            <column name="child_id" type="VARCHAR(20)">
+                <!-- Removed NOT NULL constraint to allow flexible import -->
+            </column>
+            <column name="relationship_type" type="VARCHAR(20)" defaultValue="BIOLOGICAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="birth_order" type="INT"/>
+        </createTable>
+
+        <createIndex tableName="gedcom_family_children" indexName="idx_familychild_family">
+            <column name="family_id"/>
+        </createIndex>
+
+        <createIndex tableName="gedcom_family_children" indexName="idx_familychild_child">
+            <column name="child_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
