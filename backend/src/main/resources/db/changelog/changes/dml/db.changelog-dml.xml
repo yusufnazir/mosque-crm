@@ -23,4 +23,15 @@
     <!-- Membership Data (Mosque membership status for persons) -->
 <!--    <include file="db/changelog/changes/dml/026-data-memberships.xml"/>-->
 
+    <!-- Authorization Data -->
+    <include file="db/changelog/changes/dml/030-data-permissions.xml"/>
+    <include file="db/changelog/changes/dml/031-data-role-permissions.xml"/>
+
+    <!-- Multi-Mosque Data -->
+    <include file="db/changelog/changes/dml/032-data-mosques.xml"/>
+    <include file="db/changelog/changes/dml/033-data-super-admin.xml"/>
+
+    <!-- Currency Reference Data -->
+    <include file="db/changelog/changes/dml/034-data-currencies.xml"/>
+
 </databaseChangeLog>

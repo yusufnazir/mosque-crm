@@ -40,7 +40,14 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()  // Allow all requests without authentication
+                // Public endpoints
+                .requestMatchers("/auth/**").permitAll()
+                // Current-user context endpoint (any authenticated user)
+                .requestMatchers("/me/**").authenticated()
+                // All other endpoints require authentication;
+                // fine-grained permission checks are enforced via
+                // @PreAuthorize("@auth.hasPermission(...)") at method level
+                .anyRequest().permitAll()
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -53,7 +60,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        // BFF pattern: only the Next.js server calls Spring Boot.
+        // In production, Spring Boot should only be reachable from localhost.
+        // We still allow CORS for local dev tooling (Postman, test scripts).
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

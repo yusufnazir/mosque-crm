@@ -79,4 +79,41 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
 
 	Optional<Person> findByHash(String hash);
 
+	/**
+	 * Fetch all persons with their associations eagerly loaded to avoid N+1 queries.
+	 * Loads userLink->user->roles and gedcomLink->gedcomIndividual in a single query.
+	 * Memberships are loaded via a separate batch query (see findPersonIdsWithActiveMembership).
+	 */
+	@Query("SELECT DISTINCT p FROM Person p "
+		+ "LEFT JOIN FETCH p.userLink ul "
+		+ "LEFT JOIN FETCH ul.user u "
+		+ "LEFT JOIN FETCH u.roles "
+		+ "LEFT JOIN FETCH p.gedcomLink gl "
+		+ "LEFT JOIN FETCH gl.gedcomIndividual")
+	List<Person> findAllWithAssociations();
+
+	/**
+	 * Fetch all persons with their associations eagerly loaded, with sorting.
+	 * Note: Cannot use Sort parameter with JOIN FETCH, so sorting is done in-memory.
+	 */
+	@Query("SELECT DISTINCT p FROM Person p "
+		+ "LEFT JOIN FETCH p.userLink ul "
+		+ "LEFT JOIN FETCH ul.user u "
+		+ "LEFT JOIN FETCH u.roles "
+		+ "LEFT JOIN FETCH p.gedcomLink gl "
+		+ "LEFT JOIN FETCH gl.gedcomIndividual")
+	List<Person> findAllWithAssociationsUnsorted();
+
+	/**
+	 * Count active persons (lightweight - no entity loading).
+	 */
+	@Query("SELECT COUNT(p) FROM Person p WHERE p.status = 'ACTIVE'")
+	long countActivePersons();
+
+	/**
+	 * Count all persons (lightweight).
+	 */
+	@Query("SELECT COUNT(p) FROM Person p")
+	long countAllPersons();
+
 }

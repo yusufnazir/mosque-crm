@@ -29,7 +29,7 @@ export default function ProfilePage() {
       if (!profile?.personId) return;
       try {
         setGenealogyLoading(true);
-        const response = await fetch(`http://localhost:8080/api/genealogy/persons/${profile.personId}/graph`);
+        const response = await fetch(`/api/genealogy/persons/${profile.personId}/graph`);
         if (!response.ok) throw new Error('Failed to load genealogy graph');
         const graphData = await response.json();
         setGenealogyData(graphData);
@@ -121,7 +121,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/4"></div>
           <div className="h-64 bg-gray-200 rounded-xl"></div>
@@ -132,7 +132,7 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <Card>
           <CardContent className="p-12 text-center">
             <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,20 +150,20 @@ export default function ProfilePage() {
   const paidFees = fees.filter((f) => f.status === 'PAID').reduce((sum, fee) => sum + fee.amount, 0);
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-charcoal mb-2">{t('sidebar.my_profile')}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('sidebar.my_profile')}</h1>
         <p className="text-gray-600">{t('member_detail.view_membership_details')}</p>
       </div>
 
       {/* Profile Information */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>{t('member_detail.personal_information')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600 mb-1">{t('member_detail.full_name')}</p>
                 <p className="font-medium text-charcoal">
@@ -285,14 +285,14 @@ export default function ProfilePage() {
           {familyTreeTab === 'genealogy' && (
             <div>
               {genealogyLoading ? (
-                <div className="bg-stone-50 rounded-lg border border-stone-200 p-12 text-center">
+                <div className="bg-stone-50 rounded-lg border border-stone-200 p-6 md:p-12 text-center">
                   <div className="animate-pulse">
-                    <div className="h-[600px] bg-gray-200 rounded"></div>
+                    <div className="h-[400px] md:h-[600px] bg-gray-200 rounded"></div>
                   </div>
                   <p className="text-stone-600 mt-4">{t('member_detail.loading_genealogy')}</p>
                 </div>
               ) : genealogyData && genealogyData.nodes?.length > 0 ? (
-                <div className="h-[600px] bg-white rounded-lg border border-stone-200">
+                <div className="h-[400px] md:h-[600px] bg-white rounded-lg border border-stone-200">
                   <GenealogyTree 
                     data={genealogyData}
                     onNodeClick={(nodeId: string, nodeType: string) => {
@@ -303,7 +303,7 @@ export default function ProfilePage() {
                   />
                 </div>
               ) : (
-                <div className="bg-stone-50 rounded-lg border border-stone-200 p-12 text-center text-stone-600">
+                <div className="bg-stone-50 rounded-lg border border-stone-200 p-6 md:p-12 text-center text-stone-600">
                   <p className="text-lg mb-2">{t('member_detail.no_genealogy_data')}</p>
                   <p className="text-sm">{t('member_detail.add_family_relationships')}</p>
                 </div>
@@ -320,14 +320,11 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[450px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     {t('member_detail.amount')}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    {t('member_detail.due_date')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     {t('member_detail.paid_date')}

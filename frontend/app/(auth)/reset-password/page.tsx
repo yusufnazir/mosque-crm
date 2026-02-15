@@ -51,7 +51,7 @@ function ResetPasswordContent() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/reset-password', {
+      const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,20 +82,17 @@ function ResetPasswordContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cream flex items-center justify-center p-4">
-      {/* Language Selector - Top Right */}
-      <div className="fixed top-8 right-8 z-50">
-        <LanguageSelector />
-      </div>
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-charcoal mb-2">
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-charcoal">
               {t('resetPassword.title')}
             </h1>
-            <p className="text-gray-600">
-              {t('resetPassword.subtitle')}
-            </p>
+            <LanguageSelector />
           </div>
+          <p className="text-gray-600 mb-8">
+            {t('resetPassword.subtitle')}
+          </p>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-charcoal mb-2">

@@ -5,11 +5,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 
 import com.mosque.crm.enums.DonationType;
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -28,7 +32,9 @@ import jakarta.persistence.TableGenerator;
  */
 @Entity
 @Table(name = "donations")
-public class Donation {
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
+public class Donation implements MosqueAware {
 
     @Id
     @TableGenerator(name = "donations_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -58,6 +64,9 @@ public class Donation {
 
     @Column(name = "anonymous")
     private Boolean anonymous = false;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
@@ -141,5 +150,15 @@ public class Donation {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
     }
 }

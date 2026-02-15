@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+	<!-- ═══════════ DASHBOARD ═══════════ -->
+	<changeSet id="cb4415dd-33fc-4443-abf4-285baa33c479" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[1]]></param>
+			<param name="code"><![CDATA[dashboard.view]]></param>
+			<param name="description"><![CDATA[View the main dashboard with statistics]]></param>
+			<param name="category"><![CDATA[dashboard]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ MEMBERS / PERSONS ═══════════ -->
+	<changeSet id="217891ba-47f6-4587-a56a-3b8339a5b6ff" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[2]]></param>
+			<param name="code"><![CDATA[member.view]]></param>
+			<param name="description"><![CDATA[View member list and details]]></param>
+			<param name="category"><![CDATA[member]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="c27bb370-76de-432d-b747-7c2dd7b1b1dc" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[3]]></param>
+			<param name="code"><![CDATA[member.create]]></param>
+			<param name="description"><![CDATA[Create new members]]></param>
+			<param name="category"><![CDATA[member]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="53cd26f1-d68d-4bb5-8d6a-b778eb08b66a" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[4]]></param>
+			<param name="code"><![CDATA[member.edit]]></param>
+			<param name="description"><![CDATA[Edit existing members]]></param>
+			<param name="category"><![CDATA[member]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="72a3ed49-534d-4f8a-a937-ba7b182d2c6a" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[5]]></param>
+			<param name="code"><![CDATA[member.delete]]></param>
+			<param name="description"><![CDATA[Delete members]]></param>
+			<param name="category"><![CDATA[member]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ FAMILY / GENEALOGY ═══════════ -->
+	<changeSet id="1d5ff5d5-264f-41f3-80a6-5229fc38cf0a" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[6]]></param>
+			<param name="code"><![CDATA[family.view]]></param>
+			<param name="description"><![CDATA[View family tree and relationships]]></param>
+			<param name="category"><![CDATA[family]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="35a687d4-ba80-479d-ab4e-b116fc7a51fd" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[7]]></param>
+			<param name="code"><![CDATA[family.manage]]></param>
+			<param name="description"><![CDATA[Add and remove family relationships]]></param>
+			<param name="category"><![CDATA[family]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ FEES / FINANCE ═══════════ -->
+	<changeSet id="2f532033-5d1f-4e67-8abb-c07b3bc480c6" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[8]]></param>
+			<param name="code"><![CDATA[finance.view]]></param>
+			<param name="description"><![CDATA[View fees and payment information]]></param>
+			<param name="category"><![CDATA[finance]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="d490698c-1016-41c0-8987-1d1d0881f375" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[9]]></param>
+			<param name="code"><![CDATA[finance.manage]]></param>
+			<param name="description"><![CDATA[Create and update fees, record payments]]></param>
+			<param name="category"><![CDATA[finance]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="f68ed5b6-e00f-498a-91f6-033d0edfaa7c" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[10]]></param>
+			<param name="code"><![CDATA[finance.export]]></param>
+			<param name="description"><![CDATA[Export financial data and reports]]></param>
+			<param name="category"><![CDATA[finance]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ IMPORT ═══════════ -->
+	<changeSet id="8e12c2a2-9208-4482-95a1-9531a4adcde1" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[11]]></param>
+			<param name="code"><![CDATA[import.execute]]></param>
+			<param name="description"><![CDATA[Execute data imports (Excel etc.)]]></param>
+			<param name="category"><![CDATA[import]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ SETTINGS / ADMIN ═══════════ -->
+	<changeSet id="1026233d-3552-42df-aef4-9dd40c4706b9" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[12]]></param>
+			<param name="code"><![CDATA[settings.view]]></param>
+			<param name="description"><![CDATA[View system settings]]></param>
+			<param name="category"><![CDATA[settings]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="89ea4129-f77c-4cf1-a11e-5300308b4148" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[13]]></param>
+			<param name="code"><![CDATA[settings.manage]]></param>
+			<param name="description"><![CDATA[Manage system settings and configuration]]></param>
+			<param name="category"><![CDATA[settings]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ USER MANAGEMENT ═══════════ -->
+	<changeSet id="a7c3e192-5b8d-4f01-92a6-user00view19" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[19]]></param>
+			<param name="code"><![CDATA[user.view]]></param>
+			<param name="description"><![CDATA[View user accounts list]]></param>
+			<param name="category"><![CDATA[user]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="456abab5-8406-41db-9b3e-07b4401e6a1a" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[14]]></param>
+			<param name="code"><![CDATA[user.manage]]></param>
+			<param name="description"><![CDATA[Manage user accounts and role assignments]]></param>
+			<param name="category"><![CDATA[user]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ CONTRIBUTIONS ═══════════ -->
+	<changeSet id="d7a1f3b2-9c4e-4a8d-b5f6-1e2d3c4b5a69" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[17]]></param>
+			<param name="code"><![CDATA[contribution.view]]></param>
+			<param name="description"><![CDATA[View contribution types, obligations, and payments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e8b2g4c3-0d5f-4b9e-c6a7-2f3e4d5c6b70" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[18]]></param>
+			<param name="code"><![CDATA[contribution.manage]]></param>
+			<param name="description"><![CDATA[Create and manage contribution types, obligations, and record payments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ PROFILE (OWN DATA) ═══════════ -->
+	<changeSet id="648a67fd-6d68-445f-8ead-a86dc3aa6f87" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[15]]></param>
+			<param name="code"><![CDATA[profile.view]]></param>
+			<param name="description"><![CDATA[View own profile and family]]></param>
+			<param name="category"><![CDATA[profile]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="5d86a337-b990-4f36-a0ef-76da4ae8c41d" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[16]]></param>
+			<param name="code"><![CDATA[profile.fees]]></param>
+			<param name="description"><![CDATA[View own fee status and payment history]]></param>
+			<param name="category"><![CDATA[profile]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ CURRENCY MANAGEMENT ═══════════ -->
+	<changeSet id="f1a2b3c4-0034-4aaa-bbbb-currency00021" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[21]]></param>
+			<param name="code"><![CDATA[currency.view]]></param>
+			<param name="description"><![CDATA[View currencies and exchange rates]]></param>
+			<param name="category"><![CDATA[currency]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="a2b3c4d5-0034-4aaa-bbbb-currency00022" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[22]]></param>
+			<param name="code"><![CDATA[currency.manage]]></param>
+			<param name="description"><![CDATA[Manage mosque currencies and exchange rates]]></param>
+			<param name="category"><![CDATA[currency]]></param>
+		</customChange>
+	</changeSet>
+
+</databaseChangeLog>

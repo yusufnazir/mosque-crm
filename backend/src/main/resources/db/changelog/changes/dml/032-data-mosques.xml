@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+	<!-- Default Mosque (used for existing data migration) -->
+	<changeSet id="8e64e545-c20b-4ff0-a9dc-247c93da7278-00" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataMosque">
+			<param name="id"><![CDATA[1]]></param>
+			<param name="name"><![CDATA[Moskee Baitur Rochim]]></param>
+			<param name="shortName"><![CDATA[BTR]]></param>
+			<param name="city"><![CDATA[Paramaribo]]></param>
+			<param name="country"><![CDATA[SR]]></param>
+			<param name="active"><![CDATA[true]]></param>
+		</customChange>
+	</changeSet>
+
+</databaseChangeLog>

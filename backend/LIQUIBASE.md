@@ -24,7 +24,8 @@ db/changelog/
     │   ├── db.changelog-ddl.xml      (consolidates all DDL files)
     │   ├── 001-create-members-table.xml
     │   ├── 002-create-fees-table.xml
-    │   └── ...
+    │   ├── ...
+    │   └── 999-add-all-foreign-keys.xml  (ALL FK constraints, loaded last)
     └── dml/
         ├── db.changelog-dml.xml      (consolidates all DML files)
         ├── 020-data-roles.xml
@@ -71,6 +72,9 @@ Each folder's `db.changelog-xxx.xml` includes all individual changesets in that 
     <!-- Security Tables -->
     <include file="db/changelog/changes/ddl/010-create-users-table.xml"/>
     <include file="db/changelog/changes/ddl/011-create-roles-table.xml"/>
+
+    <!-- Foreign Key Constraints (loaded LAST, after all tables exist) -->
+    <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>
     
 </databaseChangeLog>
 ```
@@ -144,12 +148,9 @@ Define database schema: tables, columns, constraints, indexes, foreign keys.
             <!-- Optional Fields -->
             <column name="phone" type="VARCHAR(20)"/>
             
-            <!-- Foreign Keys -->
+            <!-- Foreign Key Columns (FK constraints defined in 999-add-all-foreign-keys.xml) -->
             <column name="user_id" type="BIGINT">
-                <constraints 
-                    foreignKeyName="fk_tablename_user"
-                    references="users(id)"
-                    onDelete="CASCADE"/>
+                <constraints nullable="false"/>
             </column>
             
             <!-- Enum/Status Fields -->
@@ -247,18 +248,78 @@ File: `001-create-members-table.xml`
 ✅ **DO:**
 - Use UUID for changeset ID (consistency across all changesets)
 - Add `<preConditions>` with `onFail="MARK_RAN"` to skip if table exists
-- Define all constraints inline with columns
+- Define all constraints inline with columns (except foreign keys — see below)
 - Use appropriate data types (BIGINT for IDs, VARCHAR for text, etc.)
-- Add indexes for foreign keys and frequently queried columns
+- Add non-FK indexes in the table file (e.g., `idx_donation_date`, `idx_resettoken_token`)
 - Include `created_at` and `updated_at` timestamps
 - Set `nullable="false"` for required fields
-- Use meaningful constraint names (e.g., `fk_tablename_referencedtable`)
+- Keep unique constraints (`addUniqueConstraint`) in the table file
 
 ❌ **DON'T:**
 - Don't change DDL changesets after deployment to production
 - Don't use sequential IDs like "001", "002" (use UUIDs)
 - Don't forget `autoIncrement="true"` on primary key IDs
 - Don't create tables without preconditions (causes errors on re-run)
+- **Don't add `addForeignKeyConstraint` in individual table files** — see Foreign Key Separation below
+
+### Foreign Key Separation Convention
+
+**CRITICAL:** All `addForeignKeyConstraint` operations MUST be placed in the dedicated file `999-add-all-foreign-keys.xml`, NOT in individual table files.
+
+#### Principle
+Table files define **structure** (columns, types, unique constraints, non-FK indexes). Referential integrity (foreign keys) is defined **centrally** in `999-add-all-foreign-keys.xml`, which is loaded **last** in `db.changelog-ddl.xml` — after all tables have been created.
+
+#### Benefits
+- **No ordering dependencies**: Tables can be created in any order since FK constraints are applied afterwards
+- **Easier maintenance**: All referential integrity rules in one place
+- **Cleaner table files**: Focus purely on table structure
+- **Simpler debugging**: FK issues isolated to a single file
+
+#### What goes WHERE
+
+| Element | Location | Example |
+|---------|----------|---------|
+| `createTable` | Table file (e.g., `010-create-users-table.xml`) | Table structure |
+| `addColumn` | Original table file (new changeset) | Adding columns later |
+| `addUniqueConstraint` | Table file | `uk_user_role`, `uk_person_individual` |
+| Non-FK `createIndex` | Table file | `idx_donation_date`, `idx_resettoken_token` |
+| `addForeignKeyConstraint` | **`999-add-all-foreign-keys.xml`** | All FK constraints |
+| FK-related `createIndex` | **`999-add-all-foreign-keys.xml`** | `idx_userprefs_user`, `idx_membership_person` |
+
+#### FK Changeset Pattern
+Each FK in `999-add-all-foreign-keys.xml` uses this pattern:
+```xml
+<changeSet id="UUID-GOES-HERE" author="mosque-crm">
+    <preConditions onFail="MARK_RAN">
+        <not>
+            <foreignKeyConstraintExists foreignKeyName="fk_tablename_referencedtable"/>
+        </not>
+    </preConditions>
+    <addForeignKeyConstraint baseTableName="table_name" baseColumnNames="column_name"
+                             constraintName="fk_tablename_referencedtable"
+                             referencedTableName="referenced_table" referencedColumnNames="id"/>
+    <!-- Optional: index on FK column for query performance -->
+    <createIndex tableName="table_name" indexName="idx_tablename_column">
+        <column name="column_name"/>
+    </createIndex>
+</changeSet>
+```
+
+#### Organization within 999
+Group FK constraints by domain with XML comments:
+```xml
+<!-- ========== Security Domain ========== -->
+<!-- fk_userprefs_user, fk_resettoken_user, fk_userrole_user, ... -->
+
+<!-- ========== CRM / Person Domain ========== -->
+<!-- fk_membership_fees_person, fk_membership_person, ... -->
+
+<!-- ========== GEDCOM Domain ========== -->
+<!-- fk_notelink_note, ... -->
+
+<!-- ========== Multi-Mosque Domain ========== -->
+<!-- fk_user_mosque, fk_person_mosque, ... -->
+```
 
 ### Common DDL Operations
 

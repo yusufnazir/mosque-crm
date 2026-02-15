@@ -3,8 +3,14 @@ package com.mosque.crm.entity.gedcom;
 // Lombok removed. Explicit getters/setters/constructors below.
 import java.time.LocalDate;
 
+import org.hibernate.annotations.Filter;
+
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -23,7 +29,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "gedcom_families")
-public class Family {
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
+public class Family implements MosqueAware {
 
     @Id
     @Column(name = "id", length = 20)
@@ -46,6 +54,9 @@ public class Family {
 
     @Column(name = "divorce_place", length = 255)
     private String divorcePlace;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
 
     /**
      * Note: To find children of this family, query:
@@ -86,4 +97,9 @@ public class Family {
 
     public String getDivorcePlace() { return divorcePlace; }
     public void setDivorcePlace(String divorcePlace) { this.divorcePlace = divorcePlace; }
+
+    @Override
+    public Long getMosqueId() { return mosqueId; }
+    @Override
+    public void setMosqueId(Long mosqueId) { this.mosqueId = mosqueId; }
 }

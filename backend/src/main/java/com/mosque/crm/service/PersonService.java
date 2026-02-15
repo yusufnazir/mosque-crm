@@ -2,11 +2,13 @@ package com.mosque.crm.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,33 +41,61 @@ public class PersonService {
     }
 
     /**
-     * Get all persons
+     * Get lightweight stats (counts only, no entity loading)
+     */
+    @Transactional(readOnly = true)
+    public long countActivePersons() {
+        return personRepository.countActivePersons();
+    }
+
+    @Transactional(readOnly = true)
+    public long countAllPersons() {
+        return personRepository.countAllPersons();
+    }
+
+    /**
+     * Get all persons - optimized with batch-loaded associations
      */
     @Transactional(readOnly = true)
     public List<PersonDTO> getAllPersons() {
-        return personRepository.findAll().stream()
-                .map(this::convertToDTO)
+        List<Person> persons = personRepository.findAllWithAssociations();
+        Set<Long> activeMemberPersonIds = new HashSet<>(membershipRepository.findPersonIdsWithActiveMembership());
+        return persons.stream()
+                .map(p -> convertToDTO(p, activeMemberPersonIds))
                 .collect(Collectors.toList());
     }
     
     /**
-     * Get all persons with sorting
+     * Get all persons with sorting - optimized with batch-loaded associations
      */
     @Transactional(readOnly = true)
     public List<PersonDTO> getAllPersonsSorted(String sortBy, String direction) {
-        Sort sort = Sort.unsorted();
-        if (sortBy != null && !sortBy.trim().isEmpty()) {
-            Sort.Direction sortDirection = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
-            sort = Sort.by(sortDirection, sortBy);
-        } else {
-            // Default sort by ID ascending if no sort field is specified
-            sort = Sort.by(Sort.Direction.ASC, "id");
+        List<Person> persons = personRepository.findAllWithAssociationsUnsorted();
+        Set<Long> activeMemberPersonIds = new HashSet<>(membershipRepository.findPersonIdsWithActiveMembership());
+
+        // Sort in-memory (cannot combine Sort with JOIN FETCH in JPQL)
+        Comparator<Person> comparator = getPersonComparator(sortBy);
+        if ("desc".equalsIgnoreCase(direction)) {
+            comparator = comparator.reversed();
         }
-        
-        List<Person> persons = personRepository.findAll(sort);
+        persons.sort(comparator);
+
         return persons.stream()
-                .map(this::convertToDTO)
+                .map(p -> convertToDTO(p, activeMemberPersonIds))
                 .collect(Collectors.toList());
+    }
+
+    private Comparator<Person> getPersonComparator(String sortBy) {
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            return Comparator.comparing(Person::getId, Comparator.nullsLast(Comparator.naturalOrder()));
+        }
+        return switch (sortBy) {
+            case "firstName" -> Comparator.comparing(Person::getFirstName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "lastName" -> Comparator.comparing(Person::getLastName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "email" -> Comparator.comparing(Person::getEmail, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "status" -> Comparator.comparing(p -> p.getStatus() != null ? p.getStatus().name() : "", Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            default -> Comparator.comparing(Person::getId, Comparator.nullsLast(Comparator.naturalOrder()));
+        };
     }
 
     /**
@@ -254,9 +284,27 @@ public class PersonService {
     }
 
     /**
-     * Convert Person entity to PersonDTO
+     * Convert Person entity to PersonDTO.
+     * Falls back to per-entity membership query (used by single-entity lookups).
      */
     private PersonDTO convertToDTO(Person person) {
+        Optional<Membership> activeMembership = membershipRepository.findActiveMembershipByPerson(person);
+        return convertToDTO(person, activeMembership.isPresent());
+    }
+
+    /**
+     * Convert Person entity to PersonDTO with pre-loaded active membership set.
+     * Used by list queries to avoid N+1.
+     */
+    private PersonDTO convertToDTO(Person person, Set<Long> activeMemberPersonIds) {
+        boolean hasActiveMembership = person.getId() != null && activeMemberPersonIds.contains(person.getId());
+        return convertToDTO(person, hasActiveMembership);
+    }
+
+    /**
+     * Core conversion logic - associations are expected to be already loaded on the entity.
+     */
+    private PersonDTO convertToDTO(Person person, boolean hasActiveMembership) {
         PersonDTO dto = new PersonDTO();
         dto.setId(person.getId());
         dto.setFirstName(person.getFirstName());
@@ -274,10 +322,10 @@ public class PersonService {
         dto.setCreatedAt(person.getCreatedAt());
         dto.setUpdatedAt(person.getUpdatedAt());
 
-        // Set portal access indicator
+        // Set portal access indicator (userLink already fetched via JOIN FETCH)
         dto.setHasPortalAccess(person.hasPortalAccess());
 
-        // Set GEDCOM data indicator
+        // Set GEDCOM data indicator (gedcomLink already fetched via JOIN FETCH)
         dto.setHasGedcomData(person.hasGedcomData());
         if (person.hasGedcomData()) {
             GedcomPersonLink link = person.getGedcomLink();
@@ -286,11 +334,10 @@ public class PersonService {
             }
         }
 
-        // Set active membership indicator
-        Optional<Membership> activeMembership = membershipRepository.findActiveMembershipByPerson(person);
-        dto.setHasActiveMembership(activeMembership.isPresent());
+        // Set active membership indicator (pre-loaded, no extra query)
+        dto.setHasActiveMembership(hasActiveMembership);
 
-        // Set account info if user is linked
+        // Set account info if user is linked (user already fetched via JOIN FETCH)
         if (person.hasPortalAccess()) {
             User user = person.getUser();
             if (user != null) {

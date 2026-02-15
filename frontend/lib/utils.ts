@@ -1,9 +1,3 @@
-export const getToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('token');
-  }
-  return null;
-};
 export const formatDate = (dateString?: string | null): string => {
   if (!dateString) return 'N/A';
   try {

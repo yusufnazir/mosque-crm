@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { memberApi, feeApi } from '@/lib/api';
 import { familyApi } from '@/lib/familyApi';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
+  const { can } = useAuth();
   const [stats, setStats] = useState({
     totalFamilies: 0,
     activeMembers: 0,
@@ -15,13 +17,9 @@ export default function DashboardPage() {
     overdueFees: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<string>('ADMIN');
 
   useEffect(() => {
     fetchDashboardStats();
-    // Get role from localStorage
-    const storedRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-    if (storedRole) setRole(storedRole);
   }, []);
 
   const fetchDashboardStats = async () => {
@@ -30,9 +28,9 @@ export default function DashboardPage() {
       // Fetch families data
       const familiesData: any = await familyApi.getAll();
       const totalFamilies = typeof familiesData.count === 'number' ? familiesData.count : 0;
-      // Fetch members data
-      const membersData: any = await memberApi.getAll();
-      const activeMembers = membersData.filter((m: any) => m.status === 'ACTIVE').length;
+      // Fetch members count (lightweight - no full entity loading)
+      const memberStats: any = await memberApi.getStats();
+      const activeMembers = memberStats.active || 0;
       // Fetch fees data
       try {
         const feesData: any = await feeApi.getAll();
@@ -53,7 +51,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -120,21 +118,21 @@ export default function DashboardPage() {
   const DashboardCharts = require('@/components/DashboardCharts').default;
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-charcoal mb-2">{t('dashboard.title')}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('dashboard.title')}</h1>
         <p className="text-gray-600">{t('dashboard.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {statCards.map((stat) => (
           <Card key={stat.title}>
-            <CardContent className="flex items-center justify-between p-6">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-                <p className="text-3xl font-bold text-charcoal">{stat.value}</p>
+            <CardContent className="flex items-center justify-between p-4 md:p-6">
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm text-gray-600 mb-1 truncate">{stat.title}</p>
+                <p className="text-2xl md:text-3xl font-bold text-charcoal">{stat.value}</p>
               </div>
-              <div className={`${stat.bgColor} ${stat.iconColor} w-14 h-14 rounded-lg flex items-center justify-center`}>
+              <div className={`${stat.bgColor} ${stat.iconColor} w-10 h-10 md:w-14 md:h-14 rounded-lg flex items-center justify-center flex-shrink-0`}>
                 {stat.icon}
               </div>
             </CardContent>
@@ -153,7 +151,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {role === 'ADMIN' && (
+              {can('member.create') && (
                 <a
                   href="/members/add"
                   className="flex flex-col items-center p-6 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-all"
@@ -173,7 +171,7 @@ export default function DashboardPage() {
                 </svg>
                 <span className="font-medium text-yellow-700">{t('dashboard.record_payment')}</span>
               </a>
-              {role === 'ADMIN' && (
+              {can('member.view') && (
                 <a
                   href="/members"
                   className="flex flex-col items-center p-6 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-all"

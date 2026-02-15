@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="b5c3d8e1-4f2a-4d9b-8e7c-3a1b2c3d4e5f" author="mosque-crm">
+    <changeSet id="a7890123-b456-cd12-7890-123456ab0001" author="mosque-crm">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="users"/>
             </not>
         </preConditions>
         <createTable tableName="users">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="username" type="VARCHAR(50)">
@@ -21,9 +21,7 @@
             <column name="password" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="email" type="VARCHAR(100)">
-                <constraints nullable="true"/>
-            </column>
+            <column name="email" type="VARCHAR(255)"/>
             <column name="account_enabled" type="BOOLEAN" defaultValueBoolean="true">
                 <constraints nullable="false"/>
             </column>
@@ -33,23 +31,12 @@
             <column name="credentials_expired" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
-            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="last_login" type="TIMESTAMP">
-                <constraints nullable="true"/>
-            </column>
+            <column name="last_login_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="mosque_id" type="BIGINT"/>
+            <column name="selected_mosque_id" type="BIGINT"/>
         </createTable>
-
-        <createIndex tableName="users" indexName="idx_users_username">
-            <column name="username"/>
-        </createIndex>
-        <createIndex tableName="users" indexName="idx_users_email">
-            <column name="email"/>
-        </createIndex>
     </changeSet>
 
 </databaseChangeLog>

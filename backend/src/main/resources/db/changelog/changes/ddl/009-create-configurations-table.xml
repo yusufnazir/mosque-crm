@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="009-create-configurations-table" author="system">
+    <changeSet id="22222222-bbbb-cccc-dddd-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="configurations"/>
+            </not>
+        </preConditions>
         <createTable tableName="configurations">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="VARCHAR(255)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="value" type="TEXT">
-                <constraints nullable="true"/>
-            </column>
-            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+            <column name="name" type="VARCHAR(100)">
                 <constraints nullable="false"/>
             </column>
-            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
+            <column name="value" type="VARCHAR(1000)"/>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="category" type="VARCHAR(50)"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
 
-        <createIndex tableName="configurations" indexName="idx_configurations_name">
+        <createIndex tableName="configurations" indexName="idx_config_name">
             <column name="name"/>
         </createIndex>
     </changeSet>

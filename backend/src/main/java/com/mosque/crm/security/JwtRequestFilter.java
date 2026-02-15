@@ -11,6 +11,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.mosque.crm.multitenancy.TenantContext;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,6 +58,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+                // Set tenant context from JWT mosqueId claim
+                // null mosqueId = super admin (sees all mosques)
+                try {
+                    Long mosqueId = jwtUtil.extractMosqueId(jwt);
+                    TenantContext.setCurrentMosqueId(mosqueId);
+                } catch (Exception e) {
+                    logger.warn("Could not extract mosqueId from JWT: " + e.getMessage());
+                }
             }
         }
         chain.doFilter(request, response);

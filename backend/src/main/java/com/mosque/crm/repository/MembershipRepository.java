@@ -26,4 +26,11 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
     @Query("SELECT m FROM Membership m JOIN FETCH m.person p WHERE p.id = :personId")
     Optional<Membership> findByPersonId(Long personId);
+
+    /**
+     * Find all person IDs that have at least one active membership.
+     * Used for batch loading to avoid N+1 queries.
+     */
+    @Query("SELECT DISTINCT m.person.id FROM Membership m WHERE m.status = 'ACTIVE'")
+    List<Long> findPersonIdsWithActiveMembership();
 }

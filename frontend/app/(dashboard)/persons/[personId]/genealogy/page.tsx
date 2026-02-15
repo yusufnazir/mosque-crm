@@ -39,13 +39,7 @@ export default function GenealogyPage() {
   const fetchGenealogyGraph = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/genealogy/persons/${personId}/graph`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(`/api/genealogy/persons/${personId}/graph`);
 
       if (!response.ok) {
         throw new Error('Failed to load genealogy graph');
@@ -122,7 +116,7 @@ export default function GenealogyPage() {
           </Button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-stone-900 mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold text-stone-900 mb-2">
                 Genealogy Family Tree
               </h1>
               <p className="text-stone-600">

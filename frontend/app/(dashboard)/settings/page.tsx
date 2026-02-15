@@ -29,12 +29,7 @@ export default function SettingsPage() {
 
   const fetchMailServerConfig = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/configurations/mail-server', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch('/api/configurations/mail-server');
 
       if (response.ok) {
         const data = await response.json();
@@ -50,13 +45,9 @@ export default function SettingsPage() {
     setMessage('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/configurations/mail-server', {
+      const response = await fetch('/api/configurations/mail-server', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
       });
 
@@ -77,12 +68,8 @@ export default function SettingsPage() {
     setMessage('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/configurations/mail-server/test', {
+      const response = await fetch('/api/configurations/mail-server/test', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       const data = await response.json();
@@ -102,10 +89,10 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold text-charcoal mb-8">{t('settings.title')}</h1>
+    <div className="p-4 md:p-8">
+      <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-6 md:mb-8">{t('settings.title')}</h1>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-wrap gap-3 md:gap-4 mb-6">
         <button
           onClick={() => setActiveTab('mail')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
@@ -129,8 +116,8 @@ export default function SettingsPage() {
       </div>
 
       {activeTab === 'mail' && (
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl">
-          <h2 className="text-2xl font-bold text-charcoal mb-6">{t('settings.mail_server_settings')}</h2>
+        <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl">
+          <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-6">{t('settings.mail_server_settings')}</h2>
 
           <div className="space-y-6">
             <div>
@@ -213,7 +200,7 @@ export default function SettingsPage() {
               </div>
             )}
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
               <button
                 onClick={handleTest}
                 disabled={loading}
@@ -234,8 +221,8 @@ export default function SettingsPage() {
       )}
 
       {activeTab === 'document' && (
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl">
-          <h2 className="text-2xl font-bold text-charcoal mb-6">{t('settings.document_management')}</h2>
+        <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl">
+          <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-6">{t('settings.document_management')}</h2>
           <p className="text-gray-600">{t('settings.document_coming_soon')}</p>
         </div>
       )}

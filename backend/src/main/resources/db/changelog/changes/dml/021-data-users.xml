@@ -7,7 +7,7 @@
 						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
 	<!-- Admin user: admin / admin123 -->
-	<changeSet id="data_user_1_0" author="mosque-crm">
+	<changeSet id="a2b3c4d5-0021-4e6f-8a9b-re-seed-admin01" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataUser">
 			<param name="id"><![CDATA[1]]></param>
 			<param name="username"><![CDATA[admin]]></param>
@@ -20,11 +20,11 @@
 	</changeSet>
 
 	<!-- Test member user: ahmed / password123 -->
-	<changeSet id="data_user_2" author="mosque-crm">
+	<changeSet id="a2b3c4d5-0021-4e6f-8a9b-re-seed-ahmed02" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataUser">
 			<param name="id"><![CDATA[2]]></param>
 			<param name="username"><![CDATA[ahmed]]></param>
-			<param name="password"><![CDATA[$2a$10$FNnp90K0hhTjR.JOHOOgz.ZRzE3ooHGPpTGlFhMPG4pO/5P5xQ9sS]]></param>
+			<param name="password"><![CDATA[$2a$10$mGolO7dVSRSXOFfJfKGm7OKJpScxHhdTrmRCz1Z9DZs7OI1L2cv0a]]></param>
 			<param name="email"><![CDATA[ahmed@example.com]]></param>
 			<param name="accountEnabled"><![CDATA[true]]></param>
 			<param name="accountLocked"><![CDATA[false]]></param>

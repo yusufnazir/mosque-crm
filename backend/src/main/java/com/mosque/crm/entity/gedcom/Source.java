@@ -1,7 +1,13 @@
 package com.mosque.crm.entity.gedcom;
 
+import org.hibernate.annotations.Filter;
+
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -20,8 +26,10 @@ import lombok.Data;
  */
 @Entity
 @Table(name = "gedcom_sources")
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
 @Data
-public class Source {
+public class Source implements MosqueAware {
 
     @Id
     @Column(name = "id", length = 20)
@@ -44,4 +52,17 @@ public class Source {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
+    }
 }

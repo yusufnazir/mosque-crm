@@ -40,6 +40,14 @@ public class JwtUtil {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
+    public Long extractMosqueId(String token) {
+        return extractClaim(token, claims -> claims.get("mosqueId", Long.class));
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
+    }
+
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -59,9 +67,27 @@ public class JwtUtil {
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        // Add role to JWT claims
+        // Add role to JWT claims (for backward compatibility)
         if (!userDetails.getAuthorities().isEmpty()) {
             claims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
+        }
+        return createToken(claims, userDetails.getUsername());
+    }
+
+    /**
+     * Generate a token with userId and mosqueId embedded.
+     * Permissions are NOT stored in the token — they are resolved per request.
+     */
+    public String generateToken(UserDetails userDetails, Long userId, Long mosqueId) {
+        Map<String, Object> claims = new HashMap<>();
+        if (!userDetails.getAuthorities().isEmpty()) {
+            claims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
+        }
+        if (userId != null) {
+            claims.put("userId", userId);
+        }
+        if (mosqueId != null) {
+            claims.put("mosqueId", mosqueId);
         }
         return createToken(claims, userDetails.getUsername());
     }

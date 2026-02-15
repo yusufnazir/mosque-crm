@@ -111,7 +111,7 @@ export default function AddMemberPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
           <Button
@@ -122,14 +122,14 @@ export default function AddMemberPage() {
             ← Back to Members
           </Button>
         </div>
-        <h1 className="text-3xl font-bold text-charcoal mb-2">Add New Member</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">Add New Member</h1>
         <p className="text-gray-600">
           Create a new member. Head of household needs an account to manage family and fees.
         </p>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Personal Information */}
           <div className="lg:col-span-2">
             <Card>
@@ -143,7 +143,7 @@ export default function AddMemberPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       First Name <span className="text-red-500">*</span>
@@ -242,7 +242,7 @@ export default function AddMemberPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
                     <input

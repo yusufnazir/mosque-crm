@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="018-create-subscriptions-table" author="system">
+    <changeSet id="d0123456-e789-fa56-0123-456789de0001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="subscriptions"/>
+            </not>
+        </preConditions>
         <createTable tableName="subscriptions">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="person_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
             <column name="amount" type="DECIMAL(10,2)">
@@ -23,33 +31,12 @@
                 <constraints nullable="false"/>
             </column>
             <column name="end_date" type="DATE"/>
-            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE">
-                <constraints nullable="false"/>
-            </column>
-            <column name="notes" type="VARCHAR(1000)"/>
-            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE"/>
+            <column name="notes" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
-
-        <addForeignKeyConstraint
-                baseTableName="subscriptions"
-                baseColumnNames="person_id"
-                constraintName="fk_subscriptions_person"
-                referencedTableName="persons"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
-
-        <createIndex tableName="subscriptions" indexName="idx_subscriptions_person">
-            <column name="person_id"/>
-        </createIndex>
-
-        <createIndex tableName="subscriptions" indexName="idx_subscriptions_status">
-            <column name="status"/>
-        </createIndex>
     </changeSet>
 
 </databaseChangeLog>

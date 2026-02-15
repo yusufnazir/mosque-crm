@@ -5,14 +5,20 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import ToastNotification from '@/components/ToastNotification';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<any>(null);
   const [notification, setNotification] = useState<{type: string, message: string} | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { selectedMosque, activeMosqueName } = useAuth();
+
+  const mosqueName = activeMosqueName || selectedMosque?.name || null;
+  const mosqueSelected = !!mosqueName;
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -34,7 +40,7 @@ export default function ImportPage() {
     }
   };
 
-  const handleUpload = async () => {
+  const handleImportClick = () => {
     if (!file) {
       setNotification({
         type: 'error',
@@ -42,19 +48,31 @@ export default function ImportPage() {
       });
       return;
     }
+    setShowConfirm(true);
+  };
 
+  const handleUpload = async () => {
+    setShowConfirm(false);
     setIsUploading(true);
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file!);
+
+    const mosqueId = typeof window !== 'undefined' ? localStorage.getItem('selectedMosqueId') : null;
+
+    if (!mosqueId) {
+      setNotification({ type: 'error', message: 'No mosque selected. Please select a mosque first.' });
+      setIsUploading(false);
+      return;
+    }
 
     try {
-      // Using the backend API URL - assuming backend runs on port 8080
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/admin/import/excel`, {
+      const response = await fetch('/api/admin/import/excel', {
         method: 'POST',
+        headers: {
+          'X-Mosque-Id': mosqueId,
+        },
         body: formData,
-        // Don't include Content-Type header when using FormData with file upload
-        // The browser will set it automatically with the boundary
       });
 
       if (response.ok) {
@@ -85,16 +103,17 @@ export default function ImportPage() {
   const handleClear = () => {
     setFile(null);
     setUploadResult(null);
+    setShowConfirm(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-emerald-800">Import Members</h1>
-        <p className="text-gray-600 mt-2">Upload an Excel file to import member data into the system</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-emerald-800">Import Members</h1>
+        <p className="text-sm md:text-base text-gray-600 mt-2">Upload an Excel file to import member data into the system</p>
       </div>
       
       {notification && (
@@ -107,7 +126,21 @@ export default function ImportPage() {
         </div>
       )}
 
-      <Card className="p-6">
+      {!mosqueSelected && (
+        <div className="mb-6 bg-amber-50 border border-amber-300 rounded-xl p-5 flex items-start gap-3">
+          <svg className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <h3 className="font-semibold text-amber-800">No mosque selected</h3>
+            <p className="text-sm text-amber-700 mt-1">
+              Please select a mosque from the mosque selector before importing data. Imported members will be linked to the selected mosque.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <Card className={`p-6 ${!mosqueSelected ? 'opacity-50 pointer-events-none' : ''}`}>
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Upload Excel File</h2>
           <p className="text-gray-600 text-sm mb-6">Select an Excel file containing member information to import</p>
@@ -125,8 +158,8 @@ export default function ImportPage() {
             </div>
             <div className="self-end">
               <Button
-                onClick={handleUpload}
-                disabled={!file || isUploading}
+                onClick={handleImportClick}
+                disabled={!file || isUploading || !mosqueSelected}
                 className="whitespace-nowrap h-[42px]"
               >
                 {isUploading ? (
@@ -135,12 +168,36 @@ export default function ImportPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Uploading...
+                    Importing...
                   </span>
                 ) : 'Import Data'}
               </Button>
             </div>
           </div>
+
+          {showConfirm && file && mosqueSelected && (
+            <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-5 mb-6">
+              <div className="flex items-start gap-3">
+                <svg className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-emerald-800">Confirm Import</h3>
+                  <p className="text-sm text-emerald-700 mt-1">
+                    You are about to import <strong>{file.name}</strong> for mosque <strong>{mosqueName}</strong>. All imported members will be linked to this mosque.
+                  </p>
+                  <div className="flex gap-3 mt-4">
+                    <Button onClick={handleUpload} size="sm">
+                      Yes, Import
+                    </Button>
+                    <Button variant="secondary" onClick={() => setShowConfirm(false)} size="sm">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           
           {file && (
             <div className="flex items-center justify-between bg-emerald-50 p-4 rounded-lg border border-emerald-100 mb-6">

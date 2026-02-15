@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- exchange_rates: Per-mosque exchange rates between currencies -->
+    <changeSet id="a1b2c3d4-0031-4aaa-bbbb-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="exchange_rates"/>
+            </not>
+        </preConditions>
+        <createTable tableName="exchange_rates">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="mosque_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="from_currency_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="to_currency_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rate" type="DECIMAL(18,8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="effective_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="exchange_rates"
+                             columnNames="mosque_id, from_currency_id, to_currency_id, effective_date"
+                             constraintName="uk_exchange_rate"/>
+        <createIndex tableName="exchange_rates" indexName="idx_exchange_rate_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+        <createIndex tableName="exchange_rates" indexName="idx_exchange_rate_date">
+            <column name="effective_date"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

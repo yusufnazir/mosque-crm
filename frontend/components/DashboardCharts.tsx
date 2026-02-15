@@ -234,7 +234,7 @@ export default function DashboardCharts() {
 
   return (
     <>
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+      <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 <Card>
                   <CardHeader>
                     <CardTitle>{t('dashboard.age_gender_distribution_chart')}</CardTitle>
@@ -268,13 +268,13 @@ export default function DashboardCharts() {
             <CardTitle>{t('dashboard.gender_distribution_chart')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div style={{ height: 320, maxWidth: 320, margin: '0 auto' }}>
+            <div style={{ height: 280, maxWidth: 280, margin: '0 auto' }} className="md:!h-[320px] md:!max-w-[320px]">
               <Pie data={genderChart} options={{ responsive: true, maintainAspectRatio: false }} />
             </div>
           </CardContent>
         </Card>
       </div>
-      <div className="mt-8">
+      <div className="mt-6 md:mt-8">
         <Card>
           <CardHeader>
             <CardTitle>{t('dashboard.monthly_fee_chart')}</CardTitle>

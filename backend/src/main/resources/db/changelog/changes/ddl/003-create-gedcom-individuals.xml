@@ -5,7 +5,12 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="003-create-gedcom-individuals" author="system">
+    <changeSet id="c3d4e5f6-a7b8-9012-cdef-123456789001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="gedcom_individuals"/>
+            </not>
+        </preConditions>
         <createTable tableName="gedcom_individuals">
             <column name="id" type="VARCHAR(20)">
                 <constraints primaryKey="true" nullable="false"/>
@@ -20,6 +25,7 @@
             <column name="death_date" type="DATE"/>
             <column name="death_place" type="VARCHAR(255)"/>
             <column name="living" type="BOOLEAN" defaultValueBoolean="true"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
     </changeSet>
 

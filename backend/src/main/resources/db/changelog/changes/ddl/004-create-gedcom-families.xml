@@ -5,7 +5,12 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="004-create-gedcom-families" author="system">
+    <changeSet id="d4e5f6a7-b8c9-0123-defa-234567890001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="gedcom_families"/>
+            </not>
+        </preConditions>
         <createTable tableName="gedcom_families">
             <column name="id" type="VARCHAR(20)">
                 <constraints primaryKey="true" nullable="false"/>
@@ -16,6 +21,7 @@
             <column name="marriage_place" type="VARCHAR(255)"/>
             <column name="divorce_date" type="DATE"/>
             <column name="divorce_place" type="VARCHAR(255)"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
     </changeSet>
 

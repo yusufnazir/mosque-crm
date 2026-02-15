@@ -6,31 +6,32 @@ import Button from '@/components/Button';
 import LanguageSelector from '@/components/LanguageSelector';
 import { authApi } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { syncLanguageWithBackend, t } = useTranslation();
+  const { refresh: refreshAuth } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<{ code: string; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
     setLoading(true);
 
     try {
       const response: any = await authApi.login({ username, password });
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('role', response.role);
-      
-      // Store personId if it exists (linked member profile)
+
+      // With BFF pattern, the JWT is stored as an httpOnly cookie by the server.
+      // The response no longer contains a token — just user data.
+
+      // Store personId if it exists (for member profile access)
       if (response.personId) {
         localStorage.setItem('personId', response.personId.toString());
       }
-
-      // Backward compatibility: store memberId if provided
       if (response.memberId) {
         localStorage.setItem('memberId', response.memberId.toString());
       }
@@ -43,10 +44,18 @@ export default function LoginPage() {
       // Sync language preference from backend (DB is source of truth after login)
       await syncLanguageWithBackend();
       
+      // Refresh AuthContext so /api/me is fetched with the new session cookie
+      await refreshAuth();
+      
       // Redirect to dashboard for all users
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      const code = err.code || 'login_failed';
+      // Use translated message if available, otherwise fall back to server message
+      const translationKey = `login.errors.${code}`;
+      const translated = t(translationKey);
+      const message = translated !== translationKey ? translated : (err.message || t('login.errors.login_failed'));
+      setError({ code, message });
     } finally {
       setLoading(false);
     }
@@ -54,14 +63,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-      {/* Language Selector - Top Right */}
-      <div className="fixed top-8 right-8 z-50">
-        <LanguageSelector />
-      </div>
-
       <div className="w-full max-w-md">
         {/* Logo and Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-4 md:mb-8">
           <div className="inline-block p-4 bg-emerald-600 rounded-full mb-4">
             <svg
               className="w-12 h-12 text-white"
@@ -77,17 +81,31 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-charcoal mb-2">{t('login.title')}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('login.title')}</h1>
           <p className="text-gray-600">{t('login.subtitle')}</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-semibold text-charcoal mb-6">{t('login.sign_in')}</h2>
+        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-charcoal">{t('login.sign_in')}</h2>
+            <LanguageSelector />
+          </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-              {error}
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-red-800">{error.message}</p>
+                {error.code === 'account_disabled' && (
+                  <p className="text-xs text-red-600 mt-1">{t('login.errors.contact_admin')}</p>
+                )}
+                {error.code === 'account_locked' && (
+                  <p className="text-xs text-red-600 mt-1">{t('login.errors.contact_admin')}</p>
+                )}
+              </div>
             </div>
           )}
 

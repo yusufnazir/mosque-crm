@@ -1,9 +1,14 @@
 package com.mosque.crm.entity.gedcom;
 
+import org.hibernate.annotations.Filter;
+
 import com.mosque.crm.enums.MediaType;
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
@@ -23,8 +28,10 @@ import lombok.Data;
  */
 @Entity
 @Table(name = "gedcom_media")
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
 @Data
-public class Media {
+public class Media implements MosqueAware {
 
     @Id
     @Column(name = "id", length = 20)
@@ -48,6 +55,19 @@ public class Media {
 
     @Column(name = "file_size")
     private Long fileSize;  // Size in bytes
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
+    }
 
     /**
      * Note: Link to entities via separate tables:

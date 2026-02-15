@@ -29,7 +29,7 @@ export default function FeesPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="h-64 bg-gray-200 rounded-xl"></div>
@@ -44,17 +44,17 @@ export default function FeesPage() {
     .reduce((sum, fee) => sum + fee.amount, 0);
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 md:p-8">
+      <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-charcoal mb-2">Membership Fees</h1>
-          <p className="text-gray-600">Track and manage membership payments</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">Membership Fees</h1>
+          <p className="text-sm md:text-base text-gray-600">Track and manage membership payments</p>
         </div>
         <Button>Record Payment</Button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <Card>
           <CardContent>
             <p className="text-sm text-gray-600 mb-1">Total Fees</p>
@@ -101,14 +101,11 @@ export default function FeesPage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[600px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Member
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Amount
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Due Date

@@ -24,7 +24,7 @@ export default function MembersPage() {
   const [members, setMembers] = useState<PersonSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'firstName', direction: 'asc' });
 
   useEffect(() => {
     fetchMembers();
@@ -74,7 +74,7 @@ export default function MembersPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="h-64 bg-gray-200 rounded-xl"></div>
@@ -84,30 +84,95 @@ export default function MembersPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 md:p-8">
+      <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-charcoal mb-2">{t('members.title')}</h1>
-          <p className="text-gray-600">{t('members.subtitle')}</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-1 md:mb-2">{t('members.title')}</h1>
+          <p className="text-gray-600 text-sm md:text-base">{t('members.subtitle')}</p>
         </div>
         <Button onClick={() => router.push('/members/add')}>{t('members.add_new_member')}</Button>
       </div>
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <CardTitle>{t('members.all_members')} ({filteredMembers.length})</CardTitle>
             <input
               type="text"
               placeholder={t('members.search_members')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
             />
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          {/* Mobile: Card list */}
+          <div className="md:hidden divide-y divide-gray-200">
+            {filteredMembers.map((member, index) => (
+              <div
+                key={member.id || `member-${index}`}
+                className="p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-semibold flex-shrink-0 ${
+                    member.status === 'DECEASED' ? 'bg-red-600' : 'bg-emerald-600'
+                  }`}>
+                    {member.firstName && member.lastName 
+                      ? getInitials(member.firstName, member.lastName)
+                      : 'M'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-charcoal truncate">
+                        {member.firstName && member.lastName 
+                          ? `${capitalizeName(member.firstName)} ${capitalizeName(member.lastName)}`
+                          : t('members.unknown')}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getStatusColor(
+                          member.status || 'ACTIVE'
+                        )}`}
+                      >
+                        {t(getLocalizedStatus(member.status || 'ACTIVE'))}
+                      </span>
+                    </div>
+                    {member.email && (
+                      <div className="text-sm text-gray-500 truncate mt-0.5">{member.email}</div>
+                    )}
+                    {member.phone && (
+                      <div className="text-sm text-gray-400 mt-0.5">{member.phone}</div>
+                    )}
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-100">
+                      <button
+                        onClick={() => router.push(`/members/${member.id}`)}
+                        className="text-emerald-700 hover:text-emerald-900 transition-colors flex items-center gap-1 text-sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        {t('common.view')}
+                      </button>
+                      <button
+                        onClick={() => router.push(`/members/${member.id}/edit`)}
+                        className="text-emerald-700 hover:text-emerald-900 transition-colors flex items-center gap-1 text-sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        {t('common.edit')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -150,7 +215,6 @@ export default function MembersPage() {
                       )}
                     </div>
                   </th>
-                  {/* Removed 'type' column */}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     {t('common.actions')}
                   </th>
@@ -190,23 +254,27 @@ export default function MembersPage() {
                         {t(getLocalizedStatus(member.status || 'ACTIVE'))}
                       </span>
                     </td>
-                    {/* Removed 'type' column cell */}
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
+                      <div className="flex items-center gap-2">
+                        <button
                           onClick={() => router.push(`/members/${member.id}`)}
+                          className="text-emerald-700 hover:text-emerald-900 transition-colors"
+                          title={t('common.view')}
                         >
-                          {t('common.view')}
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <button
                           onClick={() => router.push(`/members/${member.id}/edit`)}
+                          className="text-emerald-700 hover:text-emerald-900 transition-colors"
+                          title={t('common.edit')}
                         >
-                          {t('common.edit')}
-                        </Button>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
                       </div>
                     </td>
                   </tr>

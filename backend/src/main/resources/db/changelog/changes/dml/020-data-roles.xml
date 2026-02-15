@@ -7,7 +7,7 @@
 						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
 	<!-- ADMIN Role -->
-	<changeSet id="data_role_1" author="mosque-crm">
+	<changeSet id="d56ae040-0d02-4ecf-8d41-5e6194cf8854" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRole">
 			<param name="id"><![CDATA[1]]></param>
 			<param name="name"><![CDATA[ADMIN]]></param>
@@ -16,7 +16,7 @@
 	</changeSet>
 
 	<!-- MEMBER Role -->
-	<changeSet id="data_role_2" author="mosque-crm">
+	<changeSet id="1b170619-9cce-4663-a4d4-559889aeb19d" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRole">
 			<param name="id"><![CDATA[2]]></param>
 			<param name="name"><![CDATA[MEMBER]]></param>
@@ -25,7 +25,7 @@
 	</changeSet>
 
 	<!-- TREASURER Role -->
-	<changeSet id="data_role_3" author="mosque-crm">
+	<changeSet id="9173d0d4-8150-41b1-b155-8a487c25f873" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRole">
 			<param name="id"><![CDATA[3]]></param>
 			<param name="name"><![CDATA[TREASURER]]></param>
@@ -34,7 +34,7 @@
 	</changeSet>
 
 	<!-- IMAM Role -->
-	<changeSet id="data_role_4" author="mosque-crm">
+	<changeSet id="19a37187-5a9d-4a49-bf44-1a8473afd669" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRole">
 			<param name="id"><![CDATA[4]]></param>
 			<param name="name"><![CDATA[IMAM]]></param>

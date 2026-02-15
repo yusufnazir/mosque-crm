@@ -34,12 +34,7 @@ export default function AccountPage() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/users/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch('/api/users/me');
 
       if (response.ok) {
         const data = await response.json();
@@ -79,13 +74,9 @@ export default function AccountPage() {
     setMessage('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/users/me/email', {
+      const response = await fetch('/api/users/me/email', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
@@ -108,7 +99,7 @@ export default function AccountPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="text-center">Loading...</div>
       </div>
     );
@@ -116,7 +107,7 @@ export default function AccountPage() {
 
   if (!profile) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="text-center text-red-600">Failed to load profile</div>
       </div>
     );
@@ -126,9 +117,9 @@ export default function AccountPage() {
   const paidFees = fees.filter((f) => f.status === 'PAID').reduce((sum, fee) => sum + fee.amount, 0);
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-charcoal mb-2">{t('account.title')}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('account.title')}</h1>
         <p className="text-gray-600">{t('account.subtitle')}</p>
       </div>
 
@@ -136,7 +127,7 @@ export default function AccountPage() {
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-charcoal mb-4">{t('account.settings')}</h2>
         <div className="max-w-2xl">
-          <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+          <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 space-y-6">
             {/* Username */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -190,7 +181,7 @@ export default function AccountPage() {
             )}
 
             {/* Actions */}
-            <div className="flex gap-4 pt-4 border-t">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4 border-t">
               <button
                 onClick={handleSaveEmail}
                 disabled={saving || email === profile.email}
@@ -215,13 +206,13 @@ export default function AccountPage() {
           <h2 className="text-xl font-semibold text-charcoal mb-4">{t('account.member_profile')}</h2>
           
           {/* Profile Information */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>{t('account.personal_information')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">{t('account.full_name')}</p>
                     <p className="font-medium text-charcoal">
@@ -287,14 +278,11 @@ export default function AccountPage() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[450px]">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         {t('account.amount')}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        {t('account.due_date')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         {t('account.paid_date')}

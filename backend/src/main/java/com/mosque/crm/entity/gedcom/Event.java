@@ -2,10 +2,15 @@ package com.mosque.crm.entity.gedcom;
 
 import java.time.LocalDate;
 
+import org.hibernate.annotations.Filter;
+
 import com.mosque.crm.enums.EventType;
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -26,8 +31,10 @@ import lombok.Data;
  */
 @Entity
 @Table(name = "gedcom_events")
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
 @Data
-public class Event {
+public class Event implements MosqueAware {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,6 +55,19 @@ public class Event {
 
     @Column(name = "family_id", length = 20)
     private String familyId;  // Optional: for family events (MARR, DIV)
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
+    }
 
     /**
      * Usage examples:

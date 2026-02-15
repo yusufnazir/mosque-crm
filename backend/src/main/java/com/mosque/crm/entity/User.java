@@ -53,8 +53,14 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "last_login")
+    @Column(name = "last_login_at")
     private LocalDateTime lastLogin;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
+
+    @Column(name = "selected_mosque_id")
+    private Long selectedMosqueId;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -167,6 +173,22 @@ public class User {
 
     public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
+    }
+
+    public Long getSelectedMosqueId() {
+        return selectedMosqueId;
+    }
+
+    public void setSelectedMosqueId(Long selectedMosqueId) {
+        this.selectedMosqueId = selectedMosqueId;
     }
 
     public Set<Role> getRoles() {

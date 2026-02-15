@@ -5,19 +5,23 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="008-create-gedcom-sources" author="system">
+    <changeSet id="b8c9d0e1-f2a3-4567-bcde-678901234001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="gedcom_sources"/>
+            </not>
+        </preConditions>
         <createTable tableName="gedcom_sources">
-            <column name="id" type="VARCHAR(20)">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="title" type="VARCHAR(255)">
+            <column name="title" type="VARCHAR(500)">
                 <constraints nullable="false"/>
             </column>
             <column name="author" type="VARCHAR(255)"/>
-            <column name="publication" type="VARCHAR(255)"/>
-            <column name="repository" type="VARCHAR(255)"/>
-            <column name="call_number" type="VARCHAR(100)"/>
-            <column name="notes" type="TEXT"/>
+            <column name="publisher" type="VARCHAR(255)"/>
+            <column name="abbreviation" type="VARCHAR(100)"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
     </changeSet>
 

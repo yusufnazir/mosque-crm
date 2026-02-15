@@ -157,7 +157,7 @@ export default function EditMemberPage() {
 
   if (fetching) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="h-96 bg-gray-200 rounded-xl"></div>
@@ -167,7 +167,7 @@ export default function EditMemberPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
           <Button
@@ -178,12 +178,12 @@ export default function EditMemberPage() {
             ← {t('member_edit.back_to_member')}
           </Button>
         </div>
-        <h1 className="text-3xl font-bold text-charcoal mb-2">{t('member_edit.edit_member')}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('member_edit.edit_member')}</h1>
         <p className="text-gray-600">{t('member_edit.update_member_information')}</p>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Personal Information */}
           <div className="lg:col-span-2">
             <Card>
@@ -197,7 +197,7 @@ export default function EditMemberPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {t('member_edit.first_name')} <span className="text-red-500">*</span>
@@ -296,7 +296,7 @@ export default function EditMemberPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t('member_edit.city')}</label>
                     <input

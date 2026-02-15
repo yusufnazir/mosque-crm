@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- ISO 4217 Currency Reference Data -->
+    <!-- Major World Currencies -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000001" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[1]]></param>
+            <param name="code"><![CDATA[EUR]]></param>
+            <param name="name"><![CDATA[Euro]]></param>
+            <param name="symbol"><![CDATA[€]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000002" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[2]]></param>
+            <param name="code"><![CDATA[USD]]></param>
+            <param name="name"><![CDATA[US Dollar]]></param>
+            <param name="symbol"><![CDATA[$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000003" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[3]]></param>
+            <param name="code"><![CDATA[GBP]]></param>
+            <param name="name"><![CDATA[British Pound]]></param>
+            <param name="symbol"><![CDATA[£]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000004" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[4]]></param>
+            <param name="code"><![CDATA[TRY]]></param>
+            <param name="name"><![CDATA[Turkish Lira]]></param>
+            <param name="symbol"><![CDATA[₺]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000005" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[5]]></param>
+            <param name="code"><![CDATA[SAR]]></param>
+            <param name="name"><![CDATA[Saudi Riyal]]></param>
+            <param name="symbol"><![CDATA[﷼]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000006" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[6]]></param>
+            <param name="code"><![CDATA[AED]]></param>
+            <param name="name"><![CDATA[UAE Dirham]]></param>
+            <param name="symbol"><![CDATA[د.إ]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000007" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[7]]></param>
+            <param name="code"><![CDATA[MAD]]></param>
+            <param name="name"><![CDATA[Moroccan Dirham]]></param>
+            <param name="symbol"><![CDATA[د.م.]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000008" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[8]]></param>
+            <param name="code"><![CDATA[EGP]]></param>
+            <param name="name"><![CDATA[Egyptian Pound]]></param>
+            <param name="symbol"><![CDATA[£]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000009" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[9]]></param>
+            <param name="code"><![CDATA[PKR]]></param>
+            <param name="name"><![CDATA[Pakistani Rupee]]></param>
+            <param name="symbol"><![CDATA[₨]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000010" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[10]]></param>
+            <param name="code"><![CDATA[IDR]]></param>
+            <param name="name"><![CDATA[Indonesian Rupiah]]></param>
+            <param name="symbol"><![CDATA[Rp]]></param>
+            <param name="decimalPlaces"><![CDATA[0]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000011" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[11]]></param>
+            <param name="code"><![CDATA[MYR]]></param>
+            <param name="name"><![CDATA[Malaysian Ringgit]]></param>
+            <param name="symbol"><![CDATA[RM]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000012" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[12]]></param>
+            <param name="code"><![CDATA[BDT]]></param>
+            <param name="name"><![CDATA[Bangladeshi Taka]]></param>
+            <param name="symbol"><![CDATA[৳]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000013" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[13]]></param>
+            <param name="code"><![CDATA[INR]]></param>
+            <param name="name"><![CDATA[Indian Rupee]]></param>
+            <param name="symbol"><![CDATA[₹]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000014" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[14]]></param>
+            <param name="code"><![CDATA[NGN]]></param>
+            <param name="name"><![CDATA[Nigerian Naira]]></param>
+            <param name="symbol"><![CDATA[₦]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000015" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[15]]></param>
+            <param name="code"><![CDATA[ZAR]]></param>
+            <param name="name"><![CDATA[South African Rand]]></param>
+            <param name="symbol"><![CDATA[R]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000016" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[16]]></param>
+            <param name="code"><![CDATA[CAD]]></param>
+            <param name="name"><![CDATA[Canadian Dollar]]></param>
+            <param name="symbol"><![CDATA[C$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000017" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[17]]></param>
+            <param name="code"><![CDATA[AUD]]></param>
+            <param name="name"><![CDATA[Australian Dollar]]></param>
+            <param name="symbol"><![CDATA[A$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000018" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[18]]></param>
+            <param name="code"><![CDATA[CHF]]></param>
+            <param name="name"><![CDATA[Swiss Franc]]></param>
+            <param name="symbol"><![CDATA[CHF]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000019" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[19]]></param>
+            <param name="code"><![CDATA[JPY]]></param>
+            <param name="name"><![CDATA[Japanese Yen]]></param>
+            <param name="symbol"><![CDATA[¥]]></param>
+            <param name="decimalPlaces"><![CDATA[0]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000020" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[20]]></param>
+            <param name="code"><![CDATA[CNY]]></param>
+            <param name="name"><![CDATA[Chinese Yuan]]></param>
+            <param name="symbol"><![CDATA[¥]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000021" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[21]]></param>
+            <param name="code"><![CDATA[KWD]]></param>
+            <param name="name"><![CDATA[Kuwaiti Dinar]]></param>
+            <param name="symbol"><![CDATA[د.ك]]></param>
+            <param name="decimalPlaces"><![CDATA[3]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000022" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[22]]></param>
+            <param name="code"><![CDATA[BHD]]></param>
+            <param name="name"><![CDATA[Bahraini Dinar]]></param>
+            <param name="symbol"><![CDATA[.د.ب]]></param>
+            <param name="decimalPlaces"><![CDATA[3]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000023" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[23]]></param>
+            <param name="code"><![CDATA[QAR]]></param>
+            <param name="name"><![CDATA[Qatari Riyal]]></param>
+            <param name="symbol"><![CDATA[ر.ق]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000024" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[24]]></param>
+            <param name="code"><![CDATA[OMR]]></param>
+            <param name="name"><![CDATA[Omani Rial]]></param>
+            <param name="symbol"><![CDATA[ر.ع.]]></param>
+            <param name="decimalPlaces"><![CDATA[3]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000025" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[25]]></param>
+            <param name="code"><![CDATA[JOD]]></param>
+            <param name="name"><![CDATA[Jordanian Dinar]]></param>
+            <param name="symbol"><![CDATA[د.ا]]></param>
+            <param name="decimalPlaces"><![CDATA[3]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000026" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[26]]></param>
+            <param name="code"><![CDATA[IQD]]></param>
+            <param name="name"><![CDATA[Iraqi Dinar]]></param>
+            <param name="symbol"><![CDATA[ع.د]]></param>
+            <param name="decimalPlaces"><![CDATA[3]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000027" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[27]]></param>
+            <param name="code"><![CDATA[LBP]]></param>
+            <param name="name"><![CDATA[Lebanese Pound]]></param>
+            <param name="symbol"><![CDATA[ل.ل]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000028" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[28]]></param>
+            <param name="code"><![CDATA[DZD]]></param>
+            <param name="name"><![CDATA[Algerian Dinar]]></param>
+            <param name="symbol"><![CDATA[د.ج]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000029" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[29]]></param>
+            <param name="code"><![CDATA[TND]]></param>
+            <param name="name"><![CDATA[Tunisian Dinar]]></param>
+            <param name="symbol"><![CDATA[د.ت]]></param>
+            <param name="decimalPlaces"><![CDATA[3]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000030" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[30]]></param>
+            <param name="code"><![CDATA[LYD]]></param>
+            <param name="name"><![CDATA[Libyan Dinar]]></param>
+            <param name="symbol"><![CDATA[ل.د]]></param>
+            <param name="decimalPlaces"><![CDATA[3]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000031" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[31]]></param>
+            <param name="code"><![CDATA[SDG]]></param>
+            <param name="name"><![CDATA[Sudanese Pound]]></param>
+            <param name="symbol"><![CDATA[ج.س]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000032" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[32]]></param>
+            <param name="code"><![CDATA[SYP]]></param>
+            <param name="name"><![CDATA[Syrian Pound]]></param>
+            <param name="symbol"><![CDATA[£]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000033" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[33]]></param>
+            <param name="code"><![CDATA[YER]]></param>
+            <param name="name"><![CDATA[Yemeni Rial]]></param>
+            <param name="symbol"><![CDATA[﷼]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000034" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[34]]></param>
+            <param name="code"><![CDATA[AFN]]></param>
+            <param name="name"><![CDATA[Afghan Afghani]]></param>
+            <param name="symbol"><![CDATA[؋]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000035" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[35]]></param>
+            <param name="code"><![CDATA[IRR]]></param>
+            <param name="name"><![CDATA[Iranian Rial]]></param>
+            <param name="symbol"><![CDATA[﷼]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Additional African Currencies -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000036" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[36]]></param>
+            <param name="code"><![CDATA[KES]]></param>
+            <param name="name"><![CDATA[Kenyan Shilling]]></param>
+            <param name="symbol"><![CDATA[KSh]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000037" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[37]]></param>
+            <param name="code"><![CDATA[GHS]]></param>
+            <param name="name"><![CDATA[Ghanaian Cedi]]></param>
+            <param name="symbol"><![CDATA[₵]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000038" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[38]]></param>
+            <param name="code"><![CDATA[TZS]]></param>
+            <param name="name"><![CDATA[Tanzanian Shilling]]></param>
+            <param name="symbol"><![CDATA[TSh]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000039" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[39]]></param>
+            <param name="code"><![CDATA[UGX]]></param>
+            <param name="name"><![CDATA[Ugandan Shilling]]></param>
+            <param name="symbol"><![CDATA[USh]]></param>
+            <param name="decimalPlaces"><![CDATA[0]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000040" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[40]]></param>
+            <param name="code"><![CDATA[XOF]]></param>
+            <param name="name"><![CDATA[West African CFA Franc]]></param>
+            <param name="symbol"><![CDATA[CFA]]></param>
+            <param name="decimalPlaces"><![CDATA[0]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Additional Asian Currencies -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000041" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[41]]></param>
+            <param name="code"><![CDATA[SGD]]></param>
+            <param name="name"><![CDATA[Singapore Dollar]]></param>
+            <param name="symbol"><![CDATA[S$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000042" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[42]]></param>
+            <param name="code"><![CDATA[BND]]></param>
+            <param name="name"><![CDATA[Brunei Dollar]]></param>
+            <param name="symbol"><![CDATA[B$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000043" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[43]]></param>
+            <param name="code"><![CDATA[MVR]]></param>
+            <param name="name"><![CDATA[Maldivian Rufiyaa]]></param>
+            <param name="symbol"><![CDATA[Rf]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- European Currencies -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000044" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[44]]></param>
+            <param name="code"><![CDATA[SEK]]></param>
+            <param name="name"><![CDATA[Swedish Krona]]></param>
+            <param name="symbol"><![CDATA[kr]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000045" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[45]]></param>
+            <param name="code"><![CDATA[NOK]]></param>
+            <param name="name"><![CDATA[Norwegian Krone]]></param>
+            <param name="symbol"><![CDATA[kr]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000046" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[46]]></param>
+            <param name="code"><![CDATA[DKK]]></param>
+            <param name="name"><![CDATA[Danish Krone]]></param>
+            <param name="symbol"><![CDATA[kr]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000047" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[47]]></param>
+            <param name="code"><![CDATA[PLN]]></param>
+            <param name="name"><![CDATA[Polish Zloty]]></param>
+            <param name="symbol"><![CDATA[zł]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000048" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[48]]></param>
+            <param name="code"><![CDATA[CZK]]></param>
+            <param name="name"><![CDATA[Czech Koruna]]></param>
+            <param name="symbol"><![CDATA[Kč]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000049" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[49]]></param>
+            <param name="code"><![CDATA[RUB]]></param>
+            <param name="name"><![CDATA[Russian Ruble]]></param>
+            <param name="symbol"><![CDATA[₽]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Americas Currencies -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000050" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[50]]></param>
+            <param name="code"><![CDATA[BRL]]></param>
+            <param name="name"><![CDATA[Brazilian Real]]></param>
+            <param name="symbol"><![CDATA[R$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000051" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[51]]></param>
+            <param name="code"><![CDATA[MXN]]></param>
+            <param name="name"><![CDATA[Mexican Peso]]></param>
+            <param name="symbol"><![CDATA[$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000052" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[52]]></param>
+            <param name="code"><![CDATA[ARS]]></param>
+            <param name="name"><![CDATA[Argentine Peso]]></param>
+            <param name="symbol"><![CDATA[$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000053" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[53]]></param>
+            <param name="code"><![CDATA[COP]]></param>
+            <param name="name"><![CDATA[Colombian Peso]]></param>
+            <param name="symbol"><![CDATA[$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Oceania -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000054" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[54]]></param>
+            <param name="code"><![CDATA[NZD]]></param>
+            <param name="name"><![CDATA[New Zealand Dollar]]></param>
+            <param name="symbol"><![CDATA[NZ$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Additional Central Asian -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000055" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[55]]></param>
+            <param name="code"><![CDATA[KZT]]></param>
+            <param name="name"><![CDATA[Kazakh Tenge]]></param>
+            <param name="symbol"><![CDATA[₸]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000056" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[56]]></param>
+            <param name="code"><![CDATA[UZS]]></param>
+            <param name="name"><![CDATA[Uzbekistani Som]]></param>
+            <param name="symbol"><![CDATA[сўм]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Somalia -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000057" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[57]]></param>
+            <param name="code"><![CDATA[SOS]]></param>
+            <param name="name"><![CDATA[Somali Shilling]]></param>
+            <param name="symbol"><![CDATA[Sh]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Mauritania -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000058" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[58]]></param>
+            <param name="code"><![CDATA[MRU]]></param>
+            <param name="name"><![CDATA[Mauritanian Ouguiya]]></param>
+            <param name="symbol"><![CDATA[UM]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Gambia -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000059" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[59]]></param>
+            <param name="code"><![CDATA[GMD]]></param>
+            <param name="name"><![CDATA[Gambian Dalasi]]></param>
+            <param name="symbol"><![CDATA[D]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Suriname -->
+
+    <changeSet id="c0a80101-0034-4a01-b001-000000000060" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[60]]></param>
+            <param name="code"><![CDATA[SRD]]></param>
+            <param name="name"><![CDATA[Surinamese Dollar]]></param>
+            <param name="symbol"><![CDATA[$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

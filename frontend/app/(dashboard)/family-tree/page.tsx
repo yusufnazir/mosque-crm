@@ -36,18 +36,7 @@ export default function FamilyTreePage() {
       setLoading(true);
       setError(null);
       
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch('http://localhost:8080/api/genealogy/graph/complete', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch('/api/genealogy/graph/complete');
 
       if (!response.ok) {
         throw new Error(`Failed to fetch genealogy graph: ${response.statusText}`);
@@ -65,7 +54,7 @@ export default function FamilyTreePage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <Card>
           <CardContent className="p-12 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
@@ -78,7 +67,7 @@ export default function FamilyTreePage() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <Card>
           <CardContent className="p-12 text-center">
             <div className="text-red-600 mb-4">
@@ -102,7 +91,7 @@ export default function FamilyTreePage() {
 
   if (!graphData || graphData.nodes.length === 0) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <Card>
           <CardHeader>
             <CardTitle>🌳 Complete Family Tree</CardTitle>
@@ -122,7 +111,7 @@ export default function FamilyTreePage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- mosque_currencies: Per-mosque active currencies with one primary currency -->
+    <changeSet id="a1b2c3d4-0030-4aaa-bbbb-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="mosque_currencies"/>
+            </not>
+        </preConditions>
+        <createTable tableName="mosque_currencies">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="mosque_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="currency_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_primary" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="mosque_currencies"
+                             columnNames="mosque_id, currency_id"
+                             constraintName="uk_mosque_currency"/>
+        <createIndex tableName="mosque_currencies" indexName="idx_mosque_currency_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

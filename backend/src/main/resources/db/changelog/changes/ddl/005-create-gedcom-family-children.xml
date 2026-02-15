@@ -5,28 +5,32 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="005-create-gedcom-family-children" author="system">
+    <changeSet id="e5f6a7b8-c9d0-1234-efab-345678901001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="gedcom_family_children"/>
+            </not>
+        </preConditions>
         <createTable tableName="gedcom_family_children">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="family_id" type="VARCHAR(20)">
-                <!-- Removed NOT NULL constraint to allow flexible import -->
-            </column>
-            <column name="child_id" type="VARCHAR(20)">
-                <!-- Removed NOT NULL constraint to allow flexible import -->
-            </column>
-            <column name="relationship_type" type="VARCHAR(20)" defaultValue="BIOLOGICAL">
                 <constraints nullable="false"/>
             </column>
+            <column name="child_id" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pedigree" type="VARCHAR(50)"/>
+            <column name="relationship_type" type="VARCHAR(50)"/>
             <column name="birth_order" type="INT"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
 
-        <createIndex tableName="gedcom_family_children" indexName="idx_familychild_family">
+        <createIndex tableName="gedcom_family_children" indexName="idx_family_children_family">
             <column name="family_id"/>
         </createIndex>
-
-        <createIndex tableName="gedcom_family_children" indexName="idx_familychild_child">
+        <createIndex tableName="gedcom_family_children" indexName="idx_family_children_child">
             <column name="child_id"/>
         </createIndex>
     </changeSet>

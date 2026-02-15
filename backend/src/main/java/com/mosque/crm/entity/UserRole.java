@@ -1,5 +1,8 @@
 package com.mosque.crm.entity;
 
+import java.time.LocalDate;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,6 +35,15 @@ public class UserRole {
     @MapsId("roleId")
     @JoinColumn(name = "role_id")
     private Role role;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     // Constructors
     public UserRole() {
@@ -78,5 +90,45 @@ public class UserRole {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    /**
+     * Check whether this role assignment is currently active.
+     * A role is active if today falls within [startDate, endDate] (inclusive),
+     * or if no date bounds are set.
+     */
+    public boolean isActive() {
+        LocalDate today = LocalDate.now();
+        if (startDate != null && today.isBefore(startDate)) {
+            return false;
+        }
+        if (endDate != null && today.isAfter(endDate)) {
+            return false;
+        }
+        return true;
     }
 }

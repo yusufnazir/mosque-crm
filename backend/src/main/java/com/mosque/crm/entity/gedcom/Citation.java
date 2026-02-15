@@ -1,7 +1,13 @@
 package com.mosque.crm.entity.gedcom;
 
+import org.hibernate.annotations.Filter;
+
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,8 +25,10 @@ import lombok.Data;
  */
 @Entity
 @Table(name = "gedcom_citations")
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
 @Data
-public class Citation {
+public class Citation implements MosqueAware {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,4 +48,17 @@ public class Citation {
 
     @Column(name = "confidence", length = 20)
     private String confidence;  // HIGH, MEDIUM, LOW - data quality
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
+    }
 }

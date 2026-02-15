@@ -3,17 +3,18 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+/**
+ * Root page — middleware handles redirect based on session_token cookie.
+ * This is just a fallback loading spinner in case middleware doesn't redirect.
+ */
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      const role = localStorage.getItem('role');
-      router.push(role === 'ADMIN' ? '/dashboard' : '/profile');
-    } else {
-      router.push('/login');
-    }
+    // Middleware should have already redirected.
+    // This is a safety fallback — try dashboard, and if not authenticated
+    // the middleware/AuthContext will redirect to login.
+    router.push('/dashboard');
   }, [router]);
 
   return (

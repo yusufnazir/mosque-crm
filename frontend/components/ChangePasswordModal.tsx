@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import Button from '@/components/Button';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
@@ -59,8 +60,8 @@ export default function ChangePasswordModal({ isOpen, onClose, onSubmit }: Chang
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
+  return createPortal(
+    <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
         <Card>
           <CardHeader>
@@ -150,6 +151,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSubmit }: Chang
           </CardContent>
         </Card>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

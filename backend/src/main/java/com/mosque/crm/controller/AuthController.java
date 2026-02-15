@@ -9,6 +9,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,10 +29,13 @@ import com.mosque.crm.dto.LoginRequest;
 import com.mosque.crm.dto.PasswordChangeDTO;
 import com.mosque.crm.dto.ResetPasswordRequest;
 import com.mosque.crm.dto.UserPreferencesDTO;
+import com.mosque.crm.entity.Mosque;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.entity.UserPreferences;
+import com.mosque.crm.repository.MosqueRepository;
 import com.mosque.crm.repository.UserRepository;
 import com.mosque.crm.security.JwtUtil;
+import com.mosque.crm.service.AuthorizationService;
 import com.mosque.crm.service.PasswordResetService;
 import com.mosque.crm.service.UserPreferencesService;
 
@@ -51,6 +56,9 @@ public class AuthController {
     private UserRepository userRepository;
 
     @Autowired
+    private MosqueRepository mosqueRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -58,6 +66,9 @@ public class AuthController {
 
     @Autowired
     private PasswordResetService passwordResetService;
+
+    @Autowired
+    private AuthorizationService authorizationService;
 
 
     @Autowired
@@ -73,14 +84,32 @@ public class AuthController {
                     )
             );
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Invalid username or password");
+            // OWASP: Never reveal whether the username or password was wrong
+            Map<String, String> error = new HashMap<>();
+            error.put("code", "invalid_credentials");
+            error.put("message", "Invalid username or password");
+            return ResponseEntity.status(401).body(error);
+        } catch (DisabledException e) {
+            // Account disabled by admin — generic message to prevent enumeration
+            Map<String, String> error = new HashMap<>();
+            error.put("code", "account_disabled");
+            error.put("message", "Your account has been disabled. Please contact an administrator.");
+            return ResponseEntity.status(403).body(error);
+        } catch (LockedException e) {
+            // Account locked (e.g. too many failed attempts)
+            Map<String, String> error = new HashMap<>();
+            error.put("code", "account_locked");
+            error.put("message", "Your account has been locked. Please contact an administrator.");
+            return ResponseEntity.status(403).body(error);
         }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
-        final String token = jwtUtil.generateToken(userDetails);
 
         User user = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Generate JWT with userId and mosqueId embedded
+        final String token = jwtUtil.generateToken(userDetails, user.getId(), user.getMosqueId());
 
         // Get primary role (first role in the set)
         String roleName = user.getRoles().isEmpty() ? "MEMBER" :
@@ -97,7 +126,27 @@ public class AuthController {
         // Apply language preference to current context
         userPreferencesService.applyLanguagePreference(user);
 
+        // Resolve effective permissions for this user (use userId directly
+        // since SecurityContextHolder is not populated during login)
+        java.util.Set<String> permissions = authorizationService.getPermissions(user.getId());
+
         AuthResponse response = new AuthResponse(token, user.getUsername(), roleName, memberId, personId, preferencesDTO);
+        response.setMosqueId(user.getMosqueId());
+        response.setSuperAdmin(user.getMosqueId() == null);
+        response.setPermissions(new java.util.ArrayList<>(permissions));
+
+        // Resolve mosque name if user is assigned to a mosque
+        if (user.getMosqueId() != null) {
+            mosqueRepository.findById(user.getMosqueId())
+                    .ifPresent(mosque -> response.setMosqueName(mosque.getName()));
+        }
+
+        // Include super admin's persisted mosque selection
+        if (response.isSuperAdmin() && user.getSelectedMosqueId() != null) {
+            response.setSelectedMosqueId(user.getSelectedMosqueId());
+            mosqueRepository.findById(user.getSelectedMosqueId())
+                    .ifPresent(mosque -> response.setSelectedMosqueName(mosque.getName()));
+        }
 
         return ResponseEntity.ok(response);
     }

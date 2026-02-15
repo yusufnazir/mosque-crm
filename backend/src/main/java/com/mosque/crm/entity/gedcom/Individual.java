@@ -3,10 +3,15 @@ package com.mosque.crm.entity.gedcom;
 // Lombok removed. Explicit getters/setters/constructors below.
 import java.time.LocalDate;
 
+import org.hibernate.annotations.Filter;
+
 import com.mosque.crm.enums.GenderEnum;
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
@@ -23,7 +28,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "gedcom_individuals")
-public class Individual {
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
+public class Individual implements MosqueAware {
 
     @Id
     @Column(name = "id", length = 20)
@@ -53,6 +60,9 @@ public class Individual {
 
     @Column(name = "living")
     private Boolean living = true;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
 
     /**
      * Note: To find relationships, query:
@@ -102,4 +112,9 @@ public class Individual {
 
     public Boolean getLiving() { return living; }
     public void setLiving(Boolean living) { this.living = living; }
+
+    @Override
+    public Long getMosqueId() { return mosqueId; }
+    @Override
+    public void setMosqueId(Long mosqueId) { this.mosqueId = mosqueId; }
 }

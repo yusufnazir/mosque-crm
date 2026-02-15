@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+	<!-- ═══════════ SUPER_ADMIN ROLE ═══════════ -->
+	<changeSet id="d7a72fa2-4c77-4d02-a695-90f3b5e9a50e" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRole">
+			<param name="id"><![CDATA[5]]></param>
+			<param name="name"><![CDATA[SUPER_ADMIN]]></param>
+			<param name="description"><![CDATA[Super administrator with access to all mosques and system settings]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ MOSQUE MANAGEMENT PERMISSION ═══════════ -->
+	<changeSet id="72fe3481-39a5-4ac6-adfe-550988a19e6e" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[17]]></param>
+			<param name="code"><![CDATA[mosque.manage]]></param>
+			<param name="description"><![CDATA[Manage mosques (create, edit, deactivate)]]></param>
+			<param name="category"><![CDATA[mosque]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ SUPER ADMIN MANAGEMENT PERMISSION ═══════════ -->
+	<changeSet id="a4c8e912-7b3d-4f09-b2a6-superadmin020" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[20]]></param>
+			<param name="code"><![CDATA[superadmin.manage]]></param>
+			<param name="description"><![CDATA[View super admin users and assign SUPER_ADMIN role]]></param>
+			<param name="category"><![CDATA[superadmin]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ SUPER_ADMIN PERMISSIONS (all 19) ═══════════ -->
+	<changeSet id="8261faad-0cd6-4fe3-858b-9b0fb4d3f9b1" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[1]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="d29b3bf7-7d8f-47ae-99cd-c5419779da80" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[2]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="2b36f379-46a1-4a6b-af11-00a56057ebdc" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[3]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="5171acb9-a502-433a-ac7d-176f404ca2e7" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[4]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="d7527116-7db7-4a2a-853c-b62ed017665c" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[5]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="5de4e589-046b-410a-9325-8e0f4eda67eb" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[6]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="6da00dc5-6735-4fe1-b95f-988dae9e78c7" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[7]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="005b418e-984e-4c88-8c6a-d7fb0be346dd" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[8]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="4a0c250c-7861-4b01-b2e4-7eeb28ad3b62" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[9]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="1129839b-96a1-424a-82ed-8773b8f2ce0d" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[10]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="14a6fa39-9be9-419a-bcc0-5ddb2e2c4292" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[11]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e68488c7-ac3f-4f21-b908-c5c8d08da272" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[12]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="390eb1b5-d6c7-4059-acc1-9dd7bfe35e77" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[13]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="92a35e3b-106c-4004-9163-2d3bb078dd16" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[14]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="107a2779-3983-4ca6-bf19-5e38044154da" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[15]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="0f93d90f-fa97-4c7d-bae0-409d7e501113" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[16]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="be94d9e2-3f02-4804-ae3b-f977ecc9f322" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[17]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="f1a2b3c4-5d6e-4f70-8192-a3b4c5d6e7f8" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[18]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="g2h3i4j5-6k7l-4m8n-9o10-userview05019" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[19]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b5d9f123-8e4a-4c07-a3b6-superadmin0520" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[20]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="a5b6c7d8-0034-4aaa-bbbb-super0curv21" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[21]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b6c7d8e9-0034-4aaa-bbbb-super0curm22" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[22]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ PROMOTE ADMIN USER TO SUPER_ADMIN ═══════════ -->
+	<!-- Update admin user (id=1) to have SUPER_ADMIN role instead of ADMIN -->
+	<changeSet id="99000155-d4b9-4d3d-9f45-00132e124fa0" author="mosque-crm">
+		<sql>
+			UPDATE user_roles SET role_id = 5 WHERE user_id = 1 AND role_id = 1;
+		</sql>
+	</changeSet>
+
+	<!-- ═══════════ ASSIGN EXISTING DATA TO DEFAULT MOSQUE ═══════════ -->
+	<!-- Set mosque_id = 1 for all existing records that don't have a mosque assigned -->
+	<changeSet id="871f30fc-7a59-421b-aa3a-0d3aaeba86ee" author="mosque-crm">
+		<sql>
+			UPDATE users SET mosque_id = NULL WHERE id = 1;
+			UPDATE users SET mosque_id = 1 WHERE mosque_id IS NULL AND id != 1;
+			UPDATE persons SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE memberships SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE subscriptions SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE donations SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE membership_fees SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE user_member_link SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE configurations SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_individuals SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_families SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_family_children SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_events SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_event_participants SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_sources SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_citations SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_notes SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_note_links SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_media SET mosque_id = 1 WHERE mosque_id IS NULL;
+			UPDATE gedcom_person_links SET mosque_id = 1 WHERE mosque_id IS NULL;
+		</sql>
+	</changeSet>
+
+</databaseChangeLog>

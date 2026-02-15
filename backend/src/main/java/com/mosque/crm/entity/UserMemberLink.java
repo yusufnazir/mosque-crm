@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,9 +15,16 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
+import org.hibernate.annotations.Filter;
+
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
+
 @Entity
 @Table(name = "user_member_link")
-public class UserMemberLink {
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
+public class UserMemberLink implements MosqueAware {
 
     @Id
     @TableGenerator(name = "user_member_link_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -34,6 +42,9 @@ public class UserMemberLink {
 
     @Column(name = "linked_at", nullable = false, updatable = false)
     private LocalDateTime linkedAt;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
 
     public UserMemberLink() {
     }
@@ -80,5 +91,15 @@ public class UserMemberLink {
     @PrePersist
     protected void onCreate() {
         linkedAt = LocalDateTime.now();
+    }
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
     }
 }

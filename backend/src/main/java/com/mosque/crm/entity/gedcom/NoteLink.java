@@ -1,9 +1,14 @@
 package com.mosque.crm.entity.gedcom;
 
+import org.hibernate.annotations.Filter;
+
 import com.mosque.crm.enums.EntityType;
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -24,8 +29,10 @@ import lombok.Data;
  */
 @Entity
 @Table(name = "gedcom_note_links")
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
 @Data
-public class NoteLink {
+public class NoteLink implements MosqueAware {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +47,19 @@ public class NoteLink {
 
     @Column(name = "entity_id", nullable = false, length = 50)
     private String entityId;  // Polymorphic reference to any entity
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
+    }
 
     /**
      * Query examples:

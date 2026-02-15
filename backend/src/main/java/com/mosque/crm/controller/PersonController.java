@@ -33,6 +33,19 @@ public class PersonController {
     }
 
     /**
+     * Get person counts (lightweight, no entity loading)
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<?> getPersonStats() {
+        long total = personService.countAllPersons();
+        long active = personService.countActivePersons();
+        return ResponseEntity.ok(java.util.Map.of(
+            "total", total,
+            "active", active
+        ));
+    }
+
+    /**
      * Get all persons with optional sorting
      */
     @GetMapping

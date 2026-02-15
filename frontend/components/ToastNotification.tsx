@@ -22,16 +22,16 @@ const ToastNotification = ({ message, type = 'info', duration = 3000, onClose }:
   if (!isVisible) return null;
 
   const bgColor = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    info: 'bg-blue-500',
-    warning: 'bg-yellow-500',
+    success: 'bg-green-700',
+    error: 'bg-red-700',
+    info: 'bg-blue-700',
+    warning: 'bg-yellow-600',
   }[type];
 
   return (
-    <div className={`fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50`}>
+    <div className={`fixed top-4 right-4 ${bgColor} text-white px-5 py-3 rounded-lg shadow-2xl z-50 max-w-md`}>
       <div className="flex items-center">
-        <span>{message}</span>
+        <span className="text-sm font-medium">{message}</span>
         <button 
           onClick={() => setIsVisible(false)}
           className="ml-4 text-white hover:text-gray-200 focus:outline-none"

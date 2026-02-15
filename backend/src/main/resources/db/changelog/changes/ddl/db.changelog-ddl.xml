@@ -38,7 +38,27 @@
     <include file="db/changelog/changes/ddl/019-create-donations-table.xml"/>
     <include file="db/changelog/changes/ddl/020-create-gedcom-person-links-table.xml"/>
 
-    <!-- Foreign Key Constraints (Always Last) -->
-    <!--<include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>-->
-   
+    <!-- Authorization Tables -->
+    <include file="db/changelog/changes/ddl/021-create-permissions-table.xml"/>
+    <include file="db/changelog/changes/ddl/022-create-role-permissions-table.xml"/>
+
+    <!-- Multi-Mosque Tables -->
+    <include file="db/changelog/changes/ddl/024-create-mosques-table.xml"/>
+
+    <!-- Contributions & Payments Tables -->
+    <include file="db/changelog/changes/ddl/025-create-contribution-types-table.xml"/>
+    <include file="db/changelog/changes/ddl/026-create-contribution-type-translations-table.xml"/>
+    <include file="db/changelog/changes/ddl/027-create-contribution-obligations-table.xml"/>
+    <include file="db/changelog/changes/ddl/028-create-member-payments-table.xml"/>
+
+    <!-- Currency & Exchange Rate Tables -->
+    <include file="db/changelog/changes/ddl/029-create-currencies-table.xml"/>
+    <include file="db/changelog/changes/ddl/030-create-mosque-currencies-table.xml"/>
+    <include file="db/changelog/changes/ddl/031-create-exchange-rates-table.xml"/>
+
+
+
+    <!-- Foreign Key Constraints (loaded LAST, after all tables exist) -->
+    <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>
+
 </databaseChangeLog>

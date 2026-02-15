@@ -5,13 +5,17 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.mosque.crm.enums.SubscriptionFrequency;
 import com.mosque.crm.enums.SubscriptionStatus;
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -30,7 +34,9 @@ import jakarta.persistence.TableGenerator;
  */
 @Entity
 @Table(name = "subscriptions")
-public class Subscription {
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
+public class Subscription implements MosqueAware {
 
     @Id
     @TableGenerator(name = "subscriptions_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -61,6 +67,9 @@ public class Subscription {
 
     @Column(name = "notes", length = 1000)
     private String notes;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
@@ -152,6 +161,16 @@ public class Subscription {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
     }
 
     // Helper Methods

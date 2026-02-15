@@ -116,8 +116,6 @@ public class ExcelImportService {
 				}
 
 				// Calculate hash for this person
-				// Use HashUtil.generateHash(personDto) instead of calculate if that's the
-				// correct method
 				String hash = HashUtil.generateHash(personDto);
 				// Check for duplicate by hash
 				if (personRepository.existsByHash(hash)) {
@@ -126,9 +124,15 @@ public class ExcelImportService {
 					continue;
 				}
 
-				// Handle family relationships
+				// Set hash on the person so future imports can detect duplicates
+				processedPerson.setHash(hash);
+
+				// Always create a GEDCOM Individual for every imported person
+				createOrUpdateGedcomIndividual(processedPerson);
+
+				// Handle family relationships (grouping into families) only when gezinnenId is present
 				if (StringUtils.isNotBlank(rowData.getGezinnenId())) {
-					createOrUpdateFamilyRelationship(processedPerson, rowData.getGezinnenId());
+					// Family creation and role assignment happens in assignFamilyRolesForAllGezinnen
 				}
 
 				// Handle membership creation/update based on data in the Excel file
@@ -428,8 +432,12 @@ public class ExcelImportService {
 				}
 			}
 			// 5. Create or update family
-			String familyId = "@F" + Math.abs(gezinnenId.hashCode()) + "@";
-			com.mosque.crm.entity.gedcom.Family family = familyRepository.findById(familyId).orElseGet(() -> {
+			String familyId = "@F" + gezinnenId + "@";
+			com.mosque.crm.entity.gedcom.Family family;
+			Optional<com.mosque.crm.entity.gedcom.Family> existingFamily = familyRepository.findById(familyId);
+			if (existingFamily.isPresent()) {
+				family = existingFamily.get();
+			} else {
 				com.mosque.crm.entity.gedcom.Family fam = new com.mosque.crm.entity.gedcom.Family();
 				fam.setId(familyId);
 				fam.setMarriageDate(java.time.LocalDate.now());
@@ -438,10 +446,14 @@ public class ExcelImportService {
 						.findByPerson(father[0].getPerson());
 				Optional<com.mosque.crm.entity.GedcomPersonLink> mLink = gedcomPersonLinkRepository
 						.findByPerson(mother[0].getPerson());
-				fLink.ifPresent(link -> fam.setHusbandId(link.getGedcomIndividual().getId()));
-				mLink.ifPresent(link -> fam.setWifeId(link.getGedcomIndividual().getId()));
-				return familyRepository.save(fam);
-			});
+				if (fLink.isPresent()) {
+					fam.setHusbandId(fLink.get().getGedcomIndividual().getId());
+				}
+				if (mLink.isPresent()) {
+					fam.setWifeId(mLink.get().getGedcomIndividual().getId());
+				}
+				family = familyRepository.saveAndFlush(fam);
+			}
 			// 6. Link children to both parents
 			for (PersonAndAge child : children) {
 				addPersonToFamilyAsChildInferred(child.getPerson(), family);

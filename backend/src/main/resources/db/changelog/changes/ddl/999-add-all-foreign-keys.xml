@@ -1,175 +1,559 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="999-add-all-foreign-keys" author="system">
-        <!-- GEDCOM Foreign Keys -->
-        <!-- Removed family relationship constraints to allow flexible import -->
-        <!--
-        <addForeignKeyConstraint
-                baseTableName="gedcom_families"
-                baseColumnNames="husband_id"
-                constraintName="fk_family_husband"
-                referencedTableName="gedcom_individuals"
-                referencedColumnNames="id"/>
+    <!--
+        All foreign key constraints are defined here, AFTER all tables have been created.
+        This avoids execution-order issues and keeps table files focused on structure only.
+        Grouped by domain: Security, CRM/Person, GEDCOM, Multi-Mosque.
+    -->
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_families"
-                baseColumnNames="wife_id"
-                constraintName="fk_family_wife"
-                referencedTableName="gedcom_individuals"
-                referencedColumnNames="id"/>
+    <!-- ========== Security Domain ========== -->
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_family_children"
-                baseColumnNames="family_id"
-                constraintName="fk_family_child_family"
-                referencedTableName="gedcom_families"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- user_preferences.user_id → users.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_userprefs_user"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="user_preferences" baseColumnNames="user_id"
+                                 constraintName="fk_userprefs_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+        <createIndex tableName="user_preferences" indexName="idx_userprefs_user">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_family_children"
-                baseColumnNames="child_id"
-                constraintName="fk_family_child_individual"
-                referencedTableName="gedcom_individuals"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
-        -->
+    <!-- password_reset_tokens.user_id → users.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000002" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_resettoken_user"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="password_reset_tokens" baseColumnNames="user_id"
+                                 constraintName="fk_resettoken_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+        <createIndex tableName="password_reset_tokens" indexName="idx_resettoken_user">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_events"
-                baseColumnNames="family_id"
-                constraintName="fk_event_family"
-                referencedTableName="gedcom_families"
-                referencedColumnNames="id"/>
+    <!-- user_roles.user_id → users.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000003" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_userrole_user"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="user_roles" baseColumnNames="user_id"
+                                 constraintName="fk_userrole_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_event_participants"
-                baseColumnNames="event_id"
-                constraintName="fk_event_participant_event"
-                referencedTableName="gedcom_events"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- user_roles.role_id → roles.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000004" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_userrole_role"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="user_roles" baseColumnNames="role_id"
+                                 constraintName="fk_userrole_role"
+                                 referencedTableName="roles" referencedColumnNames="id"/>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_event_participants"
-                baseColumnNames="individual_id"
-                constraintName="fk_event_participant_individual"
-                referencedTableName="gedcom_individuals"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- user_member_link.user_id → users.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000005" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_userlink_user"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="user_member_link" baseColumnNames="user_id"
+                                 constraintName="fk_userlink_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_citations"
-                baseColumnNames="source_id"
-                constraintName="fk_citation_source"
-                referencedTableName="gedcom_sources"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- role_permissions.role_id → roles.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000006" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_roleperm_role"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="role_permissions" baseColumnNames="role_id"
+                                 constraintName="fk_roleperm_role"
+                                 referencedTableName="roles" referencedColumnNames="id"/>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_citations"
-                baseColumnNames="event_id"
-                constraintName="fk_citation_event"
-                referencedTableName="gedcom_events"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- role_permissions.permission_id → permissions.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000007" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_roleperm_permission"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="role_permissions" baseColumnNames="permission_id"
+                                 constraintName="fk_roleperm_permission"
+                                 referencedTableName="permissions" referencedColumnNames="id"/>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_note_links"
-                baseColumnNames="note_id"
-                constraintName="fk_note_link_note"
-                referencedTableName="gedcom_notes"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- ========== CRM / Person Domain ========== -->
 
-        <!-- Security Foreign Keys -->
-        <addForeignKeyConstraint
-                baseTableName="user_roles"
-                baseColumnNames="user_id"
-                constraintName="fk_user_roles_user"
-                referencedTableName="users"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- membership_fees.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000008" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_membership_fees_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="membership_fees" baseColumnNames="person_id"
+                                 constraintName="fk_membership_fees_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="user_roles"
-                baseColumnNames="role_id"
-                constraintName="fk_user_roles_role"
-                referencedTableName="roles"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- memberships.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000009" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_membership_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="memberships" baseColumnNames="person_id"
+                                 constraintName="fk_membership_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+        <createIndex tableName="memberships" indexName="idx_membership_person">
+            <column name="person_id"/>
+        </createIndex>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="user_member_link"
-                baseColumnNames="user_id"
-                constraintName="fk_user_member_link_user"
-                referencedTableName="users"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- subscriptions.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000010" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_subscription_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="subscriptions" baseColumnNames="person_id"
+                                 constraintName="fk_subscription_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+        <createIndex tableName="subscriptions" indexName="idx_subscription_person">
+            <column name="person_id"/>
+        </createIndex>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="user_member_link"
-                baseColumnNames="person_id"
-                constraintName="fk_user_member_link_person"
-                referencedTableName="persons"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- donations.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000011" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_donation_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="donations" baseColumnNames="person_id"
+                                 constraintName="fk_donation_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+        <createIndex tableName="donations" indexName="idx_donation_person">
+            <column name="person_id"/>
+        </createIndex>
+    </changeSet>
 
+    <!-- gedcom_person_links.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000012" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_personlink_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_person_links" baseColumnNames="person_id"
+                                 constraintName="fk_personlink_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+    </changeSet>
 
+    <!-- gedcom_person_links.gedcom_individual_id → gedcom_individuals.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000013" author="mosque-crm">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_personlink_individual"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_person_links" baseColumnNames="gedcom_individual_id"
+                                 constraintName="fk_personlink_individual"
+                                 referencedTableName="gedcom_individuals" referencedColumnNames="id"/>
+    </changeSet>
 
-        <!-- Person-Centric Foreign Keys -->
-        <addForeignKeyConstraint
-                baseTableName="memberships"
-                baseColumnNames="person_id"
-                constraintName="fk_membership_person"
-                referencedTableName="persons"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- ========== GEDCOM Domain ========== -->
 
-        <addForeignKeyConstraint
-                baseTableName="subscriptions"
-                baseColumnNames="person_id"
-                constraintName="fk_subscription_person"
-                referencedTableName="persons"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- gedcom_note_links.note_id → gedcom_notes.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000014" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_notelink_note"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_note_links" baseColumnNames="note_id"
+                                 constraintName="fk_notelink_note"
+                                 referencedTableName="gedcom_notes" referencedColumnNames="id"/>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="donations"
-                baseColumnNames="person_id"
-                constraintName="fk_donation_person"
-                referencedTableName="persons"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- ========== Multi-Mosque Domain (mosque_id FKs) ========== -->
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_person_links"
-                baseColumnNames="person_id"
-                constraintName="fk_gedcom_person_link_person"
-                referencedTableName="persons"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+    <!-- users.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000015" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_user_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="users" baseColumnNames="mosque_id"
+                                 constraintName="fk_user_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="users" indexName="idx_user_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
 
-        <addForeignKeyConstraint
-                baseTableName="gedcom_person_links"
-                baseColumnNames="gedcom_individual_id"
-                constraintName="fk_gedcom_person_link_individual"
-                referencedTableName="gedcom_individuals"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
-                
-           <addForeignKeyConstraint
-            baseTableName="membership_fees"
-            baseColumnNames="member_id"
-            constraintName="fk_membership_fees_member"
-            referencedTableName="members"
-            referencedColumnNames="id"
-            onDelete="CASCADE"/>
+    <!-- users.selected_mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000016" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_user_selected_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="users" baseColumnNames="selected_mosque_id"
+                                 constraintName="fk_user_selected_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- user_roles.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000017" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_userrole_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="user_roles" baseColumnNames="mosque_id"
+                                 constraintName="fk_userrole_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="user_roles" indexName="idx_userrole_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- user_member_link.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000018" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_usermemberlink_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="user_member_link" baseColumnNames="mosque_id"
+                                 constraintName="fk_usermemberlink_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- persons.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000019" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_person_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="persons" baseColumnNames="mosque_id"
+                                 constraintName="fk_person_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="persons" indexName="idx_person_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- memberships.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000020" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_membership_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="memberships" baseColumnNames="mosque_id"
+                                 constraintName="fk_membership_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="memberships" indexName="idx_membership_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- subscriptions.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000021" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_subscription_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="subscriptions" baseColumnNames="mosque_id"
+                                 constraintName="fk_subscription_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="subscriptions" indexName="idx_subscription_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- donations.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000022" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_donation_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="donations" baseColumnNames="mosque_id"
+                                 constraintName="fk_donation_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="donations" indexName="idx_donation_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- membership_fees.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000023" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_membershipfee_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="membership_fees" baseColumnNames="mosque_id"
+                                 constraintName="fk_membershipfee_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="membership_fees" indexName="idx_membershipfee_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- configurations.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000024" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_configuration_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="configurations" baseColumnNames="mosque_id"
+                                 constraintName="fk_configuration_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- gedcom_individuals.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000025" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_individual_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_individuals" baseColumnNames="mosque_id"
+                                 constraintName="fk_individual_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="gedcom_individuals" indexName="idx_individual_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- gedcom_families.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000026" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_family_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_families" baseColumnNames="mosque_id"
+                                 constraintName="fk_family_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="gedcom_families" indexName="idx_family_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- gedcom_family_children.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000027" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_familychild_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_family_children" baseColumnNames="mosque_id"
+                                 constraintName="fk_familychild_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- gedcom_events.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000028" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_event_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_events" baseColumnNames="mosque_id"
+                                 constraintName="fk_event_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- gedcom_event_participants.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000029" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_eventpart_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_event_participants" baseColumnNames="mosque_id"
+                                 constraintName="fk_eventpart_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- gedcom_sources.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000030" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_source_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_sources" baseColumnNames="mosque_id"
+                                 constraintName="fk_source_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- gedcom_citations.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000031" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_citation_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_citations" baseColumnNames="mosque_id"
+                                 constraintName="fk_citation_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- gedcom_notes.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000032" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_note_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_notes" baseColumnNames="mosque_id"
+                                 constraintName="fk_note_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- gedcom_note_links.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000033" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_notelink_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_note_links" baseColumnNames="mosque_id"
+                                 constraintName="fk_notelink_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- gedcom_media.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000034" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_media_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_media" baseColumnNames="mosque_id"
+                                 constraintName="fk_media_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- gedcom_person_links.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000035" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_personlink_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="gedcom_person_links" baseColumnNames="mosque_id"
+                                 constraintName="fk_personlink_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- ========== Contributions & Payments Domain ========== -->
+
+    <!-- contribution_types.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000036" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_contribtype_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="contribution_types" baseColumnNames="mosque_id"
+                                 constraintName="fk_contribtype_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- contribution_type_translations.contribution_type_id → contribution_types.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000037" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_contribtrans_type"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="contribution_type_translations" baseColumnNames="contribution_type_id"
+                                 constraintName="fk_contribtrans_type"
+                                 referencedTableName="contribution_types" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- contribution_obligations.contribution_type_id → contribution_types.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000038" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_obligation_type"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="contribution_obligations" baseColumnNames="contribution_type_id"
+                                 constraintName="fk_obligation_type"
+                                 referencedTableName="contribution_types" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- contribution_obligations.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000039" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_obligation_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="contribution_obligations" baseColumnNames="mosque_id"
+                                 constraintName="fk_obligation_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- member_payments.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000040" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_payment_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_payments" baseColumnNames="person_id"
+                                 constraintName="fk_payment_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- member_payments.contribution_type_id → contribution_types.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000041" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_payment_type"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_payments" baseColumnNames="contribution_type_id"
+                                 constraintName="fk_payment_type"
+                                 referencedTableName="contribution_types" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- member_payments.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000042" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_payment_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_payments" baseColumnNames="mosque_id"
+                                 constraintName="fk_payment_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- ==================== Currency & Exchange Rate FKs ==================== -->
+
+    <!-- mosque_currencies.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000043" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_mosque_currency_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="mosque_currencies" baseColumnNames="mosque_id"
+                                 constraintName="fk_mosque_currency_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- mosque_currencies.currency_id → currencies.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000044" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_mosque_currency_currency"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="mosque_currencies" baseColumnNames="currency_id"
+                                 constraintName="fk_mosque_currency_currency"
+                                 referencedTableName="currencies" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- exchange_rates.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000045" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_exchange_rate_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="exchange_rates" baseColumnNames="mosque_id"
+                                 constraintName="fk_exchange_rate_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- exchange_rates.from_currency_id → currencies.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000046" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_exchange_rate_from_currency"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="exchange_rates" baseColumnNames="from_currency_id"
+                                 constraintName="fk_exchange_rate_from_currency"
+                                 referencedTableName="currencies" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- exchange_rates.to_currency_id → currencies.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000047" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_exchange_rate_to_currency"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="exchange_rates" baseColumnNames="to_currency_id"
+                                 constraintName="fk_exchange_rate_to_currency"
+                                 referencedTableName="currencies" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- contribution_obligations.currency_id → currencies.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000048" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_obligation_currency"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="contribution_obligations" baseColumnNames="currency_id"
+                                 constraintName="fk_obligation_currency"
+                                 referencedTableName="currencies" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- member_payments.currency_id → currencies.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000049" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_payment_currency"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_payments" baseColumnNames="currency_id"
+                                 constraintName="fk_payment_currency"
+                                 referencedTableName="currencies" referencedColumnNames="id"/>
     </changeSet>
 
 </databaseChangeLog>

@@ -5,7 +5,12 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="011-create-gedcom-note-links" author="system">
+    <changeSet id="e1f2a3b4-c5d6-7890-efab-901234567001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="gedcom_note_links"/>
+            </not>
+        </preConditions>
         <createTable tableName="gedcom_note_links">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -13,25 +18,15 @@
             <column name="note_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="entity_type" type="VARCHAR(20)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="entity_id" type="VARCHAR(50)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="individual_id" type="VARCHAR(20)"/>
+            <column name="family_id" type="VARCHAR(20)"/>
+            <column name="event_id" type="BIGINT"/>
+            <column name="source_id" type="BIGINT"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
 
-        <addForeignKeyConstraint
-            baseTableName="gedcom_note_links"
-            baseColumnNames="note_id"
-            constraintName="fk_notelink_note"
-            referencedTableName="gedcom_notes"
-            referencedColumnNames="id"
-            onDelete="CASCADE"/>
-
-        <createIndex tableName="gedcom_note_links" indexName="idx_notelink_entity">
-            <column name="entity_type"/>
-            <column name="entity_id"/>
+        <createIndex tableName="gedcom_note_links" indexName="idx_note_links_note">
+            <column name="note_id"/>
         </createIndex>
     </changeSet>
 

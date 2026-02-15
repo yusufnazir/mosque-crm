@@ -5,7 +5,12 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="007-create-gedcom-event-participants" author="system">
+    <changeSet id="a7b8c9d0-e1f2-3456-abcd-567890123001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="gedcom_event_participants"/>
+            </not>
+        </preConditions>
         <createTable tableName="gedcom_event_participants">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -16,16 +21,14 @@
             <column name="individual_id" type="VARCHAR(20)">
                 <constraints nullable="false"/>
             </column>
-            <column name="role" type="VARCHAR(20)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="role" type="VARCHAR(50)"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
 
-        <createIndex tableName="gedcom_event_participants" indexName="idx_eventparticipant_event">
+        <createIndex tableName="gedcom_event_participants" indexName="idx_participants_event">
             <column name="event_id"/>
         </createIndex>
-
-        <createIndex tableName="gedcom_event_participants" indexName="idx_eventparticipant_individual">
+        <createIndex tableName="gedcom_event_participants" indexName="idx_participants_individual">
             <column name="individual_id"/>
         </createIndex>
     </changeSet>

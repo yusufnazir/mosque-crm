@@ -70,24 +70,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Sync language with backend (authenticated user)
   const syncLanguageWithBackend = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        // User is authenticated - backend is source of truth
-        const preferences: any = await preferencesApi.get();
-        const backendLang = preferences.language as Language;
-        
-        if (backendLang && (backendLang === 'en' || backendLang === 'nl')) {
-          // Apply backend language
-          setLanguageState(backendLang);
-          
-          // Sync to browser storage
-          localStorage.setItem('lang', backendLang);
-          setCookie('lang', backendLang);
-        }
+      // Try to fetch backend preferences — if not authenticated, this will fail gracefully
+      const preferences: any = await preferencesApi.get();
+      const backendLang = preferences.language as Language;
+      
+      if (backendLang && (backendLang === 'en' || backendLang === 'nl')) {
+        setLanguageState(backendLang);
+        localStorage.setItem('lang', backendLang);
+        setCookie('lang', backendLang);
       }
     } catch (error) {
       console.error('Failed to fetch language preference from backend:', error);
-      // Keep current browser language if backend fails
     }
   };
 
@@ -100,15 +93,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('lang', lang);
     setCookie('lang', lang);
     
-    // If authenticated, persist to backend
+    // If authenticated, persist to backend (will fail gracefully if not logged in)
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        await preferencesApi.updateLanguage(lang);
-      }
+      await preferencesApi.updateLanguage(lang);
     } catch (error) {
-      console.error('Failed to update language preference on backend:', error);
-      // Continue anyway - browser storage update succeeded
+      // Not authenticated or backend error — browser storage update still succeeded
     }
   };
 

@@ -52,6 +52,8 @@ export interface AuthResponse {
   role: string;
   memberId: string;
   personId?: string;
+  mosqueId?: number;
+  permissions?: string[];
   preferences?: UserPreferences;
 }
 

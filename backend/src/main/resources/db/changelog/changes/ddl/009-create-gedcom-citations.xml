@@ -5,28 +5,31 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="009-create-gedcom-citations" author="system">
+    <changeSet id="c9d0e1f2-a3b4-5678-cdef-789012345001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="gedcom_citations"/>
+            </not>
+        </preConditions>
         <createTable tableName="gedcom_citations">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="source_id" type="VARCHAR(20)">
+            <column name="source_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="event_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="page" type="VARCHAR(100)"/>
-            <column name="text" type="TEXT"/>
+            <column name="individual_id" type="VARCHAR(20)"/>
+            <column name="family_id" type="VARCHAR(20)"/>
+            <column name="page" type="VARCHAR(500)"/>
             <column name="confidence" type="VARCHAR(20)"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
 
-        <createIndex tableName="gedcom_citations" indexName="idx_citation_source">
+        <createIndex tableName="gedcom_citations" indexName="idx_citations_source">
             <column name="source_id"/>
         </createIndex>
-
-        <createIndex tableName="gedcom_citations" indexName="idx_citation_event">
-            <column name="event_id"/>
+        <createIndex tableName="gedcom_citations" indexName="idx_citations_individual">
+            <column name="individual_id"/>
         </createIndex>
     </changeSet>
 

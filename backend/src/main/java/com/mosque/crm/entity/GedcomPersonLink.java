@@ -3,12 +3,16 @@ package com.mosque.crm.entity;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.mosque.crm.entity.gedcom.Individual;
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -29,7 +33,9 @@ import jakarta.persistence.TableGenerator;
  */
 @Entity
 @Table(name = "gedcom_person_links")
-public class GedcomPersonLink {
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
+public class GedcomPersonLink implements MosqueAware {
 
     @Id
     @TableGenerator(name = "gedcom_person_links_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -58,6 +64,9 @@ public class GedcomPersonLink {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
 
     // Constructors
     public GedcomPersonLink() {
@@ -115,5 +124,15 @@ public class GedcomPersonLink {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
     }
 }

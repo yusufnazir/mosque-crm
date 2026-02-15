@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="a1b2c3d4-0025-4aaa-bbbb-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="contribution_types"/>
+            </not>
+        </preConditions>
+        <createTable tableName="contribution_types">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_required" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mosque_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="contribution_types" indexName="idx_contrib_type_code">
+            <column name="code"/>
+        </createIndex>
+        <createIndex tableName="contribution_types" indexName="idx_contrib_type_active">
+            <column name="is_active"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

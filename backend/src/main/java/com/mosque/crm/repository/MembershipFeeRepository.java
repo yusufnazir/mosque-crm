@@ -14,9 +14,9 @@ import com.mosque.crm.entity.MembershipFee;
 @Repository
 public interface MembershipFeeRepository extends JpaRepository<MembershipFee, Long> {
 
-    List<MembershipFee> findByMemberId(Long memberId);
+    List<MembershipFee> findByPersonId(Long personId);
 
-    List<MembershipFee> findByMemberIdAndStatus(Long memberId, MembershipFee.PaymentStatus status);
+    List<MembershipFee> findByPersonIdAndStatus(Long personId, MembershipFee.PaymentStatus status);
 
     List<MembershipFee> findByStatus(MembershipFee.PaymentStatus status);
 

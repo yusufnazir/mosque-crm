@@ -5,8 +5,8 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="1769394843600" author="cxode">
-    <preConditions onFail="MARK_RAN">
+    <changeSet id="b2c3d4e5-f6a7-8901-bcde-f12345678901" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="membership_fees"/>
             </not>
@@ -15,7 +15,7 @@
             <column name="id" type="BIGINT">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="member_id" type="BIGINT">
+            <column name="person_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="amount" type="DECIMAL(10,2)">
@@ -34,16 +34,15 @@
             <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
 
-        <createIndex indexName="idx_membership_fees_member_id" tableName="membership_fees">
-            <column name="member_id"/>
+        <createIndex indexName="idx_membership_fees_person_id" tableName="membership_fees">
+            <column name="person_id"/>
         </createIndex>
-
         <createIndex indexName="idx_membership_fees_status" tableName="membership_fees">
             <column name="status"/>
         </createIndex>
-
         <createIndex indexName="idx_membership_fees_due_date" tableName="membership_fees">
             <column name="due_date"/>
         </createIndex>

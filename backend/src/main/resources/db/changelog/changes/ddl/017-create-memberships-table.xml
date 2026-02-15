@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="017-create-memberships-table" author="system">
+    <changeSet id="c9012345-d678-ef45-9012-345678cd0001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="memberships"/>
+            </not>
+        </preConditions>
         <createTable tableName="memberships">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="person_id" type="BIGINT">
@@ -20,33 +25,12 @@
                 <constraints nullable="false"/>
             </column>
             <column name="end_date" type="DATE"/>
-            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE">
-                <constraints nullable="false"/>
-            </column>
-            <column name="notes" type="VARCHAR(1000)"/>
-            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE"/>
+            <column name="notes" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="mosque_id" type="BIGINT"/>
         </createTable>
-
-        <addForeignKeyConstraint
-                baseTableName="memberships"
-                baseColumnNames="person_id"
-                constraintName="fk_memberships_person"
-                referencedTableName="persons"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
-
-        <createIndex tableName="memberships" indexName="idx_memberships_person">
-            <column name="person_id"/>
-        </createIndex>
-
-        <createIndex tableName="memberships" indexName="idx_memberships_status">
-            <column name="status"/>
-        </createIndex>
     </changeSet>
 
 </databaseChangeLog>

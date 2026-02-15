@@ -1,9 +1,14 @@
 package com.mosque.crm.entity.gedcom;
 
+import org.hibernate.annotations.Filter;
+
 import com.mosque.crm.enums.ParticipantRole;
+import com.mosque.crm.multitenancy.MosqueAware;
+import com.mosque.crm.multitenancy.MosqueEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -23,8 +28,10 @@ import lombok.Data;
  */
 @Entity
 @Table(name = "gedcom_event_participants")
+@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
+@EntityListeners(MosqueEntityListener.class)
 @Data
-public class EventParticipant {
+public class EventParticipant implements MosqueAware {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,6 +46,19 @@ public class EventParticipant {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
     private ParticipantRole role;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
+
+    @Override
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    @Override
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
+    }
 
     /**
      * Query examples:

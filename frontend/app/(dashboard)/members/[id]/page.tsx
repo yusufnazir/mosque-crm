@@ -231,13 +231,7 @@ export default function MemberDetailPage() {
     
     try {
       setGenealogyLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/genealogy/persons/${member.personId}/graph`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(`/api/genealogy/persons/${member.personId}/graph`);
 
       if (!response.ok) {
         throw new Error('Failed to load genealogy graph');
@@ -261,7 +255,7 @@ export default function MemberDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="h-96 bg-gray-200 rounded-xl"></div>
@@ -272,7 +266,7 @@ export default function MemberDetailPage() {
 
   if (error || !member) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <Card>
           <CardContent className="text-center py-12">
             <p className="text-red-600 mb-4">{error || 'Member not found'}</p>
@@ -302,17 +296,17 @@ export default function MemberDetailPage() {
   });
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between gap-4 mb-4">
+      <div className="mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <Button variant="ghost" size="sm" onClick={() => router.push('/members')}>
             ← {t('member_detail.back_to_members')}
           </Button>
           
           {/* Member Selector */}
           <div className="flex items-center gap-2">
-            <label htmlFor="member-select" className="text-sm text-gray-600 font-medium">
+            <label htmlFor="member-select" className="text-sm text-gray-600 font-medium hidden sm:inline">
               {t('common.quick_navigate')}:
             </label>
             <select
@@ -327,7 +321,7 @@ export default function MemberDetailPage() {
                   console.warn('Invalid ID format for navigation:', selectedValue);
                 }
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
+              className="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
             >
               {allMembers.map((m, index) => {
                 // Use personId only
@@ -340,16 +334,16 @@ export default function MemberDetailPage() {
             </select>
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xl font-bold">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-emerald-600 text-white flex items-center justify-center text-lg md:text-2xl font-bold flex-shrink-0">
               {member.firstName?.[0] || '?'}{member.lastName?.[0] || '?'}
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-charcoal">
+            <div className="min-w-0">
+              <h1 className="text-2xl md:text-3xl font-bold text-charcoal truncate">
                 {capitalizeName(member.firstName)} {capitalizeName(member.lastName)}
               </h1>
-              <div className="flex items-center gap-3 mt-1">
+              <div className="flex items-center gap-2 md:gap-3 mt-1 flex-wrap">
                 <span
                   className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(
                     member.status || 'ACTIVE'
@@ -365,11 +359,12 @@ export default function MemberDetailPage() {
               </div>
             </div>
           </div>
-          <div className="flex gap-3">
-            <Button onClick={() => router.push(`/members/${memberId}/edit`)}>
+          <div className="flex gap-2 md:gap-3 w-full sm:w-auto">
+            <Button className="flex-1 sm:flex-initial text-sm" onClick={() => router.push(`/members/${memberId}/edit`)}>
               {t('member_detail.edit_member')}
             </Button>
             <Button 
+              className="flex-1 sm:flex-initial text-sm"
               variant="secondary"
               onClick={() => router.push(`/persons/${member.personId}/family`)}
             >
@@ -379,15 +374,14 @@ export default function MemberDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Personal Information */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>{t('member_detail.personal_information')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">
                     {t('member_detail.email')}
@@ -513,14 +507,14 @@ export default function MemberDetailPage() {
             {familyTreeTab === 'genealogy' && (
               <div>
                 {genealogyLoading ? (
-                  <div className="bg-stone-50 rounded-lg border border-stone-200 p-12 text-center">
+                  <div className="bg-stone-50 rounded-lg border border-stone-200 p-6 md:p-12 text-center">
                     <div className="animate-pulse">
-                      <div className="h-[600px] bg-gray-200 rounded"></div>
+                      <div className="h-[400px] md:h-[600px] bg-gray-200 rounded"></div>
                     </div>
                     <p className="text-stone-600 mt-4">{t('member_detail.loading_genealogy')}</p>
                   </div>
                 ) : genealogyData && genealogyData.nodes.length > 0 ? (
-                  <div className="h-[600px] bg-white rounded-lg border border-stone-200">
+                  <div className="h-[400px] md:h-[600px] bg-white rounded-lg border border-stone-200">
                     <GenealogyTree 
                       data={genealogyData}
                       onNodeClick={(nodeId, nodeType) => {
@@ -532,7 +526,7 @@ export default function MemberDetailPage() {
                     />
                   </div>
                 ) : (
-                  <div className="bg-stone-50 rounded-lg border border-stone-200 p-12 text-center text-stone-600">
+                  <div className="bg-stone-50 rounded-lg border border-stone-200 p-6 md:p-12 text-center text-stone-600">
                     <p className="text-lg mb-2">{t('member_detail.no_genealogy_data')}</p>
                     <p className="text-sm">{t('member_detail.add_family_relationships')}</p>
                   </div>
@@ -553,7 +547,7 @@ export default function MemberDetailPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[500px]">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
