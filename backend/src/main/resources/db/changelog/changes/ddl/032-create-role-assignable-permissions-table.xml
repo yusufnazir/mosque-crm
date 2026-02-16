@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        role_assignable_permissions: Defines the POOL of permissions each role can potentially have.
+        The actual granted permissions (role_permissions) must always be a subset of this table.
+        Managed via the Privileges view.
+    -->
+    <changeSet id="a1b2c3d4-0032-4aaa-bbbb-assignpool001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="role_assignable_permissions"/>
+            </not>
+        </preConditions>
+        <createTable tableName="role_assignable_permissions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="role_assignable_permissions" columnNames="role_id,permission_id"
+                             constraintName="uk_role_assignable_permission"/>
+    </changeSet>
+
+</databaseChangeLog>

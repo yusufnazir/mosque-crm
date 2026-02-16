@@ -23,11 +23,11 @@ public class MemberDTO {
     private String parentId; // Kept for backward compatibility with frontend
     private List<MemberDTO> children; // Kept for backward compatibility with frontend
     private String username;
-    private String role;
+    private List<String> roles;
     private boolean accountEnabled;
     public MemberDTO() {}
 
-    public MemberDTO(String id, String firstName, String lastName, String email, String phone, LocalDate dateOfBirth, String gender, String address, String city, String country, String postalCode, String membershipStatus, LocalDate memberSince, String partnerId, String partnerName, String parentId, List<MemberDTO> children, String username, String role, boolean accountEnabled) {
+    public MemberDTO(String id, String firstName, String lastName, String email, String phone, LocalDate dateOfBirth, String gender, String address, String city, String country, String postalCode, String membershipStatus, LocalDate memberSince, String partnerId, String partnerName, String parentId, List<MemberDTO> children, String username, List<String> roles, boolean accountEnabled) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -46,7 +46,7 @@ public class MemberDTO {
         this.parentId = parentId;
         this.children = children;
         this.username = username;
-        this.role = role;
+        this.roles = roles;
         this.accountEnabled = accountEnabled;
     }
 
@@ -89,8 +89,8 @@ public class MemberDTO {
     public void setChildren(List<MemberDTO> children) { this.children = children; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+    public List<String> getRoles() { return roles; }
+    public void setRoles(List<String> roles) { this.roles = roles; }
     public boolean isAccountEnabled() { return accountEnabled; }
     public void setAccountEnabled(boolean accountEnabled) { this.accountEnabled = accountEnabled; }
 }

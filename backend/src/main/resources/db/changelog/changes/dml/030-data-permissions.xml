@@ -194,4 +194,22 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ PRIVILEGE MANAGEMENT ═══════════ -->
+	<changeSet id="b3c4d5e6-0035-4aaa-bbbb-privilege00024" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[24]]></param>
+			<param name="code"><![CDATA[privilege.view]]></param>
+			<param name="description"><![CDATA[View role and permission assignments]]></param>
+			<param name="category"><![CDATA[privilege]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="c4d5e6f7-0035-4aaa-bbbb-privilege00025" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[25]]></param>
+			<param name="code"><![CDATA[privilege.manage]]></param>
+			<param name="description"><![CDATA[Manage role definitions and permission assignments]]></param>
+			<param name="category"><![CDATA[privilege]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

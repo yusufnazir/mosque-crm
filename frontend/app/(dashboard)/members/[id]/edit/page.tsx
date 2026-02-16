@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import Button from '@/components/Button';
-import { memberApi } from '@/lib/api';
+import { memberApi, ApiClient } from '@/lib/api';
 import { Member } from '@/types';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 
@@ -22,7 +22,7 @@ interface MemberFormData {
   membershipStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   username: string;
   password: string;
-  role: 'ADMIN' | 'MEMBER';
+  roles: string[];
   partnerId?: number;
   parentId?: number;
 }
@@ -52,17 +52,30 @@ export default function EditMemberPage() {
     membershipStatus: 'ACTIVE',
     username: '',
     password: '',
-    role: 'MEMBER',
+    roles: ['MEMBER'],
   });
   // Checkbox state: true if username exists, else false
   const [accountEnabled, setAccountEnabled] = useState(false);
+  // Available roles fetched from API
+  const [availableRoles, setAvailableRoles] = useState<{id: number; name: string}[]>([]);
   // Show/hide password toggle state
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetchMemberData();
     fetchHeadMembers();
+    fetchAvailableRoles();
   }, [memberId]);
+
+  const fetchAvailableRoles = async () => {
+    try {
+      const rolesData = await ApiClient.get<{id: number; name: string; description: string}[]>('/admin/roles');
+      // Filter out SUPER_ADMIN — not assignable via member edit
+      setAvailableRoles(rolesData.filter(r => r.name !== 'SUPER_ADMIN'));
+    } catch (error) {
+      console.error('Failed to fetch roles:', error);
+    }
+  };
 
   const fetchMemberData = async () => {
     try {
@@ -82,7 +95,7 @@ export default function EditMemberPage() {
         membershipStatus: data.membershipStatus || 'ACTIVE',
         username: data.username || '',
         password: '',
-        role: data.role || 'MEMBER',
+        roles: data.roles || ['MEMBER'],
         partnerId: data.partnerId,
         parentId: data.parentId,
       });
@@ -111,7 +124,7 @@ export default function EditMemberPage() {
     if (name === 'accountEnabled') {
       setAccountEnabled(!!checked);
       if (!checked) {
-        setFormData((prev) => ({ ...prev, username: '', password: '', role: 'MEMBER' }));
+        setFormData((prev) => ({ ...prev, username: '', password: '', roles: ['MEMBER'] }));
       }
       return;
     }
@@ -409,17 +422,28 @@ export default function EditMemberPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {t('member_edit.role')}
+                          {t('member_edit.roles')}
                         </label>
-                        <select
-                          name="role"
-                          value={formData.role}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                        >
-                          <option value="MEMBER">{t('member_edit.member')}</option>
-                          <option value="ADMIN">{t('member_edit.admin')}</option>
-                        </select>
+                        <div className="space-y-2">
+                          {availableRoles.map((role) => (
+                            <label key={role.id} className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={formData.roles.includes(role.name)}
+                                onChange={(e) => {
+                                  setFormData((prev) => {
+                                    const newRoles = e.target.checked
+                                      ? [...prev.roles, role.name]
+                                      : prev.roles.filter((r) => r !== role.name);
+                                    return { ...prev, roles: newRoles.length > 0 ? newRoles : ['MEMBER'] };
+                                  });
+                                }}
+                                className="h-4 w-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                              />
+                              <span className="text-sm text-gray-700">{role.name}</span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
                     </>
                   ) : (

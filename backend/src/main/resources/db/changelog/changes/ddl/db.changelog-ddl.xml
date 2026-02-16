@@ -41,6 +41,7 @@
     <!-- Authorization Tables -->
     <include file="db/changelog/changes/ddl/021-create-permissions-table.xml"/>
     <include file="db/changelog/changes/ddl/022-create-role-permissions-table.xml"/>
+    <include file="db/changelog/changes/ddl/032-create-role-assignable-permissions-table.xml"/>
 
     <!-- Multi-Mosque Tables -->
     <include file="db/changelog/changes/ddl/024-create-mosques-table.xml"/>
@@ -50,6 +51,8 @@
     <include file="db/changelog/changes/ddl/026-create-contribution-type-translations-table.xml"/>
     <include file="db/changelog/changes/ddl/027-create-contribution-obligations-table.xml"/>
     <include file="db/changelog/changes/ddl/028-create-member-payments-table.xml"/>
+    <include file="db/changelog/changes/ddl/033-add-period-columns-to-member-payments.xml"/>
+    <include file="db/changelog/changes/ddl/034-create-member-contribution-exemptions-table.xml"/>
 
     <!-- Currency & Exchange Rate Tables -->
     <include file="db/changelog/changes/ddl/029-create-currencies-table.xml"/>

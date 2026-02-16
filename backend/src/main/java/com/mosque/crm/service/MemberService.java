@@ -126,6 +126,10 @@ public class MemberService {
                     }
                     user.setEmail(memberDTO.getEmail());
                     user.setAccountEnabled(true);
+                    // Assign mosque from current tenant context
+                    if (user.getMosqueId() == null) {
+                        user.setMosqueId(com.mosque.crm.multitenancy.TenantContext.getCurrentMosqueId());
+                    }
                     // Set password if provided
                     if (StringUtils.isNotBlank(memberDTO.getPassword())) {
                         user.setPassword(passwordEncoder.encode(memberDTO.getPassword()));
@@ -133,12 +137,17 @@ public class MemberService {
                         // If creating a new user and no password provided, set a random password (or throw error)
                         user.setPassword(passwordEncoder.encode("changeme123"));
                     }
-                    // Assign role
-                    String roleName = memberDTO.getRole() != null ? memberDTO.getRole() : "MEMBER";
-                    Role role = roleRepository.findByName(roleName)
-                        .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+                    // Assign roles
+                    List<String> roleNames = memberDTO.getRoles();
+                    if (roleNames == null || roleNames.isEmpty()) {
+                        roleNames = List.of("MEMBER");
+                    }
                     Set<Role> roleSet = new HashSet<>();
-                    roleSet.add(role);
+                    for (String roleName : roleNames) {
+                        Role role = roleRepository.findByName(roleName)
+                            .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+                        roleSet.add(role);
+                    }
                     user.setRoles(roleSet);
                     userRepository.save(user);
 
@@ -204,7 +213,7 @@ public class MemberService {
                     null, // parentId
                     null, // children
                     null, // username
-                    null, // role
+                    null, // roles
                     false // accountEnabled
                 );
     }
@@ -242,7 +251,9 @@ public class MemberService {
             User user = person.getUserLink().getUser();
             dto.setUsername(user.getUsername());
             if (user.getRoles() != null && !user.getRoles().isEmpty()) {
-                dto.setRole(user.getRoles().iterator().next().getName());
+                dto.setRoles(user.getRoles().stream()
+                    .map(Role::getName)
+                    .collect(Collectors.toList()));
             }
             dto.setAccountEnabled(user.isAccountEnabled());
         } else {

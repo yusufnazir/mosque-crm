@@ -54,6 +54,8 @@ export interface MemberPayment {
   contributionTypeCode: string;
   amount: number;
   paymentDate: string;
+  periodFrom?: string;
+  periodTo?: string;
   reference?: string;
   notes?: string;
   createdBy?: number;
@@ -68,6 +70,8 @@ export interface MemberPaymentCreate {
   contributionTypeId: number;
   amount: number;
   paymentDate: string;
+  periodFrom?: string;
+  periodTo?: string;
   reference?: string;
   notes?: string;
   currencyId?: number;
@@ -139,4 +143,51 @@ export const memberPaymentApi = {
 
   delete: (id: number): Promise<void> =>
     ApiClient.delete(`/contributions/payments/${id}`),
+};
+
+// ===== Exemptions =====
+
+export interface MemberContributionExemption {
+  id: number;
+  personId: number;
+  personName: string;
+  contributionTypeId: number;
+  contributionTypeCode: string;
+  exemptionType: 'FULL' | 'FIXED_AMOUNT' | 'DISCOUNT_AMOUNT' | 'DISCOUNT_PERCENTAGE';
+  amount?: number;
+  reason?: string;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+}
+
+export interface MemberContributionExemptionCreate {
+  personId: number;
+  contributionTypeId: number;
+  exemptionType: string;
+  amount?: number;
+  reason?: string;
+  startDate: string;
+  endDate?: string;
+  isActive?: boolean;
+}
+
+export const exemptionApi = {
+  getAll: (): Promise<MemberContributionExemption[]> =>
+    ApiClient.get('/contributions/exemptions'),
+
+  getById: (id: number): Promise<MemberContributionExemption> =>
+    ApiClient.get(`/contributions/exemptions/${id}`),
+
+  getActive: (personId: number, contributionTypeId: number): Promise<MemberContributionExemption[]> =>
+    ApiClient.get(`/contributions/exemptions/active?personId=${personId}&contributionTypeId=${contributionTypeId}`),
+
+  create: (data: MemberContributionExemptionCreate): Promise<MemberContributionExemption> =>
+    ApiClient.post('/contributions/exemptions', data),
+
+  update: (id: number, data: MemberContributionExemptionCreate): Promise<MemberContributionExemption> =>
+    ApiClient.put(`/contributions/exemptions/${id}`, data),
+
+  delete: (id: number): Promise<void> =>
+    ApiClient.delete(`/contributions/exemptions/${id}`),
 };

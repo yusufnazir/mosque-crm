@@ -11,15 +11,17 @@ public class RoleDTO {
     private String name;
     private String description;
     private List<String> permissionCodes;
+    private List<String> assignablePermissionCodes;
 
     public RoleDTO() {
     }
 
-    public RoleDTO(Long id, String name, String description, List<String> permissionCodes) {
+    public RoleDTO(Long id, String name, String description, List<String> permissionCodes, List<String> assignablePermissionCodes) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.permissionCodes = permissionCodes;
+        this.assignablePermissionCodes = assignablePermissionCodes;
     }
 
     public Long getId() {
@@ -52,5 +54,13 @@ public class RoleDTO {
 
     public void setPermissionCodes(List<String> permissionCodes) {
         this.permissionCodes = permissionCodes;
+    }
+
+    public List<String> getAssignablePermissionCodes() {
+        return assignablePermissionCodes;
+    }
+
+    public void setAssignablePermissionCodes(List<String> assignablePermissionCodes) {
+        this.assignablePermissionCodes = assignablePermissionCodes;
     }
 }

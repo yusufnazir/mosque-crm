@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import Button from '@/components/Button';
-import { memberApi } from '@/lib/api';
+import { memberApi, ApiClient } from '@/lib/api';
 import { Member } from '@/types';
 
 interface MemberFormData {
@@ -21,7 +21,7 @@ interface MemberFormData {
   membershipStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   username: string;
   password: string;
-  role: 'ADMIN' | 'MEMBER';
+  roles: string[];
   partnerId?: number;
   parentId?: number;
   needsAccount: boolean;
@@ -32,6 +32,7 @@ export default function AddMemberPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [headMembers, setHeadMembers] = useState<Member[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<{id: number; name: string}[]>([]);
   const [formData, setFormData] = useState<MemberFormData>({
     firstName: '',
     lastName: '',
@@ -46,13 +47,23 @@ export default function AddMemberPage() {
     membershipStatus: 'ACTIVE',
     username: '',
     password: '',
-    role: 'MEMBER',
+    roles: ['MEMBER'],
     needsAccount: false,
   });
 
   useEffect(() => {
     fetchHeadMembers();
+    fetchAvailableRoles();
   }, []);
+
+  const fetchAvailableRoles = async () => {
+    try {
+      const rolesData = await ApiClient.get<{id: number; name: string; description: string}[]>('/admin/roles');
+      setAvailableRoles(rolesData.filter(r => r.name !== 'SUPER_ADMIN'));
+    } catch (error) {
+      console.error('Failed to fetch roles:', error);
+    }
+  };
 
   const fetchHeadMembers = async () => {
     try {
@@ -89,7 +100,7 @@ export default function AddMemberPage() {
         if (key === 'needsAccount') return;
         
         // Skip account-related fields if account is not needed
-        if (!formData.needsAccount && ['username', 'password', 'role'].includes(key)) {
+        if (!formData.needsAccount && ['username', 'password', 'roles'].includes(key)) {
           return;
         }
         
@@ -354,18 +365,28 @@ export default function AddMemberPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Role <span className="text-red-500">*</span>
+                          Roles <span className="text-red-500">*</span>
                         </label>
-                        <select
-                          name="role"
-                          value={formData.role}
-                          onChange={handleInputChange}
-                          required={formData.needsAccount}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                        >
-                          <option value="MEMBER">Member</option>
-                          <option value="ADMIN">Admin</option>
-                        </select>
+                        <div className="space-y-2">
+                          {availableRoles.map((role) => (
+                            <label key={role.id} className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={formData.roles.includes(role.name)}
+                                onChange={(e) => {
+                                  setFormData((prev) => {
+                                    const newRoles = e.target.checked
+                                      ? [...prev.roles, role.name]
+                                      : prev.roles.filter((r) => r !== role.name);
+                                    return { ...prev, roles: newRoles.length > 0 ? newRoles : ['MEMBER'] };
+                                  });
+                                }}
+                                className="h-4 w-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                              />
+                              <span className="text-sm text-gray-700">{role.name}</span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
                     </>
                   )}

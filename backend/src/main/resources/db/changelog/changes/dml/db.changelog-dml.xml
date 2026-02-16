@@ -26,6 +26,7 @@
     <!-- Authorization Data -->
     <include file="db/changelog/changes/dml/030-data-permissions.xml"/>
     <include file="db/changelog/changes/dml/031-data-role-permissions.xml"/>
+    <include file="db/changelog/changes/dml/035-data-role-assignable-permissions.xml"/>
 
     <!-- Multi-Mosque Data -->
     <include file="db/changelog/changes/dml/032-data-mosques.xml"/>

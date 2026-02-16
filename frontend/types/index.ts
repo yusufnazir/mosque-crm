@@ -18,7 +18,7 @@ export interface Member {
   startDate?: string;
   endDate?: string;
   username?: string;
-  role?: string;
+  roles?: string[];
   needsAccount?: boolean;
   dateOfDeath?: string;
   partnerName?: string;
@@ -26,18 +26,6 @@ export interface Member {
   children?: Member[];
 }
 
-export interface MembershipFee {
-  id: number;
-  memberId: number;
-  memberName: string;
-  amount: number;
-  dueDate: string;
-  paidDate?: string;
-  status: 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELLED';
-  paymentMethod?: 'CASH' | 'BANK_TRANSFER' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CHECK' | 'OTHER';
-  transactionReference?: string;
-  notes?: string;
-}
 
 export interface UserPreferences {
   language: string;

@@ -72,7 +72,7 @@ public class CurrentUserController {
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setMosqueId(user.getMosqueId());
-        dto.setSuperAdmin(user.getMosqueId() == null);
+        dto.setSuperAdmin(user.getRoles().stream().anyMatch(r -> "SUPER_ADMIN".equals(r.getName())));
         dto.setPersonId(personId);
         dto.setPermissions(new ArrayList<>(permissions));
         dto.setRoles(roleNames);

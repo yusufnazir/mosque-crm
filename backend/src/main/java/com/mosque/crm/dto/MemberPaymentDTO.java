@@ -16,6 +16,8 @@ public class MemberPaymentDTO {
     private String contributionTypeCode;
     private BigDecimal amount;
     private LocalDate paymentDate;
+    private LocalDate periodFrom;
+    private LocalDate periodTo;
     private String reference;
     private String notes;
     private Long createdBy;
@@ -82,6 +84,22 @@ public class MemberPaymentDTO {
 
     public void setPaymentDate(LocalDate paymentDate) {
         this.paymentDate = paymentDate;
+    }
+
+    public LocalDate getPeriodFrom() {
+        return periodFrom;
+    }
+
+    public void setPeriodFrom(LocalDate periodFrom) {
+        this.periodFrom = periodFrom;
+    }
+
+    public LocalDate getPeriodTo() {
+        return periodTo;
+    }
+
+    public void setPeriodTo(LocalDate periodTo) {
+        this.periodTo = periodTo;
     }
 
     public String getReference() {

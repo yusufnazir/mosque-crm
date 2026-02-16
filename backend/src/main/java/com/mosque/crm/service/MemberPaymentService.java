@@ -120,6 +120,8 @@ public class MemberPaymentService {
         payment.setContributionType(type);
         payment.setAmount(createDTO.getAmount());
         payment.setPaymentDate(createDTO.getPaymentDate());
+        payment.setPeriodFrom(createDTO.getPeriodFrom());
+        payment.setPeriodTo(createDTO.getPeriodTo());
         payment.setReference(createDTO.getReference());
         payment.setNotes(createDTO.getNotes());
 
@@ -162,6 +164,8 @@ public class MemberPaymentService {
 
         payment.setAmount(updateDTO.getAmount());
         payment.setPaymentDate(updateDTO.getPaymentDate());
+        payment.setPeriodFrom(updateDTO.getPeriodFrom());
+        payment.setPeriodTo(updateDTO.getPeriodTo());
         payment.setReference(updateDTO.getReference());
         payment.setNotes(updateDTO.getNotes());
 
@@ -201,6 +205,8 @@ public class MemberPaymentService {
         dto.setContributionTypeCode(payment.getContributionType().getCode());
         dto.setAmount(payment.getAmount());
         dto.setPaymentDate(payment.getPaymentDate());
+        dto.setPeriodFrom(payment.getPeriodFrom());
+        dto.setPeriodTo(payment.getPeriodTo());
         dto.setReference(payment.getReference());
         dto.setNotes(payment.getNotes());
         dto.setCreatedBy(payment.getCreatedBy());

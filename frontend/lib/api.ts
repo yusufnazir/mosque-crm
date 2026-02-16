@@ -140,28 +140,11 @@ export const memberApi = {
   getAgeGenderDistribution: (): Promise<AgeGenderBucket[]> => ApiClient.get('/genealogy/age-gender-distribution'),
 };
 
-// Fee API
-export const feeApi = {
-  getAll: () => ApiClient.get('/admin/fees'),
-  getById: (id: string) => ApiClient.get(`/admin/fees/${id}`),
-  getByMember: (memberId: string) => ApiClient.get(`/admin/fees/member/${memberId}`),
-  getOverdue: () => ApiClient.get('/admin/fees/overdue'),
-  create: (data: any) => ApiClient.post('/admin/fees', data),
-  update: (id: string, data: any) => ApiClient.put(`/admin/fees/${id}`, data),
-  delete: (id: string) => ApiClient.delete(`/admin/fees/${id}`),
-  /**
-   * Returns monthly expected and realized fee income for the current year.
-   * Each item: { month: number (1-12), expected: number, realized: number }
-   */
-  getMonthlyStats: () => ApiClient.get<{ month: number; expected: number; realized: number }[]>(
-    '/admin/fees/monthly-stats'
-  ),
-};
+
 
 // Member Portal API
 export const portalApi = {
   getProfile: () => ApiClient.get('/member/profile'),
-  getFees: () => ApiClient.get('/member/fees'),
 };
 
 // Genealogy/Relationship API

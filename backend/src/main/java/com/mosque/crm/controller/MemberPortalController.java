@@ -1,7 +1,5 @@
 package com.mosque.crm.controller;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mosque.crm.entity.User;
 import com.mosque.crm.repository.UserRepository;
-import com.mosque.crm.service.MembershipFeeService;
 import com.mosque.crm.service.MembershipListingService;
 
 @RestController
@@ -26,14 +23,11 @@ public class MemberPortalController {
 
     private final UserRepository userRepository;
     private final MembershipListingService membershipListingService;
-    private final MembershipFeeService feeService;
 
     public MemberPortalController(UserRepository userRepository,
-                                  MembershipListingService membershipListingService,
-                                  MembershipFeeService feeService) {
+                                  MembershipListingService membershipListingService) {
         this.userRepository = userRepository;
         this.membershipListingService = membershipListingService;
-        this.feeService = feeService;
     }
 
 
@@ -103,23 +97,6 @@ public class MemberPortalController {
         result.put("partnerName", null); // No partner for demo
         log.info("Returning mapped membership profile for personId: {} (username: {})", person.getId(), username);
         return ResponseEntity.ok(result);
-    }
-
-    @GetMapping("/fees")
-    public ResponseEntity<?> getMyFees() {
-        // Get authenticated user from JWT token
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication != null ? authentication.getName() : null;
-        if (username == null || "anonymousUser".equals(username)) {
-            return ResponseEntity.ok(List.of());
-        }
-        User user = userRepository.findByUsername(username)
-                .orElse(null);
-        if (user == null || user.getPerson() == null) {
-            return ResponseEntity.ok(List.of()); // Return empty list if no member profile
-        }
-        // Return empty list for demo; no error
-        return ResponseEntity.ok(List.of());
     }
 
     // Temporary debug endpoint - remove after testing

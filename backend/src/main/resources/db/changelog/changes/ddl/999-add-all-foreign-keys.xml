@@ -89,6 +89,26 @@
                                  referencedTableName="permissions" referencedColumnNames="id"/>
     </changeSet>
 
+    <!-- role_assignable_permissions.role_id → roles.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000050" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_roleassign_role"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="role_assignable_permissions" baseColumnNames="role_id"
+                                 constraintName="fk_roleassign_role"
+                                 referencedTableName="roles" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- role_assignable_permissions.permission_id → permissions.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000051" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_roleassign_permission"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="role_assignable_permissions" baseColumnNames="permission_id"
+                                 constraintName="fk_roleassign_permission"
+                                 referencedTableName="permissions" referencedColumnNames="id"/>
+    </changeSet>
+
     <!-- ========== CRM / Person Domain ========== -->
 
     <!-- membership_fees.person_id → persons.id -->
@@ -554,6 +574,38 @@
         <addForeignKeyConstraint baseTableName="member_payments" baseColumnNames="currency_id"
                                  constraintName="fk_payment_currency"
                                  referencedTableName="currencies" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- ===== Member Contribution Exemptions FKs ===== -->
+
+    <!-- member_contribution_exemptions.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000052" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_exemption_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_contribution_exemptions" baseColumnNames="person_id"
+                                 constraintName="fk_exemption_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- member_contribution_exemptions.contribution_type_id → contribution_types.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000053" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_exemption_contribution_type"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_contribution_exemptions" baseColumnNames="contribution_type_id"
+                                 constraintName="fk_exemption_contribution_type"
+                                 referencedTableName="contribution_types" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- member_contribution_exemptions.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000054" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_exemption_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_contribution_exemptions" baseColumnNames="mosque_id"
+                                 constraintName="fk_exemption_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
     </changeSet>
 
 </databaseChangeLog>

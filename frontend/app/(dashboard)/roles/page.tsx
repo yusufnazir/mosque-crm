@@ -18,6 +18,7 @@ interface RoleDTO {
   name: string;
   description: string;
   permissionCodes: string[];
+  assignablePermissionCodes: string[];
 }
 
 export default function RolesPage() {
@@ -39,7 +40,6 @@ export default function RolesPage() {
       ]);
       setRoles(rolesData);
       setPermissions(permsData);
-      // Auto-select first role if none selected
       if (rolesData.length > 0 && selectedRoleId === null) {
         const first = rolesData[0];
         setSelectedRoleId(first.id);
@@ -75,8 +75,10 @@ export default function RolesPage() {
   };
 
   const toggleCategory = (category: string) => {
+    // Only toggle permissions that are in the assignable pool
+    const assignablePool = selectedRole?.assignablePermissionCodes || [];
     const categoryCodes = permissions
-      .filter((p) => p.category === category)
+      .filter((p) => p.category === category && assignablePool.includes(p.code))
       .map((p) => p.code);
     const allSelected = categoryCodes.every((c) => editPermissions.has(c));
 
@@ -101,7 +103,6 @@ export default function RolesPage() {
         `/admin/roles/${selectedRoleId}/permissions`,
         { permissionCodes: Array.from(editPermissions) },
       );
-      // Update local state
       setRoles((prev) =>
         prev.map((r) => (r.id === updated.id ? updated : r)),
       );
@@ -117,14 +118,16 @@ export default function RolesPage() {
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId);
 
-  // Group permissions by category
-  const categories = permissions.reduce<Record<string, PermissionDTO[]>>((acc, p) => {
+  // Only show permissions that are in the selected role's assignable pool
+  const assignablePool = new Set(selectedRole?.assignablePermissionCodes || []);
+  const availablePermissions = permissions.filter((p) => assignablePool.has(p.code));
+
+  const categories = availablePermissions.reduce<Record<string, PermissionDTO[]>>((acc, p) => {
     if (!acc[p.category]) acc[p.category] = [];
     acc[p.category].push(p);
     return acc;
   }, {});
 
-  // Check if there are unsaved changes
   const hasChanges =
     selectedRole &&
     (editPermissions.size !== selectedRole.permissionCodes.length ||
@@ -180,7 +183,7 @@ export default function RolesPage() {
                     >
                       <p className="font-semibold text-charcoal">{role.name}</p>
                       <p className="text-xs text-gray-500">
-                        {role.permissionCodes.length} {t('roles.permissions_count')}
+                        {role.permissionCodes.length}/{role.assignablePermissionCodes.length} {t('roles.permissions_count')}
                       </p>
                     </button>
                   </li>
@@ -190,7 +193,7 @@ export default function RolesPage() {
           </Card>
         </div>
 
-        {/* Permission Matrix */}
+        {/* Permission Editor */}
         <div className="lg:col-span-3">
           {selectedRole ? (
             <Card>
@@ -218,6 +221,11 @@ export default function RolesPage() {
                 </div>
               </CardHeader>
               <CardContent>
+                {Object.keys(categories).length === 0 ? (
+                  <div className="text-center py-12 text-gray-400">
+                    {t('roles.no_assignable')}
+                  </div>
+                ) : (
                 <div className="space-y-6">
                   {Object.entries(categories)
                     .sort(([a], [b]) => a.localeCompare(b))
@@ -226,7 +234,6 @@ export default function RolesPage() {
                       const someChecked = perms.some((p) => editPermissions.has(p.code));
                       return (
                         <div key={category} className="border border-gray-200 rounded-lg p-4">
-                          {/* Category header with select-all toggle */}
                           <label className="flex items-center gap-3 mb-3 cursor-pointer">
                             <input
                               type="checkbox"
@@ -244,7 +251,6 @@ export default function RolesPage() {
                               ({perms.filter((p) => editPermissions.has(p.code)).length}/{perms.length})
                             </span>
                           </label>
-                          {/* Individual permissions */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-7">
                             {perms
                               .sort((a, b) => a.code.localeCompare(b.code))
@@ -274,6 +280,7 @@ export default function RolesPage() {
                       );
                     })}
                 </div>
+                )}
               </CardContent>
             </Card>
           ) : (

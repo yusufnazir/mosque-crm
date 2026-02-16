@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './Card';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { familyApi } from '@/lib/familyApi';
-import { memberApi, feeApi } from '@/lib/api';
+import { memberApi } from '@/lib/api';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS, 
@@ -35,7 +35,6 @@ import type { AgeGenderBucket } from '@/lib/api';
 export interface FamilySizeDatum { size: number; count: number; }
 export interface AgeDatum { bucket: string; count: number; }
 export interface GenderDatum { gender: string; count: number; }
-export interface MonthlyFeeStat { month: number; expected: number; realized: number; }
 
 export default function DashboardCharts() {
   const { t } = useTranslation();
@@ -43,7 +42,6 @@ export default function DashboardCharts() {
   const [ageData, setAgeData] = useState<AgeDatum[]>([]);
   const [genderData, setGenderData] = useState<GenderDatum[]>([]);
   const [ageGenderData, setAgeGenderData] = useState<AgeGenderBucket[]>([]);
-  const [monthlyFeeStats, setMonthlyFeeStats] = useState<MonthlyFeeStat[]>([]);
   const [loading, setLoading] = useState(true);
 
 
@@ -54,7 +52,6 @@ export default function DashboardCharts() {
       let ageRes: AgeDatum[] = [];
       let genderRes: GenderDatum[] = [];
       let ageGenderRes: AgeGenderBucket[] = [];
-      let monthlyStats: MonthlyFeeStat[] = [];
       try {
         familySizeRes = await familyApi.getFamilySizeDistribution() as FamilySizeDatum[];
       } catch (e) {
@@ -75,16 +72,10 @@ export default function DashboardCharts() {
       } catch (e) {
         console.error('Age-Gender API error', e);
       }
-      try {
-        monthlyStats = await feeApi.getMonthlyStats() as MonthlyFeeStat[];
-      } catch (e) {
-        console.error('Fee API error', e);
-      }
       setFamilySizeData(familySizeRes);
       setAgeData(ageRes);
       setGenderData(genderRes);
       setAgeGenderData(ageGenderRes);
-      setMonthlyFeeStats(monthlyStats);
       setLoading(false);
     }
     fetchData();
@@ -149,38 +140,6 @@ export default function DashboardCharts() {
 
 
   // All hooks must be above any early return
-  const months = React.useMemo(() => {
-    return [
-      'jan', 'feb', 'mar', 'apr', 'may', 'jun',
-      'jul', 'aug', 'sep', 'oct', 'nov', 'dec'
-    ].map((key) => t(`dashboard.month.${key}`));
-  }, [t]);
-
-  const monthlyFeeChart = React.useMemo(() => {
-    const expected = Array(12).fill(0);
-    const realized = Array(12).fill(0);
-    monthlyFeeStats.forEach((d) => {
-      if (d.month >= 1 && d.month <= 12) {
-        expected[d.month - 1] = d.expected;
-        realized[d.month - 1] = d.realized;
-      }
-    });
-    return {
-      labels: months,
-      datasets: [
-        {
-          label: t('dashboard.expected_income'),
-          data: expected,
-          backgroundColor: '#D4AF37',
-        },
-        {
-          label: t('dashboard.realized_income'),
-          data: realized,
-          backgroundColor: '#047857',
-        },
-      ],
-    };
-  }, [monthlyFeeStats, months, t]);
 
   if (loading) {
     return <div className="mt-8">{t('dashboard.loading_charts') || 'Loading charts...'}</div>;
@@ -271,20 +230,6 @@ export default function DashboardCharts() {
             <div style={{ height: 280, maxWidth: 280, margin: '0 auto' }} className="md:!h-[320px] md:!max-w-[320px]">
               <Pie data={genderChart} options={{ responsive: true, maintainAspectRatio: false }} />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="mt-6 md:mt-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.monthly_fee_chart')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Bar data={monthlyFeeChart} options={{
-              responsive: true,
-              plugins: { legend: { display: true } },
-              scales: { y: { beginAtZero: true } },
-            }} />
           </CardContent>
         </Card>
       </div>

@@ -44,7 +44,7 @@ export default function CurrenciesPage() {
     fromCurrencyId: 0,
     toCurrencyId: 0,
     rate: 0,
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })(),
   });
 
   // Load data on mount
@@ -164,7 +164,7 @@ export default function CurrenciesPage() {
       }
       setShowRateModal(false);
       setEditingRate(null);
-      setRateForm({ fromCurrencyId: 0, toCurrencyId: 0, rate: 0, effectiveDate: new Date().toISOString().split('T')[0] });
+      setRateForm({ fromCurrencyId: 0, toCurrencyId: 0, rate: 0, effectiveDate: (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })() });
       await loadExchangeRates();
       setToast({ message: editingRate ? t('currency.rateUpdated') : t('currency.rateCreated'), type: 'success' });
     } catch (err) {
@@ -419,7 +419,7 @@ export default function CurrenciesPage() {
                   fromCurrencyId: activeMosqueCurrencies[0]?.currencyId || 0,
                   toCurrencyId: activeMosqueCurrencies[1]?.currencyId || 0,
                   rate: 0,
-                  effectiveDate: new Date().toISOString().split('T')[0],
+                  effectiveDate: (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })(),
                 });
                 setShowRateModal(true);
               }}

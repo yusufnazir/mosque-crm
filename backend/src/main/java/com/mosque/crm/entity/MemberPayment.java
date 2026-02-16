@@ -62,6 +62,12 @@ public class MemberPayment implements MosqueAware {
     @Column(name = "payment_date", nullable = false)
     private LocalDate paymentDate;
 
+    @Column(name = "period_from")
+    private LocalDate periodFrom;
+
+    @Column(name = "period_to")
+    private LocalDate periodTo;
+
     @Column(name = "reference", length = 100)
     private String reference;
 
@@ -134,6 +140,22 @@ public class MemberPayment implements MosqueAware {
 
     public void setPaymentDate(LocalDate paymentDate) {
         this.paymentDate = paymentDate;
+    }
+
+    public LocalDate getPeriodFrom() {
+        return periodFrom;
+    }
+
+    public void setPeriodFrom(LocalDate periodFrom) {
+        this.periodFrom = periodFrom;
+    }
+
+    public LocalDate getPeriodTo() {
+        return periodTo;
+    }
+
+    public void setPeriodTo(LocalDate periodTo) {
+        this.periodTo = periodTo;
     }
 
     public String getReference() {

@@ -65,6 +65,20 @@ public class AuthorizationService {
     }
 
     /**
+     * Check if the currently authenticated user holds <em>any</em> of the given permission codes.
+     * Used in {@code @PreAuthorize("@auth.hasAnyPermission('a','b')")}.
+     */
+    public boolean hasAnyPermission(String... permissionCodes) {
+        Set<String> perms = getPermissionsForCurrentUser();
+        for (String code : permissionCodes) {
+            if (perms.contains(code)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check if the current user can access a resource that belongs to the given mosqueId.
      * Combines permission check with mosque-scope enforcement.
      */

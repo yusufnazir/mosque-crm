@@ -24,6 +24,9 @@ public class MemberPaymentCreateDTO {
     @NotNull(message = "Payment date is required")
     private LocalDate paymentDate;
 
+    private LocalDate periodFrom;
+    private LocalDate periodTo;
+
     private String reference;
     private String notes;
 
@@ -63,6 +66,22 @@ public class MemberPaymentCreateDTO {
 
     public void setPaymentDate(LocalDate paymentDate) {
         this.paymentDate = paymentDate;
+    }
+
+    public LocalDate getPeriodFrom() {
+        return periodFrom;
+    }
+
+    public void setPeriodFrom(LocalDate periodFrom) {
+        this.periodFrom = periodFrom;
+    }
+
+    public LocalDate getPeriodTo() {
+        return periodTo;
+    }
+
+    public void setPeriodTo(LocalDate periodTo) {
+        this.periodTo = periodTo;
     }
 
     public String getReference() {

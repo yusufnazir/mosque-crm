@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
-import { memberApi, feeApi } from '@/lib/api';
+import { memberApi } from '@/lib/api';
 import { familyApi } from '@/lib/familyApi';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -13,8 +13,6 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({
     totalFamilies: 0,
     activeMembers: 0,
-    totalFees: 0,
-    overdueFees: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -31,17 +29,7 @@ export default function DashboardPage() {
       // Fetch members count (lightweight - no full entity loading)
       const memberStats: any = await memberApi.getStats();
       const activeMembers = memberStats.active || 0;
-      // Fetch fees data
-      try {
-        const feesData: any = await feeApi.getAll();
-        const totalFees = feesData.length;
-        const overdueFees = feesData.filter((f: any) => f.status === 'OVERDUE').length;
-        setStats({ totalFamilies, activeMembers, totalFees, overdueFees });
-      } catch (feeError) {
-        // Fees table might not exist yet
-        console.log('Fees data not available');
-        setStats({ totalFamilies, activeMembers, totalFees: 0, overdueFees: 0 });
-      }
+      setStats({ totalFamilies, activeMembers });
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);
     } finally {
@@ -55,7 +43,7 @@ export default function DashboardPage() {
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2].map((i) => (
               <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>
             ))}
           </div>
@@ -87,28 +75,6 @@ export default function DashboardPage() {
         </svg>
       ),
     },
-    {
-      title: t('dashboard.pending_fees'),
-      value: stats.totalFees,
-      bgColor: 'bg-yellow-50',
-      iconColor: 'text-yellow-700',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
-    },
-    {
-      title: t('dashboard.total_collected'),
-      value: stats.overdueFees,
-      bgColor: 'bg-red-50',
-      iconColor: 'text-red-600',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-    },
   ];
 
   // ...existing code...
@@ -124,7 +90,7 @@ export default function DashboardPage() {
         <p className="text-gray-600">{t('dashboard.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-3 md:gap-6">
         {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardContent className="flex items-center justify-between p-4 md:p-6">
@@ -162,15 +128,6 @@ export default function DashboardPage() {
                   <span className="font-medium text-emerald-600">{t('dashboard.add_new_member')}</span>
                 </a>
               )}
-              <a
-                href="/fees"
-                className="flex flex-col items-center p-6 border-2 border-yellow-600 rounded-lg hover:bg-yellow-50 transition-all"
-              >
-                <svg className="w-10 h-10 text-yellow-700 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-                <span className="font-medium text-yellow-700">{t('dashboard.record_payment')}</span>
-              </a>
               {can('member.view') && (
                 <a
                   href="/members"

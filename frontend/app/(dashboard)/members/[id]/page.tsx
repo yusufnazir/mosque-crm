@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import Button from '@/components/Button';
-import { memberApi, feeApi, relationshipApi, personApi } from '@/lib/api';
-import { Member, MembershipFee, RelationshipResponse } from '@/types';
+import { memberApi, relationshipApi, personApi } from '@/lib/api';
+import { Member, RelationshipResponse } from '@/types';
 import { formatCurrency, formatDate, getStatusColor, getLocalizedStatus } from '@/lib/utils';
 import FamilyManagementModal from '@/components/FamilyManagementModal';
 import FamilyTree from '@/components/family-tree';
@@ -29,7 +29,7 @@ export default function MemberDetailPage() {
   const memberId = params.id as string;
 
   const [member, setMember] = useState<Member | null>(null);
-  const [fees, setFees] = useState<MembershipFee[]>([]);
+
   const [children, setChildren] = useState<Member[]>([]);
   const [parent, setParent] = useState<Member | null>(null);
   const [father, setFather] = useState<Member | null>(null);
@@ -206,14 +206,7 @@ export default function MemberDetailPage() {
         }
       }
       
-      // Try to fetch fees, but don't fail if table doesn't exist yet
-      try {
-        const feesData: any = await feeApi.getByMember(memberId);
-        setFees(feesData);
-      } catch (feeError) {
-        console.log('Fee data not available yet');
-        setFees([]);
-      }
+
       
       // Fallback to legacy structure if no genealogy relationships found
       if (!partner && !parent && children.length === 0) {
@@ -351,11 +344,11 @@ export default function MemberDetailPage() {
                 >
                   {t(getLocalizedStatus(member.status || 'ACTIVE'))}
                 </span>
-                {member.role && (
-                  <span className="px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-700">
-                    {member.role}
+                {member.roles && member.roles.length > 0 && member.roles.map((role) => (
+                  <span key={role} className="px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-700">
+                    {role}
                   </span>
-                )}
+                ))}
               </div>
             </div>
           </div>

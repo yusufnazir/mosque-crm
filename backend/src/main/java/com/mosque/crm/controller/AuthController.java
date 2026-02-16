@@ -132,7 +132,7 @@ public class AuthController {
 
         AuthResponse response = new AuthResponse(token, user.getUsername(), roleName, memberId, personId, preferencesDTO);
         response.setMosqueId(user.getMosqueId());
-        response.setSuperAdmin(user.getMosqueId() == null);
+        response.setSuperAdmin(user.getRoles().stream().anyMatch(r -> "SUPER_ADMIN".equals(r.getName())));
         response.setPermissions(new java.util.ArrayList<>(permissions));
 
         // Resolve mosque name if user is assigned to a mosque

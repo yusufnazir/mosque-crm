@@ -46,6 +46,14 @@ public class Role {
     )
     private Set<Permission> permissions = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "role_assignable_permissions",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permission> assignablePermissions = new HashSet<>();
+
     public Role() {
     }
 
@@ -103,6 +111,14 @@ public class Role {
 
     public void setPermissions(Set<Permission> permissions) {
         this.permissions = permissions;
+    }
+
+    public Set<Permission> getAssignablePermissions() {
+        return assignablePermissions;
+    }
+
+    public void setAssignablePermissions(Set<Permission> assignablePermissions) {
+        this.assignablePermissions = assignablePermissions;
     }
 
     @PrePersist

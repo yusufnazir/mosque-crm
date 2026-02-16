@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Add period_from and period_to columns to member_payments for periodic contribution tracking -->
+    <changeSet id="a1b2c3d4-0033-4aaa-bbbb-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="member_payments"/>
+            <not>
+                <columnExists tableName="member_payments" columnName="period_from"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="member_payments">
+            <column name="period_from" type="DATE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="period_to" type="DATE">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
