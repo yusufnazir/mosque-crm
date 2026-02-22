@@ -12,7 +12,7 @@ pipeline {
             steps {
                 dir('backend') {
                     script {
-                        docker.build("${NEXUS_REGISTRY}/memberflow-backend:${IMAGE_TAG}")
+                        docker.build("${NEXUS_REGISTRY}/memberflow-backend:${IMAGE_TAG}", '--no-cache .')
                     }
                 }
             }
@@ -22,7 +22,7 @@ pipeline {
             steps {
                 dir('frontend') {
                     script {
-                        docker.build("${NEXUS_REGISTRY}/memberflow-frontend:${IMAGE_TAG}")
+                        docker.build("${NEXUS_REGISTRY}/memberflow-frontend:${IMAGE_TAG}", '--no-cache .')
                     }
                 }
             }

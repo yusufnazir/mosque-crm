@@ -4,11 +4,12 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 COPY src ./src
-RUN mvn package -DskipTests -B
+RUN mvn package -DskipTests -B && \
+    mv target/mosque-crm-backend-*.jar target/app.jar
 
 # ---- Run ----
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY --from=build /app/target/mosque-crm-backend-1.0.0.jar app.jar
+COPY --from=build /app/target/app.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
