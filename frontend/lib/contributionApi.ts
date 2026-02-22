@@ -66,7 +66,7 @@ export interface MemberPayment {
 }
 
 export interface MemberPaymentCreate {
-  personId: number;
+  personId: number | string;
   contributionTypeId: number;
   amount: number;
   paymentDate: string;
@@ -165,10 +165,10 @@ export const memberPaymentApi = {
   getById: (id: number): Promise<MemberPayment> =>
     ApiClient.get(`/contributions/payments/${id}`),
 
-  getByPerson: (personId: number): Promise<MemberPayment[]> =>
+  getByPerson: (personId: number | string): Promise<MemberPayment[]> =>
     ApiClient.get(`/contributions/payments/by-person/${personId}`),
 
-  getByPersonPaginated: (personId: number, params: PaginationParams): Promise<PageResponse<MemberPayment>> => {
+  getByPersonPaginated: (personId: number | string, params: PaginationParams): Promise<PageResponse<MemberPayment>> => {
     const searchParams = new URLSearchParams();
     searchParams.set('page', String(params.page));
     searchParams.set('size', String(params.size));
@@ -208,7 +208,7 @@ export interface PeriodicPaymentResult {
  * Matches on same person + same contribution type + overlapping period range.
  */
 function isPeriodAlreadyPaid(
-  personId: number,
+  personId: number | string,
   contributionTypeId: number,
   periodFrom: string,
   periodTo: string,
@@ -358,7 +358,7 @@ export interface MemberContributionExemption {
 }
 
 export interface MemberContributionExemptionCreate {
-  personId: number;
+  personId: number | string;
   contributionTypeId: number;
   exemptionType: string;
   amount?: number;
@@ -375,7 +375,7 @@ export const exemptionApi = {
   getById: (id: number): Promise<MemberContributionExemption> =>
     ApiClient.get(`/contributions/exemptions/${id}`),
 
-  getActive: (personId: number, contributionTypeId: number): Promise<MemberContributionExemption[]> =>
+  getActive: (personId: number | string, contributionTypeId: number): Promise<MemberContributionExemption[]> =>
     ApiClient.get(`/contributions/exemptions/active?personId=${personId}&contributionTypeId=${contributionTypeId}`),
 
   create: (data: MemberContributionExemptionCreate): Promise<MemberContributionExemption> =>

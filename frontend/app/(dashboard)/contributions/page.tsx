@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
@@ -369,7 +369,7 @@ export default function ContributionsPage() {
     return new Date(year, month - 1, day).toLocaleDateString(locale === 'nl' ? 'nl-NL' : 'en-US');
   };
 
-  // Local date helper — avoids timezone issues with toISOString() returning UTC date
+  // Local date helper â€” avoids timezone issues with toISOString() returning UTC date
   const localToday = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -636,7 +636,7 @@ function TypesTab({ types, loading, getTypeName, onAdd, onEdit, onDeactivate, on
   onEdit: (type: ContributionType) => void;
   onDeactivate: (id: number) => void;
   onActivate: (id: number) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   locale: string;
 }) {
   return (
@@ -786,7 +786,7 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
   formatCurrency: (amount: number, currencyCode?: string) => string;
   formatDate: (date: string) => string;
   mosqueCurrencies: MosqueCurrencyDTO[];
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   return (
     <Card>
@@ -910,7 +910,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Available years for the year filter dropdown — fetched once from full dataset
+  // Available years for the year filter dropdown â€” fetched once from full dataset
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   // Person autocomplete filter state
   const [personSearchText, setPersonSearchText] = useState('');
@@ -1259,7 +1259,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
                     disabled={currentPage === 0}
                     className="px-3 py-1 text-sm border border-stone-300 rounded hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    ‹
+                    â€¹
                   </button>
                   <span className="text-sm text-stone-600">
                     {t('contributions.page_of', { page: currentPage + 1, total: totalPages })}
@@ -1269,7 +1269,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
                     disabled={currentPage >= totalPages - 1}
                     className="px-3 py-1 text-sm border border-stone-300 rounded hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    ›
+                    â€º
                   </button>
                 </div>
               </div>
@@ -1290,7 +1290,7 @@ function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNa
   onDelete: (id: number) => void;
   getTypeNameByCode: (code: string) => string;
   formatDate: (date: string) => string;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const formatExemptionType = (type: string, amount?: number) => {
     switch (type) {
@@ -1390,7 +1390,7 @@ function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNa
                 </div>
                 <div className="space-y-1 text-xs text-stone-500 mb-3">
                   <div>{formatExemptionType(ex.exemptionType, ex.amount)}</div>
-                  <div>{formatDate(ex.startDate)} — {ex.endDate ? formatDate(ex.endDate) : t('contributions.ongoing')}</div>
+                  <div>{formatDate(ex.startDate)} â€” {ex.endDate ? formatDate(ex.endDate) : t('contributions.ongoing')}</div>
                   {ex.reason && <div className="truncate">{ex.reason}</div>}
                 </div>
                 <div className="flex gap-3 pt-2 border-t border-stone-100">
@@ -1412,7 +1412,7 @@ function TypeModal({ type, onSave, onClose, t, locale }: {
   type: ContributionType | null;
   onSave: (data: ContributionTypeCreate) => void;
   onClose: () => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   locale: string;
 }) {
   const [code, setCode] = useState(type?.code || '');
@@ -1553,7 +1553,7 @@ function ObligationModal({ obligation, types, mosqueCurrencies, onSave, onClose,
   mosqueCurrencies: MosqueCurrencyDTO[];
   onSave: (data: ContributionObligationCreate) => Promise<string | null>;
   onClose: () => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const [typeId, setTypeId] = useState(obligation?.contributionTypeId || 0);
   const [amount, setAmount] = useState(obligation?.amount?.toString() || '');
@@ -1626,7 +1626,7 @@ function ObligationModal({ obligation, types, mosqueCurrencies, onSave, onClose,
                   <option value="">{t('contributions.select_currency')}</option>
                   {mosqueCurrencies.map((mc) => (
                     <option key={mc.currencyId} value={mc.currencyId}>
-                      {mc.currencyCode} — {mc.currencyName} ({mc.currencySymbol})
+                      {mc.currencyCode} â€” {mc.currencyName} ({mc.currencySymbol})
                     </option>
                   ))}
                 </select>
@@ -1690,7 +1690,7 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
   onSearchPersons: (query: string) => void;
   onSelectPerson: (person: any) => void;
   getTypeName: (type: ContributionType) => string;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const [personId, setPersonId] = useState(payment?.personId || 0);
   const [typeId, setTypeId] = useState(payment?.contributionTypeId || 0);
@@ -1884,7 +1884,7 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
               </select>
             </div>
 
-            {/* Period selection — shown when selected type has a periodic obligation */}
+            {/* Period selection â€” shown when selected type has a periodic obligation */}
             {frequency && (
               <div className="bg-stone-50 rounded-lg p-3 space-y-3">
                 <div className="flex items-center justify-between">
@@ -2015,9 +2015,9 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
               {/* Auto-fill hint */}
               {obligationUnitAmount && !amountManual && frequency && periodCount > 1 && !payment && (
                 <p className="mt-1 text-xs text-emerald-600">
-                  {t('contributions.will_create_records', { count: periodCount })}: {periodCount} × {exemptedUnitAmount?.toFixed(2)}
+                  {t('contributions.will_create_records', { count: periodCount })}: {periodCount} Ã— {exemptedUnitAmount?.toFixed(2)}
                   {activeExemption && exemptedUnitAmount !== undefined && exemptedUnitAmount !== obligationUnitAmount
-                    ? ` (${obligationUnitAmount.toFixed(2)} → ${exemptedUnitAmount.toFixed(2)})`
+                    ? ` (${obligationUnitAmount.toFixed(2)} â†’ ${exemptedUnitAmount.toFixed(2)})`
                     : ''}
                 </p>
               )}
@@ -2025,13 +2025,13 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
                 <p className="mt-1 text-xs text-emerald-600">
                   {t('contributions.amount_from_obligation')}: {obligationUnitAmount.toFixed(2)}
                   {activeExemption && exemptedUnitAmount !== undefined && exemptedUnitAmount !== obligationUnitAmount
-                    ? ` → ${exemptedUnitAmount.toFixed(2)}`
+                    ? ` â†’ ${exemptedUnitAmount.toFixed(2)}`
                     : ''}
                 </p>
               )}
               {activeExemption && (
                 <p className="mt-1 text-xs text-amber-600">
-                  ⚡ {t('contributions.exemption_applied')}: {
+                  âš¡ {t('contributions.exemption_applied')}: {
                     activeExemption.exemptionType === 'FULL' ? t('contributions.exemption_full') :
                     activeExemption.exemptionType === 'FIXED_AMOUNT' ? `${t('contributions.exemption_fixed')}: ${activeExemption.amount?.toFixed(2)}` :
                     activeExemption.exemptionType === 'DISCOUNT_AMOUNT' ? `${t('contributions.exemption_discount_amount')}: -${activeExemption.amount?.toFixed(2)}` :
@@ -2064,7 +2064,7 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
                   <option value="">{t('contributions.select_currency')}</option>
                   {mosqueCurrencies.map((mc) => (
                     <option key={mc.currencyId} value={mc.currencyId}>
-                      {mc.currencyCode} — {mc.currencyName} ({mc.currencySymbol})
+                      {mc.currencyCode} â€” {mc.currencyName} ({mc.currencySymbol})
                     </option>
                   ))}
                 </select>
@@ -2133,7 +2133,7 @@ function ExemptionModal({ exemption, types, onSave, onClose, personSearch, perso
   onSearchPersons: (query: string) => void;
   onSelectPerson: (person: any) => void;
   getTypeName: (type: ContributionType) => string;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const [personId, setPersonId] = useState(exemption?.personId || 0);
   const [typeId, setTypeId] = useState(exemption?.contributionTypeId || 0);

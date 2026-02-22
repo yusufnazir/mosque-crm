@@ -204,7 +204,7 @@ export default function MemberDetailPage() {
   };
 
   // ===== Payment CRUD =====
-  const loadMemberPayments = useCallback(async (personId: number) => {
+  const loadMemberPayments = useCallback(async (personId: number | string) => {
     try {
       const params = {
         page: paymentPage,
@@ -321,7 +321,7 @@ export default function MemberDetailPage() {
   };
 
   // ===== Exemption CRUD =====
-  const loadMemberExemptions = async (personId: number) => {
+  const loadMemberExemptions = async (personId: number | string) => {
     try {
       const allExemptions = await exemptionApi.getAll();
       const personExemptions = allExemptions.filter(
@@ -1250,14 +1250,14 @@ export default function MemberDetailPage() {
 // ===== Member Payment Modal (person is pre-selected) =====
 function MemberPaymentModal({ payment, personId, personName, types, mosqueCurrencies, onSave, onClose, getTypeName, t }: {
   payment: MemberPayment | null;
-  personId: number;
+  personId: number | string;
   personName: string;
   types: ContributionType[];
   mosqueCurrencies: MosqueCurrencyDTO[];
   onSave: (data: MemberPaymentCreate) => Promise<string | null>;
   onClose: () => void;
   getTypeName: (type: ContributionType) => string;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const [typeId, setTypeId] = useState(payment?.contributionTypeId || 0);
   const [currencyId, setCurrencyId] = useState<number | undefined>(payment?.currencyId || undefined);
@@ -1638,13 +1638,13 @@ function MemberPaymentModal({ payment, personId, personName, types, mosqueCurren
 // ===== Member Exemption Modal (person is pre-selected) =====
 function MemberExemptionModal({ exemption, personId, personName, types, onSave, onClose, getTypeName, t }: {
   exemption: MemberContributionExemption | null;
-  personId: number;
+  personId: number | string;
   personName: string;
   types: ContributionType[];
   onSave: (data: MemberContributionExemptionCreate) => Promise<string | null>;
   onClose: () => void;
   getTypeName: (type: ContributionType) => string;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const [typeId, setTypeId] = useState(exemption?.contributionTypeId || 0);
   const [exemptionType, setExemptionType] = useState(exemption?.exemptionType || 'FULL');
