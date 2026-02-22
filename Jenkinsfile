@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        NEXUS_REGISTRY = 'nexus.cxode.com:9500'
+        NEXUS_REGISTRY = 'nexus:9500'
         NEXUS_CREDENTIALS = 'nexus-docker'          // Jenkins credentials ID for Nexus
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
