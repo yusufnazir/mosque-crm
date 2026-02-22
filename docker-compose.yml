@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mariadb:11.8
+    environment:
+      MARIADB_DATABASE: mcrm
+      MARIADB_USER: mcrm
+      MARIADB_PASSWORD: mcrm
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/mcrm?createDatabaseIfNotExist=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: mcrm
+      SPRING_DATASOURCE_PASSWORD: mcrm
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: http://backend:8080/api
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
