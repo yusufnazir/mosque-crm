@@ -90,4 +90,9 @@ public class ConfigurationService {
     public String getMailServerProjectUuid() {
         return getValue("MAIL_SERVER_PROJECT_UUID").orElse("");
     }
+
+    // Application settings helpers
+    public String getAppName() {
+        return getValue("APP_NAME").orElse("MemberFlow");
+    }
 }

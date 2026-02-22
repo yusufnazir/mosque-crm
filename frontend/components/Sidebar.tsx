@@ -10,6 +10,7 @@ import LanguageSelector from './LanguageSelector';
 import { authApi } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth, MosqueOption } from '@/lib/auth/AuthContext';
+import { useAppName } from '@/lib/AppNameContext';
 import { mosqueApi, Mosque } from '@/lib/mosqueApi';
 
 interface NavItem {
@@ -160,6 +161,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const { t } = useTranslation();
   const { can, canAny, user, isSuperAdmin, selectedMosque, selectMosque, activeMosqueName } = useAuth();
+  const { appName } = useAppName();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [mosqueList, setMosqueList] = useState<Mosque[]>([]);
@@ -220,7 +222,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
       <div className="p-6 border-b border-emerald-700">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gold">{t('common.mosque_crm')}</h1>
+            <h1 className="text-2xl font-bold text-gold">{appName}</h1>
             <p className="text-emerald-200 text-sm mt-1">
               {isAdminPanel ? t('common.admin_panel') : t('common.member_portal')}
             </p>

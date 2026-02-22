@@ -60,6 +60,15 @@ public class MemberPaymentService {
     }
 
     /**
+     * Get all payments with pagination, filtered by year.
+     */
+    @Transactional(readOnly = true)
+    public Page<MemberPaymentDTO> getAllPayments(int year, Pageable pageable) {
+        return paymentRepository.findAllByYear(year, pageable)
+                .map(this::convertToDTO);
+    }
+
+    /**
      * Get all payments (no pagination).
      */
     @Transactional(readOnly = true)
@@ -80,13 +89,31 @@ public class MemberPaymentService {
     }
 
     /**
-     * Get all payments for a specific person.
+     * Get all payments for a specific person (no pagination).
      */
     @Transactional(readOnly = true)
     public List<MemberPaymentDTO> getPaymentsByPerson(Long personId) {
-        return paymentRepository.findByPersonIdWithDetails(personId).stream()
+        return paymentRepository.findByPersonIdWithDetailsList(personId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get payments for a specific person with pagination.
+     */
+    @Transactional(readOnly = true)
+    public Page<MemberPaymentDTO> getPaymentsByPerson(Long personId, Pageable pageable) {
+        return paymentRepository.findByPersonIdWithDetails(personId, pageable)
+                .map(this::convertToDTO);
+    }
+
+    /**
+     * Get payments for a specific person with pagination, filtered by year.
+     */
+    @Transactional(readOnly = true)
+    public Page<MemberPaymentDTO> getPaymentsByPerson(Long personId, int year, Pageable pageable) {
+        return paymentRepository.findByPersonIdAndYear(personId, year, pageable)
+                .map(this::convertToDTO);
     }
 
     /**

@@ -5,8 +5,8 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
 import { authApi, portalApi } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
-import { Member, MembershipFee } from '@/types';
-import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils';
+import { Member } from '@/types';
+import { formatDate, getStatusColor } from '@/lib/utils';
 
 interface UserProfile {
   id: number;
@@ -20,7 +20,6 @@ export default function AccountPage() {
   const { t } = useTranslation();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [memberProfile, setMemberProfile] = useState<Member | null>(null);
-  const [fees, setFees] = useState<MembershipFee[]>([]);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -57,12 +56,8 @@ export default function AccountPage() {
       return;
     }
     try {
-      const [profileData, feesData]: any = await Promise.all([
-        portalApi.getProfile(),
-        portalApi.getFees(),
-      ]);
+      const profileData: any = await portalApi.getProfile();
       setMemberProfile(profileData);
-      setFees(feesData);
     } catch (error) {
       // Member profile not linked - this is OK for admin users
       console.log('No member profile linked to this user');
@@ -112,9 +107,6 @@ export default function AccountPage() {
       </div>
     );
   }
-
-  const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
-  const paidFees = fees.filter((f) => f.status === 'PAID').reduce((sum, fee) => sum + fee.amount, 0);
 
   return (
     <div className="p-4 md:p-8">
@@ -244,80 +236,7 @@ export default function AccountPage() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('account.fee_summary')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{t('account.total_fees')}</p>
-                  <p className="text-2xl font-bold text-charcoal">{formatCurrency(totalFees)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{t('account.paid')}</p>
-                  <p className="text-2xl font-bold text-emerald-600">{formatCurrency(paidFees)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{t('account.pending')}</p>
-                  <p className="text-2xl font-bold text-yellow-600">
-                    {formatCurrency(totalFees - paidFees)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
-
-          {/* Children (not available in Member type) */}
-          {/* If you want to show children, fetch them separately and map here. */}
-
-          {/* Payment History */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('account.payment_history')} ({fees.length})</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[450px]">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        {t('account.amount')}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        {t('account.paid_date')}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        {t('account.status')}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {fees.map((fee) => (
-                      <tr key={fee.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 font-medium text-charcoal">
-                          {formatCurrency(fee.amount)}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{formatDate(fee.dueDate)}</td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {fee.paidDate ? formatDate(fee.paidDate) : '-'}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                              fee.status
-                            )}`}
-                          >
-                            {fee.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
         </>
       )}
 

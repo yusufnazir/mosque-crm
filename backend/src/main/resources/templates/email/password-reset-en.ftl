@@ -13,7 +13,7 @@
                     <tr>
                         <td style="background: linear-gradient(135deg, #047857 0%, #065f46 100%); padding: 40px 30px; border-radius: 8px 8px 0 0;">
                             <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; text-align: center;">
-                                Mosque CRM
+                                ${appName}
                             </h1>
                         </td>
                     </tr>
@@ -30,7 +30,7 @@
                             </p>
                             
                             <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                                You have requested to reset your password for Mosque CRM. Click the button below to create a new password:
+                                You have requested to reset your password for ${appName}. Click the button below to create a new password:
                             </p>
                             
                             <!-- Button -->
@@ -69,7 +69,7 @@
                         <td style="padding: 30px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
                             <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 14px;">
                                 Best regards,<br>
-                                <strong style="color: #047857;">Mosque CRM Team</strong>
+                                <strong style="color: #047857;">${appName} Team</strong>
                             </p>
                             <p style="margin: 0; color: #9ca3af; font-size: 12px;">
                                 This is an automated message, please do not reply to this email.

@@ -135,7 +135,7 @@ export default function AddMemberPage() {
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">Add New Member</h1>
         <p className="text-gray-600">
-          Create a new member. Head of household needs an account to manage family and fees.
+          Create a new member. Head of household needs an account to manage family and contributions.
         </p>
       </div>
 

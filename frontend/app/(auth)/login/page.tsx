@@ -7,11 +7,13 @@ import LanguageSelector from '@/components/LanguageSelector';
 import { authApi } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useAppName } from '@/lib/AppNameContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { syncLanguageWithBackend, t } = useTranslation();
   const { refresh: refreshAuth } = useAuth();
+  const { appName } = useAppName();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
@@ -81,7 +83,7 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('login.title')}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{appName}</h1>
           <p className="text-gray-600">{t('login.subtitle')}</p>
         </div>
 
@@ -154,19 +156,6 @@ export default function LoginPage() {
             >
               {t('login.forgot_password')}
             </button>
-          </div>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-emerald-50 rounded-lg text-sm">
-            <p className="font-medium text-emerald-800 mb-2">Demo Credentials:</p>
-            <div className="space-y-1 text-emerald-700">
-              <p>
-                <strong>Admin:</strong> admin / admin123
-              </p>
-              <p>
-                <strong>Member:</strong> ahmed / password123
-              </p>
-            </div>
           </div>
         </div>
       </div>

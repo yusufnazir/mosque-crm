@@ -77,6 +77,26 @@ export interface MemberPaymentCreate {
   currencyId?: number;
 }
 
+// ===== Pagination types =====
+
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number; // 0-based page index
+  size: number;
+  first: boolean;
+  last: boolean;
+}
+
+export interface PaginationParams {
+  page: number;
+  size: number;
+  sort?: string[];  // e.g. ["person.firstName,asc", "periodFrom,asc"]
+  year?: number;
+  personId?: number;
+}
+
 // ===== API functions =====
 
 export const contributionTypeApi = {
@@ -126,11 +146,40 @@ export const memberPaymentApi = {
   getAll: (): Promise<MemberPayment[]> =>
     ApiClient.get('/contributions/payments'),
 
+  getAllPaginated: (params: PaginationParams): Promise<PageResponse<MemberPayment>> => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('page', String(params.page));
+    searchParams.set('size', String(params.size));
+    if (params.sort) {
+      params.sort.forEach(s => searchParams.append('sort', s));
+    }
+    if (params.year != null) {
+      searchParams.set('year', String(params.year));
+    }
+    if (params.personId != null) {
+      searchParams.set('personId', String(params.personId));
+    }
+    return ApiClient.get(`/contributions/payments?${searchParams.toString()}`);
+  },
+
   getById: (id: number): Promise<MemberPayment> =>
     ApiClient.get(`/contributions/payments/${id}`),
 
   getByPerson: (personId: number): Promise<MemberPayment[]> =>
     ApiClient.get(`/contributions/payments/by-person/${personId}`),
+
+  getByPersonPaginated: (personId: number, params: PaginationParams): Promise<PageResponse<MemberPayment>> => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('page', String(params.page));
+    searchParams.set('size', String(params.size));
+    if (params.sort) {
+      params.sort.forEach(s => searchParams.append('sort', s));
+    }
+    if (params.year != null) {
+      searchParams.set('year', String(params.year));
+    }
+    return ApiClient.get(`/contributions/payments/by-person/${personId}?${searchParams.toString()}`);
+  },
 
   getByType: (typeId: number): Promise<MemberPayment[]> =>
     ApiClient.get(`/contributions/payments/by-type/${typeId}`),
@@ -144,6 +193,153 @@ export const memberPaymentApi = {
   delete: (id: number): Promise<void> =>
     ApiClient.delete(`/contributions/payments/${id}`),
 };
+
+/**
+ * Result of a periodic payment creation, including skip info.
+ */
+export interface PeriodicPaymentResult {
+  created: MemberPayment[];
+  skippedCount: number;
+  skippedPeriods: string[]; // human-readable labels like "Jan 2026", "Feb 2026"
+}
+
+/**
+ * Check whether a period is already covered by an existing payment.
+ * Matches on same person + same contribution type + overlapping period range.
+ */
+function isPeriodAlreadyPaid(
+  personId: number,
+  contributionTypeId: number,
+  periodFrom: string,
+  periodTo: string,
+  existingPayments: MemberPayment[]
+): boolean {
+  return existingPayments.some(
+    (p) =>
+      p.personId === personId &&
+      p.contributionTypeId === contributionTypeId &&
+      p.periodFrom &&
+      p.periodTo &&
+      p.periodFrom <= periodTo &&
+      p.periodTo >= periodFrom
+  );
+}
+
+/**
+ * Format a month period label like "Jan 2026".
+ */
+function monthLabel(year: number, month: number): string {
+  const d = new Date(year, month - 1, 1);
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+/**
+ * Split a multi-period payment into individual per-period records.
+ * For MONTHLY: one record per calendar month in the range.
+ * For YEARLY: one record per calendar year in the range.
+ * For single-period or no-frequency payments, creates one record as-is.
+ *
+ * When existingPayments is provided, periods already covered for the same
+ * person + contribution type are automatically skipped.
+ */
+export async function createPeriodicPayments(
+  data: MemberPaymentCreate,
+  frequency: 'MONTHLY' | 'YEARLY' | undefined,
+  perUnitAmount: number | undefined,
+  existingPayments?: MemberPayment[]
+): Promise<PeriodicPaymentResult> {
+  const existing = existingPayments ?? [];
+
+  if (!frequency || !data.periodFrom || !data.periodTo) {
+    // No frequency or no period — single payment
+    const result = await memberPaymentApi.create(data);
+    return { created: [result], skippedCount: 0, skippedPeriods: [] };
+  }
+
+  if (frequency === 'MONTHLY') {
+    const [fy, fm] = data.periodFrom.substring(0, 7).split('-').map(Number);
+    const [ty, tm] = data.periodTo.substring(0, 7).split('-').map(Number);
+    const periodCount = Math.max(1, (ty - fy) * 12 + (tm - fm) + 1);
+
+    if (periodCount <= 1) {
+      // Single month — still check for overlap
+      if (isPeriodAlreadyPaid(data.personId, data.contributionTypeId, data.periodFrom, data.periodTo, existing)) {
+        return { created: [], skippedCount: 1, skippedPeriods: [monthLabel(fy, fm)] };
+      }
+      const result = await memberPaymentApi.create(data);
+      return { created: [result], skippedCount: 0, skippedPeriods: [] };
+    }
+
+    // The entered amount is the per-period amount, not the total
+    const unitAmount = perUnitAmount ?? data.amount;
+    const results: MemberPayment[] = [];
+    const skippedPeriods: string[] = [];
+    let year = fy;
+    let month = fm;
+
+    for (let i = 0; i < periodCount; i++) {
+      const lastDay = new Date(year, month, 0).getDate();
+      const pFrom = `${year}-${String(month).padStart(2, '0')}-01`;
+      const pTo = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+      if (isPeriodAlreadyPaid(data.personId, data.contributionTypeId, pFrom, pTo, existing)) {
+        skippedPeriods.push(monthLabel(year, month));
+      } else {
+        const result = await memberPaymentApi.create({
+          ...data,
+          amount: parseFloat(unitAmount.toFixed(2)),
+          periodFrom: pFrom,
+          periodTo: pTo,
+        });
+        results.push(result);
+      }
+      month++;
+      if (month > 12) { month = 1; year++; }
+    }
+    return { created: results, skippedCount: skippedPeriods.length, skippedPeriods };
+  }
+
+  if (frequency === 'YEARLY') {
+    const fy = new Date(data.periodFrom).getFullYear();
+    const ty = new Date(data.periodTo).getFullYear();
+    const periodCount = Math.max(1, ty - fy + 1);
+
+    if (periodCount <= 1) {
+      if (isPeriodAlreadyPaid(data.personId, data.contributionTypeId, data.periodFrom, data.periodTo, existing)) {
+        return { created: [], skippedCount: 1, skippedPeriods: [String(fy)] };
+      }
+      const result = await memberPaymentApi.create(data);
+      return { created: [result], skippedCount: 0, skippedPeriods: [] };
+    }
+
+    // The entered amount is the per-period amount, not the total
+    const unitAmount = perUnitAmount ?? data.amount;
+    const results: MemberPayment[] = [];
+    const skippedPeriods: string[] = [];
+
+    for (let y = fy; y <= ty; y++) {
+      const pFrom = `${y}-01-01`;
+      const pTo = `${y}-12-31`;
+
+      if (isPeriodAlreadyPaid(data.personId, data.contributionTypeId, pFrom, pTo, existing)) {
+        skippedPeriods.push(String(y));
+      } else {
+        const result = await memberPaymentApi.create({
+          ...data,
+          amount: parseFloat(unitAmount.toFixed(2)),
+          periodFrom: pFrom,
+          periodTo: pTo,
+        });
+        results.push(result);
+      }
+    }
+    return { created: results, skippedCount: skippedPeriods.length, skippedPeriods };
+  }
+
+  // Fallback
+  const result = await memberPaymentApi.create(data);
+  return { created: [result], skippedCount: 0, skippedPeriods: [] };
+}
 
 // ===== Exemptions =====
 

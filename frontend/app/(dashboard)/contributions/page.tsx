@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import Card from '@/components/Card';
 import {
@@ -13,14 +13,18 @@ import {
   MemberPaymentCreate,
   MemberContributionExemption,
   MemberContributionExemptionCreate,
+  PageResponse,
   contributionTypeApi,
   contributionObligationApi,
   memberPaymentApi,
   exemptionApi,
+  createPeriodicPayments,
 } from '@/lib/contributionApi';
 import { currencyApi, MosqueCurrencyDTO } from '@/lib/currencyApi';
 import { memberApi } from '@/lib/api';
 import ToastNotification from '@/components/ToastNotification';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import PaymentReceiptModal from '@/components/PaymentReceiptModal';
 
 type Tab = 'types' | 'obligations' | 'payments' | 'exemptions';
 
@@ -41,10 +45,12 @@ export default function ContributionsPage() {
   const [editingObligation, setEditingObligation] = useState<ContributionObligation | null>(null);
 
   // ===== Payments State =====
-  const [payments, setPayments] = useState<MemberPayment[]>([]);
-  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [paymentsRefreshKey, setPaymentsRefreshKey] = useState(0);
+  const [paymentsCount, setPaymentsCount] = useState(0);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingPayment, setEditingPayment] = useState<MemberPayment | null>(null);
+  const [deletePaymentId, setDeletePaymentId] = useState<number | null>(null);
+  const [receiptPayment, setReceiptPayment] = useState<MemberPayment | null>(null);
 
   // ===== Exemptions State =====
   const [exemptions, setExemptions] = useState<MemberContributionExemption[]>([]);
@@ -60,6 +66,11 @@ export default function ContributionsPage() {
   const [personResults, setPersonResults] = useState<any[]>([]);
   const [selectedPerson, setSelectedPerson] = useState<any>(null);
 
+  // ===== Confirm Dialogs =====
+  const [deactivateTypeId, setDeactivateTypeId] = useState<number | null>(null);
+  const [deleteObligationId, setDeleteObligationId] = useState<number | null>(null);
+  const [deleteExemptionId, setDeleteExemptionId] = useState<number | null>(null);
+
   // ===== Toast =====
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -72,7 +83,6 @@ export default function ContributionsPage() {
   // Load tab-specific data when tab changes
   useEffect(() => {
     if (activeTab === 'obligations') loadObligations();
-    if (activeTab === 'payments') loadPayments();
     if (activeTab === 'exemptions') loadExemptions();
   }, [activeTab]);
 
@@ -98,18 +108,6 @@ export default function ContributionsPage() {
       console.error('Failed to load obligations:', err);
     } finally {
       setObligationsLoading(false);
-    }
-  };
-
-  const loadPayments = async () => {
-    setPaymentsLoading(true);
-    try {
-      const data = await memberPaymentApi.getAll();
-      setPayments(data);
-    } catch (err) {
-      console.error('Failed to load payments:', err);
-    } finally {
-      setPaymentsLoading(false);
     }
   };
 
@@ -152,13 +150,19 @@ export default function ContributionsPage() {
     }
   };
 
-  const handleDeactivateType = async (id: number) => {
-    if (!confirm(t('contributions.confirm_deactivate'))) return;
+  const handleDeactivateType = (id: number) => {
+    setDeactivateTypeId(id);
+  };
+
+  const confirmDeactivateType = async () => {
+    if (deactivateTypeId == null) return;
     try {
-      await contributionTypeApi.deactivate(id);
+      await contributionTypeApi.deactivate(deactivateTypeId);
       loadTypes();
     } catch (err) {
       console.error('Failed to deactivate type:', err);
+    } finally {
+      setDeactivateTypeId(null);
     }
   };
 
@@ -190,13 +194,19 @@ export default function ContributionsPage() {
     }
   };
 
-  const handleDeleteObligation = async (id: number) => {
-    if (!confirm(t('contributions.confirm_delete'))) return;
+  const handleDeleteObligation = (id: number) => {
+    setDeleteObligationId(id);
+  };
+
+  const confirmDeleteObligation = async () => {
+    if (deleteObligationId == null) return;
     try {
-      await contributionObligationApi.delete(id);
+      await contributionObligationApi.delete(deleteObligationId);
       loadObligations();
     } catch (err) {
       console.error('Failed to delete obligation:', err);
+    } finally {
+      setDeleteObligationId(null);
     }
   };
 
@@ -206,13 +216,49 @@ export default function ContributionsPage() {
       if (editingPayment) {
         await memberPaymentApi.update(editingPayment.id, data);
       } else {
-        await memberPaymentApi.create(data);
+        // Determine frequency to split multi-period payments into individual records
+        const selectedType = types.find(ct => ct.id === data.contributionTypeId);
+        const activeObligation = selectedType?.obligations?.find(o => o.amount > 0);
+        const frequency = activeObligation?.frequency as 'MONTHLY' | 'YEARLY' | undefined;
+        // Fetch full payment list for overlap detection (cannot rely on paginated subset)
+        const allPayments = await memberPaymentApi.getAll();
+        const result = await createPeriodicPayments(data, frequency, undefined, allPayments);
+
+        if (result.skippedCount > 0 && result.created.length > 0) {
+          setToast({
+            message: t('contributions.payments_created_with_skips', {
+              created: result.created.length,
+              skipped: result.skippedCount,
+              periods: result.skippedPeriods.join(', ')
+            }),
+            type: 'warning'
+          });
+          setShowPaymentModal(false);
+          setEditingPayment(null);
+          setSelectedPerson(null);
+          setPersonSearch('');
+          setPaymentsRefreshKey(k => k + 1);
+          return null;
+        }
+        if (result.skippedCount > 0 && result.created.length === 0) {
+          setToast({
+            message: t('contributions.all_periods_already_paid', {
+              periods: result.skippedPeriods.join(', ')
+            }),
+            type: 'info'
+          });
+          setShowPaymentModal(false);
+          setEditingPayment(null);
+          setSelectedPerson(null);
+          setPersonSearch('');
+          return null;
+        }
       }
       setShowPaymentModal(false);
       setEditingPayment(null);
       setSelectedPerson(null);
       setPersonSearch('');
-      loadPayments();
+      setPaymentsRefreshKey(k => k + 1);
       setToast({ message: 'Saved successfully', type: 'success' });
       return null;
     } catch (err: any) {
@@ -221,13 +267,21 @@ export default function ContributionsPage() {
     }
   };
 
-  const handleDeletePayment = async (id: number) => {
-    if (!confirm(t('contributions.confirm_delete'))) return;
+  const handleDeletePayment = (id: number) => {
+    setDeletePaymentId(id);
+  };
+
+  const confirmDeletePayment = async () => {
+    if (deletePaymentId == null) return;
     try {
-      await memberPaymentApi.delete(id);
-      loadPayments();
+      await memberPaymentApi.delete(deletePaymentId);
+      setPaymentsRefreshKey(k => k + 1);
+      setToast({ message: t('member_detail.payment_deleted'), type: 'success' });
     } catch (err) {
       console.error('Failed to delete payment:', err);
+      setToast({ message: t('member_detail.payment_delete_error'), type: 'error' });
+    } finally {
+      setDeletePaymentId(null);
     }
   };
 
@@ -264,13 +318,19 @@ export default function ContributionsPage() {
     }
   };
 
-  const handleDeleteExemption = async (id: number) => {
-    if (!confirm(t('contributions.confirm_delete'))) return;
+  const handleDeleteExemption = (id: number) => {
+    setDeleteExemptionId(id);
+  };
+
+  const confirmDeleteExemption = async () => {
+    if (deleteExemptionId == null) return;
     try {
-      await exemptionApi.delete(id);
+      await exemptionApi.delete(deleteExemptionId);
       loadExemptions();
     } catch (err) {
       console.error('Failed to delete exemption:', err);
+    } finally {
+      setDeleteExemptionId(null);
     }
   };
 
@@ -342,8 +402,8 @@ export default function ContributionsPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+      {/* Summary Cards - hidden on mobile for quick access to tabs */}
+      <div className="hidden md:grid grid-cols-3 gap-6">
         <Card>
           <div className="p-6">
             <p className="text-sm text-stone-500">{t('contributions.total_types')}</p>
@@ -364,7 +424,7 @@ export default function ContributionsPage() {
         <Card>
           <div className="p-6">
             <p className="text-sm text-stone-500">{t('contributions.total_payments')}</p>
-            <p className="text-2xl font-bold text-blue-600">{payments.length}</p>
+            <p className="text-2xl font-bold text-blue-600">{paymentsCount}</p>
           </div>
         </Card>
       </div>
@@ -421,11 +481,12 @@ export default function ContributionsPage() {
 
       {activeTab === 'payments' && (
         <PaymentsTab
-          payments={payments}
-          loading={paymentsLoading}
+          refreshKey={paymentsRefreshKey}
+          onTotalChange={setPaymentsCount}
           onAdd={() => { setEditingPayment(null); setShowPaymentModal(true); }}
           onEdit={(p) => { setEditingPayment(p); setShowPaymentModal(true); }}
           onDelete={handleDeletePayment}
+          onReceipt={setReceiptPayment}
           getTypeNameByCode={getTypeNameByCode}
           formatCurrency={formatCurrency}
           formatDate={formatDate}
@@ -488,6 +549,64 @@ export default function ContributionsPage() {
         />
       )}
 
+      {/* Payment Receipt Modal */}
+      <PaymentReceiptModal
+        open={receiptPayment != null}
+        payment={receiptPayment}
+        onClose={() => setReceiptPayment(null)}
+        contributionTypeName={receiptPayment ? getTypeNameByCode(receiptPayment.contributionTypeCode) : ''}
+        formatDate={formatDate}
+        t={t}
+      />
+
+      {/* Payment Delete Confirmation */}
+      <ConfirmDialog
+        open={deletePaymentId != null}
+        title={t('contributions.confirm_delete_title')}
+        message={t('contributions.confirm_delete_payment')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={confirmDeletePayment}
+        onCancel={() => setDeletePaymentId(null)}
+      />
+
+      {/* Deactivate Type Confirmation */}
+      <ConfirmDialog
+        open={deactivateTypeId != null}
+        title={t('contributions.confirm_delete_title')}
+        message={t('contributions.confirm_deactivate')}
+        confirmLabel={t('contributions.deactivate')}
+        cancelLabel={t('common.cancel')}
+        variant="warning"
+        onConfirm={confirmDeactivateType}
+        onCancel={() => setDeactivateTypeId(null)}
+      />
+
+      {/* Obligation Delete Confirmation */}
+      <ConfirmDialog
+        open={deleteObligationId != null}
+        title={t('contributions.confirm_delete_title')}
+        message={t('contributions.confirm_delete')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={confirmDeleteObligation}
+        onCancel={() => setDeleteObligationId(null)}
+      />
+
+      {/* Exemption Delete Confirmation */}
+      <ConfirmDialog
+        open={deleteExemptionId != null}
+        title={t('contributions.confirm_delete_title')}
+        message={t('contributions.confirm_delete')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={confirmDeleteExemption}
+        onCancel={() => setDeleteExemptionId(null)}
+      />
+
       {/* Exemption Modal */}
       {showExemptionModal && (
         <ExemptionModal
@@ -538,8 +657,9 @@ function TypesTab({ types, loading, getTypeName, onAdd, onEdit, onDeactivate, on
         ) : types.length === 0 ? (
           <div className="text-center py-8 text-stone-400">{t('contributions.no_types')}</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[600px]">
+          <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-stone-200 text-left text-stone-500">
                   <th className="pb-3 pr-4">{t('contributions.code')}</th>
@@ -608,6 +728,46 @@ function TypesTab({ types, loading, getTypeName, onAdd, onEdit, onDeactivate, on
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {types.map((type) => (
+              <div key={type.id} className="border border-stone-200 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="font-medium text-stone-900">{getTypeName(type)}</div>
+                    <div className="font-mono text-xs text-stone-400 mt-0.5">{type.code}</div>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      type.isRequired ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-500'
+                    }`}>
+                      {type.isRequired ? t('contributions.required') : t('contributions.optional')}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      type.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+                    }`}>
+                      {type.isActive ? t('contributions.active') : t('contributions.inactive')}
+                    </span>
+                  </div>
+                </div>
+                {type.obligations && type.obligations.length > 0 && (
+                  <div className="text-xs text-stone-500 mb-3">
+                    {type.obligations.length} {type.obligations.length === 1 ? t('contributions.obligation') : t('contributions.obligations')}
+                  </div>
+                )}
+                <div className="flex gap-3 pt-2 border-t border-stone-100">
+                  <button onClick={() => onEdit(type)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                  {type.isActive ? (
+                    <button onClick={() => onDeactivate(type.id)} className="text-red-500 hover:text-red-700 text-xs">{t('contributions.deactivate')}</button>
+                  ) : (
+                    <button onClick={() => onActivate(type.id)} className="text-blue-500 hover:text-blue-700 text-xs">{t('contributions.activate')}</button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
     </Card>
@@ -646,8 +806,9 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
         ) : obligations.length === 0 ? (
           <div className="text-center py-8 text-stone-400">{t('contributions.no_obligations')}</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[750px]">
+          <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-stone-200 text-left text-stone-500">
                   <th className="pb-3 pr-4">{t('contributions.type')}</th>
@@ -691,6 +852,34 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {obligations.map((obl) => (
+              <div key={obl.id} className="border border-stone-200 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="font-medium text-stone-900">{obl.contributionTypeCode ? getTypeNameByCode(obl.contributionTypeCode) : '-'}</div>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
+                      {t(`contributions.freq_${obl.frequency.toLowerCase()}`)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold text-emerald-700">{formatCurrency(obl.amount, obl.currencyCode)}</div>
+                    <div className="text-xs text-stone-400">{obl.currencyCode || ''}</div>
+                  </div>
+                </div>
+                <div className="text-xs text-stone-500 mb-3">
+                  {formatDate(obl.startDate)}
+                </div>
+                <div className="flex gap-3 pt-2 border-t border-stone-100">
+                  <button onClick={() => onEdit(obl)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                  <button onClick={() => onDelete(obl.id!)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
     </Card>
@@ -698,85 +887,394 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
 }
 
 // ===== Payments Tab Component =====
-function PaymentsTab({ payments, loading, onAdd, onEdit, onDelete, getTypeNameByCode, formatCurrency, formatDate, mosqueCurrencies, t }: {
-  payments: MemberPayment[];
-  loading: boolean;
+function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onReceipt, getTypeNameByCode, formatCurrency, formatDate, mosqueCurrencies, t }: {
+  refreshKey: number;
+  onTotalChange?: (total: number) => void;
   onAdd: () => void;
   onEdit: (p: MemberPayment) => void;
   onDelete: (id: number) => void;
+  onReceipt: (p: MemberPayment) => void;
   getTypeNameByCode: (code: string) => string;
   formatCurrency: (amount: number, currencyCode?: string) => string;
   formatDate: (date: string) => string;
   mosqueCurrencies: MosqueCurrencyDTO[];
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
+  const [payments, setPayments] = useState<MemberPayment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [yearFilter, setYearFilter] = useState<string>('all');
+  const [personFilter, setPersonFilter] = useState<string>('all');
+  const [personFilterName, setPersonFilterName] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // Available years for the year filter dropdown — fetched once from full dataset
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  // Person autocomplete filter state
+  const [personSearchText, setPersonSearchText] = useState('');
+  const [personSearchResults, setPersonSearchResults] = useState<{ id: number; firstName: string; lastName: string }[]>([]);
+  const [showPersonDropdown, setShowPersonDropdown] = useState(false);
+  const personDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close person dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (personDropdownRef.current && !personDropdownRef.current.contains(e.target as Node)) {
+        setShowPersonDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchPayments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = {
+        page: currentPage,
+        size: pageSize,
+        sort: ['person.firstName,asc', 'periodFrom,asc', 'contributionType.code,asc'],
+        year: yearFilter !== 'all' ? Number(yearFilter) : undefined,
+        personId: personFilter !== 'all' ? Number(personFilter) : undefined,
+      };
+      const data = await memberPaymentApi.getAllPaginated(params);
+      setPayments(data.content);
+      setTotalElements(data.totalElements);
+      setTotalPages(data.totalPages);
+    } catch (err) {
+      console.error('Failed to load payments:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, pageSize, yearFilter, personFilter]);
+
+  // Load available years once (and on refreshKey changes)
+  useEffect(() => {
+    const loadYears = async () => {
+      try {
+        // Fetch a lightweight full list to extract years (no pagination)
+        const all = await memberPaymentApi.getAll();
+        const years = Array.from(
+          new Set(
+            all.flatMap((p) => {
+              const yrs: number[] = [];
+              if (p.periodFrom) yrs.push(new Date(p.periodFrom).getFullYear());
+              if (p.paymentDate) yrs.push(new Date(p.paymentDate).getFullYear());
+              return yrs;
+            })
+          )
+        ).sort((a, b) => b - a);
+        setAvailableYears(years);
+
+        if (onTotalChange) onTotalChange(all.length);
+      } catch (err) {
+        console.error('Failed to load payment years:', err);
+      }
+    };
+    loadYears();
+  }, [refreshKey]);
+
+  // Fetch paginated data when page/size/year/refreshKey changes
+  useEffect(() => {
+    fetchPayments();
+  }, [fetchPayments, refreshKey]);
+
+  // Reset to first page when year filter changes
+  const handleYearChange = (value: string) => {
+    setYearFilter(value);
+    setCurrentPage(0);
+  };
+
+  // Reset to first page when person filter changes
+  const handlePersonChange = (value: string) => {
+    setPersonFilter(value);
+    setCurrentPage(0);
+  };
+
+  // Person autocomplete search
+  const handlePersonSearch = async (query: string) => {
+    setPersonSearchText(query);
+    if (query.length < 2) {
+      setPersonSearchResults([]);
+      setShowPersonDropdown(false);
+      return;
+    }
+    try {
+      const results = await memberApi.search(query) as any[];
+      setPersonSearchResults(results);
+      setShowPersonDropdown(results.length > 0);
+    } catch (err) {
+      console.error('Failed to search persons:', err);
+    }
+  };
+
+  // Select a person from autocomplete
+  const selectPersonFilter = (person: { id: number; firstName: string; lastName: string }) => {
+    const name = `${person.firstName} ${person.lastName}`;
+    setPersonFilterName(name);
+    setPersonSearchText(name);
+    handlePersonChange(String(person.id));
+    setShowPersonDropdown(false);
+    setPersonSearchResults([]);
+  };
+
+  // Clear the person filter
+  const clearPersonFilter = () => {
+    setPersonFilterName('');
+    setPersonSearchText('');
+    handlePersonChange('all');
+    setPersonSearchResults([]);
+    setShowPersonDropdown(false);
+  };
+
+  // Format a period range with month name prefix
+  const formatPeriod = (periodFrom: string, periodTo: string): string => {
+    if (!periodFrom || !periodTo) return '-';
+    const [fy, fm, fd] = periodFrom.split('-').map(Number);
+    const [ty, tm, td] = periodTo.split('-').map(Number);
+    const fromDate = new Date(fy, fm - 1, fd);
+    const toDate = new Date(ty, tm - 1, td);
+    // Check if it spans a full calendar month
+    const lastDayOfMonth = new Date(fy, fm, 0).getDate();
+    if (fy === ty && fm === tm && fd === 1 && td === lastDayOfMonth) {
+      return fromDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }
+    // Check if it spans a full calendar year
+    if (fy === ty && fm === 1 && fd === 1 && tm === 12 && td === 31) {
+      return String(fy);
+    }
+    const fmtFrom = fromDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const fmtTo = toDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${fmtFrom} \u2014 ${fmtTo}`;
+  };
+
+  // Calculate total for current page
+  const pageTotal = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  // Pagination helpers
+  const from = totalElements === 0 ? 0 : currentPage * pageSize + 1;
+  const to = Math.min((currentPage + 1) * pageSize, totalElements);
+
   return (
     <Card>
       <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-stone-800">{t('contributions.payments')}</h2>
-          <button
-            onClick={onAdd}
-            className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
-          >
-            + {t('contributions.add_payment')}
-          </button>
+        <div className="flex flex-col gap-3 mb-4">
+          {/* Title row + Add button */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold text-stone-800">{t('contributions.payments')}</h2>
+              <span className="text-sm text-stone-500">({totalElements})</span>
+            </div>
+            <button
+              onClick={onAdd}
+              className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
+            >
+              + {t('contributions.add_payment')}
+            </button>
+          </div>
+          {/* Filters row */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            {/* Person autocomplete */}
+            <div className="relative w-full sm:w-64" ref={personDropdownRef}>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={personSearchText}
+                  onChange={(e) => handlePersonSearch(e.target.value)}
+                  onFocus={() => { if (personSearchResults.length > 0) setShowPersonDropdown(true); }}
+                  placeholder={t('contributions.search_person')}
+                  className="border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500 w-full pr-8"
+                />
+                {personFilter !== 'all' && (
+                  <button
+                    onClick={clearPersonFilter}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                    title="Clear"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              {showPersonDropdown && personSearchResults.length > 0 && (
+                <div className="absolute z-20 mt-1 w-full bg-white border border-stone-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {personSearchResults.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => selectPersonFilter(p)}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                    >
+                      {p.firstName} {p.lastName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {availableYears.length > 0 && (
+              <select
+                value={yearFilter}
+                onChange={(e) => handleYearChange(e.target.value)}
+                className="border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500 w-full sm:w-auto"
+              >
+                <option value="all">{t('contributions.all_years')}</option>
+                {availableYears.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            )}
+          </div>
         </div>
 
         {loading ? (
           <div className="text-center py-8 text-stone-400">{t('common.loading')}</div>
         ) : payments.length === 0 ? (
-          <div className="text-center py-8 text-stone-400">{t('contributions.no_payments')}</div>
+          <div className="text-center py-8 text-stone-400">{(yearFilter !== 'all' || personFilter !== 'all') ? t('contributions.no_payments_filter') : t('contributions.no_payments')}</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[600px]">
-              <thead>
-                <tr className="border-b border-stone-200 text-left text-stone-500">
-                  <th className="pb-3 pr-4">{t('contributions.person')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.type')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.amount')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.currency')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.period_range')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.payment_date')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.reference')}</th>
-                  <th className="pb-3">{t('common.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((payment) => (
-                  <tr key={payment.id} className="border-b border-stone-100 hover:bg-stone-50">
-                    <td className="py-3 pr-4">{payment.personName}</td>
-                    <td className="py-3 pr-4">{getTypeNameByCode(payment.contributionTypeCode)}</td>
-                    <td className="py-3 pr-4 font-medium">{formatCurrency(payment.amount, payment.currencyCode)}</td>
-                    <td className="py-3 pr-4 text-xs text-stone-500">{payment.currencyCode || '-'}</td>
-                    <td className="py-3 pr-4 text-xs text-stone-500">
-                      {payment.periodFrom && payment.periodTo
-                        ? `${formatDate(payment.periodFrom)} — ${formatDate(payment.periodTo)}`
-                        : '-'}
-                    </td>
-                    <td className="py-3 pr-4">{formatDate(payment.paymentDate)}</td>
-                    <td className="py-3 pr-4 text-xs text-stone-500">{payment.reference || '-'}</td>
-                    <td className="py-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => onEdit(payment)}
-                          className="text-emerald-600 hover:text-emerald-800 text-xs"
-                        >
-                          {t('common.edit')}
-                        </button>
-                        <button
-                          onClick={() => onDelete(payment.id)}
-                          className="text-red-500 hover:text-red-700 text-xs"
-                        >
-                          {t('common.delete')}
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-stone-200 text-left text-stone-500">
+                    <th className="pb-3 pr-4">{t('contributions.person')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.type')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.amount')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.currency')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.period_range')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.payment_date')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.reference')}</th>
+                    <th className="pb-3">{t('common.actions')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {payments.map((payment) => (
+                    <tr key={payment.id} className="border-b border-stone-100 hover:bg-stone-50">
+                      <td className="py-3 pr-4">{payment.personName}</td>
+                      <td className="py-3 pr-4">{getTypeNameByCode(payment.contributionTypeCode)}</td>
+                      <td className="py-3 pr-4 font-medium">{formatCurrency(payment.amount, payment.currencyCode)}</td>
+                      <td className="py-3 pr-4 text-xs text-stone-500">{payment.currencyCode || '-'}</td>
+                      <td className="py-3 pr-4 text-xs text-stone-500">
+                        {payment.periodFrom && payment.periodTo
+                          ? formatPeriod(payment.periodFrom, payment.periodTo)
+                          : '-'}
+                      </td>
+                      <td className="py-3 pr-4">{formatDate(payment.paymentDate)}</td>
+                      <td className="py-3 pr-4 text-xs text-stone-500">{payment.reference || '-'}</td>
+                      <td className="py-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => onReceipt(payment)}
+                            className="text-stone-500 hover:text-stone-700 text-xs"
+                            title={t('receipt.view_receipt')}
+                          >
+                            <svg className="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => onEdit(payment)}
+                            className="text-emerald-600 hover:text-emerald-800 text-xs"
+                          >
+                            {t('common.edit')}
+                          </button>
+                          <button
+                            onClick={() => onDelete(payment.id)}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            {t('common.delete')}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {payments.map((payment) => (
+                <div key={payment.id} className="border border-stone-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="font-medium text-stone-900">{payment.personName}</div>
+                      <div className="text-xs text-stone-500">{getTypeNameByCode(payment.contributionTypeCode)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-emerald-700">{formatCurrency(payment.amount, payment.currencyCode)}</div>
+                      <div className="text-xs text-stone-400">{payment.currencyCode || ''}</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-500 mb-3">
+                    <span>{formatDate(payment.paymentDate)}</span>
+                    {payment.periodFrom && payment.periodTo && (
+                      <span>{formatPeriod(payment.periodFrom, payment.periodTo)}</span>
+                    )}
+                    {payment.reference && <span>{payment.reference}</span>}
+                  </div>
+                  <div className="flex gap-3 pt-2 border-t border-stone-100">
+                    <button onClick={() => onReceipt(payment)} className="text-stone-500 hover:text-stone-700 text-xs" title={t('receipt.view_receipt')}>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                    </button>
+                    <button onClick={() => onEdit(payment)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                    <button onClick={() => onDelete(payment.id)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Total summary for current page */}
+            <div className="mt-3 pt-3 border-t border-stone-200 flex justify-between items-center">
+              <span className="text-sm text-stone-500">
+                {t('contributions.showing_entries', { from, to, total: totalElements })}
+              </span>
+              <span className="text-sm font-medium text-stone-700">
+                {t('contributions.total')}: {formatCurrency(pageTotal)}
+              </span>
+            </div>
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-stone-500">{t('contributions.rows_per_page')}</label>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(0); }}
+                    className="border border-stone-300 rounded px-2 py-1 text-sm focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    {[10, 20, 50, 100].map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                    disabled={currentPage === 0}
+                    className="px-3 py-1 text-sm border border-stone-300 rounded hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    ‹
+                  </button>
+                  <span className="text-sm text-stone-600">
+                    {t('contributions.page_of', { page: currentPage + 1, total: totalPages })}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                    disabled={currentPage >= totalPages - 1}
+                    className="px-3 py-1 text-sm border border-stone-300 rounded hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </Card>
@@ -822,8 +1320,9 @@ function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNa
         ) : exemptions.length === 0 ? (
           <div className="text-center py-8 text-stone-400">{t('contributions.no_exemptions')}</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[700px]">
+          <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-stone-200 text-left text-stone-500">
                   <th className="pb-3 pr-4">{t('contributions.person')}</th>
@@ -873,6 +1372,35 @@ function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNa
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {exemptions.map((ex) => (
+              <div key={ex.id} className="border border-stone-200 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="font-medium text-stone-900">{ex.personName}</div>
+                    <div className="text-xs text-stone-500 mt-0.5">{getTypeNameByCode(ex.contributionTypeCode)}</div>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    ex.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                  }`}>
+                    {ex.isActive ? t('contributions.active') : t('contributions.inactive')}
+                  </span>
+                </div>
+                <div className="space-y-1 text-xs text-stone-500 mb-3">
+                  <div>{formatExemptionType(ex.exemptionType, ex.amount)}</div>
+                  <div>{formatDate(ex.startDate)} — {ex.endDate ? formatDate(ex.endDate) : t('contributions.ongoing')}</div>
+                  {ex.reason && <div className="truncate">{ex.reason}</div>}
+                </div>
+                <div className="flex gap-3 pt-2 border-t border-stone-100">
+                  <button onClick={() => onEdit(ex)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                  <button onClick={() => onDelete(ex.id)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
     </Card>
@@ -929,7 +1457,7 @@ function TypeModal({ type, onSave, onClose, t, locale }: {
                 onChange={(e) => setCode(e.target.value)}
                 className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
                 required
-                placeholder="e.g. MONTHLY_FEE"
+                placeholder="e.g. MONTHLY_CONTRIBUTION"
               />
             </div>
 
@@ -1226,7 +1754,8 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
   };
 
   const exemptedUnitAmount = obligationUnitAmount ? applyExemptionPerUnit(obligationUnitAmount) : undefined;
-  const calculatedAmount = exemptedUnitAmount !== undefined ? exemptedUnitAmount * periodCount : undefined;
+  // For multi-period: amount field = per-unit amount (each record), not the total
+  const calculatedAmount = exemptedUnitAmount !== undefined ? exemptedUnitAmount : undefined;
 
   // Auto-fill amount when type or period changes (unless user manually overrode)
   useEffect(() => {
@@ -1484,12 +2013,12 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
                 required
               />
               {/* Auto-fill hint */}
-              {obligationUnitAmount && !amountManual && frequency && periodCount > 1 && (
+              {obligationUnitAmount && !amountManual && frequency && periodCount > 1 && !payment && (
                 <p className="mt-1 text-xs text-emerald-600">
-                  {t('contributions.amount_calculation')}: {periodCount} ×{' '}
+                  {t('contributions.will_create_records', { count: periodCount })}: {periodCount} × {exemptedUnitAmount?.toFixed(2)}
                   {activeExemption && exemptedUnitAmount !== undefined && exemptedUnitAmount !== obligationUnitAmount
-                    ? `(${obligationUnitAmount.toFixed(2)} → ${exemptedUnitAmount.toFixed(2)}) = ${calculatedAmount?.toFixed(2)}`
-                    : `${obligationUnitAmount.toFixed(2)} = ${calculatedAmount?.toFixed(2)}`}
+                    ? ` (${obligationUnitAmount.toFixed(2)} → ${exemptedUnitAmount.toFixed(2)})`
+                    : ''}
                 </p>
               )}
               {obligationUnitAmount && !amountManual && !(frequency && periodCount > 1) && (

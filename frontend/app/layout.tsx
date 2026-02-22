@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { AuthProvider } from "@/lib/auth/AuthContext";
+import { AppNameProvider } from "@/lib/AppNameContext";
 import PWARegister from "@/components/PWARegister";
 
 const geistSans = Geist({
@@ -16,14 +17,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mosque CRM",
-  description: "Mosque member management system — manage members, family trees, fees, and contributions",
+  title: "MemberFlow",
+  description: "Member management system — manage members, family trees, and contributions",
   manifest: "/manifest.json",
   themeColor: "#047857",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Mosque CRM",
+    title: "MemberFlow",
   },
   viewport: {
     width: "device-width",
@@ -48,10 +49,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <LanguageProvider>
-          <AuthProvider>
-            <PWARegister />
-            {children}
-          </AuthProvider>
+          <AppNameProvider>
+            <AuthProvider>
+              <PWARegister />
+              {children}
+            </AuthProvider>
+          </AppNameProvider>
         </LanguageProvider>
       </body>
     </html>

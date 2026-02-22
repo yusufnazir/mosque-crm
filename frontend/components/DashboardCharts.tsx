@@ -180,7 +180,7 @@ export default function DashboardCharts() {
     ],
   };
 
-  // For monthlyFeeChart, use Bar or Line as needed
+  // For charts, use Bar or Line as needed
   // import { Bar as BarChart, Line } from 'react-chartjs-2';
   // Here, we'll use Bar for all for simplicity
   // If you want to use Line, import it and swap below

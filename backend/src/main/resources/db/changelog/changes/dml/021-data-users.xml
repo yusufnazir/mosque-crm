@@ -19,17 +19,4 @@
 		</customChange>
 	</changeSet>
 
-	<!-- Test member user: ahmed / password123 -->
-	<changeSet id="a2b3c4d5-0021-4e6f-8a9b-re-seed-ahmed02" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataUser">
-			<param name="id"><![CDATA[2]]></param>
-			<param name="username"><![CDATA[ahmed]]></param>
-			<param name="password"><![CDATA[$2a$10$mGolO7dVSRSXOFfJfKGm7OKJpScxHhdTrmRCz1Z9DZs7OI1L2cv0a]]></param>
-			<param name="email"><![CDATA[ahmed@example.com]]></param>
-			<param name="accountEnabled"><![CDATA[true]]></param>
-			<param name="accountLocked"><![CDATA[false]]></param>
-			<param name="credentialsExpired"><![CDATA[false]]></param>
-		</customChange>
-	</changeSet>
-
 </databaseChangeLog>

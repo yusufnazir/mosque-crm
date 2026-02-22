@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { useAppName } from '@/lib/AppNameContext';
 
 interface MailServerConfig {
   host: string;
@@ -12,7 +13,8 @@ interface MailServerConfig {
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'mail' | 'document'>('mail');
+  const { appName, setAppName, refreshAppName } = useAppName();
+  const [activeTab, setActiveTab] = useState<'general' | 'mail' | 'document'>('general');
   const [config, setConfig] = useState<MailServerConfig>({
     host: '',
     username: '',
@@ -22,10 +24,15 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [appNameInput, setAppNameInput] = useState('');
 
   useEffect(() => {
     fetchMailServerConfig();
   }, []);
+
+  useEffect(() => {
+    setAppNameInput(appName);
+  }, [appName]);
 
   const fetchMailServerConfig = async () => {
     try {
@@ -88,11 +95,45 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSaveGeneral = async () => {
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/configurations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'APP_NAME', value: appNameInput }),
+      });
+
+      if (response.ok) {
+        setAppName(appNameInput);
+        setMessage(t('settings.config_saved_success'));
+      } else {
+        setMessage(t('settings.config_saved_error'));
+      }
+    } catch {
+      setMessage(t('settings.config_saved_error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-8">
       <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-6 md:mb-8">{t('settings.title')}</h1>
 
       <div className="flex flex-wrap gap-3 md:gap-4 mb-6">
+        <button
+          onClick={() => setActiveTab('general')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            activeTab === 'general'
+              ? 'bg-emerald-700 text-white'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          {t('settings.general')}
+        </button>
         <button
           onClick={() => setActiveTab('mail')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
@@ -114,6 +155,48 @@ export default function SettingsPage() {
           {t('settings.document_management')}
         </button>
       </div>
+
+      {activeTab === 'general' && (
+        <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl">
+          <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-6">{t('settings.general_settings')}</h2>
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.app_name')}
+              </label>
+              <input
+                type="text"
+                value={appNameInput}
+                onChange={(e) => setAppNameInput(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                placeholder="MemberFlow"
+              />
+              <p className="mt-1 text-sm text-gray-500">{t('settings.app_name_description')}</p>
+            </div>
+
+            {message && (
+              <div className={`p-4 rounded-lg ${
+                message.includes('success') || message.includes('successfully') || message.includes('succesvol')
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : 'bg-red-50 text-red-700'
+              }`}>
+                {message}
+              </div>
+            )}
+
+            <div>
+              <button
+                onClick={handleSaveGeneral}
+                disabled={loading || !appNameInput.trim()}
+                className="px-6 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? t('settings.saving') : t('settings.save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'mail' && (
         <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl">

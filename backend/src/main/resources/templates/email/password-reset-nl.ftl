@@ -13,7 +13,7 @@
                     <tr>
                         <td style="background: linear-gradient(135deg, #047857 0%, #065f46 100%); padding: 40px 30px; border-radius: 8px 8px 0 0;">
                             <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; text-align: center;">
-                                Moskee CRM
+                                ${appName}
                             </h1>
                         </td>
                     </tr>
@@ -30,7 +30,7 @@
                             </p>
                             
                             <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                                Je hebt een verzoek ingediend om je wachtwoord voor Moskee CRM te herstellen. Klik op de knop hieronder om een nieuw wachtwoord aan te maken:
+                                Je hebt een verzoek ingediend om je wachtwoord voor ${appName} te herstellen. Klik op de knop hieronder om een nieuw wachtwoord aan te maken:
                             </p>
                             
                             <!-- Button -->
@@ -69,7 +69,7 @@
                         <td style="padding: 30px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
                             <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 14px;">
                                 Met vriendelijke groet,<br>
-                                <strong style="color: #047857;">Moskee CRM Team</strong>
+                                <strong style="color: #047857;">${appName} Team</strong>
                             </p>
                             <p style="margin: 0; color: #9ca3af; font-size: 12px;">
                                 Dit is een geautomatiseerd bericht, gelieve niet te antwoorden op deze e-mail.

@@ -11,7 +11,7 @@ type Translations = typeof en;
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   syncLanguageWithBackend: () => Promise<void>;
 }
 
@@ -102,7 +102,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Translation function - supports nested keys like "sidebar.dashboard"
-  const t = (key: string): string => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
     const keys = key.split('.');
     let value: any = translations[language];
     
@@ -114,7 +114,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       }
     }
     
-    return typeof value === 'string' ? value : key;
+    let result = typeof value === 'string' ? value : key;
+    
+    // Replace {{placeholder}} tokens with provided params
+    if (params) {
+      for (const [pKey, pVal] of Object.entries(params)) {
+        result = result.replace(new RegExp(`\\{\\{${pKey}\\}\\}`, 'g'), String(pVal));
+      }
+    }
+    
+    return result;
   };
 
   return (

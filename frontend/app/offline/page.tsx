@@ -24,7 +24,7 @@ export default function OfflinePage() {
           Try Again
         </button>
 
-        <p className="mt-6 text-sm text-gray-400">Mosque CRM</p>
+        <p className="mt-6 text-sm text-gray-400">MemberFlow</p>
       </div>
     </div>
   );

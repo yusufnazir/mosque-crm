@@ -152,10 +152,11 @@ public class EmailService {
      * Get email subject based on locale
      */
     private String getSubject(String locale) {
+        String appName = configurationService.getAppName();
         if ("nl".equalsIgnoreCase(locale)) {
-            return "Wachtwoord Herstel Verzoek - Moskee CRM";
+            return "Wachtwoord Herstel Verzoek - " + appName;
         }
-        return "Password Reset Request - Mosque CRM";
+        return "Password Reset Request - " + appName;
     }
 
     /**
@@ -175,16 +176,18 @@ public class EmailService {
             Map<String, Object> model = new HashMap<>();
             model.put("username", username);
             model.put("resetUrl", resetUrl);
+            model.put("appName", configurationService.getAppName());
 
             // Process template
             return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
         } catch (Exception e) {
             log.error("Error processing email template", e);
             // Fallback to simple text email
+            String appName = configurationService.getAppName();
             return String.format("""
                 Hello %s,
 
-                You have requested to reset your password for Mosque CRM.
+                You have requested to reset your password for %s.
 
                 Click the link below to reset your password:
                 %s
@@ -194,8 +197,8 @@ public class EmailService {
                 If you did not request this, please ignore this email.
 
                 Best regards,
-                Mosque CRM Team
-                """, username, resetUrl);
+                %s Team
+                """, username, appName, resetUrl, appName);
         }
     }
 }

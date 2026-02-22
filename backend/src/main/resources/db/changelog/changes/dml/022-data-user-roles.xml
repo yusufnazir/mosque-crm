@@ -14,12 +14,4 @@
 		</customChange>
 	</changeSet>
 
-	<!-- Assign MEMBER role to ahmed user -->
-	<changeSet id="cef251fb-18a6-42d4-aa3e-8074a44fb5df" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataUserRole">
-			<param name="userId"><![CDATA[2]]></param>
-			<param name="roleId"><![CDATA[2]]></param>
-		</customChange>
-	</changeSet>
-
 </databaseChangeLog>

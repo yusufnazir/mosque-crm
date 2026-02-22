@@ -1,7 +1,7 @@
 {
-  "name": "Mosque CRM",
-  "short_name": "Mosque CRM",
-  "description": "Mosque member management system — manage members, family trees, fees, and contributions",
+  "name": "MemberFlow",
+  "short_name": "MemberFlow",
+  "description": "Member management system — manage members, family trees, and contributions",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#047857",

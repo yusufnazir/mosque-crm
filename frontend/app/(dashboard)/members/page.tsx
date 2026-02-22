@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { memberApi } from '@/lib/api';
@@ -8,6 +8,9 @@ import Button from '@/components/Button';
 import { PersonSearchResult } from '@/types';
 import { getInitials, getStatusColor, getLocalizedStatus } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+
+// Progressive rendering: render rows in batches for smooth scrolling with large datasets
+const VISIBLE_BATCH_SIZE = 100;
 
 // Helper function to capitalize names properly
 const capitalizeName = (name: string | undefined): string => {
@@ -24,53 +27,88 @@ export default function MembersPage() {
   const [members, setMembers] = useState<PersonSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'firstName', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'firstName', direction: 'asc' });
+  const [visibleCount, setVisibleCount] = useState(VISIBLE_BATCH_SIZE);
 
+  // Callback ref — observer attaches/detaches whenever the sentinel element mounts/unmounts
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    if (node) {
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            setVisibleCount((prev) => prev + VISIBLE_BATCH_SIZE);
+          }
+        },
+        { rootMargin: '200px' }
+      );
+      observerRef.current.observe(node);
+    }
+  }, []);
+
+  // Fetch once on mount — no server re-fetch for sort/filter changes
   useEffect(() => {
     fetchMembers();
-  }, [sortConfig]);
+  }, []);
+
+  // Reset visible count when search changes
+  useEffect(() => {
+    setVisibleCount(VISIBLE_BATCH_SIZE);
+  }, [searchTerm]);
 
   const fetchMembers = async () => {
     try {
-      console.log('🔍 Fetching members list...');
-      const params = new URLSearchParams();
-      if (sortConfig) {
-        params.append('sortBy', sortConfig.key);
-        params.append('direction', sortConfig.direction);
-      }
-      
-      const data: any = await memberApi.getAll(params.toString());
-      console.log('✅ Members fetched successfully:', data.length, 'members');
+      const data: any = await memberApi.getAll();
       setMembers(data);
     } catch (error) {
-      console.error('❌ Failed to fetch members:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        type: typeof error,
-        fullError: error
-      });
+      console.error('Failed to fetch members:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSort = (key: string) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
+  // Client-side sort toggle — instant, no server round-trip
+  const handleSort = useCallback((key: string) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  }, []);
 
-  const filteredMembers = members.filter(
-    (member) =>
-      member.id && // Filter out members with null/undefined id
-      (
-        (member.firstName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (member.lastName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (member.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-      )
+  // Memoized filter + sort — only recalculates when data, search, or sort changes
+  const sortedAndFilteredMembers = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    const filtered = members.filter(
+      (member) =>
+        member.id &&
+        (
+          (member.firstName?.toLowerCase() || '').includes(term) ||
+          (member.lastName?.toLowerCase() || '').includes(term) ||
+          (member.email?.toLowerCase() || '').includes(term)
+        )
+    );
+
+    return [...filtered].sort((a, b) => {
+      const key = sortConfig.key as keyof PersonSearchResult;
+      const aVal = (a[key] ?? '').toString().toLowerCase();
+      const bVal = (b[key] ?? '').toString().toLowerCase();
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [members, searchTerm, sortConfig]);
+
+  // Only render rows up to visibleCount for DOM performance
+  const visibleMembers = useMemo(
+    () => sortedAndFilteredMembers.slice(0, visibleCount),
+    [sortedAndFilteredMembers, visibleCount]
   );
+
+  const hasMore = visibleCount < sortedAndFilteredMembers.length;
 
   if (loading) {
     return (
@@ -96,7 +134,7 @@ export default function MembersPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle>{t('members.all_members')} ({filteredMembers.length})</CardTitle>
+            <CardTitle>{t('members.all_members')} ({sortedAndFilteredMembers.length})</CardTitle>
             <input
               type="text"
               placeholder={t('members.search_members')}
@@ -109,7 +147,7 @@ export default function MembersPage() {
         <CardContent className="p-0">
           {/* Mobile: Card list */}
           <div className="md:hidden divide-y divide-gray-200">
-            {filteredMembers.map((member, index) => (
+            {visibleMembers.map((member, index) => (
               <div
                 key={member.id || `member-${index}`}
                 className="p-4"
@@ -221,7 +259,7 @@ export default function MembersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredMembers.map((member, index) => (
+                {visibleMembers.map((member, index) => (
                   <tr key={member.id || `member-${index}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -284,6 +322,15 @@ export default function MembersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Sentinel for progressive rendering + "showing X of Y" indicator */}
+      {hasMore && (
+        <div ref={sentinelRef} className="flex justify-center py-4">
+          <span className="text-sm text-gray-400">
+            {t('members.showing_count', { visible: visibleMembers.length, total: sortedAndFilteredMembers.length })}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

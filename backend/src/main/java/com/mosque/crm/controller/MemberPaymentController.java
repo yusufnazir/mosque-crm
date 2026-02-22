@@ -28,6 +28,10 @@ import jakarta.validation.Valid;
 /**
  * REST controller for managing member payments.
  * Base path: /contributions/payments
+ *
+ * Pagination: pass page (0-based) and size query params.
+ * Sorting: pass sort=field,direction (e.g. sort=person.firstName,asc&sort=periodFrom,asc).
+ * Year filter: pass year=2026 to filter by period year.
  */
 @RestController
 @RequestMapping("/contributions/payments")
@@ -41,20 +45,58 @@ public class MemberPaymentController {
     }
 
     /**
-     * Get all payments with optional pagination.
+     * Build a Sort object from the sort[] request param.
+     * Each value is "field,direction" (e.g. "person.firstName,asc").
+     * Falls back to person.firstName,asc;periodFrom,asc when no sort is given.
+     */
+    private Sort buildSort(String[] sort) {
+        if (sort == null || sort.length == 0) {
+            return Sort.by(
+                Sort.Order.asc("person.firstName"),
+                Sort.Order.asc("periodFrom")
+            );
+        }
+        Sort result = Sort.unsorted();
+        for (String s : sort) {
+            String[] parts = s.split(",", 2);
+            String field = parts[0].trim();
+            Sort.Direction dir = (parts.length > 1 && "desc".equalsIgnoreCase(parts[1].trim()))
+                    ? Sort.Direction.DESC : Sort.Direction.ASC;
+            result = result.and(Sort.by(dir, field));
+        }
+        return result;
+    }
+
+    /**
+     * Get all payments with optional pagination, sorting, year and person filter.
+     *
+     * Examples:
+     *   GET /contributions/payments                                          → all (no pagination)
+     *   GET /contributions/payments?page=0&size=20                           → page 0, 20 per page
+     *   GET /contributions/payments?page=0&size=20&year=2026
+     *   GET /contributions/payments?page=0&size=20&personId=5
+     *   GET /contributions/payments?page=0&size=20&personId=5&year=2026
+     *   GET /contributions/payments?page=0&size=20&sort=person.firstName,asc&sort=periodFrom,asc
      */
     @GetMapping
     public ResponseEntity<?> getAllPayments(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
-            @RequestParam(required = false, defaultValue = "paymentDate") String sortBy,
-            @RequestParam(required = false, defaultValue = "desc") String direction) {
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Long personId,
+            @RequestParam(required = false) String[] sort) {
         if (page != null && size != null) {
-            Sort sort = Sort.by(
-                    "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC,
-                    sortBy);
-            Pageable pageable = PageRequest.of(page, size, sort);
-            Page<MemberPaymentDTO> payments = paymentService.getAllPayments(pageable);
+            Pageable pageable = PageRequest.of(page, size, buildSort(sort));
+            Page<MemberPaymentDTO> payments;
+            if (personId != null && year != null) {
+                payments = paymentService.getPaymentsByPerson(personId, year, pageable);
+            } else if (personId != null) {
+                payments = paymentService.getPaymentsByPerson(personId, pageable);
+            } else if (year != null) {
+                payments = paymentService.getAllPayments(year, pageable);
+            } else {
+                payments = paymentService.getAllPayments(pageable);
+            }
             return ResponseEntity.ok(payments);
         }
         List<MemberPaymentDTO> payments = paymentService.getAllPayments();
@@ -75,10 +117,27 @@ public class MemberPaymentController {
     }
 
     /**
-     * Get all payments for a specific person.
+     * Get all payments for a specific person, with optional pagination, sorting, and year filter.
+     *
+     * When page & size are omitted the full list is returned (used by overlap detection on save).
      */
     @GetMapping("/by-person/{personId}")
-    public ResponseEntity<List<MemberPaymentDTO>> getPaymentsByPerson(@PathVariable Long personId) {
+    public ResponseEntity<?> getPaymentsByPerson(
+            @PathVariable Long personId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String[] sort) {
+        if (page != null && size != null) {
+            Pageable pageable = PageRequest.of(page, size, buildSort(sort));
+            Page<MemberPaymentDTO> payments;
+            if (year != null) {
+                payments = paymentService.getPaymentsByPerson(personId, year, pageable);
+            } else {
+                payments = paymentService.getPaymentsByPerson(personId, pageable);
+            }
+            return ResponseEntity.ok(payments);
+        }
         List<MemberPaymentDTO> payments = paymentService.getPaymentsByPerson(personId);
         return ResponseEntity.ok(payments);
     }

@@ -8,12 +8,11 @@ import { relationshipApi, memberApi } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { portalApi } from '@/lib/api';
-import { Member, MembershipFee } from '@/types';
-import { formatCurrency, formatDate, getStatusColor, getLocalizedStatus } from '@/lib/utils';
+import { Member } from '@/types';
+import { formatDate, getStatusColor, getLocalizedStatus } from '@/lib/utils';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Member | null>(null);
-  const [fees, setFees] = useState<MembershipFee[]>([]);
   const [loading, setLoading] = useState(true);
   const [partner, setPartner] = useState<Member | null>(null);
   const [father, setFather] = useState<Member | null>(null);
@@ -56,12 +55,8 @@ export default function ProfilePage() {
         return;
       }
       try {
-        const [profileData, feesData]: any = await Promise.all([
-          portalApi.getProfile(),
-          portalApi.getFees(),
-        ]);
+        const profileData: any = await portalApi.getProfile();
         setProfile(profileData);
-        setFees(feesData);
 
         // Fetch family relationships if personId is available
         if (profileData.personId) {
@@ -146,9 +141,6 @@ export default function ProfilePage() {
     );
   }
 
-  const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
-  const paidFees = fees.filter((f) => f.status === 'PAID').reduce((sum, fee) => sum + fee.amount, 0);
-
   return (
     <div className="p-4 md:p-8">
       <div className="mb-8">
@@ -222,28 +214,6 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('member_detail.fee_summary')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">{t('member_detail.total_fees')}</p>
-              <p className="text-2xl font-bold text-charcoal">{formatCurrency(totalFees)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 mb-1">{t('member_detail.total_paid')}</p>
-              <p className="text-2xl font-bold text-emerald-600">{formatCurrency(paidFees)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 mb-1">{t('member_detail.total_pending')}</p>
-              <p className="text-2xl font-bold text-yellow-600">
-                {formatCurrency(totalFees - paidFees)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Family Tree Tabs */}
@@ -312,54 +282,6 @@ export default function ProfilePage() {
           )}
         </div>
       )}
-
-      {/* Payment History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('member_detail.membership_fees_history')} ({fees.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[450px]">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    {t('member_detail.amount')}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    {t('member_detail.paid_date')}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    {t('common.status')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {fees.map((fee) => (
-                  <tr key={fee.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-charcoal">
-                      {formatCurrency(fee.amount)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{formatDate(fee.dueDate)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {fee.paidDate ? formatDate(fee.paidDate) : ''}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                          fee.status
-                        )}`}
-                      >
-                        {fee.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
