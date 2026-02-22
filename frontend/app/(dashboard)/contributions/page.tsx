@@ -72,7 +72,7 @@ export default function ContributionsPage() {
   const [deleteExemptionId, setDeleteExemptionId] = useState<number | null>(null);
 
   // ===== Toast =====
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   // Load types and currencies on mount
   useEffect(() => {
