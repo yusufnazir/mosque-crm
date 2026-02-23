@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Add reversal columns to member_payments for reversal payment tracking -->
+    <changeSet id="a1b2c3d4-0035-4aaa-bbbb-reversal00001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="member_payments"/>
+            <not>
+                <columnExists tableName="member_payments" columnName="is_reversal"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="member_payments">
+            <column name="is_reversal" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reversed_payment_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

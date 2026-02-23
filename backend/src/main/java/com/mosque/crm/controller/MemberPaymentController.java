@@ -201,4 +201,18 @@ public class MemberPaymentController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    /**
+     * Create a reversal payment that negates the specified original payment.
+     * POST /contributions/payments/{id}/reverse
+     */
+    @PostMapping("/{id}/reverse")
+    public ResponseEntity<?> reversePayment(@PathVariable Long id) {
+        try {
+            MemberPaymentDTO reversal = paymentService.reversePayment(id);
+            return ResponseEntity.status(HttpStatus.CREATED).body(reversal);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

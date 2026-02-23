@@ -101,6 +101,28 @@
 			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[22]]></param>
 		</customChange>
 	</changeSet>
+	<!-- contribution.reverse (26), contribution.edit_reversal (27), contribution.delete_reversal (28) -->
+	<changeSet id="e3f4a5b6-0036-4aaa-bbbb-admin00rev26" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[26]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="f4a5b6c7-0036-4aaa-bbbb-admin00rev27" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[27]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="a5b6c7d8-0036-4aaa-bbbb-admin00rev28" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[28]]></param>
+		</customChange>
+	</changeSet>
+	<!-- contribution.create_payment (29) — edit_payment (30) and delete_payment (31) are NOT granted by default -->
+	<changeSet id="b6c7d8e9-0037-4aaa-bbbb-admin00pay29" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[29]]></param>
+		</customChange>
+	</changeSet>
 
 	<!-- ═══════════════════════════════════════════════════════════
 	     MEMBER (role_id=2) → dashboard.view, profile.view, profile.fees, family.view
@@ -173,6 +195,28 @@
 	<changeSet id="f4a5b6c7-0034-4aaa-bbbb-treas0curm22" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
 			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[22]]></param>
+		</customChange>
+	</changeSet>
+	<!-- contribution.reverse (26), contribution.edit_reversal (27), contribution.delete_reversal (28) -->
+	<changeSet id="a6b7c8d9-0036-4aaa-bbbb-treas0rev26" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[26]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b7c8d9e0-0036-4aaa-bbbb-treas0rev27" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[27]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="c8d9e0f1-0036-4aaa-bbbb-treas0rev28" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[28]]></param>
+		</customChange>
+	</changeSet>
+	<!-- contribution.create_payment (29) — edit_payment (30) and delete_payment (31) are NOT granted by default -->
+	<changeSet id="d9e0f1a2-0037-4aaa-bbbb-treas0pay29" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[29]]></param>
 		</customChange>
 	</changeSet>
 

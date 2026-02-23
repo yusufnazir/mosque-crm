@@ -53,6 +53,7 @@
     <include file="db/changelog/changes/ddl/028-create-member-payments-table.xml"/>
     <include file="db/changelog/changes/ddl/033-add-period-columns-to-member-payments.xml"/>
     <include file="db/changelog/changes/ddl/034-create-member-contribution-exemptions-table.xml"/>
+    <include file="db/changelog/changes/ddl/035-add-reversal-columns-to-member-payments.xml"/>
 
     <!-- Currency & Exchange Rate Tables -->
     <include file="db/changelog/changes/ddl/029-create-currencies-table.xml"/>

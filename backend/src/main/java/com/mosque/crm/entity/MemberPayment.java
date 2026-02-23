@@ -21,7 +21,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -54,7 +53,6 @@ public class MemberPayment implements MosqueAware {
     private ContributionType contributionType;
 
     @NotNull(message = "Amount is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than 0")
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
@@ -88,6 +86,13 @@ public class MemberPayment implements MosqueAware {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "is_reversal", nullable = false)
+    private Boolean isReversal = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reversed_payment_id")
+    private MemberPayment reversedPayment;
 
     // Constructors
     public MemberPayment() {
@@ -206,5 +211,21 @@ public class MemberPayment implements MosqueAware {
     @Override
     public void setMosqueId(Long mosqueId) {
         this.mosqueId = mosqueId;
+    }
+
+    public Boolean getIsReversal() {
+        return isReversal;
+    }
+
+    public void setIsReversal(Boolean isReversal) {
+        this.isReversal = isReversal;
+    }
+
+    public MemberPayment getReversedPayment() {
+        return reversedPayment;
+    }
+
+    public void setReversedPayment(MemberPayment reversedPayment) {
+        this.reversedPayment = reversedPayment;
     }
 }

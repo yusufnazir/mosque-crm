@@ -22,6 +22,7 @@ import {
 } from '@/lib/contributionApi';
 import { currencyApi, MosqueCurrencyDTO } from '@/lib/currencyApi';
 import { memberApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth/AuthContext';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import PaymentReceiptModal from '@/components/PaymentReceiptModal';
@@ -30,6 +31,7 @@ type Tab = 'types' | 'obligations' | 'payments' | 'exemptions';
 
 export default function ContributionsPage() {
   const { t, language: locale } = useTranslation();
+  const { can, isSuperAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('types');
 
   // ===== Types State =====
@@ -49,7 +51,9 @@ export default function ContributionsPage() {
   const [paymentsCount, setPaymentsCount] = useState(0);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingPayment, setEditingPayment] = useState<MemberPayment | null>(null);
+  const [viewingPayment, setViewingPayment] = useState<MemberPayment | null>(null);
   const [deletePaymentId, setDeletePaymentId] = useState<number | null>(null);
+  const [reversePaymentId, setReversePaymentId] = useState<number | null>(null);
   const [receiptPayment, setReceiptPayment] = useState<MemberPayment | null>(null);
 
   // ===== Exemptions State =====
@@ -285,6 +289,24 @@ export default function ContributionsPage() {
     }
   };
 
+  const handleReversePayment = (id: number) => {
+    setReversePaymentId(id);
+  };
+
+  const confirmReversePayment = async () => {
+    if (reversePaymentId == null) return;
+    try {
+      await memberPaymentApi.reverse(reversePaymentId);
+      setPaymentsRefreshKey(k => k + 1);
+      setToast({ message: t('contributions.reversal_created'), type: 'success' });
+    } catch (err: any) {
+      console.error('Failed to reverse payment:', err);
+      setToast({ message: err.message || t('contributions.reversal_error'), type: 'error' });
+    } finally {
+      setReversePaymentId(null);
+    }
+  };
+
   // ===== Exemption CRUD =====
   const loadExemptions = async () => {
     setExemptionsLoading(true);
@@ -485,13 +507,22 @@ export default function ContributionsPage() {
           onTotalChange={setPaymentsCount}
           onAdd={() => { setEditingPayment(null); setShowPaymentModal(true); }}
           onEdit={(p) => { setEditingPayment(p); setShowPaymentModal(true); }}
+          onView={(p) => setViewingPayment(p)}
           onDelete={handleDeletePayment}
+          onReverse={handleReversePayment}
           onReceipt={setReceiptPayment}
           getTypeNameByCode={getTypeNameByCode}
           formatCurrency={formatCurrency}
           formatDate={formatDate}
           mosqueCurrencies={mosqueCurrencies}
           types={types}
+          isSuperAdmin={isSuperAdmin}
+          canReverse={can('contribution.reverse')}
+          canEditReversal={can('contribution.edit_reversal')}
+          canDeleteReversal={can('contribution.delete_reversal')}
+          canCreatePayment={can('contribution.create_payment')}
+          canEditPayment={can('contribution.edit_payment')}
+          canDeletePayment={can('contribution.delete_payment')}
           t={t}
         />
       )}
@@ -528,6 +559,18 @@ export default function ContributionsPage() {
           mosqueCurrencies={mosqueCurrencies}
           onSave={handleSaveObligation}
           onClose={() => { setShowObligationModal(false); setEditingObligation(null); }}
+          t={t}
+        />
+      )}
+
+      {/* Payment View Modal (read-only) */}
+      {viewingPayment && (
+        <PaymentViewModal
+          payment={viewingPayment}
+          onClose={() => setViewingPayment(null)}
+          getTypeNameByCode={getTypeNameByCode}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
           t={t}
         />
       )}
@@ -570,6 +613,18 @@ export default function ContributionsPage() {
         variant="danger"
         onConfirm={confirmDeletePayment}
         onCancel={() => setDeletePaymentId(null)}
+      />
+
+      {/* Payment Reversal Confirmation */}
+      <ConfirmDialog
+        open={reversePaymentId != null}
+        title={t('contributions.confirm_reversal_title')}
+        message={t('contributions.confirm_reversal_message')}
+        confirmLabel={t('contributions.reverse')}
+        cancelLabel={t('common.cancel')}
+        variant="warning"
+        onConfirm={confirmReversePayment}
+        onCancel={() => setReversePaymentId(null)}
       />
 
       {/* Deactivate Type Confirmation */}
@@ -888,18 +943,27 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
 }
 
 // ===== Payments Tab Component =====
-function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onReceipt, getTypeNameByCode, formatCurrency, formatDate, mosqueCurrencies, types, t }: {
+function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelete, onReverse, onReceipt, getTypeNameByCode, formatCurrency, formatDate, mosqueCurrencies, types, isSuperAdmin, canReverse, canEditReversal, canDeleteReversal, canCreatePayment, canEditPayment, canDeletePayment, t }: {
   refreshKey: number;
   onTotalChange?: (total: number) => void;
   onAdd: () => void;
   onEdit: (p: MemberPayment) => void;
+  onView: (p: MemberPayment) => void;
   onDelete: (id: number) => void;
+  onReverse: (id: number) => void;
   onReceipt: (p: MemberPayment) => void;
   getTypeNameByCode: (code: string) => string;
   formatCurrency: (amount: number, currencyCode?: string) => string;
   formatDate: (date: string) => string;
   mosqueCurrencies: MosqueCurrencyDTO[];
   types: ContributionType[];
+  isSuperAdmin: boolean;
+  canReverse: boolean;
+  canEditReversal: boolean;
+  canDeleteReversal: boolean;
+  canCreatePayment: boolean;
+  canEditPayment: boolean;
+  canDeletePayment: boolean;
   t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const [payments, setPayments] = useState<MemberPayment[]>([]);
@@ -1077,12 +1141,14 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
               <h2 className="text-lg font-semibold text-stone-800">{t('contributions.payments')}</h2>
               <span className="text-sm text-stone-500">({totalElements})</span>
             </div>
-            <button
-              onClick={onAdd}
-              className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
-            >
-              + {t('contributions.add_payment')}
-            </button>
+            {(isSuperAdmin || canCreatePayment) && (
+              <button
+                onClick={onAdd}
+                className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
+              >
+                + {t('contributions.add_payment')}
+              </button>
+            )}
           </div>
           {/* Filters row */}
           <div className="flex flex-col sm:flex-row gap-2">
@@ -1172,11 +1238,31 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.map((payment) => (
-                    <tr key={payment.id} className="border-b border-stone-100 hover:bg-stone-50">
-                      <td className="py-3 pr-4">{payment.personName}</td>
+                  {payments.map((payment) => {
+                    const isRev = payment.isReversal === true;
+                    // Permission logic:
+                    // SUPERADMIN: can always edit + delete any payment
+                    // For reversals: need contribution.edit_reversal / contribution.delete_reversal
+                    // For regular payments: need contribution.edit_payment / contribution.delete_payment
+                    const showEdit = isSuperAdmin || (isRev ? canEditReversal : canEditPayment);
+                    const showDelete = isSuperAdmin || (isRev ? canDeleteReversal : canDeletePayment);
+                    const showReverse = !isRev && (isSuperAdmin || canReverse);
+                    return (
+                    <tr key={payment.id} className={`border-b border-stone-100 hover:bg-stone-50 ${isRev ? 'bg-red-50/40' : ''}`}>
+                      <td className="py-3 pr-4">
+                        <div className="flex items-center gap-2">
+                          {payment.personName}
+                          {isRev && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
+                              {t('contributions.reversal')}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="py-3 pr-4">{getTypeNameByCode(payment.contributionTypeCode)}</td>
-                      <td className="py-3 pr-4 font-medium">{formatCurrency(payment.amount, payment.currencyCode)}</td>
+                      <td className={`py-3 pr-4 font-medium ${isRev ? 'text-red-600' : ''}`}>
+                        {formatCurrency(payment.amount, payment.currencyCode)}
+                      </td>
                       <td className="py-3 pr-4 text-xs text-stone-500">{payment.currencyCode || '-'}</td>
                       <td className="py-3 pr-4 text-xs text-stone-500">
                         {payment.periodFrom && payment.periodTo
@@ -1197,37 +1283,70 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
                           </button>
-                          <button
-                            onClick={() => onEdit(payment)}
-                            className="text-emerald-600 hover:text-emerald-800 text-xs"
-                          >
-                            {t('common.edit')}
-                          </button>
-                          <button
-                            onClick={() => onDelete(payment.id)}
-                            className="text-red-500 hover:text-red-700 text-xs"
-                          >
-                            {t('common.delete')}
-                          </button>
+                          {showReverse && (
+                            <button
+                              onClick={() => onReverse(payment.id)}
+                              className="text-amber-600 hover:text-amber-800 text-xs"
+                              title={t('contributions.reverse')}
+                            >
+                              {t('contributions.reverse')}
+                            </button>
+                          )}
+                          {showEdit ? (
+                            <button
+                              onClick={() => onEdit(payment)}
+                              className="text-emerald-600 hover:text-emerald-800 text-xs"
+                            >
+                              {t('common.edit')}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => onView(payment)}
+                              className="text-blue-600 hover:text-blue-800 text-xs"
+                            >
+                              {t('common.view')}
+                            </button>
+                          )}
+                          {showDelete && (
+                            <button
+                              onClick={() => onDelete(payment.id)}
+                              className="text-red-500 hover:text-red-700 text-xs"
+                            >
+                              {t('common.delete')}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile cards */}
             <div className="md:hidden space-y-3">
-              {payments.map((payment) => (
-                <div key={payment.id} className="border border-stone-200 rounded-lg p-4">
+              {payments.map((payment) => {
+                const isRev = payment.isReversal === true;
+                const showEdit = isSuperAdmin || (isRev ? canEditReversal : canEditPayment);
+                const showDelete = isSuperAdmin || (isRev ? canDeleteReversal : canDeletePayment);
+                const showReverse = !isRev && (isSuperAdmin || canReverse);
+                return (
+                <div key={payment.id} className={`border rounded-lg p-4 ${isRev ? 'border-red-200 bg-red-50/40' : 'border-stone-200'}`}>
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <div className="font-medium text-stone-900">{payment.personName}</div>
+                      <div className="font-medium text-stone-900 flex items-center gap-2">
+                        {payment.personName}
+                        {isRev && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
+                            {t('contributions.reversal')}
+                          </span>
+                        )}
+                      </div>
                       <div className="text-xs text-stone-500">{getTypeNameByCode(payment.contributionTypeCode)}</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold text-emerald-700">{formatCurrency(payment.amount, payment.currencyCode)}</div>
+                      <div className={`font-semibold ${isRev ? 'text-red-600' : 'text-emerald-700'}`}>{formatCurrency(payment.amount, payment.currencyCode)}</div>
                       <div className="text-xs text-stone-400">{payment.currencyCode || ''}</div>
                     </div>
                   </div>
@@ -1245,11 +1364,21 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
                           d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                       </svg>
                     </button>
-                    <button onClick={() => onEdit(payment)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
-                    <button onClick={() => onDelete(payment.id)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
+                    {showReverse && (
+                      <button onClick={() => onReverse(payment.id)} className="text-amber-600 hover:text-amber-800 text-xs">{t('contributions.reverse')}</button>
+                    )}
+                    {showEdit ? (
+                      <button onClick={() => onEdit(payment)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                    ) : (
+                      <button onClick={() => onView(payment)} className="text-blue-600 hover:text-blue-800 text-xs">{t('common.view')}</button>
+                    )}
+                    {showDelete && (
+                      <button onClick={() => onDelete(payment.id)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
+                    )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
             {/* Total summary for current page */}
             <div className="mt-3 pt-3 border-t border-stone-200 flex justify-between items-center">
@@ -1693,6 +1822,116 @@ function ObligationModal({ obligation, types, mosqueCurrencies, onSave, onClose,
               </div>
             )}
           </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== Payment View Modal (read-only) =====
+function PaymentViewModal({ payment, onClose, getTypeNameByCode, formatCurrency, formatDate, t }: {
+  payment: MemberPayment;
+  onClose: () => void;
+  getTypeNameByCode: (code: string) => string;
+  formatCurrency: (amount: number, currencyCode?: string) => string;
+  formatDate: (date: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}) {
+  const isRev = payment.isReversal === true;
+
+  const formatPeriod = (from: string, to: string): string => {
+    const fd = new Date(from);
+    const td = new Date(to);
+    const fMonth = fd.toLocaleString(undefined, { month: 'short' });
+    const fYear = fd.getFullYear();
+    const tMonth = td.toLocaleString(undefined, { month: 'short' });
+    const tYear = td.getFullYear();
+    if (fYear === tYear && fd.getMonth() === td.getMonth()) return `${fMonth} ${fYear}`;
+    if (fYear === tYear) return `${fMonth} – ${tMonth} ${fYear}`;
+    return `${fMonth} ${fYear} – ${tMonth} ${tYear}`;
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-stone-900">
+              {t('contributions.view_payment')}
+            </h2>
+            {isRev && (
+              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700">
+                {t('contributions.reversal')}
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('contributions.person')}</label>
+              <p className="text-sm text-stone-900">{payment.personName}</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('contributions.type')}</label>
+              <p className="text-sm text-stone-900">{getTypeNameByCode(payment.contributionTypeCode)}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('contributions.amount')}</label>
+                <p className={`text-sm font-semibold ${isRev ? 'text-red-600' : 'text-stone-900'}`}>
+                  {formatCurrency(payment.amount, payment.currencyCode)}
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('contributions.currency')}</label>
+                <p className="text-sm text-stone-900">{payment.currencyCode || '-'}</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('contributions.payment_date')}</label>
+              <p className="text-sm text-stone-900">{formatDate(payment.paymentDate)}</p>
+            </div>
+
+            {payment.periodFrom && payment.periodTo && (
+              <div>
+                <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('contributions.period')}</label>
+                <p className="text-sm text-stone-900">{formatPeriod(payment.periodFrom, payment.periodTo)}</p>
+              </div>
+            )}
+
+            {payment.reference && (
+              <div>
+                <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('contributions.reference')}</label>
+                <p className="text-sm text-stone-900">{payment.reference}</p>
+              </div>
+            )}
+
+            {payment.notes && (
+              <div>
+                <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('contributions.notes')}</label>
+                <p className="text-sm text-stone-900 whitespace-pre-wrap">{payment.notes}</p>
+              </div>
+            )}
+
+            {payment.createdAt && (
+              <div>
+                <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('common.created_at')}</label>
+                <p className="text-sm text-stone-500">{formatDate(payment.createdAt)}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end pt-6">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-stone-100 text-stone-700 hover:bg-stone-200 rounded-lg text-sm transition-colors"
+            >
+              {t('common.close')}
+            </button>
+          </div>
         </div>
       </div>
     </div>

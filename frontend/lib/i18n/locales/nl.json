@@ -47,7 +47,9 @@
     "status_suspended": "Geschorst",
     "status_expired": "Verlopen",
     "status_cancelled": "Geannuleerd",
-    "status_deceased": "Overleden"
+    "status_deceased": "Overleden",
+    "close": "Sluiten",
+    "created_at": "Aangemaakt"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -175,6 +177,7 @@
     "member_payments": "Betalingen",
     "add_payment": "Nieuw",
     "edit_payment": "Betaling Bewerken",
+    "view_payment": "Betalingsgegevens",
     "no_payments": "Nog geen betalingen geregistreerd",
     "payment_type": "Type",
     "payment_date_col": "Datum",
@@ -424,6 +427,12 @@
     "confirm_delete": "Weet u zeker dat u dit record wilt verwijderen?",
     "confirm_delete_title": "Betaling Verwijderen",
     "confirm_delete_payment": "Weet u zeker dat u deze betaling wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "confirm_reversal_title": "Betaling Storneren",
+    "confirm_reversal_message": "Weet u zeker dat u een stornering wilt aanmaken voor deze betaling? Er wordt een nieuwe betaling met een negatief bedrag aangemaakt om het origineel te compenseren.",
+    "reverse": "Storneren",
+    "reversal": "Stornering",
+    "reversal_created": "Storneringsbetaling succesvol aangemaakt.",
+    "reversal_error": "Storneringsbetaling kon niet worden aangemaakt.",
     "deactivate": "Deactiveer",
     "activate": "Activeer",
     "no_types": "Nog geen contributiesoorten gedefinieerd.",

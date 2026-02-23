@@ -63,6 +63,8 @@ export interface MemberPayment {
   currencyId?: number;
   currencyCode?: string;
   currencySymbol?: string;
+  isReversal?: boolean;
+  reversedPaymentId?: number;
 }
 
 export interface MemberPaymentCreate {
@@ -196,6 +198,9 @@ export const memberPaymentApi = {
 
   delete: (id: number): Promise<void> =>
     ApiClient.delete(`/contributions/payments/${id}`),
+
+  reverse: (id: number): Promise<MemberPayment> =>
+    ApiClient.post(`/contributions/payments/${id}/reverse`, {}),
 };
 
 /**

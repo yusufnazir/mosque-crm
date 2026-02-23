@@ -47,7 +47,9 @@
     "status_suspended": "Suspended",
     "status_expired": "Expired",
     "status_cancelled": "Cancelled",
-    "status_deceased": "Deceased"
+    "status_deceased": "Deceased",
+    "close": "Close",
+    "created_at": "Created"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -175,6 +177,7 @@
     "member_payments": "Payments",
     "add_payment": "Add Payment",
     "edit_payment": "Edit Payment",
+    "view_payment": "Payment Details",
     "no_payments": "No payments recorded yet",
     "payment_type": "Type",
     "payment_date_col": "Date",
@@ -426,6 +429,12 @@
     "confirm_delete": "Are you sure you want to delete this record?",
     "confirm_delete_title": "Delete Payment",
     "confirm_delete_payment": "Are you sure you want to delete this payment? This action cannot be undone.",
+    "confirm_reversal_title": "Reverse Payment",
+    "confirm_reversal_message": "Are you sure you want to create a reversal for this payment? A new negative-amount payment will be created to negate the original.",
+    "reverse": "Reverse",
+    "reversal": "Reversal",
+    "reversal_created": "Reversal payment created successfully.",
+    "reversal_error": "Failed to create reversal payment.",
     "deactivate": "Deactivate",
     "activate": "Activate",
     "no_types": "No contribution types defined yet.",

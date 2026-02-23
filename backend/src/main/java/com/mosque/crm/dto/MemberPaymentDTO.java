@@ -25,6 +25,8 @@ public class MemberPaymentDTO {
     private Long currencyId;
     private String currencyCode;
     private String currencySymbol;
+    private Boolean isReversal;
+    private Long reversedPaymentId;
 
     public MemberPaymentDTO() {
     }
@@ -156,5 +158,21 @@ public class MemberPaymentDTO {
 
     public void setCurrencySymbol(String currencySymbol) {
         this.currencySymbol = currencySymbol;
+    }
+
+    public Boolean getIsReversal() {
+        return isReversal;
+    }
+
+    public void setIsReversal(Boolean isReversal) {
+        this.isReversal = isReversal;
+    }
+
+    public Long getReversedPaymentId() {
+        return reversedPaymentId;
+    }
+
+    public void setReversedPaymentId(Long reversedPaymentId) {
+        this.reversedPaymentId = reversedPaymentId;
     }
 }

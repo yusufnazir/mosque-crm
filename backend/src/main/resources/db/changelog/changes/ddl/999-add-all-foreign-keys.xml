@@ -608,4 +608,16 @@
                                  referencedTableName="mosques" referencedColumnNames="id"/>
     </changeSet>
 
+    <!-- ==================== Payment Reversal FK ==================== -->
+
+    <!-- member_payments.reversed_payment_id → member_payments.id (self-reference) -->
+    <changeSet id="99900001-fk00-0000-0000-000000000055" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_payment_reversed"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_payments" baseColumnNames="reversed_payment_id"
+                                 constraintName="fk_payment_reversed"
+                                 referencedTableName="member_payments" referencedColumnNames="id"/>
+    </changeSet>
+
 </databaseChangeLog>

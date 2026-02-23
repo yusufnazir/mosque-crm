@@ -212,4 +212,56 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ CONTRIBUTION REVERSAL ═══════════ -->
+	<changeSet id="a1b2c3d4-0036-4aaa-bbbb-reverse000026" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[26]]></param>
+			<param name="code"><![CDATA[contribution.reverse]]></param>
+			<param name="description"><![CDATA[Create reversal payments to negate existing payments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b2c3d4e5-0036-4aaa-bbbb-reverse000027" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[27]]></param>
+			<param name="code"><![CDATA[contribution.edit_reversal]]></param>
+			<param name="description"><![CDATA[Edit existing reversal payments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="c3d4e5f6-0036-4aaa-bbbb-reverse000028" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[28]]></param>
+			<param name="code"><![CDATA[contribution.delete_reversal]]></param>
+			<param name="description"><![CDATA[Delete reversal payments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ PAYMENT CRUD ═══════════ -->
+	<changeSet id="d4e5f6a7-0037-4aaa-bbbb-payment000029" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[29]]></param>
+			<param name="code"><![CDATA[contribution.create_payment]]></param>
+			<param name="description"><![CDATA[Create new payments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e5f6a7b8-0037-4aaa-bbbb-payment000030" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[30]]></param>
+			<param name="code"><![CDATA[contribution.edit_payment]]></param>
+			<param name="description"><![CDATA[Edit existing payments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="f6a7b8c9-0037-4aaa-bbbb-payment000031" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[31]]></param>
+			<param name="code"><![CDATA[contribution.delete_payment]]></param>
+			<param name="description"><![CDATA[Delete payments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

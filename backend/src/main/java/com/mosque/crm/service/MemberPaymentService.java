@@ -256,6 +256,43 @@ public class MemberPaymentService {
         log.info("Deleted payment id={}", id);
     }
 
+    /**
+     * Create a reversal payment that negates the original payment.
+     * The reversal mirrors the original but with a negative amount.
+     */
+    @Transactional
+    public MemberPaymentDTO reversePayment(Long originalPaymentId) {
+        MemberPayment original = paymentRepository.findById(originalPaymentId)
+                .orElseThrow(() -> new RuntimeException("Payment not found with id: " + originalPaymentId));
+
+        if (Boolean.TRUE.equals(original.getIsReversal())) {
+            throw new RuntimeException("Cannot reverse a reversal payment");
+        }
+
+        // Check if this payment already has a reversal
+        if (paymentRepository.existsByReversedPaymentId(originalPaymentId)) {
+            throw new RuntimeException("This payment has already been reversed");
+        }
+
+        MemberPayment reversal = new MemberPayment();
+        reversal.setPerson(original.getPerson());
+        reversal.setContributionType(original.getContributionType());
+        reversal.setAmount(original.getAmount().negate());
+        reversal.setPaymentDate(java.time.LocalDate.now());
+        reversal.setPeriodFrom(original.getPeriodFrom());
+        reversal.setPeriodTo(original.getPeriodTo());
+        reversal.setReference("Reversal of #" + original.getId());
+        reversal.setNotes("Reversal of payment #" + original.getId()
+                + (original.getReference() != null ? " (" + original.getReference() + ")" : ""));
+        reversal.setCurrency(original.getCurrency());
+        reversal.setIsReversal(true);
+        reversal.setReversedPayment(original);
+
+        reversal = paymentRepository.save(reversal);
+        log.info("Created reversal payment id={} for original payment id={}", reversal.getId(), originalPaymentId);
+        return convertToDTO(reversal);
+    }
+
     // ===== DTO conversion =====
 
     private MemberPaymentDTO convertToDTO(MemberPayment payment) {
@@ -278,6 +315,10 @@ public class MemberPaymentService {
             dto.setCurrencyId(payment.getCurrency().getId());
             dto.setCurrencyCode(payment.getCurrency().getCode());
             dto.setCurrencySymbol(payment.getCurrency().getSymbol());
+        }
+        dto.setIsReversal(payment.getIsReversal());
+        if (payment.getReversedPayment() != null) {
+            dto.setReversedPaymentId(payment.getReversedPayment().getId());
         }
         return dto;
     }

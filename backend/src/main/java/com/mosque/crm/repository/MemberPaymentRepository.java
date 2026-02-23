@@ -107,4 +107,10 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
     java.math.BigDecimal sumAmountByTypeAndDateRange(@Param("typeId") Long typeId,
                                                       @Param("startDate") LocalDate startDate,
                                                       @Param("endDate") LocalDate endDate);
+
+    /**
+     * Check if a reversal already exists for a given original payment.
+     */
+    @Query("SELECT CASE WHEN COUNT(mp) > 0 THEN true ELSE false END FROM MemberPayment mp WHERE mp.reversedPayment.id = :paymentId")
+    boolean existsByReversedPaymentId(@Param("paymentId") Long paymentId);
 }
