@@ -68,7 +68,7 @@ public class MemberPaymentController {
     }
 
     /**
-     * Get all payments with optional pagination, sorting, year and person filter.
+     * Get all payments with optional pagination, sorting, year, person, and contribution type filter.
      *
      * Examples:
      *   GET /contributions/payments                                          → all (no pagination)
@@ -76,6 +76,8 @@ public class MemberPaymentController {
      *   GET /contributions/payments?page=0&size=20&year=2026
      *   GET /contributions/payments?page=0&size=20&personId=5
      *   GET /contributions/payments?page=0&size=20&personId=5&year=2026
+     *   GET /contributions/payments?page=0&size=20&contributionTypeId=3
+     *   GET /contributions/payments?page=0&size=20&contributionTypeId=3&year=2026
      *   GET /contributions/payments?page=0&size=20&sort=person.firstName,asc&sort=periodFrom,asc
      */
     @GetMapping
@@ -84,14 +86,23 @@ public class MemberPaymentController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Long personId,
+            @RequestParam(required = false) Long contributionTypeId,
             @RequestParam(required = false) String[] sort) {
         if (page != null && size != null) {
             Pageable pageable = PageRequest.of(page, size, buildSort(sort));
             Page<MemberPaymentDTO> payments;
-            if (personId != null && year != null) {
+            if (personId != null && contributionTypeId != null && year != null) {
+                payments = paymentService.getPaymentsByPersonAndTypeAndYear(personId, contributionTypeId, year, pageable);
+            } else if (personId != null && contributionTypeId != null) {
+                payments = paymentService.getPaymentsByPersonAndType(personId, contributionTypeId, pageable);
+            } else if (personId != null && year != null) {
                 payments = paymentService.getPaymentsByPerson(personId, year, pageable);
+            } else if (contributionTypeId != null && year != null) {
+                payments = paymentService.getPaymentsByTypeAndYear(contributionTypeId, year, pageable);
             } else if (personId != null) {
                 payments = paymentService.getPaymentsByPerson(personId, pageable);
+            } else if (contributionTypeId != null) {
+                payments = paymentService.getPaymentsByType(contributionTypeId, pageable);
             } else if (year != null) {
                 payments = paymentService.getAllPayments(year, pageable);
             } else {

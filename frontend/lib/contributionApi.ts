@@ -95,6 +95,7 @@ export interface PaginationParams {
   sort?: string[];  // e.g. ["person.firstName,asc", "periodFrom,asc"]
   year?: number;
   personId?: number;
+  contributionTypeId?: number;
 }
 
 // ===== API functions =====
@@ -158,6 +159,9 @@ export const memberPaymentApi = {
     }
     if (params.personId != null) {
       searchParams.set('personId', String(params.personId));
+    }
+    if (params.contributionTypeId != null) {
+      searchParams.set('contributionTypeId', String(params.contributionTypeId));
     }
     return ApiClient.get(`/contributions/payments?${searchParams.toString()}`);
   },

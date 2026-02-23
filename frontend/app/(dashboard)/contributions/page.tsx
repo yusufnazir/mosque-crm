@@ -491,6 +491,7 @@ export default function ContributionsPage() {
           formatCurrency={formatCurrency}
           formatDate={formatDate}
           mosqueCurrencies={mosqueCurrencies}
+          types={types}
           t={t}
         />
       )}
@@ -887,7 +888,7 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
 }
 
 // ===== Payments Tab Component =====
-function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onReceipt, getTypeNameByCode, formatCurrency, formatDate, mosqueCurrencies, t }: {
+function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onReceipt, getTypeNameByCode, formatCurrency, formatDate, mosqueCurrencies, types, t }: {
   refreshKey: number;
   onTotalChange?: (total: number) => void;
   onAdd: () => void;
@@ -898,6 +899,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
   formatCurrency: (amount: number, currencyCode?: string) => string;
   formatDate: (date: string) => string;
   mosqueCurrencies: MosqueCurrencyDTO[];
+  types: ContributionType[];
   t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const [payments, setPayments] = useState<MemberPayment[]>([]);
@@ -905,6 +907,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [personFilter, setPersonFilter] = useState<string>('all');
   const [personFilterName, setPersonFilterName] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const [totalElements, setTotalElements] = useState(0);
@@ -938,6 +941,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
         sort: ['person.firstName,asc', 'periodFrom,asc', 'contributionType.code,asc'],
         year: yearFilter !== 'all' ? Number(yearFilter) : undefined,
         personId: personFilter !== 'all' ? Number(personFilter) : undefined,
+        contributionTypeId: typeFilter !== 'all' ? Number(typeFilter) : undefined,
       };
       const data = await memberPaymentApi.getAllPaginated(params);
       setPayments(data.content);
@@ -948,7 +952,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, yearFilter, personFilter]);
+  }, [currentPage, pageSize, yearFilter, personFilter, typeFilter]);
 
   // Load available years once (and on refreshKey changes)
   useEffect(() => {
@@ -990,6 +994,12 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
   // Reset to first page when person filter changes
   const handlePersonChange = (value: string) => {
     setPersonFilter(value);
+    setCurrentPage(0);
+  };
+
+  // Reset to first page when type filter changes
+  const handleTypeChange = (value: string) => {
+    setTypeFilter(value);
     setCurrentPage(0);
   };
 
@@ -1125,13 +1135,25 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onDelete, onRec
                 ))}
               </select>
             )}
+            {types.length > 0 && (
+              <select
+                value={typeFilter}
+                onChange={(e) => handleTypeChange(e.target.value)}
+                className="border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500 w-full sm:w-auto"
+              >
+                <option value="all">{t('contributions.all_types')}</option>
+                {types.map((ct) => (
+                  <option key={ct.id} value={ct.id}>{getTypeNameByCode(ct.code)}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 
         {loading ? (
           <div className="text-center py-8 text-stone-400">{t('common.loading')}</div>
         ) : payments.length === 0 ? (
-          <div className="text-center py-8 text-stone-400">{(yearFilter !== 'all' || personFilter !== 'all') ? t('contributions.no_payments_filter') : t('contributions.no_payments')}</div>
+          <div className="text-center py-8 text-stone-400">{(yearFilter !== 'all' || personFilter !== 'all' || typeFilter !== 'all') ? t('contributions.no_payments_filter') : t('contributions.no_payments')}</div>
         ) : (
           <>
             {/* Desktop table */}

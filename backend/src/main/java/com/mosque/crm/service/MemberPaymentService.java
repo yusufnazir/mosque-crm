@@ -127,6 +127,42 @@ public class MemberPaymentService {
     }
 
     /**
+     * Get payments filtered by contribution type with pagination.
+     */
+    @Transactional(readOnly = true)
+    public Page<MemberPaymentDTO> getPaymentsByType(Long contributionTypeId, Pageable pageable) {
+        return paymentRepository.findByContributionTypeIdWithDetails(contributionTypeId, pageable)
+                .map(this::convertToDTO);
+    }
+
+    /**
+     * Get payments filtered by contribution type and year with pagination.
+     */
+    @Transactional(readOnly = true)
+    public Page<MemberPaymentDTO> getPaymentsByTypeAndYear(Long contributionTypeId, int year, Pageable pageable) {
+        return paymentRepository.findByContributionTypeIdAndYear(contributionTypeId, year, pageable)
+                .map(this::convertToDTO);
+    }
+
+    /**
+     * Get payments filtered by person and contribution type with pagination.
+     */
+    @Transactional(readOnly = true)
+    public Page<MemberPaymentDTO> getPaymentsByPersonAndType(Long personId, Long contributionTypeId, Pageable pageable) {
+        return paymentRepository.findByPersonIdAndContributionTypeId(personId, contributionTypeId, pageable)
+                .map(this::convertToDTO);
+    }
+
+    /**
+     * Get payments filtered by person, contribution type, and year with pagination.
+     */
+    @Transactional(readOnly = true)
+    public Page<MemberPaymentDTO> getPaymentsByPersonAndTypeAndYear(Long personId, Long contributionTypeId, int year, Pageable pageable) {
+        return paymentRepository.findByPersonIdAndContributionTypeIdAndYear(personId, contributionTypeId, year, pageable)
+                .map(this::convertToDTO);
+    }
+
+    /**
      * Create a new payment.
      */
     @Transactional

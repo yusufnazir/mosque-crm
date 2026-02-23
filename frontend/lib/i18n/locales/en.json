@@ -464,6 +464,7 @@
     "reason_placeholder": "e.g. financial hardship, student, elderly",
     "ongoing": "Ongoing",
     "all_years": "All years",
+    "all_types": "All types",
     "all_persons": "All persons",
     "no_payments_year": "No payments for this year.",
     "no_payments_filter": "No payments match the selected filters.",
