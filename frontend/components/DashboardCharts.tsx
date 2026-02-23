@@ -292,7 +292,7 @@ export default function DashboardCharts() {
                     callbacks: {
                       label: (ctx) => {
                         const val = ctx.parsed.y;
-                        return ` ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                        return val != null ? ` ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
                       },
                     },
                   },
