@@ -98,7 +98,7 @@ export default function MosquesPage() {
     }
   };
 
-  if (!can('mosque.manage')) {
+  if (!can('organization.manage')) {
     return (
       <div className="p-4 md:p-8">
         <p className="text-red-500">{t('common.access_denied')}</p>

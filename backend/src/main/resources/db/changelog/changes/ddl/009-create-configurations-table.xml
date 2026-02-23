@@ -29,4 +29,20 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="a3b4c5d6-0037-4eee-aaaa-config-timestamps" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="configurations" columnName="created_at"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="configurations">
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

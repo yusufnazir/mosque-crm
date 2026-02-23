@@ -134,6 +134,7 @@ public class AuthController {
         response.setMosqueId(user.getMosqueId());
         response.setSuperAdmin(user.getRoles().stream().anyMatch(r -> "SUPER_ADMIN".equals(r.getName())));
         response.setPermissions(new java.util.ArrayList<>(permissions));
+        response.setMustChangePassword(user.isMustChangePassword());
 
         // Resolve mosque name if user is assigned to a mosque
         if (user.getMosqueId() != null) {
@@ -173,11 +174,45 @@ public class AuthController {
 
             // Update password
             user.setPassword(passwordEncoder.encode(passwordChangeDTO.getNewPassword()));
+            user.setMustChangePassword(false);
             userRepository.save(user);
 
             return ResponseEntity.ok("Password changed successfully");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Failed to change password: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/set-password")
+    public ResponseEntity<?> setPassword(@RequestBody Map<String, String> request) {
+        try {
+            // Get current authenticated user
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Only allow if user must change password
+            if (!user.isMustChangePassword()) {
+                return ResponseEntity.status(400).body("Password change not required. Use change-password endpoint instead.");
+            }
+
+            String newPassword = request.get("newPassword");
+
+            // Validate new password
+            if (newPassword == null || newPassword.length() < 6) {
+                return ResponseEntity.status(400).body("Password must be at least 6 characters long");
+            }
+
+            // Update password and clear the flag
+            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setMustChangePassword(false);
+            userRepository.save(user);
+
+            return ResponseEntity.ok("Password set successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to set password: " + e.getMessage());
         }
     }
 

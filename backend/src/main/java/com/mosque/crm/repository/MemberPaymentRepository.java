@@ -113,4 +113,25 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
      */
     @Query("SELECT CASE WHEN COUNT(mp) > 0 THEN true ELSE false END FROM MemberPayment mp WHERE mp.reversedPayment.id = :paymentId")
     boolean existsByReversedPaymentId(@Param("paymentId") Long paymentId);
+
+    /**
+     * Sum payment amounts grouped by contribution type for a given year.
+     * Uses periodFrom (falling back to paymentDate) to determine the year.
+     * Excludes reversal payments so the total reflects net income.
+     */
+    @Query("SELECT mp.contributionType.code, COALESCE(SUM(mp.amount), 0) " +
+           "FROM MemberPayment mp " +
+           "WHERE YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year " +
+           "AND mp.isReversal = false " +
+           "GROUP BY mp.contributionType.code " +
+           "ORDER BY mp.contributionType.code")
+    List<Object[]> sumAmountByContributionTypeForYear(@Param("year") int year);
+
+    /**
+     * Get distinct years that have payments (for the year selector).
+     */
+    @Query("SELECT DISTINCT YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) " +
+           "FROM MemberPayment mp " +
+           "ORDER BY YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) DESC")
+    List<Integer> findDistinctPaymentYears();
 }

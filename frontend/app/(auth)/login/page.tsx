@@ -49,6 +49,12 @@ export default function LoginPage() {
       // Refresh AuthContext so /api/me is fetched with the new session cookie
       await refreshAuth();
       
+      // Check if user must set their password on first login
+      if (response.mustChangePassword) {
+        router.push('/set-password');
+        return;
+      }
+      
       // Redirect to dashboard for all users
       router.push('/dashboard');
     } catch (err: any) {

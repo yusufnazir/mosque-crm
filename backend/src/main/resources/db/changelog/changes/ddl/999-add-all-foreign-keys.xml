@@ -608,6 +608,38 @@
                                  referencedTableName="mosques" referencedColumnNames="id"/>
     </changeSet>
 
+    <!-- ==================== Member Contribution Assignments FKs ==================== -->
+
+    <!-- member_contribution_assignments.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000056" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_assignment_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_contribution_assignments" baseColumnNames="person_id"
+                                 constraintName="fk_assignment_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- member_contribution_assignments.contribution_type_id → contribution_types.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000057" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_assignment_contribution_type"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_contribution_assignments" baseColumnNames="contribution_type_id"
+                                 constraintName="fk_assignment_contribution_type"
+                                 referencedTableName="contribution_types" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- member_contribution_assignments.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000058" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_assignment_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_contribution_assignments" baseColumnNames="mosque_id"
+                                 constraintName="fk_assignment_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
     <!-- ==================== Payment Reversal FK ==================== -->
 
     <!-- member_payments.reversed_payment_id → member_payments.id (self-reference) -->

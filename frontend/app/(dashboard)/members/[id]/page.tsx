@@ -16,6 +16,8 @@ import {
   contributionObligationApi,
   ContributionType,
   ContributionObligation,
+  MemberContributionAssignment,
+  contributionAssignmentApi,
   createPeriodicPayments,
 } from '@/lib/contributionApi';
 import { currencyApi, MosqueCurrencyDTO } from '@/lib/currencyApi';
@@ -63,6 +65,7 @@ export default function MemberDetailPage() {
   const [showDeceasedConfirmation, setShowDeceasedConfirmation] = useState(false);
   const [memberExemptions, setMemberExemptions] = useState<MemberContributionExemption[]>([]);
   const [memberPayments, setMemberPayments] = useState<MemberPayment[]>([]);
+  const [memberAssignments, setMemberAssignments] = useState<MemberContributionAssignment[]>([]);
 
   // Contribution types & currencies for modals
   const [contributionTypes, setContributionTypes] = useState<ContributionType[]>([]);
@@ -333,6 +336,16 @@ export default function MemberDetailPage() {
     }
   };
 
+  // ===== Assignments =====
+  const loadMemberAssignments = async (personId: number | string) => {
+    try {
+      const data = await contributionAssignmentApi.getActiveByPerson(personId);
+      setMemberAssignments(data);
+    } catch (err) {
+      console.log('Failed to load assignments');
+    }
+  };
+
   const handleSaveExemption = async (data: MemberContributionExemptionCreate): Promise<string | null> => {
     try {
       if (editingExemption) {
@@ -479,9 +492,10 @@ export default function MemberDetailPage() {
       
 
       
-      // Fetch exemptions for this member (payments are loaded via useEffect on member.personId)
+      // Fetch exemptions and assignments for this member (payments are loaded via useEffect on member.personId)
       if (memberData.personId) {
         loadMemberExemptions(memberData.personId);
+        loadMemberAssignments(memberData.personId);
       }
 
       // Fallback to legacy structure if no genealogy relationships found
@@ -584,14 +598,11 @@ export default function MemberDetailPage() {
               }}
               className="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
             >
-              {allMembers.map((m, index) => {
-                // Use personId only
-                return (
-                  <option key={index} value={m.personId}>
+              {allMembers.map((m) => (
+                  <option key={m.id} value={m.id}>
                     {capitalizeName(m.firstName)} {capitalizeName(m.lastName)}
                   </option>
-                );
-              })}
+              ))}
             </select>
           </div>
         </div>
@@ -976,6 +987,57 @@ export default function MemberDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Contribution Assignments */}
+          {memberAssignments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('member_detail.contribution_assignments')} ({memberAssignments.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[400px]">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          {t('member_detail.assignment_contribution_type')}
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          {t('member_detail.assignment_period')}
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          {t('common.status')}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {memberAssignments.map((assignment) => (
+                        <tr key={assignment.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {getTypeNameByCode(assignment.contributionTypeCode)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {formatDate(assignment.startDate)}
+                            {' — '}
+                            {assignment.endDate ? formatDate(assignment.endDate) : t('member_detail.assignment_ongoing')}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              assignment.isActive
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {assignment.isActive ? t('member_detail.assignment_active') : t('member_detail.assignment_inactive')}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Contribution Exemptions */}
           <Card>

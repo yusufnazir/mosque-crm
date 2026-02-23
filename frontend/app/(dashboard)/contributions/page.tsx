@@ -13,11 +13,14 @@ import {
   MemberPaymentCreate,
   MemberContributionExemption,
   MemberContributionExemptionCreate,
+  MemberContributionAssignment,
+  MemberContributionAssignmentCreate,
   PageResponse,
   contributionTypeApi,
   contributionObligationApi,
   memberPaymentApi,
   exemptionApi,
+  contributionAssignmentApi,
   createPeriodicPayments,
 } from '@/lib/contributionApi';
 import { currencyApi, MosqueCurrencyDTO } from '@/lib/currencyApi';
@@ -27,7 +30,7 @@ import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import PaymentReceiptModal from '@/components/PaymentReceiptModal';
 
-type Tab = 'types' | 'obligations' | 'payments' | 'exemptions';
+type Tab = 'types' | 'obligations' | 'payments' | 'exemptions' | 'assignments';
 
 export default function ContributionsPage() {
   const { t, language: locale } = useTranslation();
@@ -62,6 +65,13 @@ export default function ContributionsPage() {
   const [showExemptionModal, setShowExemptionModal] = useState(false);
   const [editingExemption, setEditingExemption] = useState<MemberContributionExemption | null>(null);
 
+  // ===== Assignments State =====
+  const [assignments, setAssignments] = useState<MemberContributionAssignment[]>([]);
+  const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState<MemberContributionAssignment | null>(null);
+  const [deleteAssignmentId, setDeleteAssignmentId] = useState<number | null>(null);
+
   // ===== Mosque currencies =====
   const [mosqueCurrencies, setMosqueCurrencies] = useState<MosqueCurrencyDTO[]>([]);
 
@@ -88,6 +98,7 @@ export default function ContributionsPage() {
   useEffect(() => {
     if (activeTab === 'obligations') loadObligations();
     if (activeTab === 'exemptions') loadExemptions();
+    if (activeTab === 'assignments') loadAssignments();
   }, [activeTab]);
 
   // ===== Data Loading =====
@@ -356,6 +367,65 @@ export default function ContributionsPage() {
     }
   };
 
+  // ===== Assignment CRUD =====
+  const loadAssignments = async () => {
+    setAssignmentsLoading(true);
+    try {
+      const data = await contributionAssignmentApi.getAll();
+      setAssignments(data);
+    } catch (err) {
+      console.error('Failed to load assignments:', err);
+    } finally {
+      setAssignmentsLoading(false);
+    }
+  };
+
+  const handleSaveAssignment = async (data: MemberContributionAssignmentCreate): Promise<string | null> => {
+    try {
+      if (editingAssignment) {
+        await contributionAssignmentApi.update(editingAssignment.id, data);
+      } else {
+        await contributionAssignmentApi.create(data);
+      }
+      setShowAssignmentModal(false);
+      setEditingAssignment(null);
+      setSelectedPerson(null);
+      setPersonSearch('');
+      loadAssignments();
+      setToast({ message: t('contributions.assignment_saved'), type: 'success' });
+      return null;
+    } catch (err: any) {
+      console.warn('Failed to save assignment:', err.message);
+      return err.message || 'Failed to save assignment';
+    }
+  };
+
+  const handleDeleteAssignment = (id: number) => {
+    setDeleteAssignmentId(id);
+  };
+
+  const confirmDeleteAssignment = async () => {
+    if (deleteAssignmentId == null) return;
+    try {
+      await contributionAssignmentApi.delete(deleteAssignmentId);
+      loadAssignments();
+      setToast({ message: t('contributions.assignment_deleted'), type: 'success' });
+    } catch (err) {
+      console.error('Failed to delete assignment:', err);
+    } finally {
+      setDeleteAssignmentId(null);
+    }
+  };
+
+  const handleToggleAssignment = async (id: number) => {
+    try {
+      await contributionAssignmentApi.toggleActive(id);
+      loadAssignments();
+    } catch (err) {
+      console.error('Failed to toggle assignment:', err);
+    }
+  };
+
   // ===== Person search =====
   const searchPersons = async (query: string) => {
     setPersonSearch(query);
@@ -403,6 +473,7 @@ export default function ContributionsPage() {
     { key: 'obligations', label: t('contributions.obligations') },
     { key: 'payments', label: t('contributions.payments') },
     { key: 'exemptions', label: t('contributions.exemptions') },
+    { key: 'assignments', label: t('contributions.assignments') },
   ];
 
   return (
@@ -540,6 +611,20 @@ export default function ContributionsPage() {
         />
       )}
 
+      {activeTab === 'assignments' && (
+        <AssignmentsTab
+          assignments={assignments}
+          loading={assignmentsLoading}
+          onAdd={() => { setEditingAssignment(null); setShowAssignmentModal(true); }}
+          onEdit={(a) => { setEditingAssignment(a); setShowAssignmentModal(true); }}
+          onDelete={handleDeleteAssignment}
+          onToggle={handleToggleAssignment}
+          getTypeNameByCode={getTypeNameByCode}
+          formatDate={formatDate}
+          t={t}
+        />
+      )}
+
       {/* Type Modal */}
       {showTypeModal && (
         <TypeModal
@@ -670,6 +755,35 @@ export default function ContributionsPage() {
           types={types.filter(t => t.isActive)}
           onSave={handleSaveExemption}
           onClose={() => { setShowExemptionModal(false); setEditingExemption(null); setSelectedPerson(null); setPersonSearch(''); }}
+          personSearch={personSearch}
+          personResults={personResults}
+          selectedPerson={selectedPerson}
+          onSearchPersons={searchPersons}
+          onSelectPerson={setSelectedPerson}
+          getTypeName={(type: ContributionType) => getTypeName(type)}
+          t={t}
+        />
+      )}
+
+      {/* Assignment Delete Confirmation */}
+      <ConfirmDialog
+        open={deleteAssignmentId != null}
+        title={t('contributions.delete_assignment_title')}
+        message={t('contributions.delete_assignment_message')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={confirmDeleteAssignment}
+        onCancel={() => setDeleteAssignmentId(null)}
+      />
+
+      {/* Assignment Modal */}
+      {showAssignmentModal && (
+        <AssignmentModal
+          assignment={editingAssignment}
+          types={types.filter(t => t.isRequired && t.isActive)}
+          onSave={handleSaveAssignment}
+          onClose={() => { setShowAssignmentModal(false); setEditingAssignment(null); setSelectedPerson(null); setPersonSearch(''); }}
           personSearch={personSearch}
           personResults={personResults}
           selectedPerson={selectedPerson}
@@ -1127,6 +1241,14 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
   // Calculate total for current page
   const pageTotal = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
+  // Build a map: originalPaymentId -> reversalPayment (to detect which payments have been reversed)
+  const reversedByMap = new Map<number, MemberPayment>();
+  payments.forEach((p) => {
+    if (p.isReversal && p.reversedPaymentId) {
+      reversedByMap.set(p.reversedPaymentId, p);
+    }
+  });
+
   // Pagination helpers
   const from = totalElements === 0 ? 0 : currentPage * pageSize + 1;
   const to = Math.min((currentPage + 1) * pageSize, totalElements);
@@ -1240,13 +1362,15 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                 <tbody>
                   {payments.map((payment) => {
                     const isRev = payment.isReversal === true;
+                    const reversalPayment = reversedByMap.get(payment.id);
+                    const hasBeenReversed = !isRev && !!reversalPayment;
                     // Permission logic:
                     // SUPERADMIN: can always edit + delete any payment
                     // For reversals: need contribution.edit_reversal / contribution.delete_reversal
                     // For regular payments: need contribution.edit_payment / contribution.delete_payment
                     const showEdit = isSuperAdmin || (isRev ? canEditReversal : canEditPayment);
                     const showDelete = isSuperAdmin || (isRev ? canDeleteReversal : canDeletePayment);
-                    const showReverse = !isRev && (isSuperAdmin || canReverse);
+                    const showReverse = !isRev && !hasBeenReversed && (isSuperAdmin || canReverse);
                     return (
                     <tr key={payment.id} className={`border-b border-stone-100 hover:bg-stone-50 ${isRev ? 'bg-red-50/40' : ''}`}>
                       <td className="py-3 pr-4">
@@ -1255,6 +1379,14 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                           {isRev && (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
                               {t('contributions.reversal')}
+                            </span>
+                          )}
+                          {hasBeenReversed && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                              </svg>
+                              {t('contributions.reversed')}
                             </span>
                           )}
                         </div>
@@ -1270,7 +1402,14 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                           : '-'}
                       </td>
                       <td className="py-3 pr-4">{formatDate(payment.paymentDate)}</td>
-                      <td className="py-3 pr-4 text-xs text-stone-500">{payment.reference || '-'}</td>
+                      <td className="py-3 pr-4 text-xs text-stone-500">
+                        {payment.reference || (hasBeenReversed ? '' : '-')}
+                        {hasBeenReversed && reversalPayment && (
+                          <span className="text-amber-600">
+                            {payment.reference ? ' · ' : ''}#{reversalPayment.id}
+                          </span>
+                        )}
+                      </td>
                       <td className="py-3">
                         <div className="flex gap-2">
                           <button
@@ -1328,9 +1467,11 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
             <div className="md:hidden space-y-3">
               {payments.map((payment) => {
                 const isRev = payment.isReversal === true;
+                const reversalPayment = reversedByMap.get(payment.id);
+                const hasBeenReversed = !isRev && !!reversalPayment;
                 const showEdit = isSuperAdmin || (isRev ? canEditReversal : canEditPayment);
                 const showDelete = isSuperAdmin || (isRev ? canDeleteReversal : canDeletePayment);
-                const showReverse = !isRev && (isSuperAdmin || canReverse);
+                const showReverse = !isRev && !hasBeenReversed && (isSuperAdmin || canReverse);
                 return (
                 <div key={payment.id} className={`border rounded-lg p-4 ${isRev ? 'border-red-200 bg-red-50/40' : 'border-stone-200'}`}>
                   <div className="flex justify-between items-start mb-2">
@@ -1340,6 +1481,14 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                         {isRev && (
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
                             {t('contributions.reversal')}
+                          </span>
+                        )}
+                        {hasBeenReversed && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                            {t('contributions.reversed')}
                           </span>
                         )}
                       </div>
@@ -1356,6 +1505,9 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                       <span>{formatPeriod(payment.periodFrom, payment.periodTo)}</span>
                     )}
                     {payment.reference && <span>{payment.reference}</span>}
+                    {hasBeenReversed && reversalPayment && (
+                      <span className="text-amber-600">#{reversalPayment.id}</span>
+                    )}
                   </div>
                   <div className="flex gap-3 pt-2 border-t border-stone-100">
                     <button onClick={() => onReceipt(payment)} className="text-stone-500 hover:text-stone-700 text-xs" title={t('receipt.view_receipt')}>
@@ -2575,6 +2727,290 @@ function ExemptionModal({ exemption, types, onSave, onClose, personSearch, perso
                 className="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
               />
               <label htmlFor="exemption-active" className="text-sm text-stone-700">{t('contributions.active')}</label>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button type="button" onClick={onClose} className="px-4 py-2 text-stone-600 hover:bg-stone-100 rounded-lg text-sm">
+                {t('common.cancel')}
+              </button>
+              <button type="submit" disabled={saving} className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 text-sm disabled:opacity-50">
+                {saving ? '...' : t('common.save')}
+              </button>
+            </div>
+            {error && (
+              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>
+            )}
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== Assignments Tab Component =====
+function AssignmentsTab({ assignments, loading, onAdd, onEdit, onDelete, onToggle, getTypeNameByCode, formatDate, t }: {
+  assignments: MemberContributionAssignment[];
+  loading: boolean;
+  onAdd: () => void;
+  onEdit: (a: MemberContributionAssignment) => void;
+  onDelete: (id: number) => void;
+  onToggle: (id: number) => void;
+  getTypeNameByCode: (code: string) => string;
+  formatDate: (date: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}) {
+  return (
+    <Card>
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-stone-800">{t('contributions.assignments')}</h2>
+          <button
+            onClick={onAdd}
+            className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
+          >
+            + {t('contributions.add_assignment')}
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-8 text-stone-400">{t('common.loading')}</div>
+        ) : assignments.length === 0 ? (
+          <div className="text-center py-8 text-stone-400">{t('contributions.no_assignments')}</div>
+        ) : (
+          <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-200 text-left text-stone-500">
+                  <th className="pb-3 pr-4">{t('contributions.person')}</th>
+                  <th className="pb-3 pr-4">{t('contributions.type')}</th>
+                  <th className="pb-3 pr-4">{t('contributions.start_date')}</th>
+                  <th className="pb-3 pr-4">{t('contributions.end_date')}</th>
+                  <th className="pb-3 pr-4">{t('contributions.notes')}</th>
+                  <th className="pb-3 pr-4">{t('contributions.status')}</th>
+                  <th className="pb-3">{t('common.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assignments.map((a) => (
+                  <tr key={a.id} className="border-b border-stone-100 hover:bg-stone-50">
+                    <td className="py-3 pr-4">{a.personName}</td>
+                    <td className="py-3 pr-4">{getTypeNameByCode(a.contributionTypeCode)}</td>
+                    <td className="py-3 pr-4 text-xs">{formatDate(a.startDate)}</td>
+                    <td className="py-3 pr-4 text-xs">{a.endDate ? formatDate(a.endDate) : t('contributions.ongoing')}</td>
+                    <td className="py-3 pr-4 text-xs text-stone-500 max-w-[150px] truncate">{a.notes || '-'}</td>
+                    <td className="py-3 pr-4">
+                      <button
+                        onClick={() => onToggle(a.id)}
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${
+                          a.isActive ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                        }`}
+                      >
+                        {a.isActive ? t('contributions.active') : t('contributions.inactive')}
+                      </button>
+                    </td>
+                    <td className="py-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onEdit(a)}
+                          className="text-emerald-600 hover:text-emerald-800 text-xs"
+                        >
+                          {t('common.edit')}
+                        </button>
+                        <button
+                          onClick={() => onDelete(a.id)}
+                          className="text-red-500 hover:text-red-700 text-xs"
+                        >
+                          {t('common.delete')}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {assignments.map((a) => (
+              <div key={a.id} className="border border-stone-200 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="font-medium text-stone-900">{a.personName}</div>
+                    <div className="text-xs text-stone-500 mt-0.5">{getTypeNameByCode(a.contributionTypeCode)}</div>
+                  </div>
+                  <button
+                    onClick={() => onToggle(a.id)}
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      a.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                    }`}
+                  >
+                    {a.isActive ? t('contributions.active') : t('contributions.inactive')}
+                  </button>
+                </div>
+                <div className="space-y-1 text-xs text-stone-500 mb-3">
+                  <div>{formatDate(a.startDate)} — {a.endDate ? formatDate(a.endDate) : t('contributions.ongoing')}</div>
+                  {a.notes && <div className="truncate">{a.notes}</div>}
+                </div>
+                <div className="flex gap-3 pt-2 border-t border-stone-100">
+                  <button onClick={() => onEdit(a)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                  <button onClick={() => onDelete(a.id)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+// ===== Assignment Modal =====
+function AssignmentModal({ assignment, types, onSave, onClose, personSearch, personResults, selectedPerson, onSearchPersons, onSelectPerson, getTypeName, t }: {
+  assignment: MemberContributionAssignment | null;
+  types: ContributionType[];
+  onSave: (data: MemberContributionAssignmentCreate) => Promise<string | null>;
+  onClose: () => void;
+  personSearch: string;
+  personResults: any[];
+  selectedPerson: any;
+  onSearchPersons: (query: string) => void;
+  onSelectPerson: (person: any) => void;
+  getTypeName: (type: ContributionType) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}) {
+  const [personId, setPersonId] = useState(assignment?.personId || 0);
+  const [typeId, setTypeId] = useState(assignment?.contributionTypeId || 0);
+  const [startDate, setStartDate] = useState(assignment?.startDate || (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })());
+  const [endDate, setEndDate] = useState(assignment?.endDate || '');
+  const [notes, setNotes] = useState(assignment?.notes || '');
+  const [showPersonDropdown, setShowPersonDropdown] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSaving(true);
+    const finalPersonId = selectedPerson?.id || personId;
+    if (!finalPersonId) { setSaving(false); return; }
+    const err = await onSave({
+      contributionTypeId: typeId,
+      personId: Number(finalPersonId),
+      startDate,
+      endDate: endDate || undefined,
+      notes: notes || undefined,
+    });
+    setSaving(false);
+    if (err) setError(err);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-stone-900 mb-4">
+            {assignment ? t('contributions.edit_assignment') : t('contributions.add_assignment')}
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Person Search */}
+            <div className="relative">
+              <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.person')}</label>
+              {assignment ? (
+                <div className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm bg-stone-50">
+                  {assignment.personName}
+                </div>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    value={selectedPerson ? `${selectedPerson.firstName} ${selectedPerson.lastName || ''}` : personSearch}
+                    onChange={(e) => {
+                      onSelectPerson(null);
+                      onSearchPersons(e.target.value);
+                      setShowPersonDropdown(true);
+                    }}
+                    onFocus={() => setShowPersonDropdown(true)}
+                    className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder={t('contributions.search_person')}
+                    required={!selectedPerson && !personId}
+                  />
+                  {showPersonDropdown && personResults.length > 0 && (
+                    <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white border border-stone-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                      {personResults.map((person: any) => (
+                        <button
+                          key={person.id}
+                          type="button"
+                          onClick={() => {
+                            onSelectPerson(person);
+                            setPersonId(Number(person.id));
+                            setShowPersonDropdown(false);
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-stone-50 text-sm"
+                        >
+                          {person.firstName} {person.lastName || ''}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.type')}</label>
+              <select
+                value={typeId}
+                onChange={(e) => setTypeId(Number(e.target.value))}
+                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
+                required
+                disabled={!!assignment}
+              >
+                <option value={0} disabled>{t('contributions.select_type')}</option>
+                {types.map((type) => (
+                  <option key={type.id} value={type.id}>{getTypeName(type)}</option>
+                ))}
+              </select>
+              {!assignment && (
+                <p className="text-xs text-stone-400 mt-1">{t('contributions.assignment_required_only')}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.start_date')}</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  {t('contributions.end_date')} <span className="text-xs text-stone-400">({t('contributions.optional')})</span>
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.notes')}</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
+                rows={2}
+                placeholder={t('contributions.assignment_notes_placeholder')}
+              />
             </div>
 
             <div className="flex justify-end gap-3 pt-2">

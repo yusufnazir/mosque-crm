@@ -7,7 +7,7 @@
 						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
 	<!-- ═══════════════════════════════════════════════════════════
-	     ADMIN (role_id=1) → 18 permissions (excl. import, settings, mosque, superadmin)
+	     ADMIN (role_id=1) → 20 permissions (excl. import, settings, mosque, superadmin)
 	     ═══════════════════════════════════════════════════════════ -->
 	<changeSet id="e368f342-2e54-42b8-9c96-e3251b0d4aff" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
@@ -123,6 +123,23 @@
 			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[29]]></param>
 		</customChange>
 	</changeSet>
+	<!-- contribution.manage_assignments (32) -->
+	<changeSet id="c7d8e9f0-0038-4aaa-bbbb-admin00asg32" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[32]]></param>
+		</customChange>
+	</changeSet>
+	<!-- role.view (33), role.manage (34) -->
+	<changeSet id="d8e9f0a1-0039-4aaa-bbbb-admin00rol33" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[33]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e9f0a1b2-0039-4aaa-bbbb-admin00rol34" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[34]]></param>
+		</customChange>
+	</changeSet>
 
 	<!-- ═══════════════════════════════════════════════════════════
 	     MEMBER (role_id=2) → dashboard.view, profile.view, profile.fees, family.view
@@ -217,6 +234,12 @@
 	<changeSet id="d9e0f1a2-0037-4aaa-bbbb-treas0pay29" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
 			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[29]]></param>
+		</customChange>
+	</changeSet>
+	<!-- contribution.manage_assignments (32) -->
+	<changeSet id="e0f1a2b3-0038-4aaa-bbbb-treas0asg32" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[32]]></param>
 		</customChange>
 	</changeSet>
 

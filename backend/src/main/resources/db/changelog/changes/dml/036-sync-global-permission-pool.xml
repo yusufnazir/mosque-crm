@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+	http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+	<!--
+		Sync global permission pool: all non-SUPER_ADMIN roles get the same assignable permissions.
+		The pool includes every permission EXCEPT those in the 'superadmin' category.
+		This ensures the Privilege Pool page and Roles page work with a unified pool.
+	-->
+	<changeSet id="d8a9b0c1-0036-4bbb-aaaa-sync-pool-0002" author="mosque-crm">
+		<comment>Give all non-SUPER_ADMIN roles the same global permission pool (all non-superadmin permissions)</comment>
+		<sql>
+			<!-- Insert missing pool entries for roles 1 (ADMIN), 2 (MEMBER), 3 (TREASURER), 4 (IMAM) -->
+			<!-- Each role gets ALL permissions except those in the 'superadmin' category -->
+			INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+			SELECT r.id, p.id
+			FROM roles r
+			CROSS JOIN permissions p
+			WHERE r.name != 'SUPER_ADMIN'
+			  AND p.category != 'superadmin';
+		</sql>
+	</changeSet>
+
+</databaseChangeLog>

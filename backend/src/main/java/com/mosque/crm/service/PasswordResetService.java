@@ -116,6 +116,8 @@ public class PasswordResetService {
         // Update password
         User user = resetToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
+        // Clear must-change-password flag (handles new account setup via welcome email)
+        user.setMustChangePassword(false);
         userRepository.save(user);
 
         // Mark token as used

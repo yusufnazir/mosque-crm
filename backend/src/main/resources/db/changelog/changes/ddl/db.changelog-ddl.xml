@@ -60,7 +60,11 @@
     <include file="db/changelog/changes/ddl/030-create-mosque-currencies-table.xml"/>
     <include file="db/changelog/changes/ddl/031-create-exchange-rates-table.xml"/>
 
+    <!-- Member Contribution Assignments -->
+    <include file="db/changelog/changes/ddl/037-create-member-contribution-assignments-table.xml"/>
 
+    <!-- User account enhancements -->
+    <include file="db/changelog/changes/ddl/036-add-must-change-password-to-users.xml"/>
 
     <!-- Foreign Key Constraints (loaded LAST, after all tables exist) -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>

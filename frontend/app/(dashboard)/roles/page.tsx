@@ -1,10 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { ApiClient } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import ToastNotification from '@/components/ToastNotification';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface PermissionDTO {
   id: number;
@@ -30,6 +31,21 @@ export default function RolesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Create role modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createName, setCreateName] = useState('');
+  const [createDescription, setCreateDescription] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  // Edit role modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editingRole, setEditingRole] = useState(false);
+
+  // Delete confirmation
+  const [deleteConfirm, setDeleteConfirm] = useState<RoleDTO | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -75,7 +91,6 @@ export default function RolesPage() {
   };
 
   const toggleCategory = (category: string) => {
-    // Only toggle permissions that are in the assignable pool
     const assignablePool = selectedRole?.assignablePermissionCodes || [];
     const categoryCodes = permissions
       .filter((p) => p.category === category && assignablePool.includes(p.code))
@@ -113,6 +128,80 @@ export default function RolesPage() {
       setToast({ message: t('roles.save_error'), type: 'error' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Create role
+  const handleCreate = async () => {
+    if (!createName.trim()) return;
+    try {
+      setCreating(true);
+      const newRole = await ApiClient.post<RoleDTO>('/admin/roles', {
+        name: createName.trim(),
+        description: createDescription.trim(),
+      });
+      setRoles((prev) => [...prev, newRole]);
+      setSelectedRoleId(newRole.id);
+      setEditPermissions(new Set(newRole.permissionCodes));
+      setShowCreateModal(false);
+      setCreateName('');
+      setCreateDescription('');
+      setToast({ message: t('roles.create_success'), type: 'success' });
+    } catch (error: unknown) {
+      console.error('Failed to create role:', error);
+      const errMsg = error instanceof Error ? error.message : t('roles.create_error');
+      setToast({ message: errMsg, type: 'error' });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  // Edit role
+  const openEditModal = () => {
+    if (!selectedRole) return;
+    setEditName(selectedRole.name);
+    setEditDescription(selectedRole.description || '');
+    setShowEditModal(true);
+  };
+
+  const handleEditRole = async () => {
+    if (!selectedRole || !editName.trim()) return;
+    try {
+      setEditingRole(true);
+      const updated = await ApiClient.put<RoleDTO>(`/admin/roles/${selectedRole.id}`, {
+        name: editName.trim(),
+        description: editDescription.trim(),
+      });
+      setRoles((prev) =>
+        prev.map((r) => (r.id === updated.id ? updated : r)),
+      );
+      setShowEditModal(false);
+      setToast({ message: t('roles.edit_success'), type: 'success' });
+    } catch (error: unknown) {
+      console.error('Failed to update role:', error);
+      const errMsg = error instanceof Error ? error.message : t('roles.edit_error');
+      setToast({ message: errMsg, type: 'error' });
+    } finally {
+      setEditingRole(false);
+    }
+  };
+
+  // Delete role
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    try {
+      await ApiClient.delete(`/admin/roles/${deleteConfirm.id}`);
+      setRoles((prev) => prev.filter((r) => r.id !== deleteConfirm.id));
+      if (selectedRoleId === deleteConfirm.id) {
+        setSelectedRoleId(null);
+        setEditPermissions(new Set());
+      }
+      setDeleteConfirm(null);
+      setToast({ message: t('roles.delete_success'), type: 'success' });
+    } catch (error: unknown) {
+      console.error('Failed to delete role:', error);
+      const errMsg = error instanceof Error ? error.message : t('roles.delete_error');
+      setToast({ message: errMsg, type: 'error' });
     }
   };
 
@@ -157,6 +246,18 @@ export default function RolesPage() {
         />
       )}
 
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title={t('roles.delete_title')}
+        message={t('roles.delete_message', { name: deleteConfirm?.name || '' })}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
+
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('roles.title')}</h1>
         <p className="text-gray-600">{t('roles.subtitle')}</p>
@@ -167,7 +268,18 @@ export default function RolesPage() {
         <div className="lg:sticky lg:top-4 lg:self-start">
           <Card>
             <CardHeader>
-              <CardTitle>{t('roles.all_roles')}</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>{t('roles.all_roles')}</CardTitle>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="p-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                  title={t('roles.create_role')}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               <ul className="divide-y divide-gray-100">
@@ -201,23 +313,48 @@ export default function RolesPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>
-                      {selectedRole.name} — {t('roles.permissions')}
+                      {selectedRole.name}  {t('roles.permissions')}
                     </CardTitle>
                     {selectedRole.description && (
                       <p className="text-sm text-gray-500 mt-1">{selectedRole.description}</p>
                     )}
                   </div>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving || !hasChanges}
-                    className={`px-5 py-2 rounded-lg font-medium text-sm transition-all ${
-                      hasChanges
-                        ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {saving ? t('common.saving') || 'Saving...' : t('common.save')}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Edit role button */}
+                    <button
+                      onClick={openEditModal}
+                      className="p-2 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                      title={t('roles.edit_role')}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    {/* Delete role button */}
+                    {selectedRole.name !== 'SUPER_ADMIN' && (
+                      <button
+                        onClick={() => setDeleteConfirm(selectedRole)}
+                        className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title={t('roles.delete_role')}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                    {/* Save button */}
+                    <button
+                      onClick={handleSave}
+                      disabled={saving || !hasChanges}
+                      className={`px-5 py-2 rounded-lg font-medium text-sm transition-all ${
+                        hasChanges
+                          ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {saving ? t('common.saving') || 'Saving...' : t('common.save')}
+                    </button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -292,6 +429,108 @@ export default function RolesPage() {
           )}
         </div>
       </div>
+
+      {/* Create Role Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h3 className="text-lg font-bold text-charcoal mb-4">{t('roles.create_role')}</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('roles.role_name')}
+                </label>
+                <input
+                  type="text"
+                  value={createName}
+                  onChange={(e) => setCreateName(e.target.value)}
+                  placeholder={t('roles.name_placeholder')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm"
+                  autoFocus
+                />
+                <p className="text-xs text-gray-400 mt-1">{t('roles.name_hint')}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('roles.role_description')}
+                </label>
+                <textarea
+                  value={createDescription}
+                  onChange={(e) => setCreateDescription(e.target.value)}
+                  placeholder={t('roles.description_placeholder')}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => { setShowCreateModal(false); setCreateName(''); setCreateDescription(''); }}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleCreate}
+                disabled={creating || !createName.trim()}
+                className="px-5 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              >
+                {creating ? t('common.saving') || 'Saving...' : t('roles.create_role')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Role Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h3 className="text-lg font-bold text-charcoal mb-4">{t('roles.edit_role')}</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('roles.role_name')}
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm"
+                  autoFocus
+                />
+                <p className="text-xs text-gray-400 mt-1">{t('roles.name_hint')}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('roles.role_description')}
+                </label>
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleEditRole}
+                disabled={editingRole || !editName.trim()}
+                className="px-5 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              >
+                {editingRole ? t('common.saving') || 'Saving...' : t('common.save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -84,6 +84,15 @@ export class ApiClient {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
   }
+
+  static async patch<T>(endpoint: string, data?: any): Promise<T> {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: this.getHeaders(),
+      body: data != null ? JSON.stringify(data) : undefined,
+    });
+    return this.handleResponse<T>(response);
+  }
 }
 
 // Auth API
@@ -140,7 +149,13 @@ export const memberApi = {
   getAgeGenderDistribution: (): Promise<AgeGenderBucket[]> => ApiClient.get('/genealogy/age-gender-distribution'),
 };
 
-
+// Payment Statistics API (for dashboard charts)
+export const paymentStatsApi = {
+  getIncomeByType: (year: number): Promise<Record<string, number>> =>
+    ApiClient.get(`/contributions/payments/stats/income-by-type?year=${year}`),
+  getPaymentYears: (): Promise<number[]> =>
+    ApiClient.get('/contributions/payments/stats/years'),
+};
 
 // Member Portal API
 export const portalApi = {

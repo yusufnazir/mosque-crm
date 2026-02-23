@@ -32,6 +32,9 @@
     <include file="db/changelog/changes/dml/032-data-mosques.xml"/>
     <include file="db/changelog/changes/dml/033-data-super-admin.xml"/>
 
+    <!-- Sync global permission pool for all roles -->
+    <include file="db/changelog/changes/dml/036-sync-global-permission-pool.xml"/>
+
     <!-- Currency Reference Data -->
     <include file="db/changelog/changes/dml/034-data-currencies.xml"/>
 

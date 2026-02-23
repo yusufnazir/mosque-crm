@@ -21,6 +21,7 @@ export interface CurrentUser {
   roles: string[];
   selectedMosqueId?: number;
   selectedMosqueName?: string;
+  mustChangePassword?: boolean;
   preferences?: {
     language?: string;
     theme?: string;

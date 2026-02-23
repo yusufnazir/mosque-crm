@@ -1,6 +1,8 @@
 package com.mosque.crm.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -214,5 +216,28 @@ public class MemberPaymentController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // ─── Statistics / Dashboard endpoints ────────────────────────────────
+
+    /**
+     * Get total income grouped by contribution type for a given year.
+     * GET /contributions/payments/stats/income-by-type?year=2026
+     */
+    @GetMapping("/stats/income-by-type")
+    public ResponseEntity<Map<String, BigDecimal>> getIncomeByType(
+            @RequestParam int year) {
+        Map<String, BigDecimal> result = paymentService.getIncomeByContributionType(year);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Get all distinct years that have payment data (for the year selector).
+     * GET /contributions/payments/stats/years
+     */
+    @GetMapping("/stats/years")
+    public ResponseEntity<List<Integer>> getPaymentYears() {
+        List<Integer> years = paymentService.getPaymentYears();
+        return ResponseEntity.ok(years);
     }
 }

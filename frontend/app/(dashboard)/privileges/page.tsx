@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Card, CardContent } from '@/components/Card';
@@ -13,22 +13,11 @@ interface PermissionDTO {
   category: string;
 }
 
-interface RoleDTO {
-  id: number;
-  name: string;
-  description: string;
-  permissionCodes: string[];
-  assignablePermissionCodes: string[];
-}
-
-type RolePermissionMap = Record<number, Set<string>>;
-
 export default function PrivilegesPage() {
   const { t } = useTranslation();
-  const [roles, setRoles] = useState<RoleDTO[]>([]);
   const [permissions, setPermissions] = useState<PermissionDTO[]>([]);
-  const [editState, setEditState] = useState<RolePermissionMap>({});
-  const [originalState, setOriginalState] = useState<RolePermissionMap>({});
+  const [poolCodes, setPoolCodes] = useState<Set<string>>(new Set());
+  const [originalPoolCodes, setOriginalPoolCodes] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -39,22 +28,15 @@ export default function PrivilegesPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [rolesData, permsData] = await Promise.all([
-        ApiClient.get<RoleDTO[]>('/admin/roles'),
+      const [permsData, poolData] = await Promise.all([
         ApiClient.get<PermissionDTO[]>('/admin/roles/permissions'),
+        ApiClient.get<string[]>('/admin/roles/pool'),
       ]);
-      setRoles(rolesData);
       setPermissions(permsData);
 
-      // Build role-permission maps from assignablePermissionCodes (the pool)
-      const orig: RolePermissionMap = {};
-      const edit: RolePermissionMap = {};
-      rolesData.forEach((role) => {
-        orig[role.id] = new Set(role.assignablePermissionCodes);
-        edit[role.id] = new Set(role.assignablePermissionCodes);
-      });
-      setOriginalState(orig);
-      setEditState(edit);
+      const pool = new Set(poolData);
+      setPoolCodes(pool);
+      setOriginalPoolCodes(new Set(pool));
 
       // Expand all categories by default
       const cats = new Set(permsData.map((p) => p.category));
@@ -88,7 +70,6 @@ export default function PrivilegesPage() {
     for (const [category, perms] of Object.entries(categories)) {
       let filtered = perms;
 
-      // Text search: match on code, description, or category
       if (q) {
         filtered = filtered.filter(
           (p) =>
@@ -98,15 +79,9 @@ export default function PrivilegesPage() {
         );
       }
 
-      // Status filter: show only permissions that differ from original
       if (statusFilter === 'changed') {
-        filtered = filtered.filter((p) =>
-          roles.some((role) => {
-            const orig = originalState[role.id];
-            const edit = editState[role.id];
-            if (!orig || !edit) return false;
-            return orig.has(p.code) !== edit.has(p.code);
-          }),
+        filtered = filtered.filter(
+          (p) => poolCodes.has(p.code) !== originalPoolCodes.has(p.code),
         );
       }
 
@@ -115,7 +90,7 @@ export default function PrivilegesPage() {
       }
     }
     return result;
-  }, [categories, searchQuery, statusFilter, roles, originalState, editState]);
+  }, [categories, searchQuery, statusFilter, poolCodes, originalPoolCodes]);
 
   const toggleExpand = (category: string) => {
     setExpandedCategories((prev) => {
@@ -137,88 +112,63 @@ export default function PrivilegesPage() {
     setExpandedCategories(new Set());
   };
 
-  const togglePermission = (roleId: number, code: string) => {
-    setEditState((prev) => {
-      const next = { ...prev };
-      const roleSet = new Set(next[roleId]);
-      if (roleSet.has(code)) {
-        roleSet.delete(code);
+  const togglePermission = (code: string) => {
+    setPoolCodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(code)) {
+        next.delete(code);
       } else {
-        roleSet.add(code);
+        next.add(code);
       }
-      next[roleId] = roleSet;
       return next;
     });
   };
 
-  const toggleCategoryForRole = (roleId: number, category: string) => {
+  const toggleCategory = (category: string) => {
     const categoryCodes = (categories[category] || []).map((p) => p.code);
-    const roleSet = editState[roleId] || new Set<string>();
-    const allChecked = categoryCodes.every((c) => roleSet.has(c));
+    const allChecked = categoryCodes.every((c) => poolCodes.has(c));
 
-    setEditState((prev) => {
-      const next = { ...prev };
-      const updated = new Set(next[roleId]);
+    setPoolCodes((prev) => {
+      const next = new Set(prev);
       categoryCodes.forEach((code) => {
         if (allChecked) {
-          updated.delete(code);
+          next.delete(code);
         } else {
-          updated.add(code);
+          next.add(code);
         }
       });
-      next[roleId] = updated;
       return next;
     });
   };
 
-  // Which roles have changes?
-  const changedRoleIds = useMemo(() => {
-    const changed: number[] = [];
-    roles.forEach((role) => {
-      const orig = originalState[role.id];
-      const edit = editState[role.id];
-      if (!orig || !edit) return;
-      if (orig.size !== edit.size || ![...orig].every((c) => edit.has(c))) {
-        changed.push(role.id);
+  // Count changes
+  const changedCount = useMemo(() => {
+    let count = 0;
+    permissions.forEach((p) => {
+      if (poolCodes.has(p.code) !== originalPoolCodes.has(p.code)) {
+        count++;
       }
     });
-    return changed;
-  }, [roles, originalState, editState]);
+    return count;
+  }, [permissions, poolCodes, originalPoolCodes]);
 
-  const hasChanges = changedRoleIds.length > 0;
+  const hasChanges = changedCount > 0;
 
   const handleSave = async () => {
     if (!hasChanges) return;
     try {
       setSaving(true);
-      const updates = changedRoleIds.map((roleId) =>
-        ApiClient.put<RoleDTO>(`/admin/roles/${roleId}/assignable-permissions`, {
-          permissionCodes: Array.from(editState[roleId]),
-        }),
-      );
-      const updatedRoles = await Promise.all(updates);
+      const updatedPool = await ApiClient.put<string[]>('/admin/roles/pool', {
+        permissionCodes: Array.from(poolCodes),
+      });
 
-      // Merge updates back into state
-      setRoles((prev) =>
-        prev.map((r) => {
-          const updated = updatedRoles.find((u) => u.id === r.id);
-          return updated || r;
-        }),
-      );
-      const newOrig: RolePermissionMap = { ...originalState };
-      updatedRoles.forEach((r) => {
-        newOrig[r.id] = new Set(r.assignablePermissionCodes);
-      });
-      setOriginalState(newOrig);
-      const newEdit: RolePermissionMap = { ...editState };
-      updatedRoles.forEach((r) => {
-        newEdit[r.id] = new Set(r.assignablePermissionCodes);
-      });
-      setEditState(newEdit);
+      const newPool = new Set(updatedPool);
+      setPoolCodes(newPool);
+      setOriginalPoolCodes(new Set(newPool));
 
       setToast({ message: t('privileges.save_success'), type: 'success' });
     } catch (error) {
-      console.error('Failed to save privileges:', error);
+      console.error('Failed to save pool:', error);
       setToast({ message: t('privileges.save_error'), type: 'error' });
     } finally {
       setSaving(false);
@@ -277,7 +227,7 @@ export default function PrivilegesPage() {
             {saving ? t('common.saving') || 'Saving...' : t('common.save')}
             {hasChanges && (
               <span className="ml-1.5 bg-white/20 text-white text-xs px-1.5 py-0.5 rounded">
-                {changedRoleIds.length}
+                {changedCount}
               </span>
             )}
           </button>
@@ -339,6 +289,16 @@ export default function PrivilegesPage() {
         </div>
       </div>
 
+      {/* Pool summary */}
+      <div className="mb-4 flex items-center gap-3 text-sm text-gray-500">
+        <span className="flex items-center gap-1.5">
+          <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          {poolCodes.size} / {permissions.length} {t('privileges.available_count')}
+        </span>
+      </div>
+
       {/* No results */}
       {Object.keys(filteredCategories).length === 0 && (
         <Card>
@@ -350,7 +310,7 @@ export default function PrivilegesPage() {
         </Card>
       )}
 
-      {/* Privilege Matrix — Desktop table */}
+      {/* Pool table - Desktop */}
       <div className="hidden lg:block">
         <Card>
           <CardContent className="p-0">
@@ -358,21 +318,12 @@ export default function PrivilegesPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-charcoal min-w-[250px]">
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-charcoal">
                       {t('privileges.permission')}
                     </th>
-                    {roles.map((role) => (
-                      <th
-                        key={role.id}
-                        className={`px-3 py-3 text-center text-sm font-semibold min-w-[100px] ${
-                          changedRoleIds.includes(role.id)
-                            ? 'text-emerald-700 bg-emerald-50'
-                            : 'text-charcoal'
-                        }`}
-                      >
-                        {role.name}
-                      </th>
-                    ))}
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-charcoal w-32">
+                      {t('privileges.available')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -381,17 +332,21 @@ export default function PrivilegesPage() {
                     .map(([category, perms]) => {
                       const isExpanded = expandedCategories.has(category);
                       const sortedPerms = [...perms].sort((a, b) => a.code.localeCompare(b.code));
+                      const allChecked = sortedPerms.every((p) => poolCodes.has(p.code));
+                      const someChecked = sortedPerms.some((p) => poolCodes.has(p.code));
                       return (
                         <DesktopCategoryGroup
                           key={category}
                           category={category}
                           permissions={sortedPerms}
-                          roles={roles}
-                          editState={editState}
+                          poolCodes={poolCodes}
+                          originalPoolCodes={originalPoolCodes}
+                          allChecked={allChecked}
+                          someChecked={someChecked}
                           isExpanded={isExpanded}
                           onToggleExpand={() => toggleExpand(category)}
                           onTogglePermission={togglePermission}
-                          onToggleCategoryForRole={toggleCategoryForRole}
+                          onToggleCategory={() => toggleCategory(category)}
                         />
                       );
                     })}
@@ -402,30 +357,34 @@ export default function PrivilegesPage() {
         </Card>
       </div>
 
-      {/* Privilege Matrix — Mobile cards */}
+      {/* Pool cards - Mobile */}
       <div className="lg:hidden space-y-3">
         {Object.entries(filteredCategories)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([category, perms]) => {
             const isExpanded = expandedCategories.has(category);
             const sortedPerms = [...perms].sort((a, b) => a.code.localeCompare(b.code));
+            const allChecked = sortedPerms.every((p) => poolCodes.has(p.code));
+            const someChecked = sortedPerms.some((p) => poolCodes.has(p.code));
             return (
               <MobileCategoryGroup
                 key={category}
                 category={category}
                 permissions={sortedPerms}
-                roles={roles}
-                editState={editState}
+                poolCodes={poolCodes}
+                originalPoolCodes={originalPoolCodes}
+                allChecked={allChecked}
+                someChecked={someChecked}
                 isExpanded={isExpanded}
                 onToggleExpand={() => toggleExpand(category)}
                 onTogglePermission={togglePermission}
-                onToggleCategoryForRole={toggleCategoryForRole}
+                onToggleCategory={() => toggleCategory(category)}
               />
             );
           })}
       </div>
 
-      {/* Legend */}
+      {/* Unsaved legend */}
       {hasChanges && (
         <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
           <span className="flex items-center gap-1.5">
@@ -433,7 +392,7 @@ export default function PrivilegesPage() {
             {t('privileges.unsaved_change')}
           </span>
           <span>
-            {t('privileges.roles_changed', { count: String(changedRoleIds.length) })}
+            {t('privileges.changes_count', { count: String(changedCount) })}
           </span>
         </div>
       )}
@@ -441,28 +400,32 @@ export default function PrivilegesPage() {
   );
 }
 
-/* ─── Desktop Category Group (table rows) ──────────────────────────────── */
+/* --- Desktop Category Group (table rows) --- */
 
 interface CategoryGroupProps {
   category: string;
   permissions: PermissionDTO[];
-  roles: RoleDTO[];
-  editState: RolePermissionMap;
+  poolCodes: Set<string>;
+  originalPoolCodes: Set<string>;
+  allChecked: boolean;
+  someChecked: boolean;
   isExpanded: boolean;
   onToggleExpand: () => void;
-  onTogglePermission: (roleId: number, code: string) => void;
-  onToggleCategoryForRole: (roleId: number, category: string) => void;
+  onTogglePermission: (code: string) => void;
+  onToggleCategory: () => void;
 }
 
 function DesktopCategoryGroup({
   category,
   permissions,
-  roles,
-  editState,
+  poolCodes,
+  originalPoolCodes,
+  allChecked,
+  someChecked,
   isExpanded,
   onToggleExpand,
   onTogglePermission,
-  onToggleCategoryForRole,
+  onToggleCategory,
 }: CategoryGroupProps) {
   return (
     <>
@@ -483,158 +446,141 @@ function DesktopCategoryGroup({
             </svg>
             {category}
             <span className="text-xs text-gray-400 font-normal normal-case">
-              ({permissions.length})
+              ({permissions.filter((p) => poolCodes.has(p.code)).length}/{permissions.length})
             </span>
           </button>
         </td>
-        {roles.map((role) => {
-          const roleSet = editState[role.id] || new Set<string>();
-          const allChecked = permissions.every((p) => roleSet.has(p.code));
-          const someChecked = permissions.some((p) => roleSet.has(p.code));
-          return (
-            <td key={role.id} className="px-3 py-3 text-center">
-              <input
-                type="checkbox"
-                checked={allChecked}
-                ref={(el) => {
-                  if (el) el.indeterminate = someChecked && !allChecked;
-                }}
-                onChange={() => onToggleCategoryForRole(role.id, category)}
-                className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                title={`${allChecked ? 'Remove' : 'Assign'} all ${category} permissions for ${role.name}`}
-              />
-            </td>
-          );
-        })}
+        <td className="px-4 py-3 text-center">
+          <input
+            type="checkbox"
+            checked={allChecked}
+            ref={(el) => {
+              if (el) el.indeterminate = someChecked && !allChecked;
+            }}
+            onChange={onToggleCategory}
+            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+            title={`${allChecked ? 'Remove' : 'Add'} all ${category} permissions`}
+          />
+        </td>
       </tr>
 
-      {/* Individual permission rows (only if expanded) */}
+      {/* Individual permission rows */}
       {isExpanded &&
-        permissions.map((perm) => (
-          <tr key={perm.code} className="border-t border-gray-100 hover:bg-gray-50/50">
-            <td className="px-4 py-2.5 pl-10">
-              <div>
-                <span className="text-sm font-medium text-charcoal">{perm.code}</span>
-                {perm.description && (
-                  <p className="text-xs text-gray-500">{perm.description}</p>
-                )}
-              </div>
-            </td>
-            {roles.map((role) => {
-              const roleSet = editState[role.id] || new Set<string>();
-              const checked = roleSet.has(perm.code);
-              return (
-                <td key={role.id} className="px-3 py-2.5 text-center">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => onTogglePermission(role.id, perm.code)}
-                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                  />
-                </td>
-              );
-            })}
-          </tr>
-        ))}
+        permissions.map((perm) => {
+          const checked = poolCodes.has(perm.code);
+          const changed = checked !== originalPoolCodes.has(perm.code);
+          return (
+            <tr
+              key={perm.code}
+              className={`border-t border-gray-100 hover:bg-gray-50/50 ${
+                changed ? 'bg-emerald-50/50' : ''
+              }`}
+            >
+              <td className="px-4 py-2.5 pl-10">
+                <div>
+                  <span className="text-sm font-medium text-charcoal">{perm.code}</span>
+                  {perm.description && (
+                    <p className="text-xs text-gray-500">{perm.description}</p>
+                  )}
+                </div>
+              </td>
+              <td className="px-4 py-2.5 text-center">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => onTogglePermission(perm.code)}
+                  className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                />
+              </td>
+            </tr>
+          );
+        })}
     </>
   );
 }
 
-/* ─── Mobile Category Group (card-based accordion) ─────────────────────── */
+/* --- Mobile Category Group (card-based accordion) --- */
 
 function MobileCategoryGroup({
   category,
   permissions,
-  roles,
-  editState,
+  poolCodes,
+  originalPoolCodes,
+  allChecked,
+  someChecked,
   isExpanded,
   onToggleExpand,
   onTogglePermission,
-  onToggleCategoryForRole,
+  onToggleCategory,
 }: CategoryGroupProps) {
   return (
     <Card>
       <CardContent className="p-0">
         {/* Category header */}
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <button
-            onClick={onToggleExpand}
-            className="w-full flex items-center gap-2"
-          >
-            <svg
-              className={`w-4 h-4 transition-transform text-gray-500 ${isExpanded ? 'rotate-90' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onToggleExpand}
+              className="flex items-center gap-2"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span className="text-sm font-bold text-charcoal uppercase tracking-wide">
-              {category}
-            </span>
-            <span className="text-xs text-gray-400">({permissions.length})</span>
-          </button>
-          {/* Category-level role toggles below the header */}
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2 ml-6">
-            {roles.map((role) => {
-              const roleSet = editState[role.id] || new Set<string>();
-              const allChecked = permissions.every((p) => roleSet.has(p.code));
-              const someChecked = permissions.some((p) => roleSet.has(p.code));
-              return (
-                <label key={role.id} className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={allChecked}
-                    ref={(el) => {
-                      if (el) el.indeterminate = someChecked && !allChecked;
-                    }}
-                    onChange={() => onToggleCategoryForRole(role.id, category)}
-                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                  />
-                  <span className="text-xs text-gray-500">{role.name}</span>
-                </label>
-              );
-            })}
+              <svg
+                className={`w-4 h-4 transition-transform text-gray-500 ${isExpanded ? 'rotate-90' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="text-sm font-bold text-charcoal uppercase tracking-wide">
+                {category}
+              </span>
+              <span className="text-xs text-gray-400">
+                ({permissions.filter((p) => poolCodes.has(p.code)).length}/{permissions.length})
+              </span>
+            </button>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={allChecked}
+                ref={(el) => {
+                  if (el) el.indeterminate = someChecked && !allChecked;
+                }}
+                onChange={onToggleCategory}
+                className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+              />
+              <span className="text-xs text-gray-500">{allChecked ? 'All' : 'Toggle'}</span>
+            </label>
           </div>
         </div>
 
-        {/* Expanded permission cards */}
+        {/* Expanded permission list */}
         {isExpanded && (
           <div className="divide-y divide-gray-100">
-            {permissions.map((perm) => (
-              <div key={perm.code} className="px-4 py-3">
-                <div className="mb-2">
-                  <span className="text-sm font-medium text-charcoal">{perm.code}</span>
-                  {perm.description && (
-                    <p className="text-xs text-gray-500">{perm.description}</p>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {roles.map((role) => {
-                    const roleSet = editState[role.id] || new Set<string>();
-                    const checked = roleSet.has(perm.code);
-                    return (
-                      <label
-                        key={role.id}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${
-                          checked
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => onTogglePermission(role.id, perm.code)}
-                          className="w-3.5 h-3.5 text-emerald-600 rounded focus:ring-emerald-500"
-                        />
-                        {role.name}
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+            {permissions.map((perm) => {
+              const checked = poolCodes.has(perm.code);
+              const changed = checked !== originalPoolCodes.has(perm.code);
+              return (
+                <label
+                  key={perm.code}
+                  className={`flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                    changed ? 'bg-emerald-50/50' : ''
+                  }`}
+                >
+                  <div>
+                    <span className="text-sm font-medium text-charcoal">{perm.code}</span>
+                    {perm.description && (
+                      <p className="text-xs text-gray-500">{perm.description}</p>
+                    )}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => onTogglePermission(perm.code)}
+                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 ml-3 flex-shrink-0"
+                  />
+                </label>
+              );
+            })}
           </div>
         )}
       </CardContent>

@@ -264,4 +264,32 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ MEMBER CONTRIBUTION ASSIGNMENTS ═══════════ -->
+	<changeSet id="a1b2c3d4-0038-4aaa-bbbb-assign000032" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[32]]></param>
+			<param name="code"><![CDATA[contribution.manage_assignments]]></param>
+			<param name="description"><![CDATA[Manage member contribution assignments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ ROLE MANAGEMENT ═══════════ -->
+	<changeSet id="d5e6f7a8-0039-4aaa-bbbb-role00000033" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[33]]></param>
+			<param name="code"><![CDATA[role.view]]></param>
+			<param name="description"><![CDATA[View roles and their assigned permissions]]></param>
+			<param name="category"><![CDATA[role]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e6f7a8b9-0039-4aaa-bbbb-role00000034" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[34]]></param>
+			<param name="code"><![CDATA[role.manage]]></param>
+			<param name="description"><![CDATA[Create, edit, and delete roles and assign permissions to roles]]></param>
+			<param name="category"><![CDATA[role]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

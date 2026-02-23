@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.mosque.crm.dto.MemberDTO;
 import com.mosque.crm.entity.GedcomPersonLink;
+import com.mosque.crm.entity.PasswordResetToken;
 import com.mosque.crm.entity.Person;
 import com.mosque.crm.entity.Role;
 import com.mosque.crm.entity.User;
@@ -21,6 +24,7 @@ import com.mosque.crm.entity.UserMemberLink;
 import com.mosque.crm.entity.gedcom.Individual;
 import com.mosque.crm.enums.PersonStatus;
 import com.mosque.crm.repository.GedcomPersonLinkRepository;
+import com.mosque.crm.repository.PasswordResetTokenRepository;
 import com.mosque.crm.repository.PersonRepository;
 import com.mosque.crm.repository.RoleRepository;
 import com.mosque.crm.repository.UserMemberLinkRepository;
@@ -29,6 +33,8 @@ import com.mosque.crm.repository.UserRepository;
 @Service
 @Transactional
 public class MemberService {
+
+    private static final Logger log = LoggerFactory.getLogger(MemberService.class);
 
 
     @Autowired
@@ -48,6 +54,15 @@ public class MemberService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private ConfigurationService configurationService;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     public List<MemberDTO> getAllMembers() {
         List<Person> persons = personRepository.findAll();
@@ -116,12 +131,21 @@ public class MemberService {
                 Person updatedPerson = personRepository.save(person);
 
                 // --- ACCOUNT MANAGEMENT LOGIC ---
-                if (memberDTO.isAccountEnabled() && StringUtils.isNotBlank(memberDTO.getUsername())) {
-                    User user = userRepository.findByUsername(memberDTO.getUsername()).orElse(null);
+                if (memberDTO.isAccountEnabled()) {
+                    // Use email as username if provided, otherwise fall back to explicit username
+                    String username = StringUtils.isNotBlank(memberDTO.getEmail())
+                            ? memberDTO.getEmail()
+                            : memberDTO.getUsername();
+
+                    if (StringUtils.isBlank(username)) {
+                        throw new IllegalArgumentException("Email is required to create a user account");
+                    }
+
+                    User user = userRepository.findByUsername(username).orElse(null);
                     boolean isNewUser = false;
                     if (user == null) {
                         user = new User();
-                        user.setUsername(memberDTO.getUsername());
+                        user.setUsername(username);
                         isNewUser = true;
                     }
                     user.setEmail(memberDTO.getEmail());
@@ -130,12 +154,11 @@ public class MemberService {
                     if (user.getMosqueId() == null) {
                         user.setMosqueId(com.mosque.crm.multitenancy.TenantContext.getCurrentMosqueId());
                     }
-                    // Set password if provided
-                    if (StringUtils.isNotBlank(memberDTO.getPassword())) {
-                        user.setPassword(passwordEncoder.encode(memberDTO.getPassword()));
-                    } else if (isNewUser) {
-                        // If creating a new user and no password provided, set a random password (or throw error)
-                        user.setPassword(passwordEncoder.encode("changeme123"));
+                    // For new users: generate a random temporary password and require change on first login
+                    if (isNewUser) {
+                        String tempPassword = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+                        user.setPassword(passwordEncoder.encode(tempPassword));
+                        user.setMustChangePassword(true);
                     }
                     // Assign roles
                     List<String> roleNames = memberDTO.getRoles();
@@ -163,6 +186,29 @@ public class MemberService {
                     } else {
                         userLink.setPerson(updatedPerson);
                         userMemberLinkRepository.save(userLink);
+                    }
+
+                    // Send welcome email with password setup link for new users
+                    if (isNewUser && StringUtils.isNotBlank(memberDTO.getEmail())) {
+                        try {
+                            // Generate a password setup token (reuses password reset token mechanism)
+                            String setupToken = java.util.UUID.randomUUID().toString();
+                            java.time.LocalDateTime expiresAt = java.time.LocalDateTime.now().plusHours(72); // 72 hours for new accounts
+                            PasswordResetToken resetToken = new PasswordResetToken(user, setupToken, expiresAt);
+                            passwordResetTokenRepository.save(resetToken);
+
+                            String appName = configurationService.getAppName();
+                            emailService.sendWelcomeEmail(
+                                    memberDTO.getEmail(),
+                                    updatedPerson.getFirstName(),
+                                    username,
+                                    appName,
+                                    setupToken,
+                                    "en" // default language
+                            );
+                        } catch (Exception e) {
+                            log.warn("Failed to send welcome email to {}: {}", memberDTO.getEmail(), e.getMessage());
+                        }
                     }
                 }
 

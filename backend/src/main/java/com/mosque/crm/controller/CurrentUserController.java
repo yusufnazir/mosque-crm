@@ -77,6 +77,7 @@ public class CurrentUserController {
         dto.setPermissions(new ArrayList<>(permissions));
         dto.setRoles(roleNames);
         dto.setPreferences(preferencesDTO);
+        dto.setMustChangePassword(user.isMustChangePassword());
 
         // Resolve mosque name if user is assigned to a mosque
         if (user.getMosqueId() != null) {

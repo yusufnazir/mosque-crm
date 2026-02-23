@@ -1,6 +1,9 @@
 package com.mosque.crm.service;
 
+import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -321,5 +324,29 @@ public class MemberPaymentService {
             dto.setReversedPaymentId(payment.getReversedPayment().getId());
         }
         return dto;
+    }
+
+    /**
+     * Get total income grouped by contribution type for a specific year.
+     * Returns a map of contribution type code → total amount.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, BigDecimal> getIncomeByContributionType(int year) {
+        List<Object[]> rows = paymentRepository.sumAmountByContributionTypeForYear(year);
+        Map<String, BigDecimal> result = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            String code = (String) row[0];
+            BigDecimal total = (BigDecimal) row[1];
+            result.put(code, total);
+        }
+        return result;
+    }
+
+    /**
+     * Get all distinct years that have payment data.
+     */
+    @Transactional(readOnly = true)
+    public List<Integer> getPaymentYears() {
+        return paymentRepository.findDistinctPaymentYears();
     }
 }

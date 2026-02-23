@@ -56,6 +56,9 @@ public class User {
     @Column(name = "last_login_at")
     private LocalDateTime lastLogin;
 
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword = false;
+
     @Column(name = "mosque_id")
     private Long mosqueId;
 
@@ -205,6 +208,14 @@ public class User {
 
     public void setMemberLink(UserMemberLink memberLink) {
         this.memberLink = memberLink;
+    }
+
+    public boolean isMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public void setMustChangePassword(boolean mustChangePassword) {
+        this.mustChangePassword = mustChangePassword;
     }
 
     @PrePersist

@@ -95,4 +95,8 @@ public class ConfigurationService {
     public String getAppName() {
         return getValue("APP_NAME").orElse("MemberFlow");
     }
+
+    public String getAppBaseUrl() {
+        return getValue("APP_BASE_URL").orElse("http://localhost:3000");
+    }
 }

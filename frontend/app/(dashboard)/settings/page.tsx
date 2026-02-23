@@ -24,10 +24,12 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [appNameInput, setAppNameInput] = useState('');
+  const [appNameInput, setAppNameInput] = useState(appName);
+  const [appBaseUrlInput, setAppBaseUrlInput] = useState('');
 
   useEffect(() => {
     fetchMailServerConfig();
+    fetchAppBaseUrl();
   }, []);
 
   useEffect(() => {
@@ -44,6 +46,18 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Failed to fetch mail server config:', error);
+    }
+  };
+
+  const fetchAppBaseUrl = async () => {
+    try {
+      const response = await fetch('/api/configurations/APP_BASE_URL');
+      if (response.ok) {
+        const data = await response.json();
+        setAppBaseUrlInput(data.value || '');
+      }
+    } catch (error) {
+      console.error('Failed to fetch app base URL:', error);
     }
   };
 
@@ -104,6 +118,13 @@ export default function SettingsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'APP_NAME', value: appNameInput }),
+      });
+
+      // Save base URL as well
+      await fetch('/api/configurations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'APP_BASE_URL', value: appBaseUrlInput }),
       });
 
       if (response.ok) {
@@ -173,6 +194,20 @@ export default function SettingsPage() {
                 placeholder="MemberFlow"
               />
               <p className="mt-1 text-sm text-gray-500">{t('settings.app_name_description')}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.app_base_url')}
+              </label>
+              <input
+                type="url"
+                value={appBaseUrlInput}
+                onChange={(e) => setAppBaseUrlInput(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                placeholder="http://localhost:3000"
+              />
+              <p className="mt-1 text-sm text-gray-500">{t('settings.app_base_url_description')}</p>
             </div>
 
             {message && (

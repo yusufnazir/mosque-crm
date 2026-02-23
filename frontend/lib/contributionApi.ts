@@ -350,6 +350,55 @@ export async function createPeriodicPayments(
   return { created: [result], skippedCount: 0, skippedPeriods: [] };
 }
 
+// ===== Assignments =====
+
+export interface MemberContributionAssignment {
+  id: number;
+  personId: number;
+  personName: string;
+  contributionTypeId: number;
+  contributionTypeCode: string;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+  notes?: string;
+}
+
+export interface MemberContributionAssignmentCreate {
+  contributionTypeId: number;
+  personId?: number;
+  personIds?: number[];
+  startDate: string;
+  endDate?: string;
+  notes?: string;
+}
+
+export const contributionAssignmentApi = {
+  getAll: (): Promise<MemberContributionAssignment[]> =>
+    ApiClient.get('/contributions/assignments'),
+
+  getByPerson: (personId: number | string): Promise<MemberContributionAssignment[]> =>
+    ApiClient.get(`/contributions/assignments/by-person/${personId}`),
+
+  getActiveByPerson: (personId: number | string): Promise<MemberContributionAssignment[]> =>
+    ApiClient.get(`/contributions/assignments/by-person/${personId}/active`),
+
+  getByType: (typeId: number): Promise<MemberContributionAssignment[]> =>
+    ApiClient.get(`/contributions/assignments/by-type/${typeId}`),
+
+  create: (data: MemberContributionAssignmentCreate): Promise<MemberContributionAssignment[]> =>
+    ApiClient.post('/contributions/assignments', data),
+
+  update: (id: number, data: MemberContributionAssignmentCreate): Promise<MemberContributionAssignment> =>
+    ApiClient.put(`/contributions/assignments/${id}`, data),
+
+  toggleActive: (id: number): Promise<MemberContributionAssignment> =>
+    ApiClient.patch(`/contributions/assignments/${id}/toggle`),
+
+  delete: (id: number): Promise<void> =>
+    ApiClient.delete(`/contributions/assignments/${id}`),
+};
+
 // ===== Exemptions =====
 
 export interface MemberContributionExemption {

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './Card';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { familyApi } from '@/lib/familyApi';
-import { memberApi } from '@/lib/api';
+import { memberApi, paymentStatsApi } from '@/lib/api';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS, 
@@ -44,6 +44,12 @@ export default function DashboardCharts() {
   const [ageGenderData, setAgeGenderData] = useState<AgeGenderBucket[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Income chart state
+  const [incomeData, setIncomeData] = useState<Record<string, number>>({});
+  const [incomeYears, setIncomeYears] = useState<number[]>([]);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [incomeLoading, setIncomeLoading] = useState(false);
+
 
   useEffect(() => {
     async function fetchData() {
@@ -80,6 +86,38 @@ export default function DashboardCharts() {
     }
     fetchData();
   }, []);
+
+  // Fetch income data and available years
+  useEffect(() => {
+    async function fetchYears() {
+      try {
+        const years = await paymentStatsApi.getPaymentYears();
+        setIncomeYears(years);
+        if (years.length > 0 && !years.includes(selectedYear)) {
+          setSelectedYear(years[0]);
+        }
+      } catch (e) {
+        console.error('Payment years API error', e);
+      }
+    }
+    fetchYears();
+  }, []);
+
+  useEffect(() => {
+    async function fetchIncome() {
+      setIncomeLoading(true);
+      try {
+        const data = await paymentStatsApi.getIncomeByType(selectedYear);
+        setIncomeData(data);
+      } catch (e) {
+        console.error('Income by type API error', e);
+        setIncomeData({});
+      } finally {
+        setIncomeLoading(false);
+      }
+    }
+    fetchIncome();
+  }, [selectedYear]);
   // Grouped bar chart: Members' ages by gender
   // Prepare buckets and genders
   const ageBuckets = React.useMemo(() => {
@@ -191,8 +229,89 @@ export default function DashboardCharts() {
   // If not, add at the top:
   // import { Bar, Pie } from 'react-chartjs-2';
 
+  // Income chart data
+  const incomeChartColors = [
+    '#047857', '#D4AF37', '#0284c7', '#dc2626', '#7c3aed',
+    '#ea580c', '#0891b2', '#be185d', '#4d7c0f', '#6366f1',
+  ];
+
+  const incomeLabels = Object.keys(incomeData);
+  const incomeValues = Object.values(incomeData);
+
+  const incomeChart = {
+    labels: incomeLabels,
+    datasets: [
+      {
+        label: t('dashboard.total_income'),
+        data: incomeValues,
+        backgroundColor: incomeLabels.map((_, i) => incomeChartColors[i % incomeChartColors.length]),
+      },
+    ],
+  };
+
   return (
     <>
+      {/* Income by Contribution Type chart — full width */}
+      <div className="mt-6 md:mt-8">
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle>{t('dashboard.income_by_type_chart')}</CardTitle>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
+              >
+                {incomeYears.length > 0 ? (
+                  incomeYears.map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))
+                ) : (
+                  <option value={selectedYear}>{selectedYear}</option>
+                )}
+              </select>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {incomeLoading ? (
+              <div className="flex items-center justify-center py-12 text-gray-400">
+                {t('dashboard.loading_charts')}
+              </div>
+            ) : incomeLabels.length === 0 ? (
+              <div className="flex items-center justify-center py-12 text-gray-400">
+                {t('dashboard.no_income_data')}
+              </div>
+            ) : (
+              <div style={{ maxHeight: '300px' }}>
+              <Bar data={incomeChart} options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: (ctx) => {
+                        const val = ctx.parsed.y;
+                        return ` ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      callback: (value) => Number(value).toLocaleString(),
+                    },
+                  },
+                },
+              }} />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 <Card>
                   <CardHeader>

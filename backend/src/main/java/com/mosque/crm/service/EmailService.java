@@ -73,7 +73,7 @@ public class EmailService {
         );
 
         // Build reset URL
-        String resetUrl = "http://localhost:3000/reset-password?token=" + resetToken;
+        String resetUrl = configurationService.getAppBaseUrl() + "/reset-password?token=" + resetToken;
 
         // Prepare email content based on locale
         String emailSubject = getSubject(locale);
@@ -157,6 +157,129 @@ public class EmailService {
             return "Wachtwoord Herstel Verzoek - " + appName;
         }
         return "Password Reset Request - " + appName;
+    }
+
+    /**
+     * Send welcome email to a newly created user account with a password setup link
+     */
+    public void sendWelcomeEmail(String toEmail, String firstName, String username, String appName, String setupToken, String locale) {
+        if (toEmail == null || toEmail.isEmpty()) {
+            log.warn("Cannot send welcome email: no email address provided.");
+            return;
+        }
+
+        // Get mail server configuration
+        String host = configurationService.getMailServerHost();
+        String mailUsername = configurationService.getMailServerUsername();
+        String mailPassword = configurationService.getMailServerPassword();
+        String projectUuid = configurationService.getMailServerProjectUuid();
+
+        // Build password setup URL using the reset-password page with the token
+        String setupUrl = configurationService.getAppBaseUrl() + "/reset-password?token=" + setupToken;
+
+        if (host == null || host.isEmpty()) {
+            log.error("Mail server not configured. Cannot send welcome email.");
+            log.info("=== WELCOME EMAIL (Fallback - Mail server not configured) ===");
+            log.info("To: {}", toEmail);
+            log.info("Username: {}", username);
+            log.info("App: {}", appName);
+            log.info("Password Setup URL: {}", setupUrl);
+            log.info("=============================================================");
+            return;
+        }
+
+        // Prepare email content
+        String emailSubject = getWelcomeSubject(locale, appName);
+        String emailBody = buildWelcomeEmailBody(firstName, username, setupUrl, appName, locale);
+
+        // Prepare request payload
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("to", Arrays.asList(toEmail));
+        payload.put("subject", emailSubject);
+        payload.put("text", emailBody);
+        payload.put("projectId", projectUuid);
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            if (mailUsername != null && !mailUsername.isEmpty() &&
+                mailPassword != null && !mailPassword.isEmpty()) {
+                String auth = mailUsername + ":" + mailPassword;
+                byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+                String authHeader = "Basic " + new String(encodedAuth);
+                headers.set("Authorization", authHeader);
+            }
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+            String mailEndpoint = host + "/rest/v1/api/register-mail";
+
+            log.info("Sending welcome email to: {}", toEmail);
+            ResponseEntity<String> response = restTemplate.postForEntity(mailEndpoint, request, String.class);
+
+            HttpStatus status = (HttpStatus) response.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                log.info("Welcome email sent successfully to: {}", toEmail);
+            } else {
+                log.error("Failed to send welcome email. Status: {}", status);
+                fallbackWelcomeLog(toEmail, emailSubject, emailBody, setupUrl);
+            }
+        } catch (Exception e) {
+            log.error("Error sending welcome email to {}: {}", toEmail, e.getMessage());
+            fallbackWelcomeLog(toEmail, emailSubject, emailBody, setupUrl);
+        }
+    }
+
+    private String getWelcomeSubject(String locale, String appName) {
+        if ("nl".equalsIgnoreCase(locale)) {
+            return "Welkom bij " + appName;
+        }
+        return "Welcome to " + appName;
+    }
+
+    private void fallbackWelcomeLog(String toEmail, String subject, String body, String setupUrl) {
+        log.info("=== WELCOME EMAIL (Fallback - Mail server error) ===");
+        log.info("To: {}", toEmail);
+        log.info("Subject: {}", subject);
+        log.info("Body:\n{}", body);
+        log.info("Password Setup URL: {}", setupUrl);
+        log.info("=====================================================");
+    }
+
+    private String buildWelcomeEmailBody(String firstName, String username, String setupUrl, String appName, String locale) {
+        try {
+            String templateName = "nl".equalsIgnoreCase(locale)
+                ? "email/welcome-nl.ftl"
+                : "email/welcome-en.ftl";
+
+            Template template = freemarkerConfig.getTemplate(templateName);
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("firstName", firstName);
+            model.put("username", username);
+            model.put("setupUrl", setupUrl);
+            model.put("appName", appName);
+
+            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        } catch (Exception e) {
+            log.error("Error processing welcome email template", e);
+            // Fallback to simple text
+            return String.format("""
+                Hello %s,
+
+                An account has been created for you on %s.
+
+                Your username is: %s
+
+                Please visit the link below to set your password:
+                %s
+
+                This link will expire in 72 hours.
+
+                Best regards,
+                %s Team
+                """, firstName, appName, username, setupUrl, appName);
+        }
     }
 
     /**

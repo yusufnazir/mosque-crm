@@ -33,7 +33,7 @@ public class MosqueController {
     }
 
     @GetMapping
-    @PreAuthorize("@auth.hasPermission('mosque.manage')")
+    @PreAuthorize("@auth.hasPermission('organization.manage')")
     public ResponseEntity<List<MosqueDTO>> getAllMosques() {
         List<MosqueDTO> mosques = mosqueRepository.findAll().stream()
                 .map(this::toDTO)
@@ -50,7 +50,7 @@ public class MosqueController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("@auth.hasPermission('mosque.manage')")
+    @PreAuthorize("@auth.hasPermission('organization.manage')")
     public ResponseEntity<MosqueDTO> getMosqueById(@PathVariable Long id) {
         return mosqueRepository.findById(id)
                 .map(this::toDTO)
@@ -59,7 +59,7 @@ public class MosqueController {
     }
 
     @PostMapping
-    @PreAuthorize("@auth.hasPermission('mosque.manage')")
+    @PreAuthorize("@auth.hasPermission('organization.manage')")
     public ResponseEntity<MosqueDTO> createMosque(@RequestBody MosqueDTO dto) {
         if (mosqueRepository.existsByName(dto.getName())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -83,7 +83,7 @@ public class MosqueController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("@auth.hasPermission('mosque.manage')")
+    @PreAuthorize("@auth.hasPermission('organization.manage')")
     public ResponseEntity<MosqueDTO> updateMosque(@PathVariable Long id, @RequestBody MosqueDTO dto) {
         return mosqueRepository.findById(id)
                 .map(mosque -> {

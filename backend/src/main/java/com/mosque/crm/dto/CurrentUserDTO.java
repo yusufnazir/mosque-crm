@@ -23,6 +23,7 @@ public class CurrentUserDTO {
     private UserPreferencesDTO preferences;
     private Long selectedMosqueId;
     private String selectedMosqueName;
+    private boolean mustChangePassword;
 
     public CurrentUserDTO() {
     }
@@ -122,5 +123,13 @@ public class CurrentUserDTO {
 
     public void setSelectedMosqueName(String selectedMosqueName) {
         this.selectedMosqueName = selectedMosqueName;
+    }
+
+    public boolean isMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public void setMustChangePassword(boolean mustChangePassword) {
+        this.mustChangePassword = mustChangePassword;
     }
 }

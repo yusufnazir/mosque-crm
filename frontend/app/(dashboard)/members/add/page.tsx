@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import Button from '@/components/Button';
 import { memberApi, ApiClient } from '@/lib/api';
 import { Member } from '@/types';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 interface MemberFormData {
   firstName: string;
@@ -20,7 +21,6 @@ interface MemberFormData {
   postalCode: string;
   membershipStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   username: string;
-  password: string;
   roles: string[];
   partnerId?: number;
   parentId?: number;
@@ -29,6 +29,7 @@ interface MemberFormData {
 
 export default function AddMemberPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [headMembers, setHeadMembers] = useState<Member[]>([]);
@@ -46,7 +47,6 @@ export default function AddMemberPage() {
     postalCode: '',
     membershipStatus: 'ACTIVE',
     username: '',
-    password: '',
     roles: ['MEMBER'],
     needsAccount: false,
   });
@@ -81,6 +81,13 @@ export default function AddMemberPage() {
     // Convert partnerId and parentId to numbers if they have values
     if (name === 'partnerId' || name === 'parentId') {
       setFormData((prev) => ({ ...prev, [name]: value ? Number(value) : undefined }));
+    } else if (name === 'email') {
+      // When email changes, update username if account is enabled
+      setFormData((prev) => ({
+        ...prev,
+        email: value,
+        username: prev.needsAccount ? (value || prev.username) : prev.username,
+      }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -100,7 +107,7 @@ export default function AddMemberPage() {
         if (key === 'needsAccount') return;
         
         // Skip account-related fields if account is not needed
-        if (!formData.needsAccount && ['username', 'password', 'roles'].includes(key)) {
+        if (!formData.needsAccount && ['username', 'roles'].includes(key)) {
           return;
         }
         
@@ -130,12 +137,12 @@ export default function AddMemberPage() {
             size="sm"
             onClick={() => router.push('/members')}
           >
-            ← Back to Members
+            ← {t('members.back_to_members')}
           </Button>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">Add New Member</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('member_add.title')}</h1>
         <p className="text-gray-600">
-          Create a new member. Head of household needs an account to manage family and contributions.
+          {t('member_add.subtitle')}
         </p>
       </div>
 
@@ -145,7 +152,7 @@ export default function AddMemberPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
+                <CardTitle>{t('member_edit.personal_information')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {error && (
@@ -157,7 +164,7 @@ export default function AddMemberPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      First Name <span className="text-red-500">*</span>
+                      {t('member_edit.first_name')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -171,7 +178,7 @@ export default function AddMemberPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name <span className="text-red-500">*</span>
+                      {t('member_edit.last_name')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -185,7 +192,7 @@ export default function AddMemberPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email
+                      {t('member_detail.email')}
                     </label>
                     <input
                       type="email"
@@ -198,7 +205,7 @@ export default function AddMemberPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone
+                      {t('member_detail.phone')}
                     </label>
                     <input
                       type="tel"
@@ -211,7 +218,7 @@ export default function AddMemberPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date of Birth <span className="text-red-500">*</span>
+                      {t('member_detail.date_of_birth')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -225,7 +232,7 @@ export default function AddMemberPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Gender <span className="text-red-500">*</span>
+                      {t('member_detail.gender')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="gender"
@@ -234,15 +241,15 @@ export default function AddMemberPage() {
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                     >
-                      <option value="MALE">Male</option>
-                      <option value="FEMALE">Female</option>
+                      <option value="MALE">{t('member_edit.male')}</option>
+                      <option value="FEMALE">{t('member_edit.female')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address
+                    {t('member_detail.address')}
                   </label>
                   <textarea
                     name="address"
@@ -255,7 +262,7 @@ export default function AddMemberPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('member_edit.city')}</label>
                     <input
                       type="text"
                       name="city"
@@ -266,7 +273,7 @@ export default function AddMemberPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('member_edit.country')}</label>
                     <input
                       type="text"
                       name="country"
@@ -278,7 +285,7 @@ export default function AddMemberPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Postal Code
+                      {t('member_edit.postal_code')}
                     </label>
                     <input
                       type="text"
@@ -299,7 +306,7 @@ export default function AddMemberPage() {
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>Membership Details</CardTitle>
+                <CardTitle>{t('member_edit.account_details')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -309,17 +316,22 @@ export default function AddMemberPage() {
                         type="checkbox"
                         name="needsAccount"
                         checked={formData.needsAccount}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, needsAccount: e.target.checked }))
-                        }
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setFormData((prev) => ({
+                            ...prev,
+                            needsAccount: checked,
+                            username: checked ? (prev.email || prev.username) : '',
+                          }));
+                        }}
                         className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                       />
                       <div>
                         <span className="text-sm font-medium text-gray-900">
-                          Create Account
+                          {t('member_add.create_account')}
                         </span>
                         <p className="text-xs text-gray-500">
-                          Head of household needs an account to manage family
+                          {t('member_add.create_account_hint')}
                         </p>
                       </div>
                     </label>
@@ -328,44 +340,28 @@ export default function AddMemberPage() {
                   {formData.needsAccount && (
                     <>
                       <div className="pt-4 border-t border-gray-200">
-                        <h4 className="text-sm font-semibold text-charcoal mb-3">Account Credentials</h4>
+                        <h4 className="text-sm font-semibold text-charcoal mb-3">{t('member_add.account_setup')}</h4>
                       </div>
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Username <span className="text-red-500">*</span>
+                          {t('member_detail.username')}
                         </label>
                         <input
                           type="text"
                           name="username"
                           value={formData.username}
-                          onChange={handleInputChange}
-                          required={formData.needsAccount}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Password <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          required={formData.needsAccount}
-                          minLength={6}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                          readOnly
+                          className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          Minimum 6 characters
+                          {t('member_edit.username_from_email')}
                         </p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Roles <span className="text-red-500">*</span>
+                          {t('member_edit.roles')} <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {availableRoles.map((role) => (
@@ -393,7 +389,7 @@ export default function AddMemberPage() {
 
                   <div className={formData.needsAccount ? 'pt-4 border-t border-gray-200' : ''}>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Membership Status <span className="text-red-500">*</span>
+                      {t('member_edit.membership_status')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="membershipStatus"
@@ -402,9 +398,9 @@ export default function AddMemberPage() {
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                     >
-                      <option value="ACTIVE">Active</option>
-                      <option value="INACTIVE">Inactive</option>
-                      <option value="SUSPENDED">Suspended</option>
+                      <option value="ACTIVE">{t('member_edit.active')}</option>
+                      <option value="INACTIVE">{t('member_edit.inactive')}</option>
+                      <option value="SUSPENDED">{t('member_edit.suspended')}</option>
                     </select>
                   </div>
                 </div>
@@ -413,7 +409,7 @@ export default function AddMemberPage() {
 
             <div className="mt-6 space-y-3">
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Creating Member...' : 'Create Member'}
+                {loading ? t('member_add.creating') : t('member_add.create')}
               </Button>
               <Button
                 type="button"
@@ -422,7 +418,7 @@ export default function AddMemberPage() {
                 onClick={() => router.push('/members')}
                 disabled={loading}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </div>
