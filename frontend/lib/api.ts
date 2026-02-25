@@ -1,4 +1,4 @@
-import { RelationshipResponse } from '../types';
+import { RelationshipResponse, PersonSearchResult } from '../types';
 
 /**
  * BFF API Client.
