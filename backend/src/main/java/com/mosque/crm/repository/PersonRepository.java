@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -115,5 +117,38 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
 	 */
 	@Query("SELECT COUNT(p) FROM Person p")
 	long countAllPersons();
+
+	/**
+	 * Paginated search with optional search term.
+	 * Searches across firstName, lastName, and email (case-insensitive).
+	 */
+	@Query("SELECT p FROM Person p WHERE "
+		+ "(:search IS NULL OR :search = '' OR "
+		+ "LOWER(p.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR "
+		+ "LOWER(p.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR "
+		+ "LOWER(p.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+	Page<Person> findPagedWithSearch(@Param("search") String search, Pageable pageable);
+
+	/**
+	 * Count for paginated search.
+	 */
+	@Query("SELECT COUNT(p) FROM Person p WHERE "
+		+ "(:search IS NULL OR :search = '' OR "
+		+ "LOWER(p.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR "
+		+ "LOWER(p.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR "
+		+ "LOWER(p.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+	long countWithSearch(@Param("search") String search);
+
+	/**
+	 * Fetch persons by IDs with associations eagerly loaded (for paginated results).
+	 */
+	@Query("SELECT DISTINCT p FROM Person p "
+		+ "LEFT JOIN FETCH p.userLink ul "
+		+ "LEFT JOIN FETCH ul.user u "
+		+ "LEFT JOIN FETCH u.roles "
+		+ "LEFT JOIN FETCH p.gedcomLink gl "
+		+ "LEFT JOIN FETCH gl.gedcomIndividual "
+		+ "WHERE p.id IN :ids")
+	List<Person> findByIdsWithAssociations(@Param("ids") List<Long> ids);
 
 }

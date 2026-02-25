@@ -140,6 +140,17 @@
 			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[34]]></param>
 		</customChange>
 	</changeSet>
+	<!-- report.view (35), report.export (36) -->
+	<changeSet id="f0a1b2c3-0040-4aaa-bbbb-admin00rol35" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[35]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="a1b2c3d4-0040-4aaa-bbbb-admin00rol36" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[36]]></param>
+		</customChange>
+	</changeSet>
 
 	<!-- ═══════════════════════════════════════════════════════════
 	     MEMBER (role_id=2) → dashboard.view, profile.view, profile.fees, family.view

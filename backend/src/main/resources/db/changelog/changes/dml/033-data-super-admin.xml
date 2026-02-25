@@ -214,6 +214,17 @@
 			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[34]]></param>
 		</customChange>
 	</changeSet>
+	<!-- SUPER_ADMIN → report.view (35), report.export (36) -->
+	<changeSet id="c6d7e8f9-0040-4aaa-bbbb-super0rol035" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[35]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="d7e8f9a0-0040-4aaa-bbbb-super0rol036" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[36]]></param>
+		</customChange>
+	</changeSet>
 
 	<!-- ═══════════ PROMOTE ADMIN USER TO SUPER_ADMIN ═══════════ -->
 	<!-- Update admin user (id=1) to have SUPER_ADMIN role instead of ADMIN -->

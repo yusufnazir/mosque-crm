@@ -5,13 +5,20 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mosque.crm.dto.PageResponse;
 import com.mosque.crm.dto.PersonCreateDTO;
 import com.mosque.crm.dto.PersonDTO;
 import com.mosque.crm.dto.PersonUpdateDTO;
@@ -116,6 +123,64 @@ public class PersonService {
         return personRepository.findAllWithActiveMemberships().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get persons with server-side pagination, search, and sorting.
+     * Uses a two-step approach:
+     * 1. Paginated ID query (lightweight, filterable, sortable)
+     * 2. Batch-fetch full entities with associations for the page's IDs
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<PersonDTO> getPersonsPaged(int page, int size, String search, String sortBy, String direction) {
+        // Build sort
+        Sort sort = buildSort(sortBy, direction);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // Step 1: Get paged IDs with search filter
+        String searchTerm = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+        Page<Person> pagedResult = personRepository.findPagedWithSearch(searchTerm, pageable);
+
+        if (pagedResult.isEmpty()) {
+            return new PageResponse<>(List.of(), page, size, pagedResult.getTotalElements());
+        }
+
+        // Step 2: Batch-fetch associations for this page's persons
+        List<Long> pageIds = pagedResult.getContent().stream()
+                .map(Person::getId)
+                .collect(Collectors.toList());
+        List<Person> personsWithAssociations = personRepository.findByIdsWithAssociations(pageIds);
+
+        // Preserve sort order from step 1
+        Map<Long, Person> personMap = personsWithAssociations.stream()
+                .collect(Collectors.toMap(Person::getId, Function.identity()));
+        List<Person> orderedPersons = pageIds.stream()
+                .map(personMap::get)
+                .filter(p -> p != null)
+                .collect(Collectors.toList());
+
+        // Pre-load active membership IDs for this batch
+        Set<Long> activeMemberPersonIds = new HashSet<>(membershipRepository.findPersonIdsWithActiveMembership());
+
+        List<PersonDTO> dtos = orderedPersons.stream()
+                .map(p -> convertToDTO(p, activeMemberPersonIds))
+                .collect(Collectors.toList());
+
+        return new PageResponse<>(dtos, page, size, pagedResult.getTotalElements());
+    }
+
+    private Sort buildSort(String sortBy, String direction) {
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            return Sort.by(Sort.Direction.ASC, "firstName");
+        }
+        Sort.Direction dir = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        return switch (sortBy) {
+            case "firstName" -> Sort.by(dir, "firstName");
+            case "lastName" -> Sort.by(dir, "lastName");
+            case "email" -> Sort.by(dir, "email");
+            case "status" -> Sort.by(dir, "status");
+            default -> Sort.by(Sort.Direction.ASC, "firstName");
+        };
     }
 
     /**
@@ -344,7 +409,12 @@ public class PersonService {
                 dto.setUsername(user.getUsername());
                 dto.setAccountEnabled(user.isAccountEnabled());
                 if (user.getRoles() != null && !user.getRoles().isEmpty()) {
-                    dto.setRole(user.getRoles().iterator().next().getName());
+                    List<String> roleNames = user.getRoles().stream()
+                            .map(r -> r.getName())
+                            .collect(Collectors.toList());
+                    dto.setRoles(roleNames);
+                    // Keep single role field for backward compatibility
+                    dto.setRole(roleNames.get(0));
                 }
             }
         }

@@ -19,7 +19,9 @@ import com.mosque.crm.entity.Person;
 import com.mosque.crm.entity.Role;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.repository.MosqueRepository;
+import com.mosque.crm.repository.PasswordResetTokenRepository;
 import com.mosque.crm.repository.RoleRepository;
+import com.mosque.crm.repository.UserPreferencesRepository;
 import com.mosque.crm.repository.UserRepository;
 
 @Service
@@ -37,17 +39,23 @@ public class UserManagementService {
     private final MosqueRepository mosqueRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthorizationService authorizationService;
+    private final UserPreferencesRepository userPreferencesRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
     public UserManagementService(UserRepository userRepository,
                                   RoleRepository roleRepository,
                                   MosqueRepository mosqueRepository,
                                   PasswordEncoder passwordEncoder,
-                                  AuthorizationService authorizationService) {
+                                  AuthorizationService authorizationService,
+                                  UserPreferencesRepository userPreferencesRepository,
+                                  PasswordResetTokenRepository passwordResetTokenRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.mosqueRepository = mosqueRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorizationService = authorizationService;
+        this.userPreferencesRepository = userPreferencesRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
     }
 
     /**
@@ -222,6 +230,9 @@ public class UserManagementService {
         if (isSuperAdminUser(user) && !canManageSuperAdmin()) {
             throw new IllegalArgumentException("Insufficient permissions to delete a super admin user");
         }
+        // Clean up related records that have FK constraints to users table
+        userPreferencesRepository.deleteByUserId(id);
+        passwordResetTokenRepository.deleteByUserId(id);
         userRepository.delete(user);
         authorizationService.evictCache(id);
         log.info("Deleted user '{}' (id={})", user.getUsername(), id);

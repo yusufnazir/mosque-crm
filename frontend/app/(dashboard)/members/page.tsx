@@ -3,14 +3,15 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
-import { memberApi } from '@/lib/api';
+import { memberApi, PageResponse } from '@/lib/api';
 import Button from '@/components/Button';
 import { PersonSearchResult } from '@/types';
 import { getInitials, getStatusColor, getLocalizedStatus } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 
-// Progressive rendering: render rows in batches for smooth scrolling with large datasets
-const VISIBLE_BATCH_SIZE = 100;
+const DEFAULT_PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+const SEARCH_DEBOUNCE_MS = 400;
 
 // Helper function to capitalize names properly
 const capitalizeName = (name: string | undefined): string => {
@@ -24,93 +25,99 @@ const capitalizeName = (name: string | undefined): string => {
 export default function MembersPage() {
   const router = useRouter();
   const { t } = useTranslation();
+
+  // Pagination state
   const [members, setMembers] = useState<PersonSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // Search & sort
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'firstName', direction: 'asc' });
-  const [visibleCount, setVisibleCount] = useState(VISIBLE_BATCH_SIZE);
 
-  // Callback ref — observer attaches/detaches whenever the sentinel element mounts/unmounts
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-      observerRef.current = null;
-    }
-    if (node) {
-      observerRef.current = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting) {
-            setVisibleCount((prev) => prev + VISIBLE_BATCH_SIZE);
-          }
-        },
-        { rootMargin: '200px' }
-      );
-      observerRef.current.observe(node);
-    }
-  }, []);
-
-  // Fetch once on mount — no server re-fetch for sort/filter changes
+  // Search debounce
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    fetchMembers();
-  }, []);
-
-  // Reset visible count when search changes
-  useEffect(() => {
-    setVisibleCount(VISIBLE_BATCH_SIZE);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(0);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
   }, [searchTerm]);
 
-  const fetchMembers = async () => {
+  // Fetch data when pagination/search/sort changes
+  const fetchMembers = useCallback(async () => {
+    setLoading(true);
     try {
-      const data: any = await memberApi.getAll();
-      setMembers(data);
+      const data = await memberApi.getPaged({
+        page,
+        size: pageSize,
+        search: debouncedSearch || undefined,
+        sortBy: sortConfig.key,
+        direction: sortConfig.direction,
+      }) as PageResponse<PersonSearchResult>;
+      setMembers(data.content);
+      setTotalElements(data.totalElements);
+      setTotalPages(data.totalPages);
     } catch (error) {
       console.error('Failed to fetch members:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, debouncedSearch, sortConfig]);
 
-  // Client-side sort toggle — instant, no server round-trip
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  // Sort toggle — triggers server-side re-fetch
   const handleSort = useCallback((key: string) => {
     setSortConfig((prev) => ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
+    setPage(0);
   }, []);
 
-  // Memoized filter + sort — only recalculates when data, search, or sort changes
-  const sortedAndFilteredMembers = useMemo(() => {
-    const term = searchTerm.toLowerCase();
-    const filtered = members.filter(
-      (member) =>
-        member.id &&
-        (
-          (member.firstName?.toLowerCase() || '').includes(term) ||
-          (member.lastName?.toLowerCase() || '').includes(term) ||
-          (member.email?.toLowerCase() || '').includes(term)
-        )
-    );
+  // Page navigation
+  const goToPage = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setPage(newPage);
+    }
+  };
 
-    return [...filtered].sort((a, b) => {
-      const key = sortConfig.key as keyof PersonSearchResult;
-      const aVal = (a[key] ?? '').toString().toLowerCase();
-      const bVal = (b[key] ?? '').toString().toLowerCase();
-      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [members, searchTerm, sortConfig]);
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+  };
 
-  // Only render rows up to visibleCount for DOM performance
-  const visibleMembers = useMemo(
-    () => sortedAndFilteredMembers.slice(0, visibleCount),
-    [sortedAndFilteredMembers, visibleCount]
-  );
+  // Compute display range
+  const startItem = totalElements === 0 ? 0 : page * pageSize + 1;
+  const endItem = Math.min((page + 1) * pageSize, totalElements);
 
-  const hasMore = visibleCount < sortedAndFilteredMembers.length;
+  // Generate page numbers to show
+  const pageNumbers = useMemo(() => {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(0, page - Math.floor(maxVisible / 2));
+    const end = Math.min(totalPages - 1, start + maxVisible - 1);
+    if (end - start < maxVisible - 1) {
+      start = Math.max(0, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }, [page, totalPages]);
 
-  if (loading) {
+  if (loading && members.length === 0) {
     return (
       <div className="p-4 md:p-8">
         <div className="animate-pulse">
@@ -134,20 +141,29 @@ export default function MembersPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle>{t('members.all_members')} ({sortedAndFilteredMembers.length})</CardTitle>
-            <input
-              type="text"
-              placeholder={t('members.search_members')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-            />
+            <CardTitle>{t('members.all_members')} ({totalElements})</CardTitle>
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                placeholder={t('members.search_members')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+              />
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 relative">
+          {/* Loading overlay for page transitions */}
+          {loading && members.length > 0 && (
+            <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            </div>
+          )}
+
           {/* Mobile: Card list */}
           <div className="md:hidden divide-y divide-gray-200">
-            {visibleMembers.map((member, index) => (
+            {members.map((member, index) => (
               <div
                 key={member.id || `member-${index}`}
                 className="p-4"
@@ -259,7 +275,7 @@ export default function MembersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {visibleMembers.map((member, index) => (
+                {members.map((member, index) => (
                   <tr key={member.id || `member-${index}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -320,15 +336,105 @@ export default function MembersPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Empty state */}
+          {members.length === 0 && !loading && (
+            <div className="p-8 text-center text-gray-500">
+              {debouncedSearch ? t('members.no_results') : t('members.no_members')}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Sentinel for progressive rendering + "showing X of Y" indicator */}
-      {hasMore && (
-        <div ref={sentinelRef} className="flex justify-center py-4">
-          <span className="text-sm text-gray-400">
-            {t('members.showing_count', { visible: visibleMembers.length, total: sortedAndFilteredMembers.length })}
-          </span>
+      {/* Pagination controls */}
+      {totalPages > 0 && (
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Page size selector + showing info */}
+          <div className="flex items-center gap-3 text-sm text-gray-600">
+            <span>{t('pagination.rows_per_page')}:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
+            >
+              {PAGE_SIZE_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            <span>
+              {t('pagination.showing_range', { start: String(startItem), end: String(endItem), total: String(totalElements) })}
+            </span>
+          </div>
+
+          {/* Page navigation */}
+          <div className="flex items-center gap-1">
+            {/* First page */}
+            <button
+              onClick={() => goToPage(0)}
+              disabled={page === 0}
+              className="px-2 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title={t('pagination.first')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+            </button>
+            {/* Previous */}
+            <button
+              onClick={() => goToPage(page - 1)}
+              disabled={page === 0}
+              className="px-2 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title={t('pagination.previous')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            {/* Page numbers */}
+            {pageNumbers.length > 0 && pageNumbers[0] > 0 && (
+              <span className="px-2 py-1.5 text-sm text-gray-400">...</span>
+            )}
+            {pageNumbers.map((p) => (
+              <button
+                key={p}
+                onClick={() => goToPage(p)}
+                className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                  p === page
+                    ? 'bg-emerald-600 text-white border-emerald-600'
+                    : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                {p + 1}
+              </button>
+            ))}
+            {pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1] < totalPages - 1 && (
+              <span className="px-2 py-1.5 text-sm text-gray-400">...</span>
+            )}
+
+            {/* Next */}
+            <button
+              onClick={() => goToPage(page + 1)}
+              disabled={page >= totalPages - 1}
+              className="px-2 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title={t('pagination.next')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            {/* Last page */}
+            <button
+              onClick={() => goToPage(totalPages - 1)}
+              disabled={page >= totalPages - 1}
+              className="px-2 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title={t('pagination.last')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -292,4 +292,22 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ REPORTS ═══════════ -->
+	<changeSet id="f7a8b9c0-0040-4aaa-bbbb-report000035" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[35]]></param>
+			<param name="code"><![CDATA[report.view]]></param>
+			<param name="description"><![CDATA[View and generate reports]]></param>
+			<param name="category"><![CDATA[report]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="a8b9c0d1-0040-4aaa-bbbb-report000036" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[36]]></param>
+			<param name="code"><![CDATA[report.export]]></param>
+			<param name="description"><![CDATA[Export reports to Excel and PDF]]></param>
+			<param name="category"><![CDATA[report]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

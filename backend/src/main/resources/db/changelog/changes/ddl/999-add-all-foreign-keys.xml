@@ -69,6 +69,16 @@
                                  referencedTableName="users" referencedColumnNames="id"/>
     </changeSet>
 
+    <!-- user_member_link.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000059" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_userlink_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="user_member_link" baseColumnNames="person_id"
+                                 constraintName="fk_userlink_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+    </changeSet>
+
     <!-- role_permissions.role_id → roles.id -->
     <changeSet id="99900001-fk00-0000-0000-000000000006" author="mosque-crm">
         <preConditions onFail="MARK_RAN">

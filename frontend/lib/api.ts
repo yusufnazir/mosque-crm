@@ -127,6 +127,16 @@ export const preferencesApi = {
 
 // Member API (backed by person+membership domain)
 
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
 export interface AgeGenderBucket {
   bucket: string;
   gender: string;
@@ -137,6 +147,15 @@ export const memberApi = {
   getAll: (queryParams?: string) => {
     const url = queryParams ? `/persons?${queryParams}` : '/persons';
     return ApiClient.get(url);
+  },
+  getPaged: (params: { page?: number; size?: number; search?: string; sortBy?: string; direction?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params.page !== undefined) searchParams.set('page', String(params.page));
+    if (params.size !== undefined) searchParams.set('size', String(params.size));
+    if (params.search) searchParams.set('search', params.search);
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.direction) searchParams.set('direction', params.direction);
+    return ApiClient.get<PageResponse<PersonSearchResult>>(`/persons/page?${searchParams.toString()}`);
   },
   getStats: () => ApiClient.get<{ total: number; active: number }>('/persons/stats'),
   getById: (id: string) => ApiClient.get(`/persons/${id}`),
@@ -185,5 +204,62 @@ export const relationshipApi = {
 export const personApi = {
   markAsDeceased: (personId: string, data: { dateOfDeath: string }) => 
     ApiClient.put(`/persons/${personId}/deceased`, data),
+};
+
+// ── Report types ──────────────────────────────────────────────────
+export interface CurrencyAmount {
+  currencyCode: string;
+  currencySymbol: string;
+  amount: number;
+}
+
+export interface ContributionTypeColumn {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface PersonPaymentRow {
+  personId: number;
+  lastName: string;
+  firstName: string;
+  /** contributionTypeId → list of CurrencyAmount */
+  amounts: Record<number, CurrencyAmount[]>;
+  totals: CurrencyAmount[];
+}
+
+export interface PaymentSummaryReport {
+  year: number;
+  contributionTypes: ContributionTypeColumn[];
+  rows: PersonPaymentRow[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface ContributionTotalRow {
+  contributionTypeId: number;
+  contributionTypeCode: string;
+  contributionTypeName: string;
+  totals: { currencyCode: string; amount: number }[];
+}
+
+export interface ContributionTotalReport {
+  year: number;
+  currencies: string[];
+  rows: ContributionTotalRow[];
+  grandTotals: { currencyCode: string; amount: number }[];
+}
+
+// Report API
+export const reportApi = {
+  getPaymentSummary: (year: number, locale: string = 'en', page: number = 0, size: number = 20): Promise<PaymentSummaryReport> =>
+    ApiClient.get(`/reports/payment-summary?year=${year}&locale=${encodeURIComponent(locale)}&page=${page}&size=${size}`),
+  /** Fetch ALL rows (no pagination) for export purposes */
+  getPaymentSummaryAll: (year: number, locale: string = 'en'): Promise<PaymentSummaryReport> =>
+    ApiClient.get(`/reports/payment-summary?year=${year}&locale=${encodeURIComponent(locale)}&page=0&size=0`),
+  getContributionTotals: (year: number, locale: string = 'en'): Promise<ContributionTotalReport> =>
+    ApiClient.get(`/reports/contribution-totals?year=${year}&locale=${encodeURIComponent(locale)}`),
 };
 

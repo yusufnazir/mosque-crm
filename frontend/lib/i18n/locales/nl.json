@@ -57,6 +57,7 @@
     "family_tree": "Stamboom",
     "contributions": "Contributies",
     "currencies": "Valuta's",
+    "reports": "Rapporten",
     "import": "Importeren",
     "users": "Gebruikers",
     "roles": "Rollen",
@@ -119,7 +120,9 @@
     "member": "Lid",
     "contact": "Contact",
     "type": "Type",
-    "unknown": "Onbekend"
+    "unknown": "Onbekend",
+    "no_results": "Geen leden gevonden voor uw zoekopdracht.",
+    "no_members": "Geen leden gevonden."
   },
   "member_detail": {
     "back_to_members": "Terug naar Leden",
@@ -662,5 +665,36 @@
     "total_paid": "Totaal betaald",
     "thank_you": "Dank u voor uw bijdrage.",
     "generated_on": "Gegenereerd op {{date}}"
+  },
+  "reports": {
+    "title": "Rapporten",
+    "subtitle": "Genereer, filter en exporteer rapporten uit uw gegevens",
+    "payment_summary": "Betalingsoverzicht",
+    "payment_summary_desc": "Overzicht van alle betalingen per lid, gegroepeerd op contributietype en jaar",
+    "year": "Jaar",
+    "no_data": "Geen betalingsgegevens gevonden voor het geselecteerde jaar.",
+    "total_members": "Leden met betalingen",
+    "contribution_types": "Contributietypes",
+    "col_lastname": "Achternaam",
+    "col_firstname": "Voornaam",
+    "col_total": "Totaal",
+    "generated_on": "Gegenereerd op",
+    "exporting": "Exporteren...",
+    "contribution_totals": "Contributietotalen",
+    "contribution_totals_desc": "Totaalbedragen per contributietype en valuta voor het geselecteerde jaar",
+    "col_contribution_type": "Contributietype",
+    "col_code": "Code",
+    "grand_total": "Eindtotaal",
+    "total_contribution_types": "Contributietypes",
+    "total_currencies": "Valuta's",
+    "back_to_reports": "Terug naar rapporten"
+  },
+  "pagination": {
+    "rows_per_page": "Rijen per pagina",
+    "showing_range": "{{start}}-{{end}} van {{total}}",
+    "first": "Eerste pagina",
+    "previous": "Vorige pagina",
+    "next": "Volgende pagina",
+    "last": "Laatste pagina"
   }
 }

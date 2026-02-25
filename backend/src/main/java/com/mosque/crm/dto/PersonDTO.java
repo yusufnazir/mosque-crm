@@ -2,12 +2,15 @@ package com.mosque.crm.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.mosque.crm.enums.PersonStatus;
 
 public class PersonDTO {
         private String username;
         private String role;
+        private List<String> roles = new ArrayList<>();
         private boolean accountEnabled;
     private Long id;
     private String firstName;
@@ -116,6 +119,14 @@ public class PersonDTO {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 
     public boolean isAccountEnabled() {

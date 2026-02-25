@@ -19,6 +19,7 @@ import com.mosque.crm.dto.PersonCreateDTO;
 import com.mosque.crm.dto.PersonDTO;
 import com.mosque.crm.dto.PersonDeceasedDTO;
 import com.mosque.crm.dto.PersonUpdateDTO;
+import com.mosque.crm.dto.PageResponse;
 import com.mosque.crm.service.PersonService;
 
 @RestController
@@ -43,6 +44,23 @@ public class PersonController {
             "total", total,
             "active", active
         ));
+    }
+
+    /**
+     * Get persons with server-side pagination, search, and sorting
+     */
+    @GetMapping("/page")
+    public ResponseEntity<PageResponse<PersonDTO>> getPersonsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false, defaultValue = "firstName") String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String direction) {
+        // Cap size to prevent abuse
+        if (size > 100) size = 100;
+        if (size < 1) size = 20;
+        PageResponse<PersonDTO> result = personService.getPersonsPaged(page, size, search, sortBy, direction);
+        return ResponseEntity.ok(result);
     }
 
     /**

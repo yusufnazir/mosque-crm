@@ -134,4 +134,17 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
            "FROM MemberPayment mp " +
            "ORDER BY YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) DESC")
     List<Integer> findDistinctPaymentYears();
+
+    /**
+     * Fetch all non-reversal payments for a given year with person, type, and currency eagerly loaded.
+     * Used for the payment summary report.
+     */
+    @Query("SELECT mp FROM MemberPayment mp " +
+           "JOIN FETCH mp.person " +
+           "JOIN FETCH mp.contributionType " +
+           "LEFT JOIN FETCH mp.currency " +
+           "WHERE YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year " +
+           "AND mp.isReversal = false " +
+           "ORDER BY mp.person.lastName, mp.person.firstName")
+    List<MemberPayment> findPaymentsForReport(@Param("year") int year);
 }

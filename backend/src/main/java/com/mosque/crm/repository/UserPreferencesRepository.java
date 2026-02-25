@@ -10,4 +10,6 @@ import com.mosque.crm.entity.UserPreferences;
 @Repository
 public interface UserPreferencesRepository extends JpaRepository<UserPreferences, Long> {
     Optional<UserPreferences> findByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
 }

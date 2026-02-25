@@ -57,6 +57,7 @@
     "family_tree": "Family Tree",
     "contributions": "Contributions",
     "currencies": "Currencies",
+    "reports": "Reports",
     "import": "Import",
     "users": "Users",
     "roles": "Roles",
@@ -119,7 +120,9 @@
     "member": "Member",
     "contact": "Contact",
     "type": "Type",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "no_results": "No members match your search.",
+    "no_members": "No members found."
   },
   "member_detail": {
     "back_to_members": "Back to Members",
@@ -664,5 +667,36 @@
     "total_paid": "Total Paid",
     "thank_you": "Thank you for your contribution.",
     "generated_on": "Generated on {{date}}"
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Generate, filter and export reports from your data",
+    "payment_summary": "Payment Summary",
+    "payment_summary_desc": "Overview of all payments per member, grouped by contribution type and year",
+    "year": "Year",
+    "no_data": "No payment data found for the selected year.",
+    "total_members": "Members with payments",
+    "contribution_types": "Contribution types",
+    "col_lastname": "Last Name",
+    "col_firstname": "First Name",
+    "col_total": "Total",
+    "generated_on": "Generated on",
+    "exporting": "Exporting...",
+    "contribution_totals": "Contribution Totals",
+    "contribution_totals_desc": "Total amounts per contribution type and currency for the selected year",
+    "col_contribution_type": "Contribution Type",
+    "col_code": "Code",
+    "grand_total": "Grand Total",
+    "total_contribution_types": "Contribution types",
+    "total_currencies": "Currencies",
+    "back_to_reports": "Back to reports"
+  },
+  "pagination": {
+    "rows_per_page": "Rows per page",
+    "showing_range": "{{start}}-{{end}} of {{total}}",
+    "first": "First page",
+    "previous": "Previous page",
+    "next": "Next page",
+    "last": "Last page"
   }
 }
