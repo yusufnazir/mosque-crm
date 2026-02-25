@@ -384,6 +384,12 @@ public class PersonService {
         dto.setCountry(person.getCountry());
         dto.setPostalCode(person.getPostalCode());
         dto.setStatus(person.getStatus());
+
+        // Defensive: if dateOfDeath is set but status is not DECEASED, override the status
+        if (person.getDateOfDeath() != null && person.getStatus() != PersonStatus.DECEASED) {
+            dto.setStatus(PersonStatus.DECEASED);
+        }
+
         dto.setCreatedAt(person.getCreatedAt());
         dto.setUpdatedAt(person.getUpdatedAt());
 

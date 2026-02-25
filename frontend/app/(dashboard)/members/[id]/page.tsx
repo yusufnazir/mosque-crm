@@ -59,6 +59,7 @@ export default function MemberDetailPage() {
   const [showFamilyModal, setShowFamilyModal] = useState(false);
   const [allMembers, setAllMembers] = useState<Member[]>([]);
   const [viewMode, setViewMode] = useState<'immediate' | 'comprehensive'>('immediate');
+  const [activeTab, setActiveTab] = useState<'overview' | 'family' | 'finance'>('overview');
   const [familyTreeTab, setFamilyTreeTab] = useState<'immediate' | 'genealogy'>('immediate');
   const [genealogyData, setGenealogyData] = useState<any>(null);
   const [genealogyLoading, setGenealogyLoading] = useState(false);
@@ -145,9 +146,10 @@ export default function MemberDetailPage() {
   };
 
   // Function to start editing the date of death
-  // Remove legacy dateOfDeath editing (not present in Member type)
   const startEditingDeceasedDate = () => {
-    // No-op: Member does not have dateOfDeath
+    if (!member?.dateOfDeath) return;
+    setTempDeceasedDate(member.dateOfDeath);
+    setEditingDeceasedDate(true);
   };
 
   // Function to save the edited date of death
@@ -646,8 +648,46 @@ export default function MemberDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="lg:col-span-3 space-y-6">
+      {/* Summary Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="text-sm text-gray-500">{t('member_detail.total_payments')}</div>
+          <div className="text-2xl font-bold text-emerald-700">{paymentTotalElements}</div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="text-sm text-gray-500">{t('member_detail.active_assignments')}</div>
+          <div className="text-2xl font-bold text-emerald-700">{memberAssignments.filter(a => a.isActive).length}</div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="text-sm text-gray-500">{t('member_detail.active_exemptions')}</div>
+          <div className="text-2xl font-bold text-emerald-700">{memberExemptions.filter(e => e.isActive).length}</div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="text-sm text-gray-500">{t('member_detail.family_members')}</div>
+          <div className="text-2xl font-bold text-emerald-700">{[partner, father, mother, ...children, ...siblings].filter(Boolean).length}</div>
+        </div>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex gap-1 mb-6 border-b border-gray-200">
+        {(['overview', 'family', 'finance'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-5 py-3 text-sm font-medium transition-colors relative ${
+              activeTab === tab
+                ? 'text-emerald-700 border-b-2 border-emerald-700'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {t(`member_detail.tab_${tab}`)}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>{t('member_detail.personal_information')}</CardTitle>
@@ -679,7 +719,36 @@ export default function MemberDetailPage() {
                   <p className="text-gray-900">{member.gender || t('member_detail.not_specified')}</p>
                 </div>
                 {/* Show date of death if the member is deceased */}
-                {/* No dateOfDeath field in Member type, skip rendering */}
+                {member.dateOfDeath && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">
+                      {t('member_detail.date_of_death')}
+                    </label>
+                    {editingDeceasedDate ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          value={tempDeceasedDate}
+                          onChange={(e) => setTempDeceasedDate(e.target.value)}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <button onClick={saveEditedDeceasedDate} className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
+                          {t('common.save')}
+                        </button>
+                        <button onClick={cancelEditingDeceasedDate} className="text-gray-500 hover:text-gray-700 text-sm">
+                          {t('common.cancel')}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900">{formatDate(member.dateOfDeath)}</p>
+                        <button onClick={startEditingDeceasedDate} className="text-emerald-600 hover:text-emerald-700 text-sm" title={t('common.edit')}>
+                          ✏️
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">
                     {t('member_detail.member_since')}
@@ -724,6 +793,70 @@ export default function MemberDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Quick Actions */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <button
+              onClick={() => setShowFamilyModal(true)}
+              className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+            >
+              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="text-xs font-medium text-gray-700">{t('member_detail.manage_family')}</span>
+            </button>
+            <button
+              onClick={() => { setEditingPayment(null); setShowPaymentModal(true); }}
+              className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+            >
+              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-xs font-medium text-gray-700">{t('member_detail.add_payment')}</span>
+            </button>
+            <button
+              onClick={() => { setEditingExemption(null); setShowExemptionModal(true); }}
+              className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+            >
+              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span className="text-xs font-medium text-gray-700">{t('member_detail.add_exemption')}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('finance')}
+              className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+            >
+              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-xs font-medium text-gray-700">{t('member_detail.view_finances')}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('family')}
+              className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+            >
+              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-xs font-medium text-gray-700">{t('member_detail.view_family')}</span>
+            </button>
+            {member.status !== 'DECEASED' && !member.dateOfDeath && (
+              <button
+                onClick={() => setShowDeceasedConfirmation(true)}
+                className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-red-200 hover:border-red-300 hover:bg-red-50 transition-colors"
+              >
+                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <span className="text-xs font-medium text-red-600">{t('member_detail.mark_as_deceased')}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'family' && (
+        <div className="space-y-6">
           {/* Family Information */}
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -806,7 +939,11 @@ export default function MemberDetailPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
 
+      {activeTab === 'finance' && (
+        <div className="space-y-6">
           {/* Member Payments */}
           <Card>
             <CardHeader>
@@ -1144,52 +1281,7 @@ export default function MemberDetailPage() {
           </Card>
 
         </div>
-
-        {/* Sidebar - Summary Cards */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('member_detail.quick_actions')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                className="w-full"
-                variant="ghost"
-                onClick={() => setShowFamilyModal(true)}
-              >
-                {t('member_detail.manage_family')}
-              </Button>
-              <Button
-                className="w-full"
-                variant="ghost"
-                onClick={() => { setEditingPayment(null); setShowPaymentModal(true); }}
-              >
-                {t('member_detail.add_payment')}
-              </Button>
-              <Button
-                className="w-full"
-                variant="ghost"
-                onClick={() => { setEditingExemption(null); setShowExemptionModal(true); }}
-              >
-                {t('member_detail.add_exemption')}
-              </Button>
-              <Button className="w-full" variant="ghost">
-                {t('member_detail.send_message')}
-              </Button>
-              <Button className="w-full" variant="ghost">
-                {t('member_detail.view_activity')}
-              </Button>
-              <Button 
-                className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200" 
-                variant="danger"
-                onClick={() => setShowDeceasedConfirmation(true)}
-              >
-                {t('member_detail.mark_as_deceased')}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      )}
 
       {/* Family Management Modal */}
       {showFamilyModal && member && (
