@@ -159,7 +159,7 @@ export const memberApi = {
   },
   getStats: () => ApiClient.get<{ total: number; active: number }>('/persons/stats'),
   getById: (id: string) => ApiClient.get(`/persons/${id}`),
-  search: (keyword: string) => ApiClient.get(`/persons/search?q=${encodeURIComponent(keyword)}`),
+  search: (keyword: string) => ApiClient.get<any[]>(`/persons/search?q=${encodeURIComponent(keyword)}`),
   create: (data: any) => ApiClient.post('/persons', data),
   update: (id: string, data: any) => ApiClient.put(`/admin/members/${id}`, data),
   delete: (id: string) => ApiClient.delete(`/persons/${id}`),
