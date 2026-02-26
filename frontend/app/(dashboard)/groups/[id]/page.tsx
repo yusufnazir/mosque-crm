@@ -197,7 +197,7 @@ export default function GroupDetailPage() {
     setEditMemberRoleId(m.groupRoleId ?? undefined);
     setEditMemberStartDate(m.startDate || '');
     setEditMemberEndDate(m.endDate || '');
-    setEditMemberActive(m.isActive !== false);
+    setEditMemberActive(!m.endDate || new Date(m.endDate + 'T00:00:00') >= new Date());
   };
 
   const handleEditMemberSave = async () => {
