@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import Card from '@/components/Card';
 import {
@@ -1375,7 +1376,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                     <tr key={payment.id} className={`border-b border-stone-100 hover:bg-stone-50 ${isRev ? 'bg-red-50/40' : ''}`}>
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-2">
-                          {payment.personName}
+                          <Link href={`/members/${payment.personId}`} className="text-emerald-700 hover:underline">{payment.personName}</Link>
                           {isRev && (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
                               {t('contributions.reversal')}
@@ -1477,7 +1478,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <div className="font-medium text-stone-900 flex items-center gap-2">
-                        {payment.personName}
+                        <Link href={`/members/${payment.personId}`} className="text-emerald-700 hover:underline">{payment.personName}</Link>
                         {isRev && (
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
                             {t('contributions.reversal')}
