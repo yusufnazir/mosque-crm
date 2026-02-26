@@ -402,6 +402,58 @@
                                  referencedTableName="mosques" referencedColumnNames="id"/>
     </changeSet>
 
+    <!-- groups.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000200" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_groups_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="groups" baseColumnNames="mosque_id"
+                                 constraintName="fk_groups_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="groups" indexName="idx_groups_mosque_fk">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- group_members.group_id → groups.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000201" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_groupmembers_group"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="group_members" baseColumnNames="group_id"
+                                 constraintName="fk_groupmembers_group"
+                                 referencedTableName="groups" referencedColumnNames="id"/>
+        <createIndex tableName="group_members" indexName="idx_groupmembers_group_fk">
+            <column name="group_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- group_members.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000202" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_groupmembers_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="group_members" baseColumnNames="person_id"
+                                 constraintName="fk_groupmembers_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+        <createIndex tableName="group_members" indexName="idx_groupmembers_person_fk">
+            <column name="person_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- group_members.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000203" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_groupmembers_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="group_members" baseColumnNames="mosque_id"
+                                 constraintName="fk_groupmembers_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+        <createIndex tableName="group_members" indexName="idx_groupmembers_mosque">
+            <column name="mosque_id"/>
+        </createIndex>
+    </changeSet>
+
     <!-- gedcom_notes.mosque_id → mosques.id -->
     <changeSet id="99900001-fk00-0000-0000-000000000032" author="mosque-crm">
         <preConditions onFail="MARK_RAN">
@@ -660,6 +712,63 @@
         <addForeignKeyConstraint baseTableName="member_payments" baseColumnNames="reversed_payment_id"
                                  constraintName="fk_payment_reversed"
                                  referencedTableName="member_payments" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- ==================== Group Translation FKs ==================== -->
+
+    <!-- group_translations.group_id → groups.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000210" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_group_trans_group"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="group_translations" baseColumnNames="group_id"
+                                 constraintName="fk_group_trans_group"
+                                 referencedTableName="groups" referencedColumnNames="id"/>
+        <createIndex tableName="group_translations" indexName="idx_group_trans_group_fk">
+            <column name="group_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== Group Role FKs ==================== -->
+
+    <!-- group_roles.group_id → groups.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000220" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_group_roles_group"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="group_roles" baseColumnNames="group_id"
+                                 constraintName="fk_group_roles_group"
+                                 referencedTableName="groups" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- group_roles.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000221" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_group_roles_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="group_roles" baseColumnNames="mosque_id"
+                                 constraintName="fk_group_roles_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- group_role_translations.group_role_id → group_roles.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000222" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_group_role_trans_role"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="group_role_translations" baseColumnNames="group_role_id"
+                                 constraintName="fk_group_role_trans_role"
+                                 referencedTableName="group_roles" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- group_members.group_role_id → group_roles.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000223" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_groupmembers_role"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="group_members" baseColumnNames="group_role_id"
+                                 constraintName="fk_groupmembers_role"
+                                 referencedTableName="group_roles" referencedColumnNames="id"/>
     </changeSet>
 
 </databaseChangeLog>

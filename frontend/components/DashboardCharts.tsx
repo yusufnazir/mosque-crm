@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './Card';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { familyApi } from '@/lib/familyApi';
-import { memberApi, paymentStatsApi } from '@/lib/api';
+import { memberApi, reportApi, paymentStatsApi } from '@/lib/api';
+import type { ContributionTotalReport } from '@/lib/api';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS, 
@@ -37,7 +38,7 @@ export interface AgeDatum { bucket: string; count: number; }
 export interface GenderDatum { gender: string; count: number; }
 
 export default function DashboardCharts() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [familySizeData, setFamilySizeData] = useState<FamilySizeDatum[]>([]);
   const [ageData, setAgeData] = useState<AgeDatum[]>([]);
   const [genderData, setGenderData] = useState<GenderDatum[]>([]);
@@ -45,7 +46,7 @@ export default function DashboardCharts() {
   const [loading, setLoading] = useState(true);
 
   // Income chart state
-  const [incomeData, setIncomeData] = useState<Record<string, number>>({});
+  const [incomeReport, setIncomeReport] = useState<ContributionTotalReport | null>(null);
   const [incomeYears, setIncomeYears] = useState<number[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [incomeLoading, setIncomeLoading] = useState(false);
@@ -107,17 +108,17 @@ export default function DashboardCharts() {
     async function fetchIncome() {
       setIncomeLoading(true);
       try {
-        const data = await paymentStatsApi.getIncomeByType(selectedYear);
-        setIncomeData(data);
+        const data = await reportApi.getContributionTotals(selectedYear, language);
+        setIncomeReport(data);
       } catch (e) {
         console.error('Income by type API error', e);
-        setIncomeData({});
+        setIncomeReport(null);
       } finally {
         setIncomeLoading(false);
       }
     }
     fetchIncome();
-  }, [selectedYear]);
+  }, [selectedYear, language]);
   // Grouped bar chart: Members' ages by gender
   // Prepare buckets and genders
   const ageBuckets = React.useMemo(() => {
@@ -229,24 +230,31 @@ export default function DashboardCharts() {
   // If not, add at the top:
   // import { Bar, Pie } from 'react-chartjs-2';
 
-  // Income chart data
-  const incomeChartColors = [
+  // Income chart data — stacked bars, one dataset per currency
+  const currencyColors: Record<string, string> = {};
+  const currencyColorPalette = [
     '#047857', '#D4AF37', '#0284c7', '#dc2626', '#7c3aed',
     '#ea580c', '#0891b2', '#be185d', '#4d7c0f', '#6366f1',
   ];
 
-  const incomeLabels = Object.keys(incomeData);
-  const incomeValues = Object.values(incomeData);
+  const incomeLabels = incomeReport?.rows.map(r => r.contributionTypeName) ?? [];
+  const incomeCurrencies = incomeReport?.currencies ?? [];
+
+  // Assign a color to each currency
+  incomeCurrencies.forEach((cur, i) => {
+    currencyColors[cur] = currencyColorPalette[i % currencyColorPalette.length];
+  });
 
   const incomeChart = {
     labels: incomeLabels,
-    datasets: [
-      {
-        label: t('dashboard.total_income'),
-        data: incomeValues,
-        backgroundColor: incomeLabels.map((_, i) => incomeChartColors[i % incomeChartColors.length]),
-      },
-    ],
+    datasets: incomeCurrencies.map((currency) => ({
+      label: currency,
+      data: (incomeReport?.rows ?? []).map(row => {
+        const match = row.totals.find(t => t.currencyCode === currency);
+        return match ? match.amount : 0;
+      }),
+      backgroundColor: currencyColors[currency],
+    })),
   };
 
   return (
@@ -287,18 +295,21 @@ export default function DashboardCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                  legend: { display: false },
+                  legend: { display: incomeCurrencies.length > 1 },
                   tooltip: {
                     callbacks: {
                       label: (ctx) => {
                         const val = ctx.parsed.y;
-                        return val != null ? ` ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+                        const currency = ctx.dataset.label ?? '';
+                        return val != null ? ` ${currency} ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
                       },
                     },
                   },
                 },
                 scales: {
+                  x: { stacked: true },
                   y: {
+                    stacked: true,
                     beginAtZero: true,
                     ticks: {
                       callback: (value) => Number(value).toLocaleString(),

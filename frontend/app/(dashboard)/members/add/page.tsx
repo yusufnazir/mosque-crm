@@ -137,7 +137,7 @@ export default function AddMemberPage() {
             size="sm"
             onClick={() => router.push('/members')}
           >
-            ← {t('members.back_to_members')}
+            ← {t('member_detail.back_to_members')}
           </Button>
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('member_add.title')}</h1>

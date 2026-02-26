@@ -310,4 +310,46 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ GROUPS (NEW) ═══════════ -->
+	<changeSet id="6f3d2a1b-55c4-4e7a-9d2f-1a2b3c4d5e61" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[37]]></param>
+			<param name="code"><![CDATA[group.view]]></param>
+			<param name="description"><![CDATA[View groups and their details]]></param>
+			<param name="category"><![CDATA[group]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="7a2b3c4d-66d5-4f8b-8e3f-2b3c4d5e6f72" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[38]]></param>
+			<param name="code"><![CDATA[group.create]]></param>
+			<param name="description"><![CDATA[Create new groups]]></param>
+			<param name="category"><![CDATA[group]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="8b3c4d5e-77e6-4g9c-9f4g-3c4d5e6f7g83" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[39]]></param>
+			<param name="code"><![CDATA[group.edit]]></param>
+			<param name="description"><![CDATA[Edit existing groups]]></param>
+			<param name="category"><![CDATA[group]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="9c4d5e6f-88f7-5h0d-0g5h-4d5e6f7g8h94" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[40]]></param>
+			<param name="code"><![CDATA[group.delete]]></param>
+			<param name="description"><![CDATA[Delete groups]]></param>
+			<param name="category"><![CDATA[group]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="ad5e6f7g-99g8-6i1e-1h6i-5e6f7g8h9i05" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[41]]></param>
+			<param name="code"><![CDATA[group.manage_members]]></param>
+			<param name="description"><![CDATA[Add and remove members from groups]]></param>
+			<param name="category"><![CDATA[group]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

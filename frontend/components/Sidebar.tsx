@@ -48,15 +48,25 @@ const allNavItems: NavItem[] = [
       </svg>
     ) 
   },
+  // { 
+  //   name: 'Family Tree', 
+  //   href: '/family-tree', 
+  //   permission: 'family.view',
+  //   icon: (
+  //     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  //       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+  //     </svg>
+  //   ) 
+  // },
   { 
-    name: 'Family Tree', 
-    href: '/family-tree', 
-    permission: 'family.view',
+    name: 'Groups',
+    href: '/groups',
+    permission: 'group.view',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M12 12a4 4 0 100-8 4 4 0 000 8zm-6 8h6v-1a6 6 0 00-6-6v7zM7 12a4 4 0 110-8 4 4 0 010 8z" />
       </svg>
-    ) 
+    )
   },
 
   { 
@@ -196,9 +206,10 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter nav items by permission
+  // Filter nav items by permission. Super admins see all items.
   const navItems = allNavItems.filter((item) => {
     if (!item.permission) return true;
+    if (isSuperAdmin) return true;
     return can(item.permission);
   });
 
