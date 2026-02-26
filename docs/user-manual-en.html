@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MemberFlow — User Manual</title>
+  <style>
+    :root {
+      --emerald: #047857;
+      --gold: #D4AF37;
+      --cream: #FAFAF9;
+      --charcoal: #1C1917;
+      --stone-200: #e7e5e4;
+      --stone-400: #a8a29e;
+      --stone-600: #57534e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--charcoal);
+      background: var(--cream);
+      line-height: 1.7;
+    }
+    /* Header */
+    header {
+      background: var(--emerald);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+    header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+    header p { font-size: 1rem; color: #D4AF37; }
+    /* Layout */
+    .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    /* Table of Contents */
+    nav.toc {
+      background: #fff;
+      border: 1px solid var(--stone-200);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2.5rem;
+    }
+    nav.toc h2 { font-size: 1.2rem; margin-bottom: 0.8rem; color: var(--emerald); }
+    nav.toc ol { padding-left: 1.5rem; }
+    nav.toc li { margin-bottom: 0.35rem; }
+    nav.toc a { color: var(--emerald); text-decoration: none; }
+    nav.toc a:hover { text-decoration: underline; }
+    /* Sections */
+    section {
+      background: #fff;
+      border: 1px solid var(--stone-200);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    h2 {
+      font-size: 1.6rem;
+      color: var(--emerald);
+      border-bottom: 2px solid var(--gold);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+    h3 {
+      font-size: 1.2rem;
+      color: var(--charcoal);
+      margin-top: 1.5rem;
+      margin-bottom: 0.6rem;
+    }
+    p, li { font-size: 0.95rem; color: var(--stone-600); }
+    p { margin-bottom: 0.8rem; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 0.8rem; }
+    li { margin-bottom: 0.3rem; }
+    /* Screenshot placeholder */
+    .screenshot {
+      background: #f5f5f4;
+      border: 2px dashed var(--stone-400);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      margin: 1rem 0 1.2rem;
+      color: var(--stone-400);
+      font-style: italic;
+      font-size: 0.9rem;
+    }
+    .screenshot::before {
+      content: "📸 ";
+    }
+    /* Tip / Note boxes */
+    .tip, .warning {
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      margin: 0.8rem 0;
+      font-size: 0.9rem;
+    }
+    .tip {
+      background: #ecfdf5;
+      border-left: 4px solid var(--emerald);
+      color: #065f46;
+    }
+    .warning {
+      background: #fffbeb;
+      border-left: 4px solid var(--gold);
+      color: #92400e;
+    }
+    .tip::before { content: "💡 Tip: "; font-weight: 600; }
+    .warning::before { content: "⚠️ Note: "; font-weight: 600; }
+    /* Keyboard shortcuts */
+    kbd {
+      background: #f5f5f4;
+      border: 1px solid var(--stone-200);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-size: 0.85rem;
+      font-family: monospace;
+    }
+    /* Steps */
+    .steps { counter-reset: step; list-style: none; padding-left: 0; }
+    .steps li {
+      counter-increment: step;
+      padding-left: 2.2rem;
+      position: relative;
+      margin-bottom: 0.6rem;
+    }
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1.6rem;
+      height: 1.6rem;
+      border-radius: 50%;
+      background: var(--emerald);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.85rem;
+      color: var(--stone-400);
+    }
+    @media print {
+      body { background: #fff; }
+      section { border: none; box-shadow: none; page-break-inside: avoid; }
+      .screenshot { border-style: solid; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>MemberFlow</h1>
+  <p>User Manual — Mosque Member Management System</p>
+</header>
+
+<div class="container">
+
+  <!-- TABLE OF CONTENTS -->
+  <nav class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#login">Logging In</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#members">Members</a></li>
+      <li><a href="#groups">Groups</a></li>
+      <li><a href="#contributions">Contributions</a></li>
+      <li><a href="#currencies">Currencies</a></li>
+      <li><a href="#reports">Reports</a></li>
+      <li><a href="#import">Import</a></li>
+      <li><a href="#profile">My Profile</a></li>
+      <li><a href="#users">User Management</a></li>
+      <li><a href="#roles">Roles &amp; Privileges</a></li>
+      <li><a href="#mosques">Mosque Management</a></li>
+      <li><a href="#language">Language &amp; Settings</a></li>
+      <li><a href="#password">Password &amp; Security</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1. LOGIN -->
+  <section id="login">
+    <h2>1. Logging In</h2>
+    <p>Open MemberFlow in your web browser. You will see the login screen where you can enter your credentials.</p>
+
+    <div class="screenshot">Screenshot: Login page with username and password fields</div>
+
+    <ol class="steps">
+      <li>Enter your <strong>Username</strong>.</li>
+      <li>Enter your <strong>Password</strong>.</li>
+      <li>Click <strong>Sign In</strong>.</li>
+    </ol>
+
+    <p>After successful login, you will be redirected to the Dashboard.</p>
+
+    <h3>Forgot Password</h3>
+    <p>If you forgot your password, click the <strong>"Forgot password?"</strong> link on the login page.</p>
+
+    <div class="screenshot">Screenshot: Forgot password page</div>
+
+    <ol class="steps">
+      <li>Enter the <strong>email address</strong> associated with your account.</li>
+      <li>Click <strong>Send Reset Link</strong>.</li>
+      <li>Check your email inbox and click the reset link.</li>
+      <li>Enter your new password and confirm it.</li>
+    </ol>
+
+    <div class="tip">Your account must have an email address configured for password reset to work. Contact your administrator if you don't have one set.</div>
+  </section>
+
+  <!-- 2. DASHBOARD -->
+  <section id="dashboard">
+    <h2>2. Dashboard</h2>
+    <p>The Dashboard is your home page. It shows an overview of your mosque's key statistics and charts.</p>
+
+    <div class="screenshot">Screenshot: Full Dashboard page showing statistics cards and charts</div>
+
+    <h3>Statistics Cards</h3>
+    <p>At the top of the dashboard, you'll see summary cards with key numbers:</p>
+    <ul>
+      <li><strong>Total Members</strong> — Total registered members in the system</li>
+      <li><strong>Active Members</strong> — Members with active status</li>
+      <li><strong>Total Families</strong> — Number of registered families</li>
+      <li><strong>Income This Year</strong> — Total contributions received for the current year</li>
+    </ul>
+
+    <h3>Income by Contribution Type Chart</h3>
+    <p>A bar chart showing income broken down by contribution type (e.g., Monthly Contribution, Building Fund). The bars are stacked and split by currency when multiple currencies are in use.</p>
+
+    <div class="screenshot">Screenshot: Income by Contribution Type bar chart with year selector</div>
+
+    <p>Use the <strong>year dropdown</strong> in the top-right corner of the chart to switch between years.</p>
+
+    <h3>Other Charts</h3>
+    <p>The dashboard also displays:</p>
+    <ul>
+      <li><strong>Age &amp; Gender Distribution</strong> — Grouped bar chart showing member ages by gender</li>
+      <li><strong>Family Size Distribution</strong> — How many families have 1, 2, 3… members</li>
+      <li><strong>Age Distribution</strong> — Bar chart of member age ranges</li>
+      <li><strong>Gender Distribution</strong> — Pie chart of male/female/unknown members</li>
+    </ul>
+
+    <div class="screenshot">Screenshot: Age-gender, family size, age, and gender charts (2×2 grid)</div>
+  </section>
+
+  <!-- 3. MEMBERS -->
+  <section id="members">
+    <h2>3. Members</h2>
+    <p>The Members page is your main registry of all mosque members. Here you can search, view, add, and edit member profiles.</p>
+
+    <div class="screenshot">Screenshot: Members list page showing the table with search bar and status filters</div>
+
+    <h3>Searching &amp; Filtering</h3>
+    <ul>
+      <li>Use the <strong>search bar</strong> to search by name.</li>
+      <li>Use the <strong>status filter</strong> dropdown to filter by Active, Inactive, Deceased, etc.</li>
+      <li>Results update automatically as you type.</li>
+    </ul>
+
+    <h3>Adding a New Member</h3>
+
+    <div class="screenshot">Screenshot: "Add New Member" form — Personal Information section</div>
+
+    <ol class="steps">
+      <li>Click the <strong>"+ Add Member"</strong> button in the top-right corner.</li>
+      <li>Fill in the <strong>Personal Information</strong>: first name, last name, date of birth, gender, etc.</li>
+      <li>Fill in the <strong>Contact Information</strong>: email, phone number, address.</li>
+      <li>Click <strong>Save</strong> to create the member.</li>
+    </ol>
+
+    <h3>Viewing Member Details</h3>
+    <p>Click on a member's name in the list to open their detail page.</p>
+
+    <div class="screenshot">Screenshot: Member detail page — Overview tab showing personal info and payment summary</div>
+
+    <p>The member detail page has multiple tabs:</p>
+    <ul>
+      <li><strong>Overview</strong> — Personal information, contact details, and status</li>
+      <li><strong>Family</strong> — Family relationships and members</li>
+      <li><strong>Finance</strong> — Payment history, obligations, and exemptions</li>
+    </ul>
+
+    <h3>Editing a Member</h3>
+    <ol class="steps">
+      <li>Open the member detail page.</li>
+      <li>Click the <strong>"Edit"</strong> button.</li>
+      <li>Modify the fields you want to change.</li>
+      <li>Click <strong>Save</strong> to apply changes.</li>
+    </ol>
+
+    <div class="screenshot">Screenshot: Member edit page with form fields</div>
+
+    <h3>Member Status</h3>
+    <p>Members can have the following statuses:</p>
+    <ul>
+      <li><strong>Active</strong> — Current, active member</li>
+      <li><strong>Inactive</strong> — No longer active but record preserved</li>
+      <li><strong>Suspended</strong> — Temporarily suspended membership</li>
+      <li><strong>Deceased</strong> — Passed away (with date of death recorded)</li>
+    </ul>
+
+    <div class="tip">Clicking a member's name from other pages (e.g., Payments, Groups) will also navigate to their detail page.</div>
+  </section>
+
+  <!-- 4. GROUPS -->
+  <section id="groups">
+    <h2>4. Groups</h2>
+    <p>Groups let you organize members into committees, classes, or any custom grouping. Each group can have its own roles (e.g., Chairman, Secretary).</p>
+
+    <div class="screenshot">Screenshot: Groups list page showing all groups with member counts</div>
+
+    <h3>Creating a Group</h3>
+    <ol class="steps">
+      <li>Click <strong>"+ Create Group"</strong>.</li>
+      <li>Enter a <strong>name</strong> and optional <strong>description</strong>.</li>
+      <li>Select a <strong>type</strong> (e.g., Committee, Class, Youth Group).</li>
+      <li>Set the <strong>max members</strong> limit (optional).</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Screenshot: Create Group form/modal</div>
+
+    <h3>Group Detail Page</h3>
+    <p>Click on a group to see its detail page with members and group information.</p>
+
+    <div class="screenshot">Screenshot: Group detail page showing member list, sidebar with info, and roles card</div>
+
+    <h3>Adding Members to a Group</h3>
+    <ol class="steps">
+      <li>On the group detail page, click <strong>"+ Add Member"</strong>.</li>
+      <li>Search for the person by name.</li>
+      <li>Optionally select a <strong>role</strong> (e.g., Chairman, Treasurer).</li>
+      <li>Set a <strong>start date</strong> and optional <strong>end date</strong>.</li>
+      <li>Click <strong>Add</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Screenshot: Add Member to Group modal with person search and role picker</div>
+
+    <h3>Group Roles</h3>
+    <p>In the sidebar of the group detail page, you can manage group-specific roles:</p>
+    <ul>
+      <li>Click <strong>"+ Add Role"</strong> to create a new role (e.g., Chairman, Secretary).</li>
+      <li>Set a <strong>max members</strong> per role (e.g., only 1 Chairman).</li>
+      <li>Roles show a usage count (e.g., "1/1" meaning 1 of 1 maximum assigned).</li>
+    </ul>
+
+    <div class="screenshot">Screenshot: Roles card in group sidebar showing role list with usage counts</div>
+
+    <h3>Editing &amp; Removing Group Members</h3>
+    <ul>
+      <li>Click the <strong>edit icon</strong> on a member row to change their role, dates, or active status.</li>
+      <li>Click the <strong>remove icon</strong> to remove a member from the group.</li>
+      <li>Members with an <strong>expired</strong> end date are marked with a red "Expired" badge.</li>
+    </ul>
+
+    <div class="tip">When a group has more than 5 members, a search filter appears to quickly find specific members.</div>
+  </section>
+
+  <!-- 5. CONTRIBUTIONS -->
+  <section id="contributions">
+    <h2>5. Contributions</h2>
+    <p>The Contributions section manages all financial aspects: contribution types, payment obligations, actual payments, exemptions, and member assignments. It is organized in tabs.</p>
+
+    <div class="screenshot">Screenshot: Contributions page showing the tab navigation (Contribution Types, Obligations, Payments, Exemptions, Assignments)</div>
+
+    <h3>5.1 Contribution Types</h3>
+    <p>Contribution types define the categories of payments your mosque collects (e.g., Monthly Contribution, Building Fund, Zakat).</p>
+
+    <div class="screenshot">Screenshot: Contribution Types tab showing list of types</div>
+
+    <ol class="steps">
+      <li>Click <strong>"+ Add Type"</strong>.</li>
+      <li>Enter a <strong>code</strong> (unique identifier).</li>
+      <li>Add <strong>translations</strong> (name in each language).</li>
+      <li>Toggle <strong>Required</strong> if this contribution is mandatory for all members.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Screenshot: Add/Edit Contribution Type form with code, translations, and required toggle</div>
+
+    <h3>5.2 Obligations</h3>
+    <p>Obligations define how much and how often members should pay for each contribution type.</p>
+
+    <div class="screenshot">Screenshot: Obligations tab showing list with amount, frequency, and currency</div>
+
+    <ol class="steps">
+      <li>Click <strong>"+ Add Obligation"</strong>.</li>
+      <li>Select the <strong>Contribution Type</strong>.</li>
+      <li>Enter the <strong>amount</strong>.</li>
+      <li>Select <strong>frequency</strong> (Monthly or Yearly).</li>
+      <li>Select the <strong>currency</strong>.</li>
+      <li>Set a <strong>start date</strong>.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Screenshot: Add/Edit Obligation form</div>
+
+    <h3>5.3 Payments</h3>
+    <p>The Payments tab shows all recorded payments. You can search by person name, filter by year and contribution type.</p>
+
+    <div class="screenshot">Screenshot: Payments tab showing the payment list with search, year filter, and type filter</div>
+
+    <h4>Recording a Payment</h4>
+    <ol class="steps">
+      <li>Click <strong>"+ Record Payment"</strong>.</li>
+      <li>Search and select the <strong>person</strong>.</li>
+      <li>Select the <strong>Contribution Type</strong>. The currency will be auto-selected based on the obligation.</li>
+      <li>If the type has a periodic obligation (monthly/yearly), select the <strong>period range</strong>. Multiple payment records will be created automatically.</li>
+      <li>The <strong>amount</strong> is pre-filled from the obligation. You can override it manually.</li>
+      <li>Set the <strong>payment date</strong> and optional <strong>reference</strong> (e.g., bank transfer number).</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Screenshot: Record Payment form showing person search, type selection, period picker, and amount</div>
+
+    <div class="tip">When recording a monthly contribution for a full year, select January through December in the period picker. The system will create 12 individual payment records.</div>
+
+    <h4>Payment Receipt</h4>
+    <p>Click the <strong>receipt icon</strong> (printer icon) next to any payment to open the Payment Receipt.</p>
+
+    <div class="screenshot">Screenshot: Payment Receipt modal showing mosque name, payment details, and action buttons</div>
+
+    <p>From the receipt you can:</p>
+    <ul>
+      <li><strong>Share</strong> — On mobile, opens the share menu (WhatsApp, email, etc.) with the receipt as an image. On desktop, downloads as PDF.</li>
+      <li><strong>PDF</strong> — Download the receipt as a PDF file.</li>
+      <li><strong>Print</strong> — Print the receipt directly.</li>
+    </ul>
+
+    <h4>Reversing a Payment</h4>
+    <p>If a payment was recorded in error, you can reverse it instead of deleting it (this preserves an audit trail).</p>
+    <ol class="steps">
+      <li>Click <strong>"Reverse"</strong> on the payment row.</li>
+      <li>Confirm the reversal.</li>
+      <li>A negative reversal entry will be created and the original payment marked as reversed.</li>
+    </ol>
+
+    <h3>5.4 Exemptions</h3>
+    <p>Exemptions allow you to exempt specific members from certain contribution types for a defined period.</p>
+
+    <div class="screenshot">Screenshot: Exemptions tab showing list of exemptions with person, type, and date range</div>
+
+    <ol class="steps">
+      <li>Click <strong>"+ Add Exemption"</strong>.</li>
+      <li>Select the <strong>person</strong> and <strong>contribution type</strong>.</li>
+      <li>Set the <strong>start date</strong> and <strong>end date</strong>.</li>
+      <li>Add an optional <strong>reason</strong>.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+
+    <div class="warning">When recording a payment for an exempted member, a warning will be shown indicating the active exemption.</div>
+
+    <h3>5.5 Assignments</h3>
+    <p>Assignments let you assign specific contribution types to individual members. This is useful when not all members are required to pay all contribution types.</p>
+
+    <div class="screenshot">Screenshot: Assignments tab showing assigned contribution types per member</div>
+
+    <ol class="steps">
+      <li>Click <strong>"+ Add Assignment"</strong>.</li>
+      <li>Select the <strong>person</strong> and <strong>contribution type</strong>.</li>
+      <li>Set a <strong>start date</strong>.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+  </section>
+
+  <!-- 6. CURRENCIES -->
+  <section id="currencies">
+    <h2>6. Currencies</h2>
+    <p>Manage which currencies your mosque accepts for payments. You can activate currencies from the global ISO 4217 list and set one as the primary currency.</p>
+
+    <div class="screenshot">Screenshot: Currencies page showing active mosque currencies with primary indicator</div>
+
+    <h3>Activating a Currency</h3>
+    <ol class="steps">
+      <li>Click <strong>"+ Add Currency"</strong>.</li>
+      <li>Select a currency from the list (e.g., EUR, USD, SRD).</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+
+    <h3>Setting a Primary Currency</h3>
+    <p>The primary currency is used as the default in forms and reports. Click the <strong>star icon</strong> next to a currency to make it the primary currency.</p>
+
+    <div class="tip">You must have at least one active currency before you can record payments.</div>
+  </section>
+
+  <!-- 7. REPORTS -->
+  <section id="reports">
+    <h2>7. Reports</h2>
+    <p>The Reports page provides financial overviews for your mosque's contributions.</p>
+
+    <div class="screenshot">Screenshot: Reports page showing the payment summary table with year/language selectors</div>
+
+    <h3>Payment Summary Report</h3>
+    <p>Shows all members and their payments per contribution type in a table format. You can:</p>
+    <ul>
+      <li>Select a <strong>year</strong> to view.</li>
+      <li>Navigate through pages for large member lists.</li>
+      <li>See totals per member and per contribution type.</li>
+      <li>Amounts are shown with currency codes when multiple currencies are in use.</li>
+    </ul>
+
+    <h3>Contribution Totals Report</h3>
+    <p>Shows the total amount collected per contribution type, broken down by currency.</p>
+
+    <div class="screenshot">Screenshot: Contribution Totals report showing type totals with currency breakdown</div>
+
+    <h3>Exporting Reports</h3>
+    <p>Use the <strong>Export</strong> button to download the report data for use in spreadsheets or accounting software.</p>
+  </section>
+
+  <!-- 8. IMPORT -->
+  <section id="import">
+    <h2>8. Import</h2>
+    <p>The Import page allows you to bulk-import member data from external files.</p>
+
+    <div class="screenshot">Screenshot: Import page showing file upload area and import options</div>
+
+    <ol class="steps">
+      <li>Prepare your data file (CSV format).</li>
+      <li>Click <strong>Upload</strong> or drag the file into the upload area.</li>
+      <li>Review the data preview and mapping.</li>
+      <li>Click <strong>Import</strong> to process the records.</li>
+    </ol>
+
+    <div class="warning">Always keep a backup of your data before importing. Duplicate records are detected by name matching.</div>
+  </section>
+
+  <!-- 9. MY PROFILE -->
+  <section id="profile">
+    <h2>9. My Profile</h2>
+    <p>View and manage your personal profile. If your user account is linked to a member profile, you can see your member information and payment history here.</p>
+
+    <div class="screenshot">Screenshot: My Profile page showing personal information and account details</div>
+
+    <h3>Account Settings</h3>
+    <p>From the User Menu (bottom of the sidebar), you can access <strong>Account</strong> settings to:</p>
+    <ul>
+      <li>View your username and role.</li>
+      <li>Update your <strong>email address</strong> (required for password reset).</li>
+      <li>View your linked member profile (if applicable).</li>
+    </ul>
+
+    <div class="screenshot">Screenshot: Account settings page showing username, email, and role</div>
+  </section>
+
+  <!-- 10. USER MANAGEMENT -->
+  <section id="users">
+    <h2>10. User Management</h2>
+    <p>Manage login accounts for your mosque's administrators and members. Users are separate from member profiles — a user account is for logging into the system.</p>
+
+    <div class="screenshot">Screenshot: Users management page showing list of users with roles</div>
+
+    <h3>Creating a User</h3>
+    <ol class="steps">
+      <li>Click <strong>"+ Add User"</strong>.</li>
+      <li>Enter a <strong>username</strong> and <strong>password</strong>.</li>
+      <li>Assign one or more <strong>roles</strong> (e.g., Admin, Treasurer, Member).</li>
+      <li>Optionally set an <strong>email address</strong> for password recovery.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+
+    <div class="tip">Admin users typically don't need a linked member profile. Regular members who need portal access should have their user account linked to their member record.</div>
+
+    <h3>Editing a User</h3>
+    <p>Click on a user to edit their roles, email, or reset their password.</p>
+  </section>
+
+  <!-- 11. ROLES & PRIVILEGES -->
+  <section id="roles">
+    <h2>11. Roles &amp; Privileges</h2>
+    <p>Control what each user role can do in the system through the Roles and Privileges pages.</p>
+
+    <h3>Roles</h3>
+    <p>Roles define sets of permissions. The default roles are:</p>
+    <ul>
+      <li><strong>ADMIN</strong> — Full access to all features</li>
+      <li><strong>TREASURER</strong> — Access to financial features (contributions, currencies, reports)</li>
+      <li><strong>IMAM</strong> — Access to member and family information</li>
+      <li><strong>MEMBER</strong> — Limited access to own profile and payment history</li>
+    </ul>
+
+    <div class="screenshot">Screenshot: Roles management page showing role list</div>
+
+    <h3>Privileges</h3>
+    <p>Privileges are individual permissions (e.g., "View Members", "Manage Contributions"). They are organized by category:</p>
+    <ul>
+      <li>Dashboard, Members, Family, Groups, Contributions, Currencies, Reports, Import, Settings, Users, Profile</li>
+    </ul>
+
+    <div class="screenshot">Screenshot: Privileges page showing permission categories and toggles per role</div>
+
+    <p>To change what a role can do:</p>
+    <ol class="steps">
+      <li>Go to the <strong>Roles</strong> or <strong>Privileges</strong> page.</li>
+      <li>Select the role you want to modify.</li>
+      <li>Toggle permissions on or off.</li>
+      <li>Changes are saved automatically.</li>
+    </ol>
+  </section>
+
+  <!-- 12. MOSQUE MANAGEMENT -->
+  <section id="mosques">
+    <h2>12. Mosque Management</h2>
+    <p>If you have organization management privileges, you can manage mosque details from the Mosques page.</p>
+
+    <div class="screenshot">Screenshot: Mosque management page showing mosque details</div>
+
+    <p>This page allows you to:</p>
+    <ul>
+      <li>Edit your mosque's <strong>name</strong> and <strong>location</strong>.</li>
+      <li>Manage <strong>multi-mosque</strong> configurations (if applicable).</li>
+      <li>Switch between mosques using the <strong>mosque selector</strong> in the sidebar.</li>
+    </ul>
+
+    <div class="tip">The mosque selector at the top of the sidebar lets you switch between mosques if your account has access to multiple organizations.</div>
+  </section>
+
+  <!-- 13. LANGUAGE & SETTINGS -->
+  <section id="language">
+    <h2>13. Language &amp; Settings</h2>
+
+    <h3>Switching Language</h3>
+    <p>MemberFlow supports multiple languages. To switch:</p>
+    <ol class="steps">
+      <li>Click the <strong>language selector</strong> at the bottom of the sidebar.</li>
+      <li>Choose your preferred language (English or Nederlands).</li>
+      <li>The interface will update immediately.</li>
+    </ol>
+
+    <div class="screenshot">Screenshot: Language selector in sidebar showing English/Nederlands options</div>
+
+    <h3>Changing Password</h3>
+    <ol class="steps">
+      <li>Click your <strong>User Menu</strong> at the bottom of the sidebar.</li>
+      <li>Select <strong>"Change Password"</strong>.</li>
+      <li>Enter your <strong>current password</strong>.</li>
+      <li>Enter and confirm your <strong>new password</strong>.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Screenshot: Change Password modal</div>
+  </section>
+
+  <!-- 14. PASSWORD & SECURITY -->
+  <section id="password">
+    <h2>14. Password &amp; Security</h2>
+
+    <h3>Session</h3>
+    <p>Your login session is valid for 24 hours. After that, you will be asked to log in again.</p>
+
+    <h3>Logging Out</h3>
+    <p>Click your <strong>User Menu</strong> at the bottom of the sidebar and select <strong>"Logout"</strong>.</p>
+
+    <h3>Security Best Practices</h3>
+    <ul>
+      <li>Use a strong, unique password.</li>
+      <li>Ensure your account has an email address set for password recovery.</li>
+      <li>Log out when using a shared computer.</li>
+      <li>Assign the minimum necessary role to each user.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>MemberFlow User Manual — Generated February 2026</p>
+  <p>For support, contact your system administrator.</p>
+</footer>
+
+</body>
+</html>

@@ -210,7 +210,6 @@ export default function GroupDetailPage() {
         roleInGroup: editMemberRole.trim() || undefined,
         startDate: editMemberStartDate || undefined,
         endDate: editMemberEndDate || undefined,
-        isActive: editMemberActive,
       });
       setMembers((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
       setEditingMember(null);

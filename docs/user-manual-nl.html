@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MemberFlow — Gebruikershandleiding</title>
+  <style>
+    :root {
+      --emerald: #047857;
+      --gold: #D4AF37;
+      --cream: #FAFAF9;
+      --charcoal: #1C1917;
+      --stone-200: #e7e5e4;
+      --stone-400: #a8a29e;
+      --stone-600: #57534e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--charcoal);
+      background: var(--cream);
+      line-height: 1.7;
+    }
+    header {
+      background: var(--emerald);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+    header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+    header p { font-size: 1rem; color: #D4AF37; }
+    .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    nav.toc {
+      background: #fff;
+      border: 1px solid var(--stone-200);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2.5rem;
+    }
+    nav.toc h2 { font-size: 1.2rem; margin-bottom: 0.8rem; color: var(--emerald); }
+    nav.toc ol { padding-left: 1.5rem; }
+    nav.toc li { margin-bottom: 0.35rem; }
+    nav.toc a { color: var(--emerald); text-decoration: none; }
+    nav.toc a:hover { text-decoration: underline; }
+    section {
+      background: #fff;
+      border: 1px solid var(--stone-200);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    h2 {
+      font-size: 1.6rem;
+      color: var(--emerald);
+      border-bottom: 2px solid var(--gold);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+    h3 {
+      font-size: 1.2rem;
+      color: var(--charcoal);
+      margin-top: 1.5rem;
+      margin-bottom: 0.6rem;
+    }
+    p, li { font-size: 0.95rem; color: var(--stone-600); }
+    p { margin-bottom: 0.8rem; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 0.8rem; }
+    li { margin-bottom: 0.3rem; }
+    .screenshot {
+      background: #f5f5f4;
+      border: 2px dashed var(--stone-400);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      margin: 1rem 0 1.2rem;
+      color: var(--stone-400);
+      font-style: italic;
+      font-size: 0.9rem;
+    }
+    .screenshot::before { content: "📸 "; }
+    .tip, .warning {
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      margin: 0.8rem 0;
+      font-size: 0.9rem;
+    }
+    .tip {
+      background: #ecfdf5;
+      border-left: 4px solid var(--emerald);
+      color: #065f46;
+    }
+    .warning {
+      background: #fffbeb;
+      border-left: 4px solid var(--gold);
+      color: #92400e;
+    }
+    .tip::before { content: "💡 Tip: "; font-weight: 600; }
+    .warning::before { content: "⚠️ Let op: "; font-weight: 600; }
+    kbd {
+      background: #f5f5f4;
+      border: 1px solid var(--stone-200);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-size: 0.85rem;
+      font-family: monospace;
+    }
+    .steps { counter-reset: step; list-style: none; padding-left: 0; }
+    .steps li {
+      counter-increment: step;
+      padding-left: 2.2rem;
+      position: relative;
+      margin-bottom: 0.6rem;
+    }
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1.6rem;
+      height: 1.6rem;
+      border-radius: 50%;
+      background: var(--emerald);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.85rem;
+      color: var(--stone-400);
+    }
+    @media print {
+      body { background: #fff; }
+      section { border: none; box-shadow: none; page-break-inside: avoid; }
+      .screenshot { border-style: solid; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>MemberFlow</h1>
+  <p>Gebruikershandleiding — Moskee Ledenbeheer Systeem</p>
+</header>
+
+<div class="container">
+
+  <!-- INHOUDSOPGAVE -->
+  <nav class="toc">
+    <h2>Inhoudsopgave</h2>
+    <ol>
+      <li><a href="#inloggen">Inloggen</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#leden">Leden</a></li>
+      <li><a href="#groepen">Groepen</a></li>
+      <li><a href="#bijdragen">Bijdragen</a></li>
+      <li><a href="#valuta">Valuta</a></li>
+      <li><a href="#rapportages">Rapportages</a></li>
+      <li><a href="#importeren">Importeren</a></li>
+      <li><a href="#profiel">Mijn Profiel</a></li>
+      <li><a href="#gebruikers">Gebruikersbeheer</a></li>
+      <li><a href="#rollen">Rollen &amp; Rechten</a></li>
+      <li><a href="#moskee">Moskeebeheer</a></li>
+      <li><a href="#taal">Taal &amp; Instellingen</a></li>
+      <li><a href="#wachtwoord">Wachtwoord &amp; Beveiliging</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1. INLOGGEN -->
+  <section id="inloggen">
+    <h2>1. Inloggen</h2>
+    <p>Open MemberFlow in uw webbrowser. U ziet het inlogscherm waar u uw inloggegevens kunt invoeren.</p>
+
+    <div class="screenshot">Schermafbeelding: Inlogpagina met gebruikersnaam en wachtwoord velden</div>
+
+    <ol class="steps">
+      <li>Voer uw <strong>Gebruikersnaam</strong> in.</li>
+      <li>Voer uw <strong>Wachtwoord</strong> in.</li>
+      <li>Klik op <strong>Inloggen</strong>.</li>
+    </ol>
+
+    <p>Na een succesvolle inlog wordt u doorgestuurd naar het Dashboard.</p>
+
+    <h3>Wachtwoord vergeten</h3>
+    <p>Klik op de link <strong>"Wachtwoord vergeten?"</strong> op de inlogpagina als u uw wachtwoord bent vergeten.</p>
+
+    <div class="screenshot">Schermafbeelding: Wachtwoord vergeten pagina</div>
+
+    <ol class="steps">
+      <li>Voer het <strong>e-mailadres</strong> in dat aan uw account is gekoppeld.</li>
+      <li>Klik op <strong>Verstuur Reset Link</strong>.</li>
+      <li>Controleer uw e-mail inbox en klik op de reset link.</li>
+      <li>Voer uw nieuwe wachtwoord in en bevestig het.</li>
+    </ol>
+
+    <div class="tip">Uw account moet een e-mailadres hebben geconfigureerd voor wachtwoord reset. Neem contact op met uw beheerder als dit niet het geval is.</div>
+  </section>
+
+  <!-- 2. DASHBOARD -->
+  <section id="dashboard">
+    <h2>2. Dashboard</h2>
+    <p>Het Dashboard is uw startpagina. Het toont een overzicht van de belangrijkste statistieken en grafieken van uw moskee.</p>
+
+    <div class="screenshot">Schermafbeelding: Volledig Dashboard met statistiekkaarten en grafieken</div>
+
+    <h3>Statistiekkaarten</h3>
+    <p>Bovenaan het dashboard ziet u samenvattingskaarten met belangrijke cijfers:</p>
+    <ul>
+      <li><strong>Totaal Leden</strong> — Totaal aantal geregistreerde leden in het systeem</li>
+      <li><strong>Actieve Leden</strong> — Leden met een actieve status</li>
+      <li><strong>Totaal Families</strong> — Aantal geregistreerde families</li>
+      <li><strong>Inkomsten Dit Jaar</strong> — Totaal ontvangen bijdragen voor het huidige jaar</li>
+    </ul>
+
+    <h3>Inkomsten per Bijdragetype Grafiek</h3>
+    <p>Een staafdiagram dat inkomsten toont per bijdragetype (bijv. Maandelijkse Bijdrage, Bouwfonds). De staven zijn gestapeld en gesplitst per valuta wanneer meerdere valuta's in gebruik zijn.</p>
+
+    <div class="screenshot">Schermafbeelding: Inkomsten per Bijdragetype staafdiagram met jaarkiezer</div>
+
+    <p>Gebruik het <strong>jaar dropdown</strong> menu in de rechterbovenhoek van de grafiek om tussen jaren te wisselen.</p>
+
+    <h3>Overige Grafieken</h3>
+    <p>Het dashboard toont ook:</p>
+    <ul>
+      <li><strong>Leeftijd &amp; Geslacht Verdeling</strong> — Gegroepeerd staafdiagram met leeftijden per geslacht</li>
+      <li><strong>Gezinsgrootte Verdeling</strong> — Hoeveel families hebben 1, 2, 3… leden</li>
+      <li><strong>Leeftijdsverdeling</strong> — Staafdiagram van leeftijdsgroepen</li>
+      <li><strong>Geslachtsverdeling</strong> — Cirkeldiagram van mannelijke/vrouwelijke/onbekend leden</li>
+    </ul>
+
+    <div class="screenshot">Schermafbeelding: Leeftijd-geslacht, gezinsgrootte, leeftijd en geslacht grafieken (2×2 raster)</div>
+  </section>
+
+  <!-- 3. LEDEN -->
+  <section id="leden">
+    <h2>3. Leden</h2>
+    <p>De Ledenpagina is uw hoofdregister van alle moskeeleden. Hier kunt u leden zoeken, bekijken, toevoegen en bewerken.</p>
+
+    <div class="screenshot">Schermafbeelding: Ledenlijst pagina met tabel, zoekbalk en statusfilters</div>
+
+    <h3>Zoeken &amp; Filteren</h3>
+    <ul>
+      <li>Gebruik de <strong>zoekbalk</strong> om op naam te zoeken.</li>
+      <li>Gebruik het <strong>statusfilter</strong> dropdown om te filteren op Actief, Inactief, Overleden, etc.</li>
+      <li>Resultaten worden automatisch bijgewerkt terwijl u typt.</li>
+    </ul>
+
+    <h3>Een Nieuw Lid Toevoegen</h3>
+
+    <div class="screenshot">Schermafbeelding: "Nieuw Lid Toevoegen" formulier — Persoonlijke gegevens sectie</div>
+
+    <ol class="steps">
+      <li>Klik op de knop <strong>"+ Lid Toevoegen"</strong> in de rechterbovenhoek.</li>
+      <li>Vul de <strong>Persoonlijke Gegevens</strong> in: voornaam, achternaam, geboortedatum, geslacht, etc.</li>
+      <li>Vul de <strong>Contactgegevens</strong> in: e-mail, telefoonnummer, adres.</li>
+      <li>Klik op <strong>Opslaan</strong> om het lid aan te maken.</li>
+    </ol>
+
+    <h3>Lidgegevens Bekijken</h3>
+    <p>Klik op de naam van een lid in de lijst om de detailpagina te openen.</p>
+
+    <div class="screenshot">Schermafbeelding: Lid detailpagina — Overzicht tab met persoonlijke info en betalingsoverzicht</div>
+
+    <p>De detailpagina heeft meerdere tabs:</p>
+    <ul>
+      <li><strong>Overzicht</strong> — Persoonlijke gegevens, contactgegevens en status</li>
+      <li><strong>Familie</strong> — Familierelaties en familieleden</li>
+      <li><strong>Financiën</strong> — Betalingsgeschiedenis, verplichtingen en vrijstellingen</li>
+    </ul>
+
+    <h3>Een Lid Bewerken</h3>
+    <ol class="steps">
+      <li>Open de detailpagina van het lid.</li>
+      <li>Klik op de knop <strong>"Bewerken"</strong>.</li>
+      <li>Wijzig de gewenste velden.</li>
+      <li>Klik op <strong>Opslaan</strong> om de wijzigingen toe te passen.</li>
+    </ol>
+
+    <div class="screenshot">Schermafbeelding: Lid bewerken pagina met formuliervelden</div>
+
+    <h3>Lid Status</h3>
+    <p>Leden kunnen de volgende statussen hebben:</p>
+    <ul>
+      <li><strong>Actief</strong> — Huidig, actief lid</li>
+      <li><strong>Inactief</strong> — Niet meer actief maar registratie bewaard</li>
+      <li><strong>Geschorst</strong> — Tijdelijk geschorst lidmaatschap</li>
+      <li><strong>Overleden</strong> — Overleden (met overlijdensdatum vastgelegd)</li>
+    </ul>
+
+    <div class="tip">Door op een ledennaam te klikken vanuit andere pagina's (bijv. Betalingen, Groepen) wordt u ook naar de detailpagina geleid.</div>
+  </section>
+
+  <!-- 4. GROEPEN -->
+  <section id="groepen">
+    <h2>4. Groepen</h2>
+    <p>Met Groepen kunt u leden organiseren in commissies, klassen of andere groepen. Elke groep kan eigen rollen hebben (bijv. Voorzitter, Secretaris).</p>
+
+    <div class="screenshot">Schermafbeelding: Groepen overzichtspagina met alle groepen en ledenaantallen</div>
+
+    <h3>Een Groep Aanmaken</h3>
+    <ol class="steps">
+      <li>Klik op <strong>"+ Groep Aanmaken"</strong>.</li>
+      <li>Voer een <strong>naam</strong> en optionele <strong>beschrijving</strong> in.</li>
+      <li>Selecteer een <strong>type</strong> (bijv. Commissie, Klas, Jeugdgroep).</li>
+      <li>Stel het <strong>maximaal aantal leden</strong> in (optioneel).</li>
+      <li>Klik op <strong>Opslaan</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Schermafbeelding: Groep aanmaken formulier/modal</div>
+
+    <h3>Groep Detailpagina</h3>
+    <p>Klik op een groep om de detailpagina te bekijken met leden en groepsinformatie.</p>
+
+    <div class="screenshot">Schermafbeelding: Groep detailpagina met ledenlijst, zijbalk met info en rollenkaart</div>
+
+    <h3>Leden Toevoegen aan een Groep</h3>
+    <ol class="steps">
+      <li>Klik op de groep detailpagina op <strong>"+ Lid Toevoegen"</strong>.</li>
+      <li>Zoek de persoon op naam.</li>
+      <li>Selecteer optioneel een <strong>rol</strong> (bijv. Voorzitter, Penningmeester).</li>
+      <li>Stel een <strong>startdatum</strong> en optionele <strong>einddatum</strong> in.</li>
+      <li>Klik op <strong>Toevoegen</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Schermafbeelding: Lid toevoegen aan groep modal met persoonszoeker en rolkiezer</div>
+
+    <h3>Groepsrollen</h3>
+    <p>In de zijbalk van de groep detailpagina kunt u groepsspecifieke rollen beheren:</p>
+    <ul>
+      <li>Klik op <strong>"+ Rol Toevoegen"</strong> om een nieuwe rol aan te maken (bijv. Voorzitter, Secretaris).</li>
+      <li>Stel een <strong>maximaal aantal leden</strong> in per rol (bijv. slechts 1 Voorzitter).</li>
+      <li>Rollen tonen een gebruiksaantal (bijv. "1/1" betekent 1 van 1 maximum toegewezen).</li>
+    </ul>
+
+    <div class="screenshot">Schermafbeelding: Rollenkaart in groep zijbalk met rollenlijst en gebruiksaantallen</div>
+
+    <h3>Groepsleden Bewerken &amp; Verwijderen</h3>
+    <ul>
+      <li>Klik op het <strong>bewerkicoon</strong> bij een lidrij om de rol, datums of actieve status te wijzigen.</li>
+      <li>Klik op het <strong>verwijdericoon</strong> om een lid uit de groep te verwijderen.</li>
+      <li>Leden met een <strong>verlopen</strong> einddatum worden weergegeven met een rode "Verlopen" badge.</li>
+    </ul>
+
+    <div class="tip">Bij groepen met meer dan 5 leden verschijnt automatisch een zoekfilter om snel specifieke leden te vinden.</div>
+  </section>
+
+  <!-- 5. BIJDRAGEN -->
+  <section id="bijdragen">
+    <h2>5. Bijdragen</h2>
+    <p>De Bijdragen sectie beheert alle financiële aspecten: bijdragetypen, betalingsverplichtingen, betalingen, vrijstellingen en toewijzingen. Het is georganiseerd in tabs.</p>
+
+    <div class="screenshot">Schermafbeelding: Bijdragen pagina met tab-navigatie (Bijdragetypen, Verplichtingen, Betalingen, Vrijstellingen, Toewijzingen)</div>
+
+    <h3>5.1 Bijdragetypen</h3>
+    <p>Bijdragetypen definiëren de categorieën betalingen die uw moskee int (bijv. Maandelijkse Bijdrage, Bouwfonds, Zakat).</p>
+
+    <div class="screenshot">Schermafbeelding: Bijdragetypen tab met lijst van typen</div>
+
+    <ol class="steps">
+      <li>Klik op <strong>"+ Type Toevoegen"</strong>.</li>
+      <li>Voer een <strong>code</strong> in (unieke identificatie).</li>
+      <li>Voeg <strong>vertalingen</strong> toe (naam in elke taal).</li>
+      <li>Schakel <strong>Verplicht</strong> in als deze bijdrage verplicht is voor alle leden.</li>
+      <li>Klik op <strong>Opslaan</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Schermafbeelding: Bijdragetype toevoegen/bewerken formulier met code, vertalingen en verplicht schakelaar</div>
+
+    <h3>5.2 Verplichtingen</h3>
+    <p>Verplichtingen definiëren hoeveel en hoe vaak leden moeten betalen voor elk bijdragetype.</p>
+
+    <div class="screenshot">Schermafbeelding: Verplichtingen tab met lijst met bedrag, frequentie en valuta</div>
+
+    <ol class="steps">
+      <li>Klik op <strong>"+ Verplichting Toevoegen"</strong>.</li>
+      <li>Selecteer het <strong>Bijdragetype</strong>.</li>
+      <li>Voer het <strong>bedrag</strong> in.</li>
+      <li>Selecteer de <strong>frequentie</strong> (Maandelijks of Jaarlijks).</li>
+      <li>Selecteer de <strong>valuta</strong>.</li>
+      <li>Stel een <strong>startdatum</strong> in.</li>
+      <li>Klik op <strong>Opslaan</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Schermafbeelding: Verplichting toevoegen/bewerken formulier</div>
+
+    <h3>5.3 Betalingen</h3>
+    <p>Het tabblad Betalingen toont alle geregistreerde betalingen. U kunt zoeken op naam, filteren op jaar en bijdragetype.</p>
+
+    <div class="screenshot">Schermafbeelding: Betalingen tab met betalingslijst, zoekfunctie, jaarfilter en typefilter</div>
+
+    <h4>Een Betaling Vastleggen</h4>
+    <ol class="steps">
+      <li>Klik op <strong>"+ Betaling Vastleggen"</strong>.</li>
+      <li>Zoek en selecteer de <strong>persoon</strong>.</li>
+      <li>Selecteer het <strong>Bijdragetype</strong>. De valuta wordt automatisch geselecteerd op basis van de verplichting.</li>
+      <li>Als het type een periodieke verplichting heeft (maandelijks/jaarlijks), selecteer dan het <strong>periodebereik</strong>. Meerdere betalingsrecords worden automatisch aangemaakt.</li>
+      <li>Het <strong>bedrag</strong> wordt vooraf ingevuld vanuit de verplichting. U kunt het handmatig aanpassen.</li>
+      <li>Stel de <strong>betaaldatum</strong> in en optioneel een <strong>referentie</strong> (bijv. bankoverschrijvingsnummer).</li>
+      <li>Klik op <strong>Opslaan</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Schermafbeelding: Betaling vastleggen formulier met persoonszoeker, typeselectie, periodekiezer en bedrag</div>
+
+    <div class="tip">Bij het vastleggen van een maandelijkse bijdrage voor een heel jaar, selecteer januari tot en met december in de periodekiezer. Het systeem maakt automatisch 12 afzonderlijke betalingsrecords aan.</div>
+
+    <h4>Betalingsbewijs</h4>
+    <p>Klik op het <strong>bewijs-icoon</strong> (printer-icoon) naast een betaling om het betalingsbewijs te openen.</p>
+
+    <div class="screenshot">Schermafbeelding: Betalingsbewijs modal met moskeenaam, betalingsgegevens en actieknoppen</div>
+
+    <p>Vanuit het bewijs kunt u:</p>
+    <ul>
+      <li><strong>Delen</strong> — Op mobiel opent dit het deelmenu (WhatsApp, e-mail, etc.) met het bewijs als afbeelding. Op desktop wordt het als PDF gedownload.</li>
+      <li><strong>PDF</strong> — Download het bewijs als een PDF-bestand.</li>
+      <li><strong>Afdrukken</strong> — Druk het bewijs direct af.</li>
+    </ul>
+
+    <h4>Een Betaling Terugdraaien</h4>
+    <p>Als een betaling per abuis is vastgelegd, kunt u deze terugdraaien in plaats van te verwijderen (dit behoudt een auditspoor).</p>
+    <ol class="steps">
+      <li>Klik op <strong>"Terugdraaien"</strong> bij de betalingsrij.</li>
+      <li>Bevestig de terugdraaiing.</li>
+      <li>Een negatieve terugdraaipost wordt aangemaakt en de originele betaling wordt als teruggedraaid gemarkeerd.</li>
+    </ol>
+
+    <h3>5.4 Vrijstellingen</h3>
+    <p>Vrijstellingen stellen u in staat om specifieke leden vrij te stellen van bepaalde bijdragetypen voor een gedefinieerde periode.</p>
+
+    <div class="screenshot">Schermafbeelding: Vrijstellingen tab met lijst van vrijstellingen met persoon, type en datumbereik</div>
+
+    <ol class="steps">
+      <li>Klik op <strong>"+ Vrijstelling Toevoegen"</strong>.</li>
+      <li>Selecteer de <strong>persoon</strong> en het <strong>bijdragetype</strong>.</li>
+      <li>Stel de <strong>startdatum</strong> en <strong>einddatum</strong> in.</li>
+      <li>Voeg een optionele <strong>reden</strong> toe.</li>
+      <li>Klik op <strong>Opslaan</strong>.</li>
+    </ol>
+
+    <div class="warning">Bij het vastleggen van een betaling voor een vrijgesteld lid wordt een waarschuwing getoond over de actieve vrijstelling.</div>
+
+    <h3>5.5 Toewijzingen</h3>
+    <p>Met toewijzingen kunt u specifieke bijdragetypen toewijzen aan individuele leden. Dit is nuttig wanneer niet alle leden alle bijdragetypen hoeven te betalen.</p>
+
+    <div class="screenshot">Schermafbeelding: Toewijzingen tab met toegewezen bijdragetypen per lid</div>
+
+    <ol class="steps">
+      <li>Klik op <strong>"+ Toewijzing Toevoegen"</strong>.</li>
+      <li>Selecteer de <strong>persoon</strong> en het <strong>bijdragetype</strong>.</li>
+      <li>Stel een <strong>startdatum</strong> in.</li>
+      <li>Klik op <strong>Opslaan</strong>.</li>
+    </ol>
+  </section>
+
+  <!-- 6. VALUTA -->
+  <section id="valuta">
+    <h2>6. Valuta</h2>
+    <p>Beheer welke valuta's uw moskee accepteert voor betalingen. U kunt valuta's activeren uit de wereldwijde ISO 4217-lijst en er één instellen als primaire valuta.</p>
+
+    <div class="screenshot">Schermafbeelding: Valuta pagina met actieve moskee valuta's en primaire indicator</div>
+
+    <h3>Een Valuta Activeren</h3>
+    <ol class="steps">
+      <li>Klik op <strong>"+ Valuta Toevoegen"</strong>.</li>
+      <li>Selecteer een valuta uit de lijst (bijv. EUR, USD, SRD).</li>
+      <li>Klik op <strong>Opslaan</strong>.</li>
+    </ol>
+
+    <h3>Primaire Valuta Instellen</h3>
+    <p>De primaire valuta wordt gebruikt als standaard in formulieren en rapportages. Klik op het <strong>stericoon</strong> naast een valuta om het de primaire valuta te maken.</p>
+
+    <div class="tip">U moet minimaal één actieve valuta hebben voordat u betalingen kunt vastleggen.</div>
+  </section>
+
+  <!-- 7. RAPPORTAGES -->
+  <section id="rapportages">
+    <h2>7. Rapportages</h2>
+    <p>De Rapportages pagina biedt financiële overzichten van de bijdragen van uw moskee.</p>
+
+    <div class="screenshot">Schermafbeelding: Rapportages pagina met betalingsoverzicht tabel en jaar/taal-kiezers</div>
+
+    <h3>Betalingsoverzicht Rapport</h3>
+    <p>Toont alle leden en hun betalingen per bijdragetype in een tabelformaat. U kunt:</p>
+    <ul>
+      <li>Een <strong>jaar</strong> selecteren om te bekijken.</li>
+      <li>Door pagina's navigeren bij grote ledenlijsten.</li>
+      <li>Totalen per lid en per bijdragetype bekijken.</li>
+      <li>Bedragen worden getoond met valutacodes wanneer meerdere valuta's in gebruik zijn.</li>
+    </ul>
+
+    <h3>Bijdrage Totalen Rapport</h3>
+    <p>Toont het totaalbedrag geïnd per bijdragetype, uitgesplitst per valuta.</p>
+
+    <div class="screenshot">Schermafbeelding: Bijdrage Totalen rapport met type-totalen en valuta-uitsplitsing</div>
+
+    <h3>Rapportages Exporteren</h3>
+    <p>Gebruik de knop <strong>Exporteren</strong> om de rapportgegevens te downloaden voor gebruik in spreadsheets of boekhoudkundige software.</p>
+  </section>
+
+  <!-- 8. IMPORTEREN -->
+  <section id="importeren">
+    <h2>8. Importeren</h2>
+    <p>De Importeer pagina stelt u in staat om ledengegevens in bulk te importeren vanuit externe bestanden.</p>
+
+    <div class="screenshot">Schermafbeelding: Importeer pagina met bestandsupload gebied en importopties</div>
+
+    <ol class="steps">
+      <li>Bereid uw gegevensbestand voor (CSV-formaat).</li>
+      <li>Klik op <strong>Upload</strong> of sleep het bestand naar het uploadgebied.</li>
+      <li>Bekijk de gegevenspreview en koppeling.</li>
+      <li>Klik op <strong>Importeren</strong> om de records te verwerken.</li>
+    </ol>
+
+    <div class="warning">Maak altijd een back-up van uw gegevens voordat u importeert. Dubbele records worden gedetecteerd op basis van naamovereenkomst.</div>
+  </section>
+
+  <!-- 9. MIJN PROFIEL -->
+  <section id="profiel">
+    <h2>9. Mijn Profiel</h2>
+    <p>Bekijk en beheer uw persoonlijke profiel. Als uw gebruikersaccount gekoppeld is aan een ledenprofiel, kunt u uw ledeninformatie en betalingsgeschiedenis hier bekijken.</p>
+
+    <div class="screenshot">Schermafbeelding: Mijn Profiel pagina met persoonlijke informatie en accountgegevens</div>
+
+    <h3>Account Instellingen</h3>
+    <p>Vanuit het gebruikersmenu (onderin de zijbalk) kunt u <strong>Account</strong> instellingen openen om:</p>
+    <ul>
+      <li>Uw gebruikersnaam en rol te bekijken.</li>
+      <li>Uw <strong>e-mailadres</strong> bij te werken (vereist voor wachtwoord reset).</li>
+      <li>Uw gekoppelde ledenprofiel te bekijken (indien van toepassing).</li>
+    </ul>
+
+    <div class="screenshot">Schermafbeelding: Account instellingen pagina met gebruikersnaam, e-mail en rol</div>
+  </section>
+
+  <!-- 10. GEBRUIKERSBEHEER -->
+  <section id="gebruikers">
+    <h2>10. Gebruikersbeheer</h2>
+    <p>Beheer inlogaccounts voor de beheerders en leden van uw moskee. Gebruikers staan los van ledenprofielen — een gebruikersaccount is bedoeld om in te loggen in het systeem.</p>
+
+    <div class="screenshot">Schermafbeelding: Gebruikersbeheer pagina met lijst van gebruikers en rollen</div>
+
+    <h3>Een Gebruiker Aanmaken</h3>
+    <ol class="steps">
+      <li>Klik op <strong>"+ Gebruiker Toevoegen"</strong>.</li>
+      <li>Voer een <strong>gebruikersnaam</strong> en <strong>wachtwoord</strong> in.</li>
+      <li>Wijs één of meer <strong>rollen</strong> toe (bijv. Admin, Penningmeester, Lid).</li>
+      <li>Stel optioneel een <strong>e-mailadres</strong> in voor wachtwoordherstel.</li>
+      <li>Klik op <strong>Opslaan</strong>.</li>
+    </ol>
+
+    <div class="tip">Beheerders hebben doorgaans geen gekoppeld ledenprofiel nodig. Gewone leden die toegang tot het portaal nodig hebben, moeten hun gebruikersaccount gekoppeld hebben aan hun ledenrecord.</div>
+
+    <h3>Een Gebruiker Bewerken</h3>
+    <p>Klik op een gebruiker om hun rollen of e-mail te bewerken, of om hun wachtwoord te resetten.</p>
+  </section>
+
+  <!-- 11. ROLLEN & RECHTEN -->
+  <section id="rollen">
+    <h2>11. Rollen &amp; Rechten</h2>
+    <p>Beheer wat elke gebruikersrol kan doen in het systeem via de Rollen en Rechten pagina's.</p>
+
+    <h3>Rollen</h3>
+    <p>Rollen definiëren sets van rechten. De standaard rollen zijn:</p>
+    <ul>
+      <li><strong>ADMIN</strong> — Volledige toegang tot alle functies</li>
+      <li><strong>PENNINGMEESTER</strong> — Toegang tot financiële functies (bijdragen, valuta, rapportages)</li>
+      <li><strong>IMAM</strong> — Toegang tot leden- en familie-informatie</li>
+      <li><strong>LID</strong> — Beperkte toegang tot eigen profiel en betalingsgeschiedenis</li>
+    </ul>
+
+    <div class="screenshot">Schermafbeelding: Rollen beheer pagina met rollenlijst</div>
+
+    <h3>Rechten</h3>
+    <p>Rechten zijn individuele machtigingen (bijv. "Leden Bekijken", "Bijdragen Beheren"). Ze zijn georganiseerd per categorie:</p>
+    <ul>
+      <li>Dashboard, Leden, Familie, Groepen, Bijdragen, Valuta, Rapportages, Importeren, Instellingen, Gebruikers, Profiel</li>
+    </ul>
+
+    <div class="screenshot">Schermafbeelding: Rechten pagina met rechtencategorieën en schakelaars per rol</div>
+
+    <p>Om te wijzigen wat een rol kan doen:</p>
+    <ol class="steps">
+      <li>Ga naar de <strong>Rollen</strong> of <strong>Rechten</strong> pagina.</li>
+      <li>Selecteer de rol die u wilt wijzigen.</li>
+      <li>Schakel rechten in of uit.</li>
+      <li>Wijzigingen worden automatisch opgeslagen.</li>
+    </ol>
+  </section>
+
+  <!-- 12. MOSKEEBEHEER -->
+  <section id="moskee">
+    <h2>12. Moskeebeheer</h2>
+    <p>Als u organisatiebeheer rechten heeft, kunt u moskeegegevens beheren via de Moskeeën pagina.</p>
+
+    <div class="screenshot">Schermafbeelding: Moskeebeheer pagina met moskeegegevens</div>
+
+    <p>Op deze pagina kunt u:</p>
+    <ul>
+      <li>De <strong>naam</strong> en <strong>locatie</strong> van uw moskee bewerken.</li>
+      <li><strong>Multi-moskee</strong> configuraties beheren (indien van toepassing).</li>
+      <li>Tussen moskeeën wisselen met de <strong>moskeekiezer</strong> in de zijbalk.</li>
+    </ul>
+
+    <div class="tip">De moskeekiezer bovenin de zijbalk stelt u in staat om tussen moskeeën te wisselen als uw account toegang heeft tot meerdere organisaties.</div>
+  </section>
+
+  <!-- 13. TAAL & INSTELLINGEN -->
+  <section id="taal">
+    <h2>13. Taal &amp; Instellingen</h2>
+
+    <h3>Taal Wisselen</h3>
+    <p>MemberFlow ondersteunt meerdere talen. Om te wisselen:</p>
+    <ol class="steps">
+      <li>Klik op de <strong>taalkiezer</strong> onderin de zijbalk.</li>
+      <li>Kies uw voorkeurstaal (English of Nederlands).</li>
+      <li>De interface wordt direct bijgewerkt.</li>
+    </ol>
+
+    <div class="screenshot">Schermafbeelding: Taalkiezer in zijbalk met English/Nederlands opties</div>
+
+    <h3>Wachtwoord Wijzigen</h3>
+    <ol class="steps">
+      <li>Klik op uw <strong>Gebruikersmenu</strong> onderin de zijbalk.</li>
+      <li>Selecteer <strong>"Wachtwoord Wijzigen"</strong>.</li>
+      <li>Voer uw <strong>huidig wachtwoord</strong> in.</li>
+      <li>Voer uw <strong>nieuw wachtwoord</strong> in en bevestig het.</li>
+      <li>Klik op <strong>Opslaan</strong>.</li>
+    </ol>
+
+    <div class="screenshot">Schermafbeelding: Wachtwoord Wijzigen modal</div>
+  </section>
+
+  <!-- 14. WACHTWOORD & BEVEILIGING -->
+  <section id="wachtwoord">
+    <h2>14. Wachtwoord &amp; Beveiliging</h2>
+
+    <h3>Sessie</h3>
+    <p>Uw inlogsessie is 24 uur geldig. Daarna wordt u gevraagd opnieuw in te loggen.</p>
+
+    <h3>Uitloggen</h3>
+    <p>Klik op uw <strong>Gebruikersmenu</strong> onderin de zijbalk en selecteer <strong>"Uitloggen"</strong>.</p>
+
+    <h3>Beveiligingsaanbevelingen</h3>
+    <ul>
+      <li>Gebruik een sterk, uniek wachtwoord.</li>
+      <li>Zorg ervoor dat uw account een e-mailadres heeft voor wachtwoordherstel.</li>
+      <li>Log uit bij gebruik van een gedeelde computer.</li>
+      <li>Wijs iedere gebruiker de minimaal benodigde rol toe.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>MemberFlow Gebruikershandleiding — Gegenereerd februari 2026</p>
+  <p>Voor ondersteuning, neem contact op met uw systeembeheerder.</p>
+</footer>
+
+</body>
+</html>
