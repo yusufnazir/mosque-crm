@@ -1563,7 +1563,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                     disabled={currentPage === 0}
                     className="px-3 py-1 text-sm border border-stone-300 rounded hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    â€¹
+                    ‹
                   </button>
                   <span className="text-sm text-stone-600">
                     {t('contributions.page_of', { page: currentPage + 1, total: totalPages })}
@@ -1573,7 +1573,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                     disabled={currentPage >= totalPages - 1}
                     className="px-3 py-1 text-sm border border-stone-300 rounded hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    â€º
+                    ›
                   </button>
                 </div>
               </div>
@@ -2429,9 +2429,9 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
               {/* Auto-fill hint */}
               {obligationUnitAmount && !amountManual && frequency && periodCount > 1 && !payment && (
                 <p className="mt-1 text-xs text-emerald-600">
-                  {t('contributions.will_create_records', { count: periodCount })}: {periodCount} Ã— {exemptedUnitAmount?.toFixed(2)}
+                  {t('contributions.will_create_records', { count: periodCount })}: {periodCount} × {exemptedUnitAmount?.toFixed(2)}
                   {activeExemption && exemptedUnitAmount !== undefined && exemptedUnitAmount !== obligationUnitAmount
-                    ? ` (${obligationUnitAmount.toFixed(2)} â†’ ${exemptedUnitAmount.toFixed(2)})`
+                    ? ` (${obligationUnitAmount.toFixed(2)} → ${exemptedUnitAmount.toFixed(2)})`
                     : ''}
                 </p>
               )}
@@ -2439,7 +2439,7 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
                 <p className="mt-1 text-xs text-emerald-600">
                   {t('contributions.amount_from_obligation')}: {obligationUnitAmount.toFixed(2)}
                   {activeExemption && exemptedUnitAmount !== undefined && exemptedUnitAmount !== obligationUnitAmount
-                    ? ` â†’ ${exemptedUnitAmount.toFixed(2)}`
+                    ? ` → ${exemptedUnitAmount.toFixed(2)}`
                     : ''}
                 </p>
               )}
