@@ -202,6 +202,11 @@ public class ContributionTypeService {
         dto.setAmount(obligation.getAmount());
         dto.setFrequency(obligation.getFrequency().name());
         dto.setStartDate(obligation.getStartDate());
+        if (obligation.getCurrency() != null) {
+            dto.setCurrencyId(obligation.getCurrency().getId());
+            dto.setCurrencyCode(obligation.getCurrency().getCode());
+            dto.setCurrencySymbol(obligation.getCurrency().getSymbol());
+        }
         return dto;
     }
 }

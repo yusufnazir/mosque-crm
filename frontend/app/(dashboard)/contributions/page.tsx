@@ -1,4 +1,4 @@
-﻿'use client';
+﻿﻿'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
@@ -462,7 +462,7 @@ export default function ContributionsPage() {
     return new Date(year, month - 1, day).toLocaleDateString(locale === 'nl' ? 'nl-NL' : 'en-US');
   };
 
-  // Local date helper â€” avoids timezone issues with toISOString() returning UTC date
+  // Local date helper — avoids timezone issues with toISOString() returning UTC date
   const localToday = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -1092,7 +1092,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Available years for the year filter dropdown â€” fetched once from full dataset
+  // Available years for the year filter dropdown — fetched once from full dataset
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   // Person autocomplete filter state
   const [personSearchText, setPersonSearchText] = useState('');
@@ -1694,7 +1694,7 @@ function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNa
                 </div>
                 <div className="space-y-1 text-xs text-stone-500 mb-3">
                   <div>{formatExemptionType(ex.exemptionType, ex.amount)}</div>
-                  <div>{formatDate(ex.startDate)} â€” {ex.endDate ? formatDate(ex.endDate) : t('contributions.ongoing')}</div>
+                  <div>{formatDate(ex.startDate)} — {ex.endDate ? formatDate(ex.endDate) : t('contributions.ongoing')}</div>
                   {ex.reason && <div className="truncate">{ex.reason}</div>}
                 </div>
                 <div className="flex gap-3 pt-2 border-t border-stone-100">
@@ -1930,7 +1930,7 @@ function ObligationModal({ obligation, types, mosqueCurrencies, onSave, onClose,
                   <option value="">{t('contributions.select_currency')}</option>
                   {mosqueCurrencies.map((mc) => (
                     <option key={mc.currencyId} value={mc.currencyId}>
-                      {mc.currencyCode} â€” {mc.currencyName} ({mc.currencySymbol})
+                      {mc.currencyCode} — {mc.currencyName} ({mc.currencySymbol})
                     </option>
                   ))}
                 </select>
@@ -2298,7 +2298,7 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
               </select>
             </div>
 
-            {/* Period selection â€” shown when selected type has a periodic obligation */}
+            {/* Period selection — shown when selected type has a periodic obligation */}
             {frequency && (
               <div className="bg-stone-50 rounded-lg p-3 space-y-3">
                 <div className="flex items-center justify-between">
@@ -2478,7 +2478,7 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
                   <option value="">{t('contributions.select_currency')}</option>
                   {mosqueCurrencies.map((mc) => (
                     <option key={mc.currencyId} value={mc.currencyId}>
-                      {mc.currencyCode} â€” {mc.currencyName} ({mc.currencySymbol})
+                      {mc.currencyCode} — {mc.currencyName} ({mc.currencySymbol})
                     </option>
                   ))}
                 </select>
