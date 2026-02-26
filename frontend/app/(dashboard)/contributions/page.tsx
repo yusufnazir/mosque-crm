@@ -1,4 +1,4 @@
-﻿﻿'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
@@ -1239,8 +1239,12 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
     return `${fmtFrom} \u2014 ${fmtTo}`;
   };
 
-  // Calculate total for current page
-  const pageTotal = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  // Calculate totals per currency for current page
+  const pageTotalsByCurrency = payments.reduce<Record<string, number>>((acc, p) => {
+    const key = p.currencyCode || '?';
+    acc[key] = (acc[key] || 0) + (p.amount || 0);
+    return acc;
+  }, {});
 
   // Build a map: originalPaymentId -> reversalPayment (to detect which payments have been reversed)
   const reversedByMap = new Map<number, MemberPayment>();
@@ -1539,7 +1543,13 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                 {t('contributions.showing_entries', { from, to, total: totalElements })}
               </span>
               <span className="text-sm font-medium text-stone-700">
-                {t('contributions.total')}: {formatCurrency(pageTotal)}
+                {t('contributions.total')}:{' '}
+                {Object.entries(pageTotalsByCurrency).map(([code, amount], i) => (
+                  <span key={code}>
+                    {i > 0 && ' | '}
+                    {formatCurrency(amount, code)}
+                  </span>
+                ))}
               </span>
             </div>
             {/* Pagination controls */}
