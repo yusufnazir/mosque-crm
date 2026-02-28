@@ -114,8 +114,9 @@ export default function ReportsPage() {
     if (selectedReport === 'member-payment-history') {
       setLoading(true);
       memberApi.getAll()
-        .then((data: any[]) => {
-          const memberList = (data || [])
+        .then((data) => {
+          const source = Array.isArray(data) ? data : [];
+          const memberList = source
             .filter((m: any) => m.id && m.firstName)
             .sort((a: any, b: any) => {
               const aName = `${a.lastName || ''} ${a.firstName}`.trim();
