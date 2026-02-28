@@ -1648,7 +1648,7 @@ export default function ReportsPage() {
                       ? memberPayments.filter(p => new Date(p.paymentDate).getFullYear() === selectedHistoryYear)
                       : memberPayments;
 
-                    const groupedByType = filteredPayments.reduce((acc: any, p: MemberPayment) => {
+                    const groupedByType = filteredPayments.reduce<Record<string, MemberPayment[]>>((acc, p) => {
                       const typeKey = p.contributionTypeName || p.contributionTypeCode || 'Unknown' ;
                       if (!acc[typeKey]) acc[typeKey] = [];
                       acc[typeKey].push(p);
@@ -1657,8 +1657,8 @@ export default function ReportsPage() {
 
                     return (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {Object.entries(groupedByType).map(([typeKey, typePayments]: [string, any[]]) => {
-                          const groupedByCurrency = typePayments.reduce((acc: any, p: MemberPayment) => {
+                        {Object.entries(groupedByType).map(([typeKey, typePayments]) => {
+                          const groupedByCurrency = typePayments.reduce<Record<string, { amount: number; symbol: string }>>((acc, p) => {
                             const currKey = p.currencyCode || 'Unknown';
                             if (!acc[currKey]) acc[currKey] = { amount: 0, symbol: p.currencySymbol || currKey };
                             acc[currKey].amount += p.amount || 0;
