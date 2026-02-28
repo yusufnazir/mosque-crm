@@ -52,6 +52,7 @@ export interface MemberPayment {
   personName: string;
   contributionTypeId: number;
   contributionTypeCode: string;
+  contributionTypeName?: string;
   amount: number;
   paymentDate: string;
   periodFrom?: string;

@@ -1,0 +1,77 @@
+{
+  "@@locale": "nl",
+  "appTitle": "MemberFlow",
+  "login": "Inloggen",
+  "username": "Gebruikersnaam",
+  "password": "Wachtwoord",
+  "loginButton": "Inloggen",
+  "loginError": "Inloggen mislukt",
+  "logout": "Uitloggen",
+  "logoutConfirm": "Weet u zeker dat u wilt uitloggen?",
+  "cancel": "Annuleren",
+  "confirm": "Bevestigen",
+  "save": "Opslaan",
+  "delete": "Verwijderen",
+  "edit": "Bewerken",
+  "add": "Toevoegen",
+  "search": "Zoeken",
+  "retry": "Opnieuw",
+  "loading": "Laden...",
+  "noResults": "Geen resultaten gevonden",
+  "error": "Fout",
+
+  "dashboard": "Dashboard",
+  "members": "Leden",
+  "groups": "Groepen",
+  "contributions": "Bijdragen",
+  "profile": "Profiel",
+  "settings": "Instellingen",
+  "finance": "Financiën",
+
+  "welcomeBack": "Welkom terug,",
+  "totalMembers": "Totaal leden",
+  "activeMembers": "Actief",
+  "male": "Man",
+  "female": "Vrouw",
+
+  "searchMembers": "Zoek leden...",
+  "memberDetail": "Lid details",
+  "overview": "Overzicht",
+  "payments": "Betalingen",
+  "assignments": "Toewijzingen",
+  "contactInformation": "Contactgegevens",
+  "account": "Account",
+  "noPayments": "Geen betalingen gevonden",
+  "noAssignments": "Geen toewijzingen gevonden",
+
+  "groupDetail": "Groep details",
+  "noMembers": "Geen leden in deze groep",
+  "active": "Actief",
+  "inactive": "Inactief",
+  "ended": "Beëindigd",
+  "ongoing": "(doorlopend)",
+
+  "types": "Types",
+  "noContributionTypes": "Geen bijdragetypes",
+  "required": "Verplicht",
+  "noPaymentsFound": "Geen betalingen gevonden",
+  "page": "Pagina {current} van {total}",
+  "@page": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+
+  "changePassword": "Wachtwoord wijzigen",
+  "currentPassword": "Huidig wachtwoord",
+  "newPassword": "Nieuw wachtwoord",
+  "confirmPassword": "Bevestig nieuw wachtwoord",
+  "permissions": "Rechten",
+
+  "language": "Taal",
+  "english": "English",
+  "dutch": "Nederlands",
+  "about": "Over",
+  "version": "Versie"
+}

@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import {
   reportApi,
   paymentStatsApi,
+  memberApi,
   PaymentSummaryReport,
   ContributionTotalReport,
   ContributionTypeColumn,
   CurrencyAmount,
 } from '@/lib/api';
+import { memberPaymentApi, MemberPayment } from '@/lib/contributionApi';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 
@@ -18,7 +20,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export default function ReportsPage() {
   const { t, language } = useTranslation();
-  const { can } = useAuth();
+  const { can, user, activeMosqueName } = useAuth();
 
   // Report selection
   const [selectedReport, setSelectedReport] = useState<string>('payment-summary');
@@ -32,6 +34,16 @@ export default function ReportsPage() {
   const [contribReport, setContribReport] = useState<ContributionTotalReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [sharingMemberReport, setSharingMemberReport] = useState(false);
+
+  // Member Payment History state
+  const [members, setMembers] = useState<any[]>([]);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [selectedMemberDetails, setSelectedMemberDetails] = useState<any | null>(null);
+  const [memberPayments, setMemberPayments] = useState<MemberPayment[]>([]);
+  const [memberSearchTerm, setMemberSearchTerm] = useState('');
+  const [selectedHistoryYear, setSelectedHistoryYear] = useState<number | null>(null);
+  const [historyYears, setHistoryYears] = useState<number[]>([]);
 
   // Pagination
   const [page, setPage] = useState(0);
@@ -44,7 +56,10 @@ export default function ReportsPage() {
     paymentStatsApi.getPaymentYears().then((years) => {
       if (years && years.length > 0) {
         setAvailableYears(years);
-        setSelectedYear(years[0]);
+        // Default to current year if available, otherwise use first available year
+        const currentYear = new Date().getFullYear();
+        const defaultYear = years.includes(currentYear) ? currentYear : years[0];
+        setSelectedYear(defaultYear);
       }
     }).catch(console.error);
   }, []);
@@ -93,6 +108,62 @@ export default function ReportsPage() {
   useEffect(() => {
     setPage(0);
   }, [selectedYear]);
+
+  // Load members when member-payment-history report is selected
+  useEffect(() => {
+    if (selectedReport === 'member-payment-history') {
+      setLoading(true);
+      memberApi.getAll()
+        .then((data: any[]) => {
+          const memberList = (data || [])
+            .filter((m: any) => m.id && m.firstName)
+            .sort((a: any, b: any) => {
+              const aName = `${a.lastName || ''} ${a.firstName}`.trim();
+              const bName = `${b.lastName || ''} ${b.firstName}`.trim();
+              return aName.localeCompare(bName);
+            });
+          setMembers(memberList);
+        })
+        .catch((err) => console.error('Failed to load members:', err))
+        .finally(() => setLoading(false));
+    }
+  }, [selectedReport]);
+
+  // Load payments for selected member
+  useEffect(() => {
+    if (selectedReport === 'member-payment-history' && selectedMemberId) {
+      setLoading(true);
+      memberPaymentApi.getByPerson(selectedMemberId)
+        .then((data: MemberPayment[]) => {
+          setMemberPayments(data || []);
+          // Extract unique years from payments
+          const years = Array.from(
+            new Set(
+              (data || [])
+                .map(p => new Date(p.paymentDate).getFullYear())
+                .filter(y => !isNaN(y))
+            )
+          ).sort((a, b) => b - a);
+          setHistoryYears(years);
+          if (years.length > 0 && !selectedHistoryYear) {
+            setSelectedHistoryYear(years[0]);
+          }
+        })
+        .catch((err) => console.error('Failed to load member payments:', err))
+        .finally(() => setLoading(false));
+    }
+  }, [selectedReport, selectedMemberId, selectedHistoryYear]);
+
+  // Fetch member details when member is selected
+  useEffect(() => {
+    if (selectedMemberId) {
+      memberApi.getById(String(selectedMemberId))
+        .then((data: any) => {
+          setSelectedMemberDetails(data);
+        })
+        .catch((err) => console.error('Failed to load member details:', err));
+    }
+  }, [selectedMemberId]);
 
   // Page navigation helpers
   const goToPage = (newPage: number) => {
@@ -367,6 +438,443 @@ export default function ReportsPage() {
     }
   };
 
+  // ── Member Payment History export handler ────────────────────────
+
+  const handleMemberPaymentShare = async () => {
+    if (!selectedMemberId || !selectedMemberDetails || memberPayments.length === 0) return;
+
+    // Check if Web Share API is available
+    if (!navigator.share) {
+      // Fallback to download
+      handleMemberPaymentExportPdf();
+      return;
+    }
+
+    try {
+      setSharingMemberReport(true);
+
+      // Generate the PDF as a blob
+      const { jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      // Filter payments by selected year if applicable
+      const filteredPayments = selectedHistoryYear
+        ? memberPayments.filter((p) => new Date(p.paymentDate).getFullYear() === selectedHistoryYear)
+        : memberPayments;
+
+      // Header with title and organization
+      doc.setFontSize(18);
+      doc.setTextColor(4, 120, 87);
+      doc.text(t('reports.member_payment_history'), 14, 18);
+      
+      // Organization name
+      if (activeMosqueName) {
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(activeMosqueName, 14, 25);
+      }
+
+      // Member details section
+      let yPosition = activeMosqueName ? 33 : 28;
+      doc.setFontSize(11);
+      doc.setTextColor(28, 25, 23);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${t('reports.member_profile')}`, 14, yPosition);
+      yPosition += 7;
+
+      const memberName = `${selectedMemberDetails.firstName || ''} ${selectedMemberDetails.lastName || ''}`.trim();
+      
+      // Member details in two columns
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      
+      const leftColumn = [
+        { label: `${t('common.name')}:`, value: memberName },
+        { label: `${t('reports.email')}:`, value: selectedMemberDetails.email || '-' },
+        { label: `${t('reports.date_of_birth')}:`, value: selectedMemberDetails.dateOfBirth ? new Date(selectedMemberDetails.dateOfBirth).toLocaleDateString() : '-' },
+      ];
+      
+      const rightColumn = [
+        { label: `${t('reports.member_id')}:`, value: String(selectedMemberId) },
+        { label: `${t('reports.phone')}:`, value: selectedMemberDetails.phone || '-' },
+        { label: `${t('account.member_since')}:`, value: selectedMemberDetails.memberSince ? new Date(selectedMemberDetails.memberSince).toLocaleDateString() : '-' },
+      ];
+
+      const leftX = 14;
+      const rightX = 110;
+      const labelWidth = 35;
+      
+      for (let i = 0; i < Math.max(leftColumn.length, rightColumn.length); i++) {
+        // Left column
+        if (i < leftColumn.length) {
+          doc.setTextColor(100, 100, 100);
+          doc.text(leftColumn[i].label, leftX, yPosition);
+          doc.setTextColor(28, 25, 23);
+          doc.text(leftColumn[i].value || '-', leftX + labelWidth, yPosition);
+        }
+        
+        // Right column
+        if (i < rightColumn.length) {
+          doc.setTextColor(100, 100, 100);
+          doc.text(rightColumn[i].label, rightX, yPosition);
+          doc.setTextColor(28, 25, 23);
+          doc.text(rightColumn[i].value || '-', rightX + labelWidth, yPosition);
+        }
+        
+        yPosition += 5;
+      }
+
+      yPosition += 3;
+
+      // Payments section
+      if (filteredPayments.length > 0) {
+        const headers = [
+          t('reports.date'),
+          t('reports.type'),
+          t('reports.amount'),
+          t('reports.currency'),
+          t('reports.period_from'),
+          t('reports.period_to'),
+          t('reports.reference'),
+        ];
+
+        const rows = filteredPayments.map(p => [
+          new Date(p.paymentDate).toLocaleDateString(),
+          p.contributionTypeName || p.contributionTypeCode || 'Unknown',
+          p.amount.toFixed(2),
+          p.currencyCode || 'N/A',
+          p.periodFrom ? new Date(p.periodFrom).toLocaleDateString() : '-',
+          p.periodTo ? new Date(p.periodTo).toLocaleDateString() : '-',
+          p.reference || '-',
+        ]);
+
+        autoTable(doc, {
+          startY: yPosition,
+          head: [headers],
+          body: rows,
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: {
+            fillColor: [4, 120, 87],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+          },
+          alternateRowStyles: { fillColor: [245, 245, 244] },
+          margin: { left: 14, right: 14 },
+          didParseCell: (data: any) => {
+            if (data.column.index === 2) {
+              data.cell.styles.halign = 'right';
+            }
+          },
+        });
+
+        yPosition = (doc as any).lastAutoTable.finalY + 8;
+
+        // Summary - grouped by currency
+        const currencyTotals = filteredPayments.reduce((acc: any, p: MemberPayment) => {
+          const currKey = p.currencyCode || 'Unknown';
+          if (!acc[currKey]) {
+            acc[currKey] = { total: 0, symbol: p.currencySymbol || '', code: currKey };
+          }
+          acc[currKey].total += p.amount || 0;
+          return acc;
+        }, {});
+
+        const totalsRows = Object.entries(currencyTotals).map(([currKey, data]: [string, any]) => [
+          data.code,
+          `${data.symbol}${data.total.toFixed(2)}`
+        ]);
+
+        const estimatedHeight = 15 + (totalsRows.length * 8);
+        if (yPosition + estimatedHeight > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        autoTable(doc, {
+          startY: yPosition,
+          head: [[t('reports.col_total'), '']],
+          body: totalsRows,
+          theme: 'plain',
+          styles: { 
+            fontSize: 10, 
+            cellPadding: 3,
+            lineColor: [4, 120, 87],
+            lineWidth: 0.5,
+          },
+          headStyles: {
+            fillColor: [236, 253, 245],
+            textColor: [4, 120, 87],
+            fontStyle: 'bold',
+            halign: 'left',
+          },
+          bodyStyles: {
+            fillColor: [255, 255, 255],
+            textColor: [28, 25, 23],
+          },
+          columnStyles: {
+            0: { cellWidth: 30, fontStyle: 'bold' },
+            1: { cellWidth: 30, halign: 'right', fontStyle: 'bold' },
+          },
+          margin: { left: 14, right: 14 },
+        });
+      }
+
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        doc.text(
+          `${t('reports.generated_on')} ${new Date().toLocaleDateString()}`,
+          14,
+          285
+        );
+        doc.text(
+          `${i} / ${pageCount}`,
+          doc.internal.pageSize.getWidth() - 20,
+          285
+        );
+      }
+
+      // Convert to blob
+      const pdfBlob = doc.output('blob');
+      const fileName = `Member_Payment_History_${selectedMemberId}_${selectedHistoryYear || 'All'}.pdf`;
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+      // Check if we can share files
+      const shareData: ShareData = {
+        title: t('reports.member_payment_history'),
+        text: `${t('reports.member_payment_history')} - ${memberName}`,
+      };
+
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        shareData.files = [pdfFile];
+      }
+
+      // Share
+      await navigator.share(shareData);
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Share failed:', error);
+        // Fallback to download on actual error
+        handleMemberPaymentExportPdf();
+      }
+    } finally {
+      setSharingMemberReport(false);
+    }
+  };
+
+  const handleMemberPaymentExportPdf = async () => {
+    if (!selectedMemberId || !selectedMemberDetails || memberPayments.length === 0) return;
+    setExporting(true);
+    try {
+      const { jsPDF } = await import('jspdf');
+      const autoTable = (await import('jspdf-autotable')).default;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      // Header with title and organization
+      doc.setFontSize(18);
+      doc.setTextColor(4, 120, 87);
+      doc.text(t('reports.member_payment_history'), 14, 18);
+      
+      // Organization name
+      if (activeMosqueName) {
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(activeMosqueName, 14, 25);
+      }
+
+      // Member details section
+      let yPosition = activeMosqueName ? 33 : 28;
+      doc.setFontSize(11);
+      doc.setTextColor(28, 25, 23);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${t('reports.member_profile')}`, 14, yPosition);
+      yPosition += 7;
+
+      const memberName = `${selectedMemberDetails.firstName || ''} ${selectedMemberDetails.lastName || ''}`.trim();
+      
+      // Member details in two columns
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      
+      const leftColumn = [
+        { label: `${t('common.name')}:`, value: memberName },
+        { label: `${t('reports.email')}:`, value: selectedMemberDetails.email || '-' },
+        { label: `${t('reports.date_of_birth')}:`, value: selectedMemberDetails.dateOfBirth ? new Date(selectedMemberDetails.dateOfBirth).toLocaleDateString() : '-' },
+      ];
+      
+      const rightColumn = [
+        { label: `${t('reports.member_id')}:`, value: String(selectedMemberId) },
+        { label: `${t('reports.phone')}:`, value: selectedMemberDetails.phone || '-' },
+        { label: `${t('account.member_since')}:`, value: selectedMemberDetails.memberSince ? new Date(selectedMemberDetails.memberSince).toLocaleDateString() : '-' },
+      ];
+
+      const leftX = 14;
+      const rightX = 110;
+      const labelWidth = 35;
+      
+      for (let i = 0; i < Math.max(leftColumn.length, rightColumn.length); i++) {
+        // Left column
+        if (i < leftColumn.length) {
+          doc.setTextColor(100, 100, 100);
+          doc.text(leftColumn[i].label, leftX, yPosition);
+          doc.setTextColor(28, 25, 23);
+          doc.text(leftColumn[i].value || '-', leftX + labelWidth, yPosition);
+        }
+        
+        // Right column
+        if (i < rightColumn.length) {
+          doc.setTextColor(100, 100, 100);
+          doc.text(rightColumn[i].label, rightX, yPosition);
+          doc.setTextColor(28, 25, 23);
+          doc.text(rightColumn[i].value || '-', rightX + labelWidth, yPosition);
+        }
+        
+        yPosition += 5;
+      }
+
+      yPosition += 3;
+
+      // Payments section
+      const filteredPayments = selectedHistoryYear
+        ? memberPayments.filter(p => new Date(p.paymentDate).getFullYear() === selectedHistoryYear)
+        : memberPayments;
+
+      if (filteredPayments.length > 0) {
+        doc.setFontSize(11);
+        doc.setTextColor(4, 120, 87);
+        doc.text(
+          `${t('reports.all_payments')} (${selectedHistoryYear || t('reports.all')})`,
+          14,
+          yPosition
+        );
+        yPosition += 8;
+
+        // Prepare table data
+        const headers = [
+          t('reports.payment_date'),
+          t('reports.contribution_type'),
+          t('reports.amount'),
+          t('reports.currency'),
+          t('reports.period_from'),
+          t('reports.period_to'),
+          t('reports.reference'),
+        ];
+
+        const rows = filteredPayments.map(p => [
+          new Date(p.paymentDate).toLocaleDateString(),
+          p.contributionTypeName || p.contributionTypeCode || 'Unknown',
+          p.amount.toFixed(2),
+          p.currencyCode || 'N/A',
+          p.periodFrom ? new Date(p.periodFrom).toLocaleDateString() : '-',
+          p.periodTo ? new Date(p.periodTo).toLocaleDateString() : '-',
+          p.reference || '-',
+        ]);
+
+        autoTable(doc, {
+          startY: yPosition,
+          head: [headers],
+          body: rows,
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: {
+            fillColor: [4, 120, 87],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+          },
+          alternateRowStyles: { fillColor: [245, 245, 244] },
+          margin: { left: 14, right: 14 },
+          didParseCell: (data: any) => {
+            // Right-align amounts
+            if (data.column.index === 2) {
+              data.cell.styles.halign = 'right';
+            }
+          },
+        });
+
+        yPosition = (doc as any).lastAutoTable.finalY + 8;
+
+        // Summary - grouped by currency
+        const currencyTotals = filteredPayments.reduce((acc: any, p: MemberPayment) => {
+          const currKey = p.currencyCode || 'Unknown';
+          if (!acc[currKey]) {
+            acc[currKey] = { total: 0, symbol: p.currencySymbol || '', code: currKey };
+          }
+          acc[currKey].total += p.amount || 0;
+          return acc;
+        }, {});
+
+        // Create totals table
+        const totalsRows = Object.entries(currencyTotals).map(([currKey, data]: [string, any]) => [
+          data.code,
+          `${data.symbol}${data.total.toFixed(2)}`
+        ]);
+
+        // Check if there's enough space for totals table, if not add a new page
+        const estimatedHeight = 15 + (totalsRows.length * 8); // header + rows
+        if (yPosition + estimatedHeight > 270) { // 270mm is safe bottom margin
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        autoTable(doc, {
+          startY: yPosition,
+          head: [[t('reports.col_total'), '']],
+          body: totalsRows,
+          theme: 'plain',
+          styles: { 
+            fontSize: 10, 
+            cellPadding: 3,
+            lineColor: [4, 120, 87],
+            lineWidth: 0.5,
+          },
+          headStyles: {
+            fillColor: [236, 253, 245], // emerald-50
+            textColor: [4, 120, 87],
+            fontStyle: 'bold',
+            halign: 'left',
+          },
+          bodyStyles: {
+            fillColor: [255, 255, 255],
+            textColor: [28, 25, 23],
+          },
+          columnStyles: {
+            0: { cellWidth: 30, fontStyle: 'bold' },
+            1: { cellWidth: 30, halign: 'right', fontStyle: 'bold' },
+          },
+          margin: { left: 14, right: 14 },
+        });
+      }
+
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        doc.text(
+          `${t('reports.generated_on')} ${new Date().toLocaleDateString()}`,
+          14,
+          doc.internal.pageSize.height - 10
+        );
+        doc.text(
+          `${i} / ${pageCount}`,
+          doc.internal.pageSize.width - 20,
+          doc.internal.pageSize.height - 10
+        );
+      }
+
+      const fileName = `payment-history-${memberName.replace(/\s+/g, '-')}-${selectedHistoryYear || 'all'}.pdf`;
+      doc.save(fileName);
+    } catch (error) {
+      console.error('PDF export failed:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // ── Report catalog ──────────────────────────────────────────────
 
   const reportCatalog = [
@@ -388,6 +896,16 @@ export default function ReportsPage() {
         <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'member-payment-history',
+      name: t('reports.member_payment_history'),
+      description: t('reports.member_payment_history_desc'),
+      icon: (
+        <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
     },
@@ -784,6 +1302,394 @@ export default function ReportsPage() {
                   </table>
                 </div>
               </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Member Payment History Report */}
+      {selectedReport === 'member-payment-history' && (
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-4">
+              <CardTitle className="text-lg sm:text-xl">{t('reports.member_payment_history')}</CardTitle>
+              
+              {/* Member selector and Year filter */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder={t('reports.select_member')}
+                    value={memberSearchTerm}
+                    onChange={(e) => setMemberSearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm"
+                  />
+                </div>
+                
+                {/* Year filter - always visible */}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-600 whitespace-nowrap">{t('reports.select_year_history')}:</label>
+                  <select
+                    value={selectedHistoryYear || ''}
+                    onChange={(e) => setSelectedHistoryYear(e.target.value ? Number(e.target.value) : null)}
+                    disabled={!selectedMemberId || historyYears.length === 0}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">{t('common.all')}</option>
+                    {historyYears.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Filtered members list */}
+              {memberSearchTerm && !selectedMemberId && (
+                <div className="border border-gray-300 rounded-lg max-h-48 overflow-y-auto bg-white">
+                  {members
+                    .filter((m) => {
+                      const fullName = `${m.lastName || ''} ${m.firstName}`.toLowerCase();
+                      return fullName.includes(memberSearchTerm.toLowerCase());
+                    })
+                    .slice(0, 15)
+                    .map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          setSelectedMemberId(m.id);
+                          setMemberSearchTerm('');
+                          setSelectedHistoryYear(null);
+                          setMemberPayments([]);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-emerald-50 border-b border-gray-100 text-sm transition-colors"
+                      >
+                        {m.lastName} {m.firstName}
+                      </button>
+                    ))}
+                </div>
+              )}
+
+              {/* Selected member info and export */}
+              {selectedMemberId && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-emerald-50 p-4 rounded-lg">
+                  <div>
+                    <span className="text-sm font-medium text-charcoal">
+                      {members.find((m) => m.id === selectedMemberId)?.firstName}{' '}
+                      {members.find((m) => m.id === selectedMemberId)?.lastName}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {memberPayments.length > 0 && (
+                      <>
+                        <button
+                          onClick={handleMemberPaymentShare}
+                          disabled={sharingMemberReport}
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-stone-600 border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors disabled:opacity-50"
+                          title={t('receipt.share')}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                          </svg>
+                          <span className="hidden sm:inline">{sharingMemberReport ? '...' : t('receipt.share')}</span>
+                        </button>
+                        <button
+                          onClick={handleMemberPaymentExportPdf}
+                          disabled={exporting}
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          {t('reports.export_pdf')}
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => {
+                        setSelectedMemberId(null);
+                        setMemberSearchTerm('');
+                        setMemberPayments([]);
+                        setSelectedHistoryYear(null);
+                      }}
+                      className="text-xs font-medium text-emerald-700 hover:text-emerald-900 transition-colors"
+                    >
+                      ✕ Change
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {loading && (
+              <div className="p-8 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+              </div>
+            )}
+
+            {!selectedMemberId && !loading && (
+              <div className="p-8 text-center text-gray-500">
+                {t('reports.select_member')}
+              </div>
+            )}
+
+            {selectedMemberId && !loading && memberPayments.length === 0 && (
+              <div className="p-8 text-center text-gray-500">
+                {t('reports.no_data')}
+              </div>
+            )}
+
+            {selectedMemberId && !loading && memberPayments.length > 0 && (
+              <div className="space-y-6">
+                {/* Member Profile Details */}
+                {selectedMemberDetails && (
+                  <div className="bg-gradient-to-r from-emerald-50 to-white p-4 sm:p-6 rounded-lg border border-emerald-200">
+                    <h3 className="text-lg font-semibold text-charcoal mb-4">{t('reports.member_profile')}</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('common.name')}</p>
+                        <p className="text-sm font-medium text-charcoal">
+                          {selectedMemberDetails.firstName} {selectedMemberDetails.lastName}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('reports.member_id')}</p>
+                        <p className="text-sm font-medium text-charcoal">{selectedMemberId}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('reports.email')}</p>
+                        <p className="text-sm font-medium text-charcoal">{selectedMemberDetails.email || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('reports.phone')}</p>
+                        <p className="text-sm font-medium text-charcoal">{selectedMemberDetails.phone || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('reports.date_of_birth')}</p>
+                        <p className="text-sm font-medium text-charcoal">
+                          {selectedMemberDetails.dateOfBirth
+                            ? new Date(selectedMemberDetails.dateOfBirth).toLocaleDateString()
+                            : '-'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('account.member_since')}</p>
+                        <p className="text-sm font-medium text-charcoal">
+                          {selectedMemberDetails.memberSince
+                            ? new Date(selectedMemberDetails.memberSince).toLocaleDateString()
+                            : '-'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Detailed Payments Table */}
+                {(() => {
+                  const filteredPayments = selectedHistoryYear
+                    ? memberPayments.filter(p => new Date(p.paymentDate).getFullYear() === selectedHistoryYear)
+                    : memberPayments;
+
+                  if (filteredPayments.length === 0) {
+                    return (
+                      <div className="p-6 text-center text-gray-500 border border-gray-200 rounded-lg">
+                        {t('reports.no_data')}
+                      </div>
+                    );
+                  }
+
+                  // Group totals by currency
+                  const currencyTotals = filteredPayments.reduce((acc: any, p: MemberPayment) => {
+                    const currKey = p.currencyCode || 'Unknown';
+                    if (!acc[currKey]) {
+                      acc[currKey] = { total: 0, symbol: p.currencySymbol || currKey };
+                    }
+                    acc[currKey].total += p.amount || 0;
+                    return acc;
+                  }, {});
+
+                  return (
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="bg-emerald-50 px-4 py-3 border-b border-emerald-200">
+                        <h3 className="font-semibold text-charcoal">
+                          {t('reports.detailed_payments')} ({selectedHistoryYear || t('common.all')})
+                        </h3>
+                      </div>
+
+                      {/* Desktop table */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">{t('reports.payment_date')}</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">{t('reports.contribution_type')}</th>
+                              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">{t('reports.amount')}</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">{t('reports.currency')}</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">{t('reports.period_from')}</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">{t('reports.period_to')}</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">{t('reports.reference')}</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {filteredPayments.map((payment, idx) => (
+                              <tr key={payment.id || idx} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                                  {new Date(payment.paymentDate).toLocaleDateString()}
+                                </td>
+                                <td className="px-4 py-3 text-sm font-medium text-charcoal">
+                                  {payment.contributionTypeName || payment.contributionTypeCode || 'Unknown'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-right font-semibold text-emerald-700">
+                                  {payment.amount.toFixed(2)}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-700">
+                                  {payment.currencyCode || 'N/A'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                                  {payment.periodFrom ? new Date(payment.periodFrom).toLocaleDateString() : '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                                  {payment.periodTo ? new Date(payment.periodTo).toLocaleDateString() : '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-700">
+                                  {payment.reference ? payment.reference.substring(0, 20) : '-'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Mobile cards */}
+                      <div className="md:hidden divide-y divide-gray-200">
+                        {filteredPayments.map((payment, idx) => (
+                          <div key={payment.id || idx} className="p-4 space-y-2 hover:bg-gray-50 transition-colors">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase font-semibold">{t('reports.payment_date')}</p>
+                                <p className="text-sm font-medium text-charcoal">
+                                  {new Date(payment.paymentDate).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-gray-500 uppercase font-semibold">{t('reports.amount')}</p>
+                                <p className="text-lg font-semibold text-emerald-700">
+                                  {payment.currencySymbol || payment.currencyCode} {payment.amount.toFixed(2)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex justify-between">
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase font-semibold">{t('reports.contribution_type')}</p>
+                                <p className="text-sm font-medium text-charcoal">
+                                  {payment.contributionTypeName || payment.contributionTypeCode || 'Unknown'}
+                                </p>
+                              </div>
+                            </div>
+                            {(payment.periodFrom || payment.periodTo) && (
+                              <div className="flex justify-between pt-2 border-t border-gray-200">
+                                <div>
+                                  {payment.periodFrom && (
+                                    <>
+                                      <p className="text-xs text-gray-500 uppercase font-semibold">{t('reports.period_from')}</p>
+                                      <p className="text-sm text-gray-700">
+                                        {new Date(payment.periodFrom).toLocaleDateString()}
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
+                                <div>
+                                  {payment.periodTo && (
+                                    <>
+                                      <p className="text-xs text-gray-500 uppercase font-semibold">{t('reports.period_to')}</p>
+                                      <p className="text-sm text-gray-700">
+                                        {new Date(payment.periodTo).toLocaleDateString()}
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Summary row */}
+                      <div className="bg-emerald-50 px-4 py-4 border-t border-emerald-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div className="flex-1">
+                          <p className="text-xs text-gray-600 uppercase font-semibold mb-2">{t('reports.col_total')}</p>
+                          <div className="flex flex-wrap gap-3">
+                            {Object.entries(currencyTotals).map(([currKey, data]: [string, any]) => (
+                              <div key={currKey} className="bg-white px-3 py-2 rounded border border-emerald-200">
+                                <p className="text-xs text-gray-500">{currKey}</p>
+                                <p className="text-lg font-bold text-emerald-700">
+                                  {data.symbol} {data.total.toFixed(2)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-right text-sm text-gray-600">
+                          <p>{filteredPayments.length} {t('reports.payment_records')}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Grouped summary section */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-charcoal mb-4">{t('reports.payments_by_type')}</h3>
+                  {(() => {
+                    const filteredPayments = selectedHistoryYear
+                      ? memberPayments.filter(p => new Date(p.paymentDate).getFullYear() === selectedHistoryYear)
+                      : memberPayments;
+
+                    const groupedByType = filteredPayments.reduce((acc: any, p: MemberPayment) => {
+                      const typeKey = p.contributionTypeName || p.contributionTypeCode || 'Unknown' ;
+                      if (!acc[typeKey]) acc[typeKey] = [];
+                      acc[typeKey].push(p);
+                      return acc;
+                    }, {});
+
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {Object.entries(groupedByType).map(([typeKey, typePayments]: [string, any[]]) => {
+                          const groupedByCurrency = typePayments.reduce((acc: any, p: MemberPayment) => {
+                            const currKey = p.currencyCode || 'Unknown';
+                            if (!acc[currKey]) acc[currKey] = { amount: 0, symbol: p.currencySymbol || currKey };
+                            acc[currKey].amount += p.amount || 0;
+                            return acc;
+                          }, {});
+
+                          return (
+                            <div key={typeKey} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="font-semibold text-charcoal text-sm">{typeKey}</p>
+                                <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+                                  {typePayments.length}
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                {Object.entries(groupedByCurrency).map(([currKey, data]: [string, any]) => (
+                                  <div key={currKey} className="flex justify-between items-end bg-gray-50 p-2 rounded">
+                                    <span className="text-xs text-gray-600">{currKey}</span>
+                                    <p className="font-semibold text-charcoal">
+                                      {data.symbol} {data.amount.toFixed(2)}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

@@ -1,0 +1,77 @@
+{
+  "@@locale": "en",
+  "appTitle": "MemberFlow",
+  "login": "Sign In",
+  "username": "Username",
+  "password": "Password",
+  "loginButton": "Sign In",
+  "loginError": "Login failed",
+  "logout": "Sign Out",
+  "logoutConfirm": "Are you sure you want to sign out?",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "add": "Add",
+  "search": "Search",
+  "retry": "Retry",
+  "loading": "Loading...",
+  "noResults": "No results found",
+  "error": "Error",
+
+  "dashboard": "Dashboard",
+  "members": "Members",
+  "groups": "Groups",
+  "contributions": "Contributions",
+  "profile": "Profile",
+  "settings": "Settings",
+  "finance": "Finance",
+
+  "welcomeBack": "Welcome back,",
+  "totalMembers": "Total Members",
+  "activeMembers": "Active",
+  "male": "Male",
+  "female": "Female",
+
+  "searchMembers": "Search members...",
+  "memberDetail": "Member Detail",
+  "overview": "Overview",
+  "payments": "Payments",
+  "assignments": "Assignments",
+  "contactInformation": "Contact Information",
+  "account": "Account",
+  "noPayments": "No payments found",
+  "noAssignments": "No assignments found",
+
+  "groupDetail": "Group Detail",
+  "noMembers": "No members in this group",
+  "active": "Active",
+  "inactive": "Inactive",
+  "ended": "Ended",
+  "ongoing": "(ongoing)",
+
+  "types": "Types",
+  "noContributionTypes": "No contribution types",
+  "required": "Required",
+  "noPaymentsFound": "No payments found",
+  "page": "Page {current} of {total}",
+  "@page": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+
+  "changePassword": "Change Password",
+  "currentPassword": "Current Password",
+  "newPassword": "New Password",
+  "confirmPassword": "Confirm New Password",
+  "permissions": "Permissions",
+
+  "language": "Language",
+  "english": "English",
+  "dutch": "Nederlands",
+  "about": "About",
+  "version": "Version"
+}

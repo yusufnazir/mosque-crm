@@ -306,6 +306,19 @@ public class MemberPaymentService {
                 (payment.getPerson().getLastName() != null ? " " + payment.getPerson().getLastName() : ""));
         dto.setContributionTypeId(payment.getContributionType().getId());
         dto.setContributionTypeCode(payment.getContributionType().getCode());
+        
+        // Get the English translation of contribution type name
+        String contributionTypeName = payment.getContributionType().getCode(); // fallback to code
+        if (payment.getContributionType().getTranslations() != null) {
+            for (var translation : payment.getContributionType().getTranslations()) {
+                if ("en".equalsIgnoreCase(translation.getLocale())) {
+                    contributionTypeName = translation.getName();
+                    break;
+                }
+            }
+        }
+        dto.setContributionTypeName(contributionTypeName);
+        
         dto.setAmount(payment.getAmount());
         dto.setPaymentDate(payment.getPaymentDate());
         dto.setPeriodFrom(payment.getPeriodFrom());

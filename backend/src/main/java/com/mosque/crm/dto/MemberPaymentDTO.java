@@ -14,6 +14,7 @@ public class MemberPaymentDTO {
     private String personName;
     private Long contributionTypeId;
     private String contributionTypeCode;
+    private String contributionTypeName;
     private BigDecimal amount;
     private LocalDate paymentDate;
     private LocalDate periodFrom;
@@ -70,6 +71,14 @@ public class MemberPaymentDTO {
 
     public void setContributionTypeCode(String contributionTypeCode) {
         this.contributionTypeCode = contributionTypeCode;
+    }
+
+    public String getContributionTypeName() {
+        return contributionTypeName;
+    }
+
+    public void setContributionTypeName(String contributionTypeName) {
+        this.contributionTypeName = contributionTypeName;
     }
 
     public BigDecimal getAmount() {
