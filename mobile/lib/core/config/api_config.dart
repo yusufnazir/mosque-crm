@@ -3,10 +3,14 @@ class ApiConfig {
   ApiConfig._();
 
   /// Base URL for the Spring Boot backend.
-  /// Change this to your server's address.
-  /// - Android emulator: 10.0.2.2:8080
-  /// - iOS simulator / physical device on same network: <your-ip>:8080
-  /// - Web: localhost:8080 or same domain
+  /// 
+  /// ⚠️ PRODUCTION: MUST use HTTPS (e.g., https://api.mosque.com/api)
+  /// 
+  /// Development options:
+  /// - Android emulator: http://10.0.2.2:8080/api
+  /// - iOS simulator: http://localhost:8080/api
+  /// - Physical device on same network: http://<your-local-ip>:8080/api
+  /// - Web: http://localhost:8080/api
   static const String baseUrl = 'http://192.168.1.105:8080/api';
 
   /// Connection timeout in milliseconds.

@@ -250,6 +250,7 @@ public class PersonService {
         person.setCity(createDTO.getCity());
         person.setCountry(createDTO.getCountry());
         person.setPostalCode(createDTO.getPostalCode());
+        person.setIdNumber(createDTO.getIdNumber());
         person.setStatus(createDTO.getStatus() != null ? createDTO.getStatus() : PersonStatus.ACTIVE);
         person.setCreatedAt(LocalDateTime.now());
         person.setUpdatedAt(LocalDateTime.now());
@@ -299,6 +300,9 @@ public class PersonService {
         }
         if (updateDTO.getPostalCode() != null) {
             person.setPostalCode(updateDTO.getPostalCode());
+        }
+        if (updateDTO.getIdNumber() != null) {
+            person.setIdNumber(updateDTO.getIdNumber());
         }
         if (updateDTO.getStatus() != null) {
             person.setStatus(updateDTO.getStatus());
@@ -384,6 +388,7 @@ public class PersonService {
         dto.setCountry(person.getCountry());
         dto.setPostalCode(person.getPostalCode());
         dto.setStatus(person.getStatus());
+        dto.setIdNumber(person.getIdNumber());
 
         // Defensive: if dateOfDeath is set but status is not DECEASED, override the status
         if (person.getDateOfDeath() != null && person.getStatus() != PersonStatus.DECEASED) {
@@ -407,6 +412,11 @@ public class PersonService {
 
         // Set active membership indicator (pre-loaded, no extra query)
         dto.setHasActiveMembership(hasActiveMembership);
+
+        // Set profile image URL (served through backend, never expose storage key)
+        if (person.getProfileImageKey() != null) {
+            dto.setProfileImageUrl("/api/profile-image/persons/" + person.getId());
+        }
 
         // Set account info if user is linked (user already fetched via JOIN FETCH)
         if (person.hasPortalAccess()) {

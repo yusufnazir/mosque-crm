@@ -771,4 +771,36 @@
                                  referencedTableName="group_roles" referencedColumnNames="id"/>
     </changeSet>
 
+    <!-- ==================== Subscription Domain FKs ==================== -->
+
+    <!-- plan_entitlements.plan_id → subscription_plans.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000230" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_planentitlement_plan"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="plan_entitlements" baseColumnNames="plan_id"
+                                 constraintName="fk_planentitlement_plan"
+                                 referencedTableName="subscription_plans" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- organization_subscriptions.plan_id → subscription_plans.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000231" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_orgsubscription_plan"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="organization_subscriptions" baseColumnNames="plan_id"
+                                 constraintName="fk_orgsubscription_plan"
+                                 referencedTableName="subscription_plans" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- organization_subscriptions.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000232" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_orgsubscription_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="organization_subscriptions" baseColumnNames="mosque_id"
+                                 constraintName="fk_orgsubscription_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -352,4 +352,125 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ GRANULAR CONTRIBUTION PERMISSIONS ═══════════ -->
+	<!-- These provide fine-grained control over the Contributions page tabs -->
+	
+	<!-- Contribution Types Tab -->
+	<changeSet id="1a2b3c4d-0042-4aaa-cccc-contypes000042" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[42]]></param>
+			<param name="code"><![CDATA[contribution.view_types]]></param>
+			<param name="description"><![CDATA[View contribution types]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="2b3c4d5e-0042-4aaa-cccc-contypes000043" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[43]]></param>
+			<param name="code"><![CDATA[contribution.manage_types]]></param>
+			<param name="description"><![CDATA[Create, edit, and deactivate contribution types]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	
+	<!-- Obligations Tab -->
+	<changeSet id="3c4d5e6f-0042-4aaa-cccc-conoblig000044" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[44]]></param>
+			<param name="code"><![CDATA[contribution.view_obligations]]></param>
+			<param name="description"><![CDATA[View contribution obligations]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="4d5e6f7a-0042-4aaa-cccc-conoblig000045" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[45]]></param>
+			<param name="code"><![CDATA[contribution.manage_obligations]]></param>
+			<param name="description"><![CDATA[Create, edit, and delete contribution obligations]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	
+	<!-- Payments Tab -->
+	<changeSet id="5e6f7a8b-0042-4aaa-cccc-conpaymt000046" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[46]]></param>
+			<param name="code"><![CDATA[contribution.view_payments]]></param>
+			<param name="description"><![CDATA[View contribution payments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	
+	<!-- Exemptions Tab -->
+	<changeSet id="6f7a8b9c-0042-4aaa-cccc-conexemt000047" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[47]]></param>
+			<param name="code"><![CDATA[contribution.view_exemptions]]></param>
+			<param name="description"><![CDATA[View contribution exemptions]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="8b9c0d1e-0042-4aaa-cccc-conexemt000048-create" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[48]]></param>
+			<param name="code"><![CDATA[contribution.create_exemption]]></param>
+			<param name="description"><![CDATA[Create contribution exemptions]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="9c0d1e2f-0042-4aaa-cccc-conexemt000050" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[50]]></param>
+			<param name="code"><![CDATA[contribution.edit_exemption]]></param>
+			<param name="description"><![CDATA[Edit contribution exemptions]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="0d1e2f3a-0042-4aaa-cccc-conexemt000051" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[51]]></param>
+			<param name="code"><![CDATA[contribution.delete_exemption]]></param>
+			<param name="description"><![CDATA[Delete contribution exemptions]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+	
+	<!-- Assignments Tab -->
+	<changeSet id="8b9c0d1e-0042-4aaa-cccc-conassig000049" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[49]]></param>
+			<param name="code"><![CDATA[contribution.view_assignments]]></param>
+			<param name="description"><![CDATA[View contribution assignments]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- View Self-Only Mode -->
+	<changeSet id="c2d3e4f5-0052-4aaa-dddd-viewselfonly00052" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[52]]></param>
+			<param name="code"><![CDATA[contribution.view_self_only]]></param>
+			<param name="description"><![CDATA[View only own contributions and payments, cannot see system-wide data or manage]]></param>
+			<param name="category"><![CDATA[contribution]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ SUBSCRIPTION / PLAN MANAGEMENT ═══════════ -->
+	<changeSet id="a1b2c3d4-0053-4sub-aaaa-subscription053" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[53]]></param>
+			<param name="code"><![CDATA[subscription.view]]></param>
+			<param name="description"><![CDATA[View current organization subscription plan and entitlements]]></param>
+			<param name="category"><![CDATA[subscription]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b2c3d4e5-0054-4sub-bbbb-subscription054" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[54]]></param>
+			<param name="code"><![CDATA[subscription.manage]]></param>
+			<param name="description"><![CDATA[Assign and manage subscription plans for organizations (super-admin only)]]></param>
+			<param name="category"><![CDATA[subscription]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

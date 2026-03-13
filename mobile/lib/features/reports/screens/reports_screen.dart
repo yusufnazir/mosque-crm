@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../services/report_service.dart';
@@ -31,17 +32,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reports'),
+        title: Text(isDutch ? 'Rapporten' : 'Reports'),
         bottom: TabBar(
           controller: _tabCtrl,
           labelColor: AppColors.emerald,
           unselectedLabelColor: AppColors.stone500,
           indicatorColor: AppColors.emerald,
-          tabs: const [
-            Tab(text: 'Payment Summary'),
-            Tab(text: 'Contribution Totals'),
+          tabs: [
+            Tab(text: isDutch ? 'Betalingsoverzicht' : 'Payment Summary'),
+            Tab(text: isDutch ? 'Bijdrage totalen' : 'Contribution Totals'),
           ],
         ),
       ),
@@ -131,8 +133,9 @@ class _PaymentSummaryTabState extends ConsumerState<_PaymentSummaryTab>
       // Convert to CSV string for sharing
       final content = data['content'] as List? ?? [];
       if (content.isEmpty) {
+        final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No data to export')),
+          SnackBar(content: Text(isDutch ? 'Geen gegevens om te exporteren' : 'No data to export')),
         );
         return;
       }
@@ -140,7 +143,8 @@ class _PaymentSummaryTabState extends ConsumerState<_PaymentSummaryTab>
       final headers = all.first.keys.join(',');
       final rows = all.map((r) => r.values.map((v) => '"$v"').join(',')).join('\n');
       final csv = '$headers\n$rows';
-      await Share.share(csv, subject: 'Payment Summary $_selectedYear');
+      final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
+      await Share.share(csv, subject: isDutch ? 'Betalingsoverzicht $_selectedYear' : 'Payment Summary $_selectedYear');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -153,6 +157,7 @@ class _PaymentSummaryTabState extends ConsumerState<_PaymentSummaryTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     return Column(
       children: [
         // Filters
@@ -164,10 +169,10 @@ class _PaymentSummaryTabState extends ConsumerState<_PaymentSummaryTab>
               Expanded(
                 child: DropdownButtonFormField<int>(
                   value: _selectedYear,
-                  decoration: const InputDecoration(
-                    labelText: 'Year',
+                  decoration: InputDecoration(
+                    labelText: isDutch ? 'Jaar' : 'Year',
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   items: _years
                       .map((y) =>
@@ -185,7 +190,7 @@ class _PaymentSummaryTabState extends ConsumerState<_PaymentSummaryTab>
               const SizedBox(width: 12),
               IconButton(
                 icon: const Icon(Icons.share),
-                tooltip: 'Export',
+                tooltip: isDutch ? 'Exporteren' : 'Export',
                 onPressed: _export,
               ),
             ],
@@ -202,7 +207,7 @@ class _PaymentSummaryTabState extends ConsumerState<_PaymentSummaryTab>
               itemCount: _data.length,
               itemBuilder: (ctx, i) {
                 final row = _data[i];
-                final name = row['personName'] ?? row['memberName'] ?? 'Unknown';
+                final name = row['personName'] ?? row['memberName'] ?? (isDutch ? 'Onbekend' : 'Unknown');
                 final total = row['totalAmount'] ?? row['total'] ?? 0;
                 final paid = row['paidAmount'] ?? row['paid'] ?? 0;
                 final outstanding =
@@ -220,11 +225,11 @@ class _PaymentSummaryTabState extends ConsumerState<_PaymentSummaryTab>
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            _StatChip('Total', '$total', AppColors.stone600),
+                            _StatChip(isDutch ? 'Totaal' : 'Total', '$total', AppColors.stone600),
                             const SizedBox(width: 8),
-                            _StatChip('Paid', '$paid', AppColors.emerald),
+                            _StatChip(isDutch ? 'Betaald' : 'Paid', '$paid', AppColors.emerald),
                             const SizedBox(width: 8),
-                            _StatChip('Outstanding', '$outstanding',
+                            _StatChip(isDutch ? 'Openstaand' : 'Outstanding', '$outstanding',
                                 AppColors.error),
                           ],
                         ),
@@ -251,7 +256,7 @@ class _PaymentSummaryTabState extends ConsumerState<_PaymentSummaryTab>
                         }
                       : null,
                 ),
-                Text('Page ${_page + 1} of $_totalPages'),
+                Text(isDutch ? 'Pagina ${_page + 1} van $_totalPages' : 'Page ${_page + 1} of $_totalPages'),
                 IconButton(
                   icon: const Icon(Icons.chevron_right),
                   onPressed: _page < _totalPages - 1
@@ -362,16 +367,17 @@ class _ContributionTotalsTabState
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(12),
           child: DropdownButtonFormField<int>(
             value: _selectedYear,
-            decoration: const InputDecoration(
-              labelText: 'Year',
+            decoration: InputDecoration(
+              labelText: isDutch ? 'Jaar' : 'Year',
               contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
             items: _years
                 .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
@@ -394,7 +400,7 @@ class _ContributionTotalsTabState
               itemBuilder: (ctx, i) {
                 final row = _data[i];
                 final typeName =
-                    row['contributionTypeName'] ?? row['typeName'] ?? 'Unknown';
+                    row['contributionTypeName'] ?? row['typeName'] ?? (isDutch ? 'Onbekend' : 'Unknown');
                 final totalExpected =
                     row['totalExpected'] ?? row['expected'] ?? 0;
                 final totalPaid = row['totalPaid'] ?? row['paid'] ?? 0;
@@ -413,7 +419,7 @@ class _ContributionTotalsTabState
                         if (currency.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
-                            child: Text('Currency: $currency',
+                            child: Text('${isDutch ? 'Valuta' : 'Currency'}: $currency',
                                 style: const TextStyle(
                                     fontSize: 12, color: AppColors.stone500)),
                           ),
@@ -421,9 +427,9 @@ class _ContributionTotalsTabState
                         Row(
                           children: [
                             _StatChip(
-                                'Expected', '$totalExpected', AppColors.stone600),
+                                isDutch ? 'Verwacht' : 'Expected', '$totalExpected', AppColors.stone600),
                             const SizedBox(width: 8),
-                            _StatChip('Paid', '$totalPaid', AppColors.emerald),
+                            _StatChip(isDutch ? 'Betaald' : 'Paid', '$totalPaid', AppColors.emerald),
                           ],
                         ),
                       ],

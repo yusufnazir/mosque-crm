@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../models/user_models.dart';
@@ -103,6 +104,8 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
   }
 
   void _showRoleForm({AppRole? role}) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     final nameCtrl = TextEditingController(text: role?.name ?? '');
     final descCtrl = TextEditingController(text: role?.description ?? '');
     bool isEdit = role != null;
@@ -137,18 +140,18 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(isEdit ? 'Edit Role' : 'Create Role',
+            Text(isEdit ? (isDutch ? 'Rol bewerken' : 'Edit Role') : (isDutch ? 'Rol aanmaken' : 'Create Role'),
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             const SizedBox(height: 16),
             TextFormField(
               controller: nameCtrl,
-              decoration: const InputDecoration(labelText: 'Role Name *'),
+              decoration: InputDecoration(labelText: isDutch ? 'Relnaam *' : 'Role Name *'),
               textCapitalization: TextCapitalization.characters,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: descCtrl,
-              decoration: const InputDecoration(labelText: 'Description'),
+              decoration: InputDecoration(labelText: isDutch ? 'Beschrijving' : 'Description'),
               maxLines: 2,
             ),
             const SizedBox(height: 20),
@@ -181,7 +184,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                     );
                   }
                 },
-                child: Text(isEdit ? 'Save Changes' : 'Create Role'),
+                  child: Text(isEdit ? (isDutch ? 'Wijzigingen opslaan' : 'Save Changes') : (isDutch ? 'Rol aanmaken' : 'Create Role')),
               ),
             ),
           ],
@@ -191,15 +194,17 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
   }
 
   void _confirmDeleteRole(AppRole role) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Role'),
-        content: Text('Delete role "${role.name}"? This cannot be undone.'),
+        title: Text(isDutch ? 'Rol verwijderen' : 'Delete Role'),
+        content: Text(isDutch ? 'Rol "${role.name}" verwijderen? Dit kan niet ongedaan gemaakt worden.' : 'Delete role "${role.name}"? This cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(isDutch ? 'Annuleren' : 'Cancel'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
@@ -221,7 +226,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                 }
               }
             },
-            child: const Text('Delete'),
+            child: Text(isDutch ? 'Verwijderen' : 'Delete'),
           ),
         ],
       ),
@@ -230,16 +235,19 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
+    
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Roles & Permissions')),
+        appBar: AppBar(title: Text(isDutch ? 'Rollen en machtigingen' : 'Roles & Permissions')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Roles & Permissions'),
+        title: Text(isDutch ? 'Rollen en machtigingen' : 'Roles & Permissions'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -277,10 +285,10 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
           const Divider(height: 1),
           // Permission matrix
           if (_selectedRole == null)
-            const Expanded(
+            Expanded(
               child: Center(
-                child: Text('Select a role to manage permissions',
-                    style: TextStyle(color: AppColors.stone500)),
+                child: Text(isDutch ? 'Selecteer een rol om machtigingen te beheren' : 'Select a role to manage permissions',
+                    style: const TextStyle(color: AppColors.stone500)),
               ),
             )
           else
@@ -358,7 +366,9 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                               style: const TextStyle(fontWeight: FontWeight.w500),
                             ),
                             subtitle: Text(
-                              '${perms.where((p) => _selectedPermCodes.contains(p.code)).length}/${perms.length} enabled',
+                              isDutch
+                                  ? '${perms.where((p) => _selectedPermCodes.contains(p.code)).length}/${perms.length} ingeschakeld'
+                                  : '${perms.where((p) => _selectedPermCodes.contains(p.code)).length}/${perms.length} enabled',
                               style: const TextStyle(fontSize: 12),
                             ),
                             children: perms
@@ -407,7 +417,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                                 height: 20,
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2))
-                            : const Text('Save Permissions'),
+                            : Text(isDutch ? 'Machtigingen opslaan' : 'Save Permissions'),
                       ),
                     ),
                   ),

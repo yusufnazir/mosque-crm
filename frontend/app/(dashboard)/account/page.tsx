@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
-import { authApi, portalApi } from '@/lib/api';
+import { authApi, portalApi, profileImageApi } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { Member } from '@/types';
 import { formatDate, getStatusColor } from '@/lib/utils';
@@ -25,6 +25,9 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -58,6 +61,10 @@ export default function AccountPage() {
     try {
       const profileData: any = await portalApi.getProfile();
       setMemberProfile(profileData);
+      // Set profile image URL if available
+      if (profileData.profileImageUrl) {
+        setProfileImageUrl(profileData.profileImageUrl + '?t=' + Date.now());
+      }
     } catch (error) {
       // Member profile not linked - this is OK for admin users
       console.log('No member profile linked to this user');
@@ -88,6 +95,30 @@ export default function AccountPage() {
     }
   };
 
+  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const result = await profileImageApi.uploadMy(file);
+      setProfileImageUrl(result.imageUrl + '?t=' + Date.now());
+    } catch (error: any) {
+      setMessage(error?.message || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleProfileImageDelete = async () => {
+    try {
+      await profileImageApi.deleteMy();
+      setProfileImageUrl(null);
+    } catch (error: any) {
+      setMessage(error?.message || 'Failed to delete image');
+    }
+  };
+
   const handlePasswordChangeSubmit = async (oldPassword: string, newPassword: string) => {
     await authApi.changePassword({ oldPassword, newPassword });
   };
@@ -113,6 +144,73 @@ export default function AccountPage() {
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('account.title')}</h1>
         <p className="text-gray-600">{t('account.subtitle')}</p>
+      </div>
+
+      {/* Profile Image */}
+      <div className="mb-8">
+        <div className="max-w-2xl">
+          <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 flex items-center gap-6">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full overflow-hidden bg-emerald-100 flex items-center justify-center border-2 border-emerald-200">
+                {profileImageUrl ? (
+                  <img
+                    src={profileImageUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-3xl font-bold text-emerald-700">
+                    {memberProfile
+                      ? `${memberProfile.firstName?.[0] || ''}${memberProfile.lastName?.[0] || ''}`.toUpperCase()
+                      : profile.username?.[0]?.toUpperCase() || '?'}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImage}
+                className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
+                title={t('account.upload_photo')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-charcoal">{t('account.profile_photo')}</h3>
+              <p className="text-sm text-gray-500 mb-3">{t('account.profile_photo_hint')}</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingImage}
+                  className="px-4 py-2 text-sm bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition disabled:opacity-50"
+                >
+                  {uploadingImage ? t('account.uploading') : t('account.upload_photo')}
+                </button>
+                {profileImageUrl && (
+                  <button
+                    type="button"
+                    onClick={handleProfileImageDelete}
+                    className="px-4 py-2 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition"
+                  >
+                    {t('account.remove_photo')}
+                  </button>
+                )}
+              </div>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={handleProfileImageUpload}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Account Settings */}

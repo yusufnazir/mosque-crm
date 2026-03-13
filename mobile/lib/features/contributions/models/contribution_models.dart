@@ -75,6 +75,7 @@ class ContributionObligation {
   final int? id;
   final int? contributionTypeId;
   final String? contributionTypeCode;
+  final String? contributionTypeName;
   final double amount;
   final String? frequency;
   final String? startDate;
@@ -86,6 +87,7 @@ class ContributionObligation {
     this.id,
     this.contributionTypeId,
     this.contributionTypeCode,
+    this.contributionTypeName,
     this.amount = 0,
     this.frequency,
     this.startDate,
@@ -99,6 +101,7 @@ class ContributionObligation {
       id: json['id'] as int?,
       contributionTypeId: json['contributionTypeId'] as int?,
       contributionTypeCode: json['contributionTypeCode'] as String?,
+      contributionTypeName: json['contributionTypeName'] as String?,
       amount: (json['amount'] as num?)?.toDouble() ?? 0,
       frequency: json['frequency'] as String?,
       startDate: json['startDate'] as String?,
@@ -116,6 +119,7 @@ class MemberPayment {
   final String? personName;
   final int? contributionTypeId;
   final String? contributionTypeCode;
+  final String? contributionTypeName;
   final double amount;
   final String? paymentDate;
   final String? periodFrom;
@@ -136,6 +140,7 @@ class MemberPayment {
     this.personName,
     this.contributionTypeId,
     this.contributionTypeCode,
+    this.contributionTypeName,
     this.amount = 0,
     this.paymentDate,
     this.periodFrom,
@@ -158,6 +163,7 @@ class MemberPayment {
       personName: json['personName'] as String?,
       contributionTypeId: json['contributionTypeId'] as int?,
       contributionTypeCode: json['contributionTypeCode'] as String?,
+      contributionTypeName: json['contributionTypeName'] as String?,
       amount: (json['amount'] as num?)?.toDouble() ?? 0,
       paymentDate: json['paymentDate'] as String?,
       periodFrom: json['periodFrom'] as String?,
@@ -182,6 +188,7 @@ class ContributionExemption {
   final String? personName;
   final int? contributionTypeId;
   final String? contributionTypeCode;
+  final String? contributionTypeName;
   final String? exemptionType;
   final double? amount;
   final String? reason;
@@ -195,6 +202,7 @@ class ContributionExemption {
     this.personName,
     this.contributionTypeId,
     this.contributionTypeCode,
+    this.contributionTypeName,
     this.exemptionType,
     this.amount,
     this.reason,
@@ -210,6 +218,7 @@ class ContributionExemption {
       personName: json['personName'] as String?,
       contributionTypeId: json['contributionTypeId'] as int?,
       contributionTypeCode: json['contributionTypeCode'] as String?,
+      contributionTypeName: json['contributionTypeName'] as String?,
       exemptionType: json['exemptionType'] as String?,
       amount: (json['amount'] as num?)?.toDouble(),
       reason: json['reason'] as String?,
@@ -227,6 +236,7 @@ class ContributionAssignment {
   final String? personName;
   final int? contributionTypeId;
   final String? contributionTypeCode;
+  final String? contributionTypeName;
   final String? startDate;
   final String? endDate;
   final bool isActive;
@@ -238,6 +248,7 @@ class ContributionAssignment {
     this.personName,
     this.contributionTypeId,
     this.contributionTypeCode,
+    this.contributionTypeName,
     this.startDate,
     this.endDate,
     this.isActive = true,
@@ -251,6 +262,7 @@ class ContributionAssignment {
       personName: json['personName'] as String?,
       contributionTypeId: json['contributionTypeId'] as int?,
       contributionTypeCode: json['contributionTypeCode'] as String?,
+      contributionTypeName: json['contributionTypeName'] as String?,
       startDate: json['startDate'] as String?,
       endDate: json['endDate'] as String?,
       isActive: json['isActive'] as bool? ?? true,

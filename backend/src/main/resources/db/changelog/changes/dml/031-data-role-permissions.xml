@@ -179,8 +179,67 @@
 		</customChange>
 	</changeSet>
 
+	<!-- Admin assignments for Granular Contribution Permissions (42-49) -->
+	<changeSet id="l6m7n8o9-0042-4aaa-bbbb-admin-ct42" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[42]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="m7n8o9p0-0042-4aaa-bbbb-admin-ct43" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[43]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="n8o9p0q1-0042-4aaa-bbbb-admin-ct44" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[44]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="o9p0q1r2-0042-4aaa-bbbb-admin-ct45" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[45]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="p0q1r2s3-0042-4aaa-bbbb-admin-ct46" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[46]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="q1r2s3t4-0042-4aaa-bbbb-admin-ct47" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[47]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="r2s3t4u5-0042-4aaa-bbbb-admin-ct48-create" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[48]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="exempt50-0042-4aaa-bbbb-admin-ct50-edit" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[50]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="exempt51-0042-4aaa-bbbb-admin-ct51-delete" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[51]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="s3t4u5v6-0042-4aaa-bbbb-admin-ct49" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[49]]></param>
+		</customChange>
+	</changeSet>
+	<!-- subscription.view (53) assigned to ADMIN; subscription.manage (54) is super-admin only -->
+	<changeSet id="c3d4e5f6-0053-4sub-bbbb-admin-sub53" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[53]]></param>
+		</customChange>
+	</changeSet>
+
 	<!-- ═══════════════════════════════════════════════════════════
-	     MEMBER (role_id=2) → dashboard.view, profile.view, profile.fees, family.view
+	     MEMBER (role_id=2) → dashboard.view, profile.view, profile.fees, family.view,
+	     contribution view permissions (payments, exemptions, assignments)
 	     ═══════════════════════════════════════════════════════════ -->
 	<changeSet id="382d8814-83d3-429b-abdb-86563095bbd6" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
@@ -200,6 +259,36 @@
 	<changeSet id="7c32f5ab-9506-49b6-ae62-a18e0b67212f" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
 			<param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[16]]></param>
+		</customChange>
+	</changeSet>
+	<!-- MEMBER: contribution.view_payments (46) -->
+	<changeSet id="1a2b3c4d-member-viewpay-046" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[46]]></param>
+		</customChange>
+	</changeSet>
+	<!-- MEMBER: contribution.view_exemptions (47) -->
+	<changeSet id="2b3c4d5e-member-viewexm-047" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[47]]></param>
+		</customChange>
+	</changeSet>
+	<!-- MEMBER: contribution.view_assignments (49) -->
+	<changeSet id="3c4d5e6f-member-viewass-049" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[49]]></param>
+		</customChange>
+	</changeSet>
+	<!-- MEMBER: contribution.view (17) - for sidebar navigation -->
+	<changeSet id="4d5e6f7a-member-view-017" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[17]]></param>
+		</customChange>
+	</changeSet>
+	<!-- MEMBER: contribution.view_self_only (52) - only see own contributions -->
+	<changeSet id="5e6f7a8b-member-selfonly-052" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[52]]></param>
 		</customChange>
 	</changeSet>
 

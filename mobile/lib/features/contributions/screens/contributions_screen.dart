@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../../../core/network/api_exceptions.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../models/contribution_models.dart';
 import '../services/contribution_service.dart';
+import '../widgets/add_finance_sheets.dart';
+import '../../members/models/member_models.dart';
+import '../../members/services/member_service.dart';
+import '../../members/models/member_models.dart';
+import '../../members/services/member_service.dart';
 
 class ContributionsScreen extends ConsumerStatefulWidget {
   const ContributionsScreen({super.key});
@@ -32,6 +39,9 @@ class _ContributionsScreenState extends ConsumerState<ContributionsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
+
     return Scaffold(
       backgroundColor: AppColors.cream,
       appBar: AppBar(
@@ -39,19 +49,19 @@ class _ContributionsScreenState extends ConsumerState<ContributionsScreen>
           icon: const Icon(Icons.menu),
           onPressed: () => appShellScaffoldKey.currentState?.openDrawer(),
         ),
-        title: const Text('Contributions'),
+        title: Text(t.contributions),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.gold,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
           isScrollable: true,
-          tabs: const [
-            Tab(text: 'Types'),
-            Tab(text: 'Obligations'),
-            Tab(text: 'Payments'),
-            Tab(text: 'Exemptions'),
-            Tab(text: 'Assignments'),
+          tabs: [
+            Tab(text: t.types),
+            Tab(text: isDutch ? 'Verplichtingen' : 'Obligations'),
+            Tab(text: t.payments),
+            Tab(text: isDutch ? 'Vrijstellingen' : 'Exemptions'),
+            Tab(text: t.assignments),
           ],
         ),
       ),
@@ -199,6 +209,8 @@ class _TypesTabState extends ConsumerState<_TypesTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -210,7 +222,7 @@ class _TypesTabState extends ConsumerState<_TypesTab>
       body: RefreshIndicator(
         onRefresh: _load,
         child: _types.isEmpty
-            ? const Center(child: Text('No contribution types'))
+            ? Center(child: Text(t.noContributionTypes))
             : ListView.builder(
                 padding: const EdgeInsets.all(12),
                 itemCount: _types.length,
@@ -224,11 +236,11 @@ class _TypesTabState extends ConsumerState<_TypesTab>
                       subtitle: Row(
                         children: [
                           if (type.isRequired)
-                            _Badge('Required', AppColors.gold),
-                          _Badge(type.isActive ? 'Active' : 'Inactive',
+                            _Badge(t.required, AppColors.gold),
+                          _Badge(type.isActive ? t.active : t.inactive,
                               type.isActive ? AppColors.success : AppColors.stone400),
                           if (type.obligations.isNotEmpty)
-                            Text(' · ${type.obligations.length} obligations',
+                            Text(' · ${type.obligations.length} ${isDutch ? 'verplichtingen' : 'obligations'}',
                                 style: const TextStyle(fontSize: 12, color: AppColors.stone500)),
                         ],
                       ),
@@ -415,7 +427,7 @@ class _ObligationsTabState extends ConsumerState<_ObligationsTab>
                         child: Text(o.currencySymbol ?? '\$',
                             style: const TextStyle(color: AppColors.emerald, fontWeight: FontWeight.w600)),
                       ),
-                      title: Text('${o.contributionTypeCode ?? ''} — ${o.amount.toStringAsFixed(2)}',
+                      title: Text('${o.contributionTypeName ?? o.contributionTypeCode ?? ''} — ${o.amount.toStringAsFixed(2)}',
                           style: const TextStyle(fontWeight: FontWeight.w500)),
                       subtitle: Text('${o.frequency ?? ''} · ${o.currencyCode ?? ''}',
                           style: const TextStyle(fontSize: 12)),
@@ -443,6 +455,7 @@ class _PaymentsTab extends ConsumerStatefulWidget {
 class _PaymentsTabState extends ConsumerState<_PaymentsTab>
     with AutomaticKeepAliveClientMixin {
   List<MemberPayment> _payments = [];
+  List<ContributionType> _types = [];
   bool _isLoading = true;
   int _page = 0;
   int _totalPages = 0;
@@ -459,26 +472,150 @@ class _PaymentsTabState extends ConsumerState<_PaymentsTab>
   Future<void> _load({int page = 0}) async {
     setState(() => _isLoading = true);
     try {
-      final result = await ref
-          .read(contributionServiceProvider)
-          .getPayments(page: page, size: 20);
+      final service = ref.read(contributionServiceProvider);
+      final results = await Future.wait([
+        service.getPayments(page: page, size: 20),
+        service.getTypes(),
+      ]);
+      final result = results[0] as PageResponse<MemberPayment>;
       _payments = result.content;
       _page = result.number;
       _totalPages = result.totalPages;
+      _types = results[1] as List<ContributionType>;
     } catch (_) {}
     if (mounted) setState(() => _isLoading = false);
   }
 
+  Future<void> _showAddPaymentFlow() async {
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
+    
+    // Show member selector dialog
+    final selectedPerson = await showDialog<Person>(
+      context: context,
+      builder: (ctx) => _MemberSelectorDialog(isDutch: isDutch),
+    );
+
+    if (selectedPerson != null && mounted) {
+      // Open payment form for selected member
+      final success = await showAddPaymentSheet(
+        context,
+        ref,
+        personId: selectedPerson.id!,
+      );
+      
+      if (success == true && mounted) {
+        _load(page: _page); // Reload payments list
+      }
+    }
+  }
+
+  void _showPaymentDetails(MemberPayment payment) {
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
+    final typeDisplayName = payment.contributionTypeName ?? payment.contributionTypeCode ?? '-';
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isDutch ? 'Betalingsdetails' : 'Payment Details'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _detailRow(isDutch ? 'Lid' : 'Member', payment.personName ?? '-'),
+              _detailRow('Type', typeDisplayName),
+              _detailRow(isDutch ? 'Bedrag' : 'Amount',
+                  '${payment.currencySymbol ?? payment.currencyCode ?? ''} ${payment.amount.toStringAsFixed(2)}'),
+              _detailRow(isDutch ? 'Betaaldatum' : 'Payment date', payment.paymentDate ?? '-'),
+              _detailRow(isDutch ? 'Periode vanaf' : 'Period from', payment.periodFrom ?? '-'),
+              _detailRow(isDutch ? 'Periode t/m' : 'Period to', payment.periodTo ?? '-'),
+              _detailRow(isDutch ? 'Referentie' : 'Reference', payment.reference ?? '-'),
+              if ((payment.notes ?? '').isNotEmpty)
+                _detailRow(isDutch ? 'Notities' : 'Notes', payment.notes ?? '-'),
+              if (payment.isReversal)
+                Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    isDutch ? 'Dit is een teruggedraaide betaling.' : 'This is a reversal payment.',
+                    style: TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(isDutch ? 'Sluiten' : 'Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: RichText(
+        text: TextSpan(
+          style: const TextStyle(fontSize: 13, color: AppColors.stone700),
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            TextSpan(text: value),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showEditPaymentForm(MemberPayment payment) async {
+    final result = await showEditPaymentSheet(context, ref, payment: payment);
+    if (result == true) {
+      await _load(page: _page);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Payment updated'),
+          backgroundColor: AppColors.emerald,
+        ),
+      );
+    }
+  }
+
   void _showPaymentActions(MemberPayment p) {
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
         child: Wrap(
           children: [
+            ListTile(
+              leading: const Icon(Icons.visibility_outlined, color: AppColors.info),
+              title: Text(isDutch ? 'Details bekijken' : 'View Details'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _showPaymentDetails(p);
+              },
+            ),
+            if (!p.isReversal)
+              ListTile(
+                leading: const Icon(Icons.edit, color: AppColors.emerald),
+                title: Text(isDutch ? 'Betaling bewerken' : 'Edit Payment'),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _showEditPaymentForm(p);
+                },
+              ),
             if (!p.isReversal)
               ListTile(
                 leading: const Icon(Icons.undo, color: AppColors.warning),
-                title: const Text('Reverse Payment'),
+                title: Text(isDutch ? 'Betaling terugdraaien' : 'Reverse Payment'),
                 onTap: () async {
                   Navigator.of(ctx).pop();
                   try {
@@ -486,7 +623,7 @@ class _PaymentsTabState extends ConsumerState<_PaymentsTab>
                     _load(page: _page);
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Payment reversed'), backgroundColor: AppColors.emerald));
+                        SnackBar(content: Text(isDutch ? 'Betaling teruggedraaid' : 'Payment reversed'), backgroundColor: AppColors.emerald));
                     }
                   } catch (e) {
                     if (mounted) {
@@ -498,20 +635,20 @@ class _PaymentsTabState extends ConsumerState<_PaymentsTab>
               ),
             ListTile(
               leading: const Icon(Icons.delete, color: AppColors.error),
-              title: const Text('Delete Payment', style: TextStyle(color: AppColors.error)),
+              title: Text(isDutch ? 'Betaling verwijderen' : 'Delete Payment', style: const TextStyle(color: AppColors.error)),
               onTap: () async {
                 Navigator.of(ctx).pop();
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('Delete Payment'),
-                    content: const Text('Are you sure?'),
+                    title: Text(isDutch ? 'Betaling verwijderen' : 'Delete Payment'),
+                    content: Text(isDutch ? 'Weet je het zeker?' : 'Are you sure?'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
+                      TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text(isDutch ? 'Annuleren' : 'Cancel')),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
                         onPressed: () => Navigator.of(ctx).pop(true),
-                        child: const Text('Delete')),
+                        child: Text(isDutch ? 'Verwijderen' : 'Delete')),
                     ],
                   ),
                 );
@@ -537,15 +674,24 @@ class _PaymentsTabState extends ConsumerState<_PaymentsTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     if (_isLoading) return const Center(child: CircularProgressIndicator());
-    return RefreshIndicator(
-      onRefresh: () => _load(page: _page),
-      child: _payments.isEmpty
-          ? const Center(child: Text('No payments found'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: _payments.length + (_totalPages > 1 ? 1 : 0),
-              itemBuilder: (ctx, i) {
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        mini: true,
+        backgroundColor: AppColors.emerald,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: _showAddPaymentFlow,
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => _load(page: _page),
+        child: _payments.isEmpty
+            ? Center(child: Text(t.noPaymentsFound))
+            : ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: _payments.length + (_totalPages > 1 ? 1 : 0),
+                itemBuilder: (ctx, i) {
                 if (i == _payments.length) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -562,6 +708,7 @@ class _PaymentsTabState extends ConsumerState<_PaymentsTab>
                   );
                 }
                 final p = _payments[i];
+                final typeDisplayName = p.contributionTypeName ?? p.contributionTypeCode ?? '-';
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
@@ -575,25 +722,71 @@ class _PaymentsTabState extends ConsumerState<_PaymentsTab>
                         color: p.isReversal ? AppColors.error : AppColors.emerald,
                         size: 20),
                     ),
-                    title: Text(
-                      '${p.currencySymbol ?? ''} ${p.amount.toStringAsFixed(2)}',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: p.isReversal ? AppColors.error : null)),
+                    title: Row(
+                      children: [
+                        Text(
+                          '${p.currencySymbol ?? ''} ${p.amount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: p.isReversal ? AppColors.error : null)),
+                        if (p.periodFrom != null) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.orange.shade200),
+                            ),
+                            child: Text(
+                              _formatPeriod(p.periodFrom!, p.periodTo),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.orange.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (p.personName != null)
                           Text(p.personName!, style: const TextStyle(fontSize: 13)),
-                        Text('${p.contributionTypeCode ?? ''} · ${p.paymentDate ?? ''}',
+                        Text('$typeDisplayName · ${p.paymentDate ?? ''}',
                             style: const TextStyle(fontSize: 12, color: AppColors.stone500)),
                       ],
+                    ),
+                    trailing: IconButton(
+                      tooltip: isDutch ? 'Acties' : 'Actions',
+                      icon: const Icon(Icons.more_vert),
+                      onPressed: () => _showPaymentActions(p),
                     ),
                   ),
                 );
               },
             ),
+      ),
     );
+  }
+
+  String _formatPeriod(String periodFrom, String? periodTo) {
+    try {
+      final from = DateTime.parse(periodFrom);
+      final to = periodTo != null ? DateTime.parse(periodTo) : null;
+      
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      if (to != null && (from.year != to.year || from.month != to.month)) {
+        return '${months[from.month - 1]} ${from.year} - ${months[to.month - 1]} ${to.year}';
+      }
+      return '${months[from.month - 1]} ${from.year}';
+    } catch (e) {
+      return periodFrom;
+    }
   }
 }
 
@@ -627,6 +820,29 @@ class _ExemptionsTabState extends ConsumerState<_ExemptionsTab>
     if (mounted) setState(() => _isLoading = false);
   }
 
+  Future<void> _showAddExemptionFlow() async {
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
+    
+    // Show member selector dialog
+    final selectedPerson = await showDialog<Person>(
+      context: context,
+      builder: (ctx) => _MemberSelectorDialog(isDutch: isDutch),
+    );
+
+    if (selectedPerson != null && mounted) {
+      // Open exemption form for selected member
+      final success = await showAddExemptionSheet(
+        context,
+        ref,
+        personId: selectedPerson.id!,
+      );
+      
+      if (success == true && mounted) {
+        _load(); // Reload exemptions list
+      }
+    }
+  }
+
   Future<void> _delete(ContributionExemption ex) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -658,12 +874,20 @@ class _ExemptionsTabState extends ConsumerState<_ExemptionsTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     if (_isLoading) return const Center(child: CircularProgressIndicator());
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: _exemptions.isEmpty
-          ? const Center(child: Text('No exemptions'))
-          : ListView.builder(
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        mini: true,
+        backgroundColor: AppColors.emerald,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: _showAddExemptionFlow,
+      ),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: _exemptions.isEmpty
+            ? Center(child: Text(isDutch ? 'Geen vrijstellingen' : 'No exemptions'))
+            : ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: _exemptions.length,
               itemBuilder: (ctx, i) {
@@ -681,11 +905,11 @@ class _ExemptionsTabState extends ConsumerState<_ExemptionsTab>
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('${ex.contributionTypeCode ?? ''} · ${ex.exemptionType ?? ''}',
+                        Text('${ex.contributionTypeName ?? ex.contributionTypeCode ?? ''} · ${ex.exemptionType ?? ''}',
                             style: const TextStyle(fontSize: 12)),
                         if (ex.reason != null && ex.reason!.isNotEmpty)
                           Text(ex.reason!, style: const TextStyle(fontSize: 12, color: AppColors.stone500)),
-                        Text('${ex.startDate ?? ''} — ${ex.endDate ?? 'ongoing'}',
+                        Text('${ex.startDate ?? ''} — ${ex.endDate ?? (isDutch ? 'doorlopend' : 'ongoing')}',
                             style: const TextStyle(fontSize: 12, color: AppColors.stone500)),
                       ],
                     ),
@@ -697,6 +921,7 @@ class _ExemptionsTabState extends ConsumerState<_ExemptionsTab>
                 );
               },
             ),
+      ),
     );
   }
 }
@@ -729,6 +954,29 @@ class _AssignmentsTabState extends ConsumerState<_AssignmentsTab>
       _assignments = await ref.read(contributionServiceProvider).getAssignments();
     } catch (_) {}
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _showAddAssignmentFlow() async {
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
+    
+    // Show member selector dialog
+    final selectedPerson = await showDialog<Person>(
+      context: context,
+      builder: (ctx) => _MemberSelectorDialog(isDutch: isDutch),
+    );
+
+    if (selectedPerson != null && mounted) {
+      // Open assignment form for selected member
+      final success = await showAddAssignmentSheet(
+        context,
+        ref,
+        personId: selectedPerson.id!,
+      );
+      
+      if (success == true && mounted) {
+        _load(); // Reload assignments list
+      }
+    }
   }
 
   Future<void> _toggle(ContributionAssignment a) async {
@@ -774,12 +1022,21 @@ class _AssignmentsTabState extends ConsumerState<_AssignmentsTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     if (_isLoading) return const Center(child: CircularProgressIndicator());
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: _assignments.isEmpty
-          ? const Center(child: Text('No assignments'))
-          : ListView.builder(
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        mini: true,
+        backgroundColor: AppColors.emerald,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: _showAddAssignmentFlow,
+      ),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: _assignments.isEmpty
+            ? Center(child: Text(t.noAssignments))
+            : ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: _assignments.length,
               itemBuilder: (ctx, i) {
@@ -800,9 +1057,9 @@ class _AssignmentsTabState extends ConsumerState<_AssignmentsTab>
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(a.contributionTypeCode ?? '',
+                        Text(a.contributionTypeName ?? a.contributionTypeCode ?? '',
                             style: const TextStyle(fontSize: 12)),
-                        Text('${a.startDate ?? ''} — ${a.endDate ?? 'ongoing'}',
+                        Text('${a.startDate ?? ''} — ${a.endDate ?? (isDutch ? 'doorlopend' : 'ongoing')}',
                             style: const TextStyle(fontSize: 12, color: AppColors.stone500)),
                       ],
                     ),
@@ -824,6 +1081,7 @@ class _AssignmentsTabState extends ConsumerState<_AssignmentsTab>
                 );
               },
             ),
+      ),
     );
   }
 }
@@ -846,6 +1104,164 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(text,
           style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: color)),
+    );
+  }
+}
+
+// ─── Member Selector Dialog ─────────────────────────────────────────────────
+
+class _MemberSelectorDialog extends ConsumerStatefulWidget {
+  final bool isDutch;
+
+  const _MemberSelectorDialog({required this.isDutch});
+
+  @override
+  ConsumerState<_MemberSelectorDialog> createState() => _MemberSelectorDialogState();
+}
+
+class _MemberSelectorDialogState extends ConsumerState<_MemberSelectorDialog> {
+  List<Person> _persons = [];
+  List<Person> _filteredPersons = [];
+  bool _isLoading = true;
+  final _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPersons();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPersons() async {
+    try {
+      final service = ref.read(memberServiceProvider);
+      final result = await service.getPersons(page: 0, size: 1000);
+      if (mounted) {
+        setState(() {
+          _persons = result.content;
+          _filteredPersons = _persons;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _filterPersons(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredPersons = _persons;
+      } else {
+        final lowerQuery = query.toLowerCase();
+        _filteredPersons = _persons.where((person) {
+          final name = '${person.firstName} ${person.lastName ?? ''}'.toLowerCase();
+          return name.contains(lowerQuery);
+        }).toList();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        constraints: const BoxConstraints(maxHeight: 600),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.emerald,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.isDutch ? 'Selecteer Lid' : 'Select Member',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                controller: _searchController,
+                onChanged: _filterPersons,
+                decoration: InputDecoration(
+                  hintText: widget.isDutch ? 'Zoek lid...' : 'Search member...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+            ),
+            
+            // Members list
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredPersons.isEmpty
+                      ? Center(
+                          child: Text(
+                            widget.isDutch ? 'Geen leden gevonden' : 'No members found',
+                            style: const TextStyle(color: AppColors.stone500),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _filteredPersons.length,
+                          itemBuilder: (ctx, i) {
+                            final person = _filteredPersons[i];
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: AppColors.emerald.withOpacity(0.1),
+                                child: Text(
+                                  person.firstName.substring(0, 1).toUpperCase(),
+                                  style: const TextStyle(
+                                    color: AppColors.emerald,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              title: Text(
+                                '${person.firstName} ${person.lastName ?? ''}',
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                              subtitle: person.email != null
+                                  ? Text(person.email!, style: const TextStyle(fontSize: 12))
+                                  : null,
+                              onTap: () => Navigator.of(context).pop(person),
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

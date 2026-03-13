@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/locale_provider.dart';
@@ -32,19 +33,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeProvider);
+    final isDutch = locale.languageCode == 'nl';
+
     return Scaffold(
       backgroundColor: AppColors.cream,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(t.settings),
         bottom: TabBar(
           controller: _tabCtrl,
-          labelColor: AppColors.emerald,
-          unselectedLabelColor: AppColors.stone500,
-          indicatorColor: AppColors.emerald,
-          tabs: const [
-            Tab(text: 'General'),
-            Tab(text: 'Mail'),
-            Tab(text: 'Language'),
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: AppColors.gold,
+          tabs: [
+            Tab(text: isDutch ? 'Algemeen' : 'General'),
+            Tab(text: isDutch ? 'E-mail' : 'Mail'),
+            Tab(text: t.language),
           ],
         ),
       ),
@@ -96,6 +101,10 @@ class _GeneralTabState extends ConsumerState<_GeneralTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final t = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeProvider);
+    final isDutch = locale.languageCode == 'nl';
+
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -106,16 +115,19 @@ class _GeneralTabState extends ConsumerState<_GeneralTab>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Application',
+                Text(t.appTitle,
                     style: Theme.of(context)
                         .textTheme
                         .titleSmall
                         ?.copyWith(fontWeight: FontWeight.w600)),
                 const Divider(),
-                _InfoRow('App Name', 'MemberFlow'),
-                _InfoRow('Version', '1.0.0'),
-                _InfoRow('API URL', ApiConfig.baseUrl),
-                _InfoRow('Backend URL', _baseUrl.isEmpty ? 'N/A' : _baseUrl),
+                _InfoRow(isDutch ? 'App naam' : 'App Name', 'MemberFlow'),
+                _InfoRow(t.version, '1.0.0'),
+                _InfoRow(isDutch ? 'API URL' : 'API URL', ApiConfig.baseUrl),
+                _InfoRow(
+                  isDutch ? 'Backend URL' : 'Backend URL',
+                  _baseUrl.isEmpty ? (isDutch ? 'N.v.t.' : 'N/A') : _baseUrl,
+                ),
               ],
             ),
           ),
@@ -342,6 +354,7 @@ class _LanguageTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final locale = ref.watch(localeProvider);
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -352,7 +365,7 @@ class _LanguageTab extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Language',
+                Text(t.language,
                     style: Theme.of(context)
                         .textTheme
                         .titleSmall
@@ -362,7 +375,7 @@ class _LanguageTab extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: _LanguageOption(
-                        label: 'English',
+                        label: t.english,
                         flag: '🇬🇧',
                         isSelected: locale.languageCode == 'en',
                         onTap: () => ref
@@ -373,7 +386,7 @@ class _LanguageTab extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _LanguageOption(
-                        label: 'Nederlands',
+                        label: t.dutch,
                         flag: '🇳🇱',
                         isSelected: locale.languageCode == 'nl',
                         onTap: () => ref
@@ -394,14 +407,14 @@ class _LanguageTab extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('About',
+                Text(t.about,
                     style: Theme.of(context)
                         .textTheme
                         .titleSmall
                         ?.copyWith(fontWeight: FontWeight.w600)),
                 const Divider(),
-                _InfoRow('App', 'MemberFlow Mobile'),
-                _InfoRow('Version', '1.0.0'),
+                _InfoRow(locale.languageCode == 'nl' ? 'App' : 'App', 'MemberFlow Mobile'),
+                _InfoRow(t.version, '1.0.0'),
                 _InfoRow('API', ApiConfig.baseUrl),
               ],
             ),

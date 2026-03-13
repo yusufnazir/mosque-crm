@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../theme/app_theme.dart';
 import '../../features/auth/providers/auth_provider.dart';
@@ -48,6 +49,7 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final authState = ref.watch(authProvider);
     final user = authState.user;
     final isAdmin = user?.isAdmin ?? false;
@@ -65,31 +67,31 @@ class AppShell extends ConsumerWidget {
         backgroundColor: Colors.white,
         selectedFontSize: 12,
         unselectedFontSize: 12,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            icon: const Icon(Icons.dashboard_outlined),
+            activeIcon: const Icon(Icons.dashboard),
+            label: t.dashboard,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people_outlined),
-            activeIcon: Icon(Icons.people),
-            label: 'Members',
+            icon: const Icon(Icons.people_outlined),
+            activeIcon: const Icon(Icons.people),
+            label: t.members,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.groups_outlined),
-            activeIcon: Icon(Icons.groups),
-            label: 'Groups',
+            icon: const Icon(Icons.groups_outlined),
+            activeIcon: const Icon(Icons.groups),
+            label: t.groups,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.payments_outlined),
-            activeIcon: Icon(Icons.payments),
-            label: 'Finance',
+            icon: const Icon(Icons.payments_outlined),
+            activeIcon: const Icon(Icons.payments),
+            label: t.finance,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outlined),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person_outlined),
+            activeIcon: const Icon(Icons.person),
+            label: t.profile,
           ),
         ],
       ),
@@ -97,6 +99,8 @@ class AppShell extends ConsumerWidget {
   }
 
   Widget _buildDrawer(BuildContext context, WidgetRef ref, dynamic user, bool isAdmin) {
+    final t = AppLocalizations.of(context)!;
+
     bool _hasPermission(String perm) {
       return user?.hasPermission(perm) ?? false;
     }
@@ -157,7 +161,7 @@ class AppShell extends ConsumerWidget {
                   // Core navigation
                   _DrawerItem(
                     icon: Icons.dashboard,
-                    title: 'Dashboard',
+                    title: t.dashboard,
                     onTap: () {
                       Navigator.pop(context);
                       context.go('/dashboard');
@@ -165,7 +169,7 @@ class AppShell extends ConsumerWidget {
                   ),
                   _DrawerItem(
                     icon: Icons.people,
-                    title: 'Members',
+                    title: t.members,
                     onTap: () {
                       Navigator.pop(context);
                       context.go('/members');
@@ -173,7 +177,7 @@ class AppShell extends ConsumerWidget {
                   ),
                   _DrawerItem(
                     icon: Icons.groups,
-                    title: 'Groups',
+                    title: t.groups,
                     onTap: () {
                       Navigator.pop(context);
                       context.go('/groups');
@@ -181,7 +185,7 @@ class AppShell extends ConsumerWidget {
                   ),
                   _DrawerItem(
                     icon: Icons.payments,
-                    title: 'Contributions',
+                    title: t.contributions,
                     onTap: () {
                       Navigator.pop(context);
                       context.go('/contributions');
@@ -253,7 +257,7 @@ class AppShell extends ConsumerWidget {
 
                   _DrawerItem(
                     icon: Icons.account_circle,
-                    title: 'Account',
+                    title: t.account,
                     onTap: () {
                       Navigator.pop(context);
                       context.push('/account');
@@ -261,7 +265,7 @@ class AppShell extends ConsumerWidget {
                   ),
                   _DrawerItem(
                     icon: Icons.settings,
-                    title: 'Settings',
+                    title: t.settings,
                     onTap: () {
                       Navigator.pop(context);
                       context.push('/settings');

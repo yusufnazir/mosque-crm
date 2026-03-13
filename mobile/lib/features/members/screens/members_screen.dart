@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
@@ -90,6 +91,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
+
     return Scaffold(
       backgroundColor: AppColors.cream,
       appBar: AppBar(
@@ -97,7 +101,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
           icon: const Icon(Icons.menu),
           onPressed: () => appShellScaffoldKey.currentState?.openDrawer(),
         ),
-        title: const Text('Members'),
+        title: Text(t.members),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.emerald,
@@ -115,7 +119,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search members...',
+                hintText: t.searchMembers,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -138,7 +142,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
             child: Row(
               children: [
                 Text(
-                  '$_totalElements members',
+                  '$_totalElements ${isDutch ? 'leden' : 'members'}',
                   style: TextStyle(
                     color: AppColors.stone500,
                     fontSize: 13,
@@ -163,7 +167,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: () => _loadPersons(page: _page),
-                              child: const Text('Retry'),
+                              child: Text(t.retry),
                             ),
                           ],
                         ),
@@ -177,7 +181,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                                     size: 48, color: AppColors.stone300),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'No members found',
+                                  isDutch ? 'Geen leden gevonden' : 'No members found',
                                   style: TextStyle(color: AppColors.stone500),
                                 ),
                               ],
@@ -263,7 +267,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    person.status ?? 'Unknown',
+                    _statusText(context, person.status),
                     style: TextStyle(
                       fontSize: 11,
                       color: _statusColor(person.status),
@@ -294,6 +298,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
   }
 
   Widget _buildPagination() {
+    final t = AppLocalizations.of(context)!;
     if (_totalPages <= 1) return const SizedBox(height: 16);
 
     return Padding(
@@ -306,7 +311,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
             icon: const Icon(Icons.chevron_left),
           ),
           Text(
-            'Page ${_page + 1} of $_totalPages',
+            t.page(_page + 1, _totalPages),
             style: TextStyle(color: AppColors.stone500, fontSize: 14),
           ),
           IconButton(
@@ -318,5 +323,20 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         ],
       ),
     );
+  }
+
+  String _statusText(BuildContext context, String? status) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
+    switch (status?.toUpperCase()) {
+      case 'ACTIVE':
+        return isDutch ? 'ACTIEF' : 'ACTIVE';
+      case 'INACTIVE':
+        return isDutch ? 'INACTIEF' : 'INACTIVE';
+      case 'DECEASED':
+        return isDutch ? 'OVERLEDEN' : 'DECEASED';
+      default:
+        return isDutch ? 'ONBEKEND' : 'UNKNOWN';
+    }
   }
 }

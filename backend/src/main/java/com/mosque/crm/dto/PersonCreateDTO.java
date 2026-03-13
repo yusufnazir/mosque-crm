@@ -17,6 +17,7 @@ public class PersonCreateDTO {
     private String country;
     private String postalCode;
     private PersonStatus status;
+    private String idNumber;
 
     public PersonCreateDTO() {
         this.status = PersonStatus.ACTIVE; // Default status
@@ -116,5 +117,13 @@ public class PersonCreateDTO {
 
     public void setStatus(PersonStatus status) {
         this.status = status;
+    }
+
+    public String getIdNumber() {
+        return idNumber;
+    }
+
+    public void setIdNumber(String idNumber) {
+        this.idNumber = idNumber;
     }
 }

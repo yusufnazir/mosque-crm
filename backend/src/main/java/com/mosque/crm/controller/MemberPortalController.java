@@ -92,6 +92,11 @@ public class MemberPortalController {
             result.put("startDate", null);
             result.put("endDate", null);
         }
+        // Profile image URL (served through backend)
+        result.put("profileImageUrl", person.getProfileImageKey() != null
+                ? "/api/profile-image/persons/" + person.getId()
+                : null);
+
         // Add missing fields for frontend compatibility
         result.put("children", new java.util.ArrayList<>()); // No children for demo
         result.put("partnerName", null); // No partner for demo

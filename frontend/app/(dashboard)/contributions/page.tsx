@@ -35,8 +35,42 @@ type Tab = 'types' | 'obligations' | 'payments' | 'exemptions' | 'assignments';
 
 export default function ContributionsPage() {
   const { t, language: locale } = useTranslation();
-  const { can, isSuperAdmin } = useAuth();
+  const { can, isSuperAdmin, user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('types');
+
+  const canViewTypes = isSuperAdmin || can('contribution.view_types') || can('contribution.manage_types') || can('contribution.manage');
+  const canManageTypes = isSuperAdmin || can('contribution.manage_types') || can('contribution.manage');
+  const canViewObligations = isSuperAdmin || can('contribution.view_obligations') || can('contribution.manage_obligations') || can('contribution.manage');
+  const canManageObligations = isSuperAdmin || can('contribution.manage_obligations') || can('contribution.manage');
+  const canViewPayments =
+    isSuperAdmin ||
+    can('contribution.view') ||
+    can('contribution.view_payments') ||
+    can('contribution.create_payment') ||
+    can('contribution.edit_payment') ||
+    can('contribution.delete_payment') ||
+    can('contribution.reverse') ||
+    can('contribution.edit_reversal') ||
+    can('contribution.delete_reversal') ||
+    can('contribution.manage');
+  const canViewExemptions = isSuperAdmin || can('contribution.view_exemptions') || can('contribution.create_exemption') || can('contribution.edit_exemption') || can('contribution.delete_exemption') || can('contribution.manage');
+  const canCreateExemption = isSuperAdmin || can('contribution.create_exemption') || can('contribution.manage');
+  const canEditExemption = isSuperAdmin || can('contribution.edit_exemption') || can('contribution.manage');
+  const canDeleteExemption = isSuperAdmin || can('contribution.delete_exemption') || can('contribution.manage');
+  const canViewAssignments = isSuperAdmin || can('contribution.view_assignments') || can('contribution.manage_assignments') || can('contribution.manage');
+  const canManageAssignments = isSuperAdmin || can('contribution.manage_assignments') || can('contribution.manage');
+
+  // Check if user has any management permissions to show admin stats
+  const hasManagementPermissions = 
+    canManageTypes || 
+    canManageObligations || 
+    can('contribution.create_payment') || 
+    can('contribution.edit_payment') || 
+    can('contribution.delete_payment') ||
+    canCreateExemption ||
+    canEditExemption ||
+    canDeleteExemption ||
+    canManageAssignments;
 
   // ===== Types State =====
   const [types, setTypes] = useState<ContributionType[]>([]);
@@ -458,7 +492,10 @@ export default function ContributionsPage() {
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '-';
-    const [year, month, day] = dateStr.split('-').map(Number);
+    // Handle ISO format (2026-02-28T10:30:00Z) or date-only format (2026-02-28)
+    const datePart = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+    const [year, month, day] = datePart.split('-').map(Number);
+    if (!year || !month || !day) return '-';
     return new Date(year, month - 1, day).toLocaleDateString(locale === 'nl' ? 'nl-NL' : 'en-US');
   };
 
@@ -470,12 +507,19 @@ export default function ContributionsPage() {
 
   // ===== Tab buttons =====
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'types', label: t('contributions.types') },
-    { key: 'obligations', label: t('contributions.obligations') },
-    { key: 'payments', label: t('contributions.payments') },
-    { key: 'exemptions', label: t('contributions.exemptions') },
-    { key: 'assignments', label: t('contributions.assignments') },
+    ...(canViewTypes ? [{ key: 'types' as Tab, label: t('contributions.types') }] : []),
+    ...(canViewObligations ? [{ key: 'obligations' as Tab, label: t('contributions.obligations') }] : []),
+    ...(canViewPayments ? [{ key: 'payments' as Tab, label: t('contributions.payments') }] : []),
+    ...(canViewExemptions ? [{ key: 'exemptions' as Tab, label: t('contributions.exemptions') }] : []),
+    ...(canViewAssignments ? [{ key: 'assignments' as Tab, label: t('contributions.assignments') }] : []),
   ];
+
+  useEffect(() => {
+    if (tabs.length === 0) return;
+    if (!tabs.some(tab => tab.key === activeTab)) {
+      setActiveTab(tabs[0].key);
+    }
+  }, [activeTab, tabs]);
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -496,32 +540,34 @@ export default function ContributionsPage() {
         </div>
       </div>
 
-      {/* Summary Cards - hidden on mobile for quick access to tabs */}
-      <div className="hidden md:grid grid-cols-3 gap-6">
-        <Card>
-          <div className="p-6">
-            <p className="text-sm text-stone-500">{t('contributions.total_types')}</p>
-            <p className="text-2xl font-bold text-emerald-700">{types.length}</p>
-            <p className="text-xs text-stone-400 mt-1">
-              {types.filter(t => t.isActive).length} {t('contributions.active')}
-            </p>
-          </div>
-        </Card>
-        <Card>
-          <div className="p-6">
-            <p className="text-sm text-stone-500">{t('contributions.required_types')}</p>
-            <p className="text-2xl font-bold text-amber-600">
-              {types.filter(t => t.isRequired).length}
-            </p>
-          </div>
-        </Card>
-        <Card>
-          <div className="p-6">
-            <p className="text-sm text-stone-500">{t('contributions.total_payments')}</p>
-            <p className="text-2xl font-bold text-blue-600">{paymentsCount}</p>
-          </div>
-        </Card>
-      </div>
+      {/* Summary Cards - only show for users with management permissions */}
+      {hasManagementPermissions && (
+        <div className="hidden md:grid grid-cols-3 gap-6">
+          <Card>
+            <div className="p-6">
+              <p className="text-sm text-stone-500">{t('contributions.total_types')}</p>
+              <p className="text-2xl font-bold text-emerald-700">{types.length}</p>
+              <p className="text-xs text-stone-400 mt-1">
+                {types.filter(t => t.isActive).length} {t('contributions.active')}
+              </p>
+            </div>
+          </Card>
+          <Card>
+            <div className="p-6">
+              <p className="text-sm text-stone-500">{t('contributions.required_types')}</p>
+              <p className="text-2xl font-bold text-amber-600">
+                {types.filter(t => t.isRequired).length}
+              </p>
+            </div>
+          </Card>
+          <Card>
+            <div className="p-6">
+              <p className="text-sm text-stone-500">{t('contributions.total_payments')}</p>
+              <p className="text-2xl font-bold text-blue-600">{paymentsCount}</p>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Tab Navigation */}
       <div className="border-b border-stone-200">
@@ -543,11 +589,12 @@ export default function ContributionsPage() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'types' && (
+      {activeTab === 'types' && canViewTypes && (
         <TypesTab
           types={types}
           loading={typesLoading}
           getTypeName={getTypeName}
+          canManage={canManageTypes}
           onAdd={() => { setEditingType(null); setShowTypeModal(true); }}
           onEdit={(type) => { setEditingType(type); setShowTypeModal(true); }}
           onDeactivate={handleDeactivateType}
@@ -557,12 +604,13 @@ export default function ContributionsPage() {
         />
       )}
 
-      {activeTab === 'obligations' && (
+      {activeTab === 'obligations' && canViewObligations && (
         <ObligationsTab
           obligations={obligations}
           loading={obligationsLoading}
           types={types}
           getTypeNameByCode={getTypeNameByCode}
+          canManage={canManageObligations}
           onAdd={() => { setEditingObligation(null); setShowObligationModal(true); }}
           onEdit={(obl) => { setEditingObligation(obl); setShowObligationModal(true); }}
           onDelete={handleDeleteObligation}
@@ -573,7 +621,7 @@ export default function ContributionsPage() {
         />
       )}
 
-      {activeTab === 'payments' && (
+      {activeTab === 'payments' && canViewPayments && (
         <PaymentsTab
           refreshKey={paymentsRefreshKey}
           onTotalChange={setPaymentsCount}
@@ -595,14 +643,20 @@ export default function ContributionsPage() {
           canCreatePayment={can('contribution.create_payment')}
           canEditPayment={can('contribution.edit_payment')}
           canDeletePayment={can('contribution.delete_payment')}
+          hasManagementPermissions={hasManagementPermissions}
+          user={user}
+          can={can}
           t={t}
         />
       )}
 
-      {activeTab === 'exemptions' && (
+      {activeTab === 'exemptions' && canViewExemptions && (
         <ExemptionsTab
           exemptions={exemptions}
           loading={exemptionsLoading}
+          canCreate={canCreateExemption}
+          canEdit={canEditExemption}
+          canDelete={canDeleteExemption}
           onAdd={() => { setEditingExemption(null); setShowExemptionModal(true); }}
           onEdit={(e) => { setEditingExemption(e); setShowExemptionModal(true); }}
           onDelete={handleDeleteExemption}
@@ -612,10 +666,11 @@ export default function ContributionsPage() {
         />
       )}
 
-      {activeTab === 'assignments' && (
+      {activeTab === 'assignments' && canViewAssignments && (
         <AssignmentsTab
           assignments={assignments}
           loading={assignmentsLoading}
+          canManage={canManageAssignments}
           onAdd={() => { setEditingAssignment(null); setShowAssignmentModal(true); }}
           onEdit={(a) => { setEditingAssignment(a); setShowAssignmentModal(true); }}
           onDelete={handleDeleteAssignment}
@@ -799,10 +854,11 @@ export default function ContributionsPage() {
 }
 
 // ===== Types Tab Component =====
-function TypesTab({ types, loading, getTypeName, onAdd, onEdit, onDeactivate, onActivate, t, locale }: {
+function TypesTab({ types, loading, getTypeName, canManage, onAdd, onEdit, onDeactivate, onActivate, t, locale }: {
   types: ContributionType[];
   loading: boolean;
   getTypeName: (type: ContributionType) => string;
+  canManage: boolean;
   onAdd: () => void;
   onEdit: (type: ContributionType) => void;
   onDeactivate: (id: number) => void;
@@ -815,12 +871,14 @@ function TypesTab({ types, loading, getTypeName, onAdd, onEdit, onDeactivate, on
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-stone-800">{t('contributions.types')}</h2>
-          <button
-            onClick={onAdd}
-            className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
-          >
-            + {t('contributions.add_type')}
-          </button>
+          {canManage && (
+            <button
+              onClick={onAdd}
+              className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
+            >
+              + {t('contributions.add_type')}
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -838,7 +896,7 @@ function TypesTab({ types, loading, getTypeName, onAdd, onEdit, onDeactivate, on
                   <th className="pb-3 pr-4">{t('contributions.required')}</th>
                   <th className="pb-3 pr-4">{t('contributions.status')}</th>
                   <th className="pb-3 pr-4">{t('contributions.obligations')}</th>
-                  <th className="pb-3">{t('common.actions')}</th>
+                  {canManage && <th className="pb-3">{t('common.actions')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -869,31 +927,33 @@ function TypesTab({ types, loading, getTypeName, onAdd, onEdit, onDeactivate, on
                         ? `${type.obligations.length} ${type.obligations.length === 1 ? t('contributions.obligation') : t('contributions.obligations')}`
                         : '-'}
                     </td>
-                    <td className="py-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => onEdit(type)}
-                          className="text-emerald-600 hover:text-emerald-800 text-xs"
-                        >
-                          {t('common.edit')}
-                        </button>
-                        {type.isActive ? (
+                    {canManage && (
+                      <td className="py-3">
+                        <div className="flex gap-2">
                           <button
-                            onClick={() => onDeactivate(type.id)}
-                            className="text-red-500 hover:text-red-700 text-xs"
+                            onClick={() => onEdit(type)}
+                            className="text-emerald-600 hover:text-emerald-800 text-xs"
                           >
-                            {t('contributions.deactivate')}
+                            {t('common.edit')}
                           </button>
-                        ) : (
-                          <button
-                            onClick={() => onActivate(type.id)}
-                            className="text-blue-500 hover:text-blue-700 text-xs"
-                          >
-                            {t('contributions.activate')}
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                          {type.isActive ? (
+                            <button
+                              onClick={() => onDeactivate(type.id)}
+                              className="text-red-500 hover:text-red-700 text-xs"
+                            >
+                              {t('contributions.deactivate')}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => onActivate(type.id)}
+                              className="text-blue-500 hover:text-blue-700 text-xs"
+                            >
+                              {t('contributions.activate')}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -927,14 +987,16 @@ function TypesTab({ types, loading, getTypeName, onAdd, onEdit, onDeactivate, on
                     {type.obligations.length} {type.obligations.length === 1 ? t('contributions.obligation') : t('contributions.obligations')}
                   </div>
                 )}
-                <div className="flex gap-3 pt-2 border-t border-stone-100">
-                  <button onClick={() => onEdit(type)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
-                  {type.isActive ? (
-                    <button onClick={() => onDeactivate(type.id)} className="text-red-500 hover:text-red-700 text-xs">{t('contributions.deactivate')}</button>
-                  ) : (
-                    <button onClick={() => onActivate(type.id)} className="text-blue-500 hover:text-blue-700 text-xs">{t('contributions.activate')}</button>
-                  )}
-                </div>
+                {canManage && (
+                  <div className="flex gap-3 pt-2 border-t border-stone-100">
+                    <button onClick={() => onEdit(type)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                    {type.isActive ? (
+                      <button onClick={() => onDeactivate(type.id)} className="text-red-500 hover:text-red-700 text-xs">{t('contributions.deactivate')}</button>
+                    ) : (
+                      <button onClick={() => onActivate(type.id)} className="text-blue-500 hover:text-blue-700 text-xs">{t('contributions.activate')}</button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -946,11 +1008,12 @@ function TypesTab({ types, loading, getTypeName, onAdd, onEdit, onDeactivate, on
 }
 
 // ===== Obligations Tab Component =====
-function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd, onEdit, onDelete, formatCurrency, formatDate, mosqueCurrencies, t }: {
+function ObligationsTab({ obligations, loading, types, getTypeNameByCode, canManage, onAdd, onEdit, onDelete, formatCurrency, formatDate, mosqueCurrencies, t }: {
   obligations: ContributionObligation[];
   loading: boolean;
   types: ContributionType[];
   getTypeNameByCode: (code: string) => string;
+  canManage: boolean;
   onAdd: () => void;
   onEdit: (obl: ContributionObligation) => void;
   onDelete: (id: number) => void;
@@ -964,12 +1027,14 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-stone-800">{t('contributions.obligations')}</h2>
-          <button
-            onClick={onAdd}
-            className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
-          >
-            + {t('contributions.add_obligation')}
-          </button>
+          {canManage && (
+            <button
+              onClick={onAdd}
+              className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
+            >
+              + {t('contributions.add_obligation')}
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -987,7 +1052,7 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
                   <th className="pb-3 pr-4">{t('contributions.currency')}</th>
                   <th className="pb-3 pr-4">{t('contributions.frequency')}</th>
                   <th className="pb-3 pr-4">{t('contributions.start_date')}</th>
-                  <th className="pb-3">{t('common.actions')}</th>
+                  {canManage && <th className="pb-3">{t('common.actions')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -1002,22 +1067,24 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
                       </span>
                     </td>
                     <td className="py-3 pr-4">{formatDate(obl.startDate)}</td>
-                    <td className="py-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => onEdit(obl)}
-                          className="text-emerald-600 hover:text-emerald-800 text-xs"
-                        >
-                          {t('common.edit')}
-                        </button>
-                        <button
-                          onClick={() => onDelete(obl.id!)}
-                          className="text-red-500 hover:text-red-700 text-xs"
-                        >
-                          {t('common.delete')}
-                        </button>
-                      </div>
-                    </td>
+                    {canManage && (
+                      <td className="py-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => onEdit(obl)}
+                            className="text-emerald-600 hover:text-emerald-800 text-xs"
+                          >
+                            {t('common.edit')}
+                          </button>
+                          <button
+                            onClick={() => onDelete(obl.id!)}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            {t('common.delete')}
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -1043,10 +1110,12 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
                 <div className="text-xs text-stone-500 mb-3">
                   {formatDate(obl.startDate)}
                 </div>
-                <div className="flex gap-3 pt-2 border-t border-stone-100">
-                  <button onClick={() => onEdit(obl)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
-                  <button onClick={() => onDelete(obl.id!)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
-                </div>
+                {canManage && (
+                  <div className="flex gap-3 pt-2 border-t border-stone-100">
+                    <button onClick={() => onEdit(obl)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                    <button onClick={() => onDelete(obl.id!)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -1058,7 +1127,7 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, onAdd,
 }
 
 // ===== Payments Tab Component =====
-function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelete, onReverse, onReceipt, getTypeNameByCode, formatCurrency, formatDate, mosqueCurrencies, types, isSuperAdmin, canReverse, canEditReversal, canDeleteReversal, canCreatePayment, canEditPayment, canDeletePayment, t }: {
+function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelete, onReverse, onReceipt, getTypeNameByCode, formatCurrency, formatDate, mosqueCurrencies, types, isSuperAdmin, canReverse, canEditReversal, canDeleteReversal, canCreatePayment, canEditPayment, canDeletePayment, hasManagementPermissions, user, can, t }: {
   refreshKey: number;
   onTotalChange?: (total: number) => void;
   onAdd: () => void;
@@ -1079,6 +1148,9 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
   canCreatePayment: boolean;
   canEditPayment: boolean;
   canDeletePayment: boolean;
+  hasManagementPermissions: boolean;
+  user: { personId?: string | number; username?: string } | null;
+  can: (permission: string) => boolean;
   t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const [payments, setPayments] = useState<MemberPayment[]>([]);
@@ -1111,6 +1183,15 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Auto-filter payments to current user if they don't have management permissions
+  useEffect(() => {
+    if (!hasManagementPermissions && user?.personId) {
+      setPersonFilter(user.personId.toString());
+      // Also set name for display (you can improve this by fetching the user's name)
+      setPersonFilterName(`${user.username || 'My'} Payments`);
+    }
+  }, [hasManagementPermissions, user?.personId]);
+
   const fetchPayments = useCallback(async () => {
     setLoading(true);
     try {
@@ -1122,16 +1203,21 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
         personId: personFilter !== 'all' ? Number(personFilter) : undefined,
         contributionTypeId: typeFilter !== 'all' ? Number(typeFilter) : undefined,
       };
-      const data = await memberPaymentApi.getAllPaginated(params);
-      setPayments(data.content);
-      setTotalElements(data.totalElements);
-      setTotalPages(data.totalPages);
+      
+      // Use /my endpoint if user has view_self_only permission
+      const data = can('contribution.view_self_only')
+        ? await memberPaymentApi.getCurrentUserPayments(params)
+        : await memberPaymentApi.getAllPaginated(params);
+      
+      setPayments(data.content || data);
+      setTotalElements(data.totalElements || (data as any).length || 0);
+      setTotalPages(data.totalPages || 1);
     } catch (err) {
       console.error('Failed to load payments:', err);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, yearFilter, personFilter, typeFilter]);
+  }, [currentPage, pageSize, yearFilter, personFilter, typeFilter, can]);
 
   // Load available years once (and on refreshKey changes)
   useEffect(() => {
@@ -1279,7 +1365,8 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
           </div>
           {/* Filters row */}
           <div className="flex flex-col sm:flex-row gap-2">
-            {/* Person autocomplete */}
+            {/* Person autocomplete - hidden for view-self-only users */}
+            {!can('contribution.view_self_only') && (
             <div className="relative w-full sm:w-64" ref={personDropdownRef}>
               <div className="relative">
                 <input
@@ -1288,7 +1375,9 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                   onChange={(e) => handlePersonSearch(e.target.value)}
                   onFocus={() => { if (personSearchResults.length > 0) setShowPersonDropdown(true); }}
                   placeholder={t('contributions.search_person')}
-                  className="border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500 w-full pr-8"
+                  disabled={!hasManagementPermissions}
+                  className={`border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500 w-full pr-8 ${!hasManagementPermissions ? 'bg-stone-100 text-stone-500 cursor-not-allowed' : ''}`}
+                  title={!hasManagementPermissions ? 'You can only view your own payments' : undefined}
                 />
                 {personFilter !== 'all' && (
                   <button
@@ -1316,6 +1405,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                 </div>
               )}
             </div>
+            )}
             {availableYears.length > 0 && (
               <select
                 value={yearFilter}
@@ -1596,9 +1686,12 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
 }
 
 // ===== Exemptions Tab Component =====
-function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNameByCode, formatDate, t }: {
+function ExemptionsTab({ exemptions, loading, canCreate, canEdit, canDelete, onAdd, onEdit, onDelete, getTypeNameByCode, formatDate, t }: {
   exemptions: MemberContributionExemption[];
   loading: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
   onAdd: () => void;
   onEdit: (e: MemberContributionExemption) => void;
   onDelete: (id: number) => void;
@@ -1621,12 +1714,14 @@ function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNa
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-stone-800">{t('contributions.exemptions')}</h2>
-          <button
-            onClick={onAdd}
-            className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
-          >
-            + {t('contributions.add_exemption')}
-          </button>
+          {canCreate && (
+            <button
+              onClick={onAdd}
+              className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
+            >
+              + {t('contributions.add_exemption')}
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -1646,7 +1741,7 @@ function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNa
                   <th className="pb-3 pr-4">{t('contributions.start_date')}</th>
                   <th className="pb-3 pr-4">{t('contributions.end_date')}</th>
                   <th className="pb-3 pr-4">{t('contributions.status')}</th>
-                  <th className="pb-3">{t('common.actions')}</th>
+                  {(canEdit || canDelete) && <th className="pb-3">{t('common.actions')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -1665,22 +1760,28 @@ function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNa
                         {ex.isActive ? t('contributions.active') : t('contributions.inactive')}
                       </span>
                     </td>
-                    <td className="py-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => onEdit(ex)}
-                          className="text-emerald-600 hover:text-emerald-800 text-xs"
-                        >
-                          {t('common.edit')}
-                        </button>
-                        <button
-                          onClick={() => onDelete(ex.id)}
-                          className="text-red-500 hover:text-red-700 text-xs"
-                        >
-                          {t('common.delete')}
-                        </button>
-                      </div>
-                    </td>
+                    {(canEdit || canDelete) && (
+                      <td className="py-3">
+                        <div className="flex gap-2">
+                          {canEdit && (
+                            <button
+                              onClick={() => onEdit(ex)}
+                              className="text-emerald-600 hover:text-emerald-800 text-xs"
+                            >
+                              {t('common.edit')}
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => onDelete(ex.id)}
+                              className="text-red-500 hover:text-red-700 text-xs"
+                            >
+                              {t('common.delete')}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -1707,10 +1808,16 @@ function ExemptionsTab({ exemptions, loading, onAdd, onEdit, onDelete, getTypeNa
                   <div>{formatDate(ex.startDate)} — {ex.endDate ? formatDate(ex.endDate) : t('contributions.ongoing')}</div>
                   {ex.reason && <div className="truncate">{ex.reason}</div>}
                 </div>
-                <div className="flex gap-3 pt-2 border-t border-stone-100">
-                  <button onClick={() => onEdit(ex)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
-                  <button onClick={() => onDelete(ex.id)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
-                </div>
+                {(canEdit || canDelete) && (
+                  <div className="flex gap-3 pt-2 border-t border-stone-100">
+                    {canEdit && (
+                      <button onClick={() => onEdit(ex)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                    )}
+                    {canDelete && (
+                      <button onClick={() => onDelete(ex.id)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -2759,9 +2866,10 @@ function ExemptionModal({ exemption, types, onSave, onClose, personSearch, perso
 }
 
 // ===== Assignments Tab Component =====
-function AssignmentsTab({ assignments, loading, onAdd, onEdit, onDelete, onToggle, getTypeNameByCode, formatDate, t }: {
+function AssignmentsTab({ assignments, loading, canManage, onAdd, onEdit, onDelete, onToggle, getTypeNameByCode, formatDate, t }: {
   assignments: MemberContributionAssignment[];
   loading: boolean;
+  canManage: boolean;
   onAdd: () => void;
   onEdit: (a: MemberContributionAssignment) => void;
   onDelete: (id: number) => void;
@@ -2775,12 +2883,14 @@ function AssignmentsTab({ assignments, loading, onAdd, onEdit, onDelete, onToggl
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-stone-800">{t('contributions.assignments')}</h2>
-          <button
-            onClick={onAdd}
-            className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
-          >
-            + {t('contributions.add_assignment')}
-          </button>
+          {canManage && (
+            <button
+              onClick={onAdd}
+              className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm"
+            >
+              + {t('contributions.add_assignment')}
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -2799,7 +2909,7 @@ function AssignmentsTab({ assignments, loading, onAdd, onEdit, onDelete, onToggl
                   <th className="pb-3 pr-4">{t('contributions.end_date')}</th>
                   <th className="pb-3 pr-4">{t('contributions.notes')}</th>
                   <th className="pb-3 pr-4">{t('contributions.status')}</th>
-                  <th className="pb-3">{t('common.actions')}</th>
+                  {canManage && <th className="pb-3">{t('common.actions')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -2811,31 +2921,41 @@ function AssignmentsTab({ assignments, loading, onAdd, onEdit, onDelete, onToggl
                     <td className="py-3 pr-4 text-xs">{a.endDate ? formatDate(a.endDate) : t('contributions.ongoing')}</td>
                     <td className="py-3 pr-4 text-xs text-stone-500 max-w-[150px] truncate">{a.notes || '-'}</td>
                     <td className="py-3 pr-4">
-                      <button
-                        onClick={() => onToggle(a.id)}
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${
-                          a.isActive ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
-                        }`}
-                      >
-                        {a.isActive ? t('contributions.active') : t('contributions.inactive')}
-                      </button>
-                    </td>
-                    <td className="py-3">
-                      <div className="flex gap-2">
+                      {canManage ? (
                         <button
-                          onClick={() => onEdit(a)}
-                          className="text-emerald-600 hover:text-emerald-800 text-xs"
+                          onClick={() => onToggle(a.id)}
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${
+                            a.isActive ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                          }`}
                         >
-                          {t('common.edit')}
+                          {a.isActive ? t('contributions.active') : t('contributions.inactive')}
                         </button>
-                        <button
-                          onClick={() => onDelete(a.id)}
-                          className="text-red-500 hover:text-red-700 text-xs"
-                        >
-                          {t('common.delete')}
-                        </button>
-                      </div>
+                      ) : (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          a.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                        }`}>
+                          {a.isActive ? t('contributions.active') : t('contributions.inactive')}
+                        </span>
+                      )}
                     </td>
+                    {canManage && (
+                      <td className="py-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => onEdit(a)}
+                            className="text-emerald-600 hover:text-emerald-800 text-xs"
+                          >
+                            {t('common.edit')}
+                          </button>
+                          <button
+                            onClick={() => onDelete(a.id)}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            {t('common.delete')}
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -2851,23 +2971,35 @@ function AssignmentsTab({ assignments, loading, onAdd, onEdit, onDelete, onToggl
                     <div className="font-medium text-stone-900">{a.personName}</div>
                     <div className="text-xs text-stone-500 mt-0.5">{getTypeNameByCode(a.contributionTypeCode)}</div>
                   </div>
-                  <button
-                    onClick={() => onToggle(a.id)}
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      a.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'
-                    }`}
-                  >
-                    {a.isActive ? t('contributions.active') : t('contributions.inactive')}
-                  </button>
+                  {canManage ? (
+                    <button
+                      onClick={() => onToggle(a.id)}
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        a.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                      }`}
+                    >
+                      {a.isActive ? t('contributions.active') : t('contributions.inactive')}
+                    </button>
+                  ) : (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        a.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                      }`}
+                    >
+                      {a.isActive ? t('contributions.active') : t('contributions.inactive')}
+                    </span>
+                  )}
                 </div>
                 <div className="space-y-1 text-xs text-stone-500 mb-3">
                   <div>{formatDate(a.startDate)} — {a.endDate ? formatDate(a.endDate) : t('contributions.ongoing')}</div>
                   {a.notes && <div className="truncate">{a.notes}</div>}
                 </div>
-                <div className="flex gap-3 pt-2 border-t border-stone-100">
-                  <button onClick={() => onEdit(a)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
-                  <button onClick={() => onDelete(a.id)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
-                </div>
+                {canManage && (
+                  <div className="flex gap-3 pt-2 border-t border-stone-100">
+                    <button onClick={() => onEdit(a)} className="text-emerald-600 hover:text-emerald-800 text-xs">{t('common.edit')}</button>
+                    <button onClick={() => onDelete(a.id)} className="text-red-500 hover:text-red-700 text-xs">{t('common.delete')}</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -1,18 +1,129 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
+import '../../../core/services/profile_image_service.dart';
 import '../../auth/providers/auth_provider.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _hasImage = false;
+  bool _uploadingImage = false;
+  int _imageCacheBuster = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkHasImage();
+  }
+
+  Future<void> _checkHasImage() async {
+    final service = ref.read(profileImageServiceProvider);
+    final hasImage = await service.hasMyImage();
+    if (mounted) {
+      setState(() => _hasImage = hasImage);
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (pickedFile == null) return;
+
+    setState(() => _uploadingImage = true);
+    try {
+      final service = ref.read(profileImageServiceProvider);
+      await service.uploadMyImage(pickedFile.path);
+      if (mounted) {
+        setState(() {
+          _hasImage = true;
+          _imageCacheBuster++;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile image updated'),
+            backgroundColor: AppColors.emerald,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload image: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingImage = false);
+    }
+  }
+
+  Future<void> _deleteImage() async {
+    try {
+      final service = ref.read(profileImageServiceProvider);
+      await service.deleteMyImage();
+      if (mounted) {
+        setState(() {
+          _hasImage = false;
+          _imageCacheBuster++;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile image removed'),
+            backgroundColor: AppColors.emerald,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete image: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<Map<String, String>> _getAuthHeaders() async {
+    final storage = const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
+    final token = await storage.read(key: ApiConfig.tokenKey);
+    final prefs = await SharedPreferences.getInstance();
+    final mosqueId = prefs.getInt(ApiConfig.mosqueIdKey);
+    final headers = <String, String>{};
+    if (token != null) headers['Authorization'] = 'Bearer $token';
+    if (mosqueId != null) headers['X-Mosque-Id'] = mosqueId.toString();
+    return headers;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final user = authState.user;
+    final service = ref.read(profileImageServiceProvider);
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -32,20 +143,90 @@ class ProfileScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: AppColors.emerald.withOpacity(0.1),
-                    child: Text(
-                      user?.username.isNotEmpty == true
-                          ? user!.username[0].toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        fontSize: 32,
-                        color: AppColors.emerald,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  GestureDetector(
+                    onTap: _uploadingImage ? null : _pickAndUploadImage,
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        _hasImage
+                            ? FutureBuilder<Map<String, String>>(
+                                future: _getAuthHeaders(),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData) {
+                                    return CircleAvatar(
+                                      radius: 40,
+                                      backgroundColor:
+                                          AppColors.emerald.withOpacity(0.1),
+                                      child: const CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    );
+                                  }
+                                  return CircleAvatar(
+                                    radius: 40,
+                                    backgroundColor:
+                                        AppColors.emerald.withOpacity(0.1),
+                                    backgroundImage: CachedNetworkImageProvider(
+                                      '${service.getMyImageUrl()}?t=$_imageCacheBuster',
+                                      headers: snapshot.data!,
+                                    ),
+                                  );
+                                },
+                              )
+                            : CircleAvatar(
+                                radius: 40,
+                                backgroundColor:
+                                    AppColors.emerald.withOpacity(0.1),
+                                child: Text(
+                                  user?.username.isNotEmpty == true
+                                      ? user!.username[0].toUpperCase()
+                                      : '?',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    color: AppColors.emerald,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                        if (_uploadingImage)
+                          const Positioned.fill(
+                            child: CircleAvatar(
+                              radius: 40,
+                              backgroundColor: Colors.black26,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.emerald,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(Icons.camera_alt,
+                                size: 16, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  if (_hasImage) ...[
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: _deleteImage,
+                      icon: const Icon(Icons.delete_outline, size: 16),
+                      label: const Text('Remove photo'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Text(
                     user?.username ?? 'Unknown',
@@ -132,7 +313,7 @@ class ProfileScreen extends ConsumerWidget {
                   icon: Icons.lock_outline,
                   title: 'Change Password',
                   onTap: () {
-                    _showChangePasswordDialog(context, ref);
+                    _showChangePasswordDialog(context);
                   },
                 ),
                 const Divider(height: 1),
@@ -196,7 +377,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showChangePasswordDialog(BuildContext context, WidgetRef ref) {
+  void _showChangePasswordDialog(BuildContext context) {
     final currentController = TextEditingController();
     final newController = TextEditingController();
     final confirmController = TextEditingController();

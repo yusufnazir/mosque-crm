@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/auth/screens/reset_password_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/members/screens/member_detail_screen.dart';
 import '../../features/members/screens/member_edit_screen.dart';
@@ -25,7 +27,15 @@ import '../../features/import/screens/import_screen.dart';
 import '../widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  // Keep router alive across hot reloads to preserve navigation state
+  ref.keepAlive();
+
+  // Keep a single router instance and trigger redirect reevaluation when auth changes.
+  final refreshNotifier = ValueNotifier<int>(0);
+  ref.listen<AuthState>(authProvider, (_, __) {
+    refreshNotifier.value++;
+  });
+  ref.onDispose(refreshNotifier.dispose);
 
   final rootNavigatorKey = GlobalKey<NavigatorState>();
   final shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -34,19 +44,24 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: rootNavigatorKey,
     initialLocation: '/dashboard',
     debugLogDiagnostics: true,
+    refreshListenable: refreshNotifier,
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
       final isAuthenticated = authState.isAuthenticated;
       final isLoading = authState.isLoading;
-      final isLoginRoute = state.matchedLocation == '/login';
+      final isPublicAuthRoute =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/forgot-password' ||
+          state.matchedLocation == '/reset-password';
 
       // While loading, don't redirect
       if (isLoading) return null;
 
       // Not authenticated → go to login
-      if (!isAuthenticated && !isLoginRoute) return '/login';
+      if (!isAuthenticated && !isPublicAuthRoute) return '/login';
 
       // Authenticated but on login → go to dashboard
-      if (isAuthenticated && isLoginRoute) return '/dashboard';
+      if (isAuthenticated && state.matchedLocation == '/login') return '/dashboard';
 
       return null;
     },
@@ -54,6 +69,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, state) => ResetPasswordScreen(
+          initialToken: state.uri.queryParameters['token'],
+        ),
       ),
       ShellRoute(
         navigatorKey: shellNavigatorKey,

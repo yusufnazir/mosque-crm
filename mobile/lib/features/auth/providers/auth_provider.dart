@@ -204,6 +204,46 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = const AuthState.unauthenticated();
   }
 
+  Future<String> requestPasswordReset(String username) async {
+    try {
+      final response = await _dio.post(
+        '/auth/forgot-password',
+        data: {'username': username.trim()},
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['message'] is String) {
+        return data['message'] as String;
+      }
+      return 'If your account exists, a reset link has been sent.';
+    } on DioException catch (e) {
+      final error = ApiException.fromDioError(e);
+      throw Exception(error.message);
+    }
+  }
+
+  Future<String> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/auth/reset-password',
+        data: {
+          'token': token,
+          'newPassword': newPassword,
+        },
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['message'] is String) {
+        return data['message'] as String;
+      }
+      return 'Password has been reset successfully.';
+    } on DioException catch (e) {
+      final error = ApiException.fromDioError(e);
+      throw Exception(error.message);
+    }
+  }
+
   Future<void> selectMosque(int mosqueId) async {
     await _prefs.setInt(ApiConfig.mosqueIdKey, mosqueId);
     if (state.user != null) {
@@ -225,9 +265,13 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 /// Auth state provider.
+/// Note: keepAlive is enabled to prevent logout on hot reload during development.
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  // Keep state alive across hot reloads
+  ref.keepAlive();
+  
   final dio = ref.watch(dioProvider);
-  const secureStorage = FlutterSecureStorage();
+  final secureStorage = ref.watch(secureStorageProvider);
   final prefs = ref.watch(sharedPreferencesProvider);
   return AuthNotifier(dio, secureStorage, prefs);
 });

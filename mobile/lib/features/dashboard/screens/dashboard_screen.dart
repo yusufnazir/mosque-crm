@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
@@ -106,6 +107,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final user = ref.watch(authProvider).user;
 
     return Scaffold(
@@ -115,7 +117,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           icon: const Icon(Icons.menu),
           onPressed: () => appShellScaffoldKey.currentState?.openDrawer(),
         ),
-        title: const Text('Dashboard'),
+        title: Text(t.dashboard),
         actions: [
           if (user != null)
             Padding(
@@ -155,7 +157,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         _buildGenderPieChart(),
                       ),
                       const SizedBox(height: 16),
-                      _buildQuickActions(),
+                      _buildQuickActions(user),
                       const SizedBox(height: 16),
                     ],
                   ),
@@ -164,6 +166,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildError() {
+    final t = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -172,7 +175,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             Icon(Icons.error_outline, size: 48, color: AppColors.error),
             const SizedBox(height: 16),
-            Text('Failed to load dashboard',
+            Text(
+              t.localeName.startsWith('nl')
+                ? 'Dashboard laden mislukt'
+                : 'Failed to load dashboard',
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(_error ?? '',
@@ -182,7 +188,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ElevatedButton.icon(
               onPressed: _loadData,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(t.retry),
             ),
           ],
         ),
@@ -191,6 +197,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildWelcomeCard(AuthUser? user) {
+    final t = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -207,11 +214,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Dashboard',
+                Text(t.dashboard,
                     style: TextStyle(
                         color: Colors.white.withOpacity(0.8), fontSize: 14)),
                 const SizedBox(height: 4),
-                Text('Welcome to your management system',
+                Text(
+                  t.localeName.startsWith('nl')
+                    ? 'Welkom in uw beheersysteem'
+                    : 'Welcome to your management system',
                     style: TextStyle(
                         color: Colors.white.withOpacity(0.9), fontSize: 13)),
               ],
@@ -231,11 +241,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildStatCards() {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     return Row(
       children: [
         Expanded(
           child: _StatCard(
-            title: 'Total Families',
+            title: isDutch ? 'Totaal families' : 'Total Families',
             value: '$_totalFamilies',
             icon: Icons.family_restroom,
             color: AppColors.emerald,
@@ -244,7 +256,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: _StatCard(
-            title: 'Active Members',
+            title: t.activeMembers,
             value: '$_activeMembers',
             icon: Icons.check_circle,
             color: AppColors.success,
@@ -256,6 +268,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   // --- Income by Contribution Type (stacked bar) ---
   Widget _buildIncomeChart() {
+    final t = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -265,7 +278,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Text('Income by Contribution Type',
+                    child: Text(
+                      t.localeName.startsWith('nl')
+                        ? 'Inkomsten per bijdrage-type'
+                        : 'Income by Contribution Type',
                       style: Theme.of(context)
                           .textTheme
                           .titleMedium
@@ -300,10 +316,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             const SizedBox(height: 16),
             if (_report == null || _report!.rows.isEmpty)
-              const SizedBox(
+              SizedBox(
                 height: 120,
                 child: Center(
-                    child: Text('No income data',
+                    child: Text(
+                        t.localeName.startsWith('nl')
+                            ? 'Geen inkomensgegevens'
+                            : 'No income data',
                         style: TextStyle(color: AppColors.stone400))),
               )
             else ...[
@@ -440,6 +459,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   // --- Age Distribution by Gender (grouped bar) ---
   Widget _buildAgeGenderChart() {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     if (_ageGenderData.isEmpty) return const SizedBox.shrink();
 
     final buckets = ['0-12', '13-18', '19-35', '36-60', '60+', 'Unknown'];
@@ -455,7 +476,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Age Distribution by Gender',
+            Text(isDutch ? 'Leeftijdsverdeling per geslacht' : 'Age Distribution by Gender',
                 style: Theme.of(context)
                     .textTheme
                     .titleSmall
@@ -495,7 +516,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           if (idx >= 0 && idx < foundBuckets.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 4),
-                              child: Text(foundBuckets[idx],
+                                child: Text(_bucketLabel(foundBuckets[idx]),
                                   style: const TextStyle(fontSize: 9)),
                             );
                           }
@@ -558,6 +579,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   // --- Family Size Distribution ---
   Widget _buildFamilySizeChart() {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     if (_familySizeData.isEmpty) return const SizedBox.shrink();
 
     final sorted = [..._familySizeData]..sort((a, b) => a.size.compareTo(b.size));
@@ -572,7 +595,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Family Size Distribution',
+            Text(isDutch ? 'Verdeling gezinsgrootte' : 'Family Size Distribution',
                 style: Theme.of(context)
                     .textTheme
                     .titleSmall
@@ -593,7 +616,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           if (idx >= 0 && idx < sorted.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 4),
-                              child: Text('${sorted[idx].size} children',
+                                child: Text(
+                                  isDutch
+                                    ? '${sorted[idx].size} kinderen'
+                                    : '${sorted[idx].size} children',
                                   style: const TextStyle(fontSize: 8)),
                             );
                           }
@@ -647,6 +673,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   // --- Age Distribution ---
   Widget _buildAgeDistributionChart() {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     if (_ageData.isEmpty) return const SizedBox.shrink();
 
     return Card(
@@ -655,7 +683,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Age Distribution',
+            Text(isDutch ? 'Leeftijdsverdeling' : 'Age Distribution',
                 style: Theme.of(context)
                     .textTheme
                     .titleSmall
@@ -676,7 +704,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           if (idx >= 0 && idx < _ageData.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 4),
-                              child: Text(_ageData[idx].bucket,
+                                child: Text(_bucketLabel(_ageData[idx].bucket),
                                   style: const TextStyle(fontSize: 9)),
                             );
                           }
@@ -730,6 +758,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   // --- Gender Pie Chart ---
   Widget _buildGenderPieChart() {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     if (_genderData.isEmpty) return const SizedBox.shrink();
 
     final total =
@@ -742,7 +772,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Gender Distribution',
+            Text(isDutch ? 'Geslachtsverdeling' : 'Gender Distribution',
                 style: Theme.of(context)
                     .textTheme
                     .titleSmall
@@ -796,43 +826,68 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   // --- Quick Actions ---
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(AuthUser? user) {
+    // Check if user has any relevant permissions
+    final hasMembers = user?.hasPermission('member.view') ?? false;
+    final hasGroups = user?.hasPermission('group.view') ?? false;
+    
+    // Don't show quick actions if user has no permissions
+    if (!hasMembers && !hasGroups) {
+      return const SizedBox.shrink();
+    }
+    
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
+    
+    final actions = <Widget>[];
+    
+    if (hasMembers) {
+      actions.add(
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => context.go('/members'),
+            icon: const Icon(Icons.people_outline),
+            label: Text(t.members),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        ),
+      );
+    }
+    
+    if (hasGroups) {
+      if (actions.isNotEmpty) {
+        actions.add(const SizedBox(width: 12));
+      }
+      actions.add(
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => context.go('/groups'),
+            icon: const Icon(Icons.groups_outlined),
+            label: Text(t.groups),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        ),
+      );
+    }
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Quick Actions',
+            Text(isDutch ? 'Snelle acties' : 'Quick Actions',
                 style: Theme.of(context)
                     .textTheme
                     .titleSmall
                     ?.copyWith(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => context.go('/members'),
-                    icon: const Icon(Icons.people_outline),
-                    label: const Text('Members'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => context.go('/groups'),
-                    icon: const Icon(Icons.groups_outlined),
-                    label: const Text('Groups'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ),
-              ],
+              children: actions,
             ),
           ],
         ),
@@ -877,15 +932,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   String _genderLabel(String gender) {
+    final t = AppLocalizations.of(context)!;
     switch (gender) {
       case 'M':
-        return 'Male';
+        return t.male;
       case 'F':
       case 'V':
-        return 'Female';
+        return t.female;
       default:
-        return 'Unknown';
+        return t.localeName.startsWith('nl') ? 'Onbekend' : 'Unknown';
     }
+  }
+
+  String _bucketLabel(String bucket) {
+    final t = AppLocalizations.of(context)!;
+    if ((bucket).toLowerCase() == 'unknown') {
+      return t.localeName.startsWith('nl') ? 'Onbekend' : 'Unknown';
+    }
+    return bucket;
   }
 
   static const _currencyColors = [

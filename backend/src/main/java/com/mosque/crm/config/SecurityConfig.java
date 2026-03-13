@@ -40,14 +40,23 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
+                // Public endpoints (login, password reset)
                 .requestMatchers("/auth/**").permitAll()
                 // Current-user context endpoint (any authenticated user)
                 .requestMatchers("/me/**").authenticated()
                 // All other endpoints require authentication;
                 // fine-grained permission checks are enforced via
                 // @PreAuthorize("@auth.hasPermission(...)") at method level
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
+            )
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(contentType -> contentType.disable())
+                .xssProtection(xss -> xss.disable())
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000)
+                )
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -60,12 +69,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // BFF pattern: only the Next.js server calls Spring Boot.
-        // In production, Spring Boot should only be reachable from localhost.
-        // We still allow CORS for local dev tooling (Postman, test scripts).
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        
+        // Parse allowed origins from environment/config
+        // Format: comma-separated list (e.g., "http://localhost:3000,https://app.mosque.com")
+        String[] origins = allowedOrigins.split(",");
+        configuration.setAllowedOrigins(Arrays.asList(origins));
+        
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Mosque-Id"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

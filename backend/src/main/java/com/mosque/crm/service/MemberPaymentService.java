@@ -307,13 +307,24 @@ public class MemberPaymentService {
         dto.setContributionTypeId(payment.getContributionType().getId());
         dto.setContributionTypeCode(payment.getContributionType().getCode());
         
-        // Get the English translation of contribution type name
+        // Get the localized contribution type name based on user's locale
         String contributionTypeName = payment.getContributionType().getCode(); // fallback to code
         if (payment.getContributionType().getTranslations() != null) {
+            // Get locale from LocaleContextHolder (set by LocaleInterceptor from Accept-Language header)
+            String userLocale = org.springframework.context.i18n.LocaleContextHolder.getLocale().getLanguage();
             for (var translation : payment.getContributionType().getTranslations()) {
-                if ("en".equalsIgnoreCase(translation.getLocale())) {
+                if (userLocale.equalsIgnoreCase(translation.getLocale())) {
                     contributionTypeName = translation.getName();
                     break;
+                }
+            }
+            // Fallback to English if user's locale not found
+            if (contributionTypeName.equals(payment.getContributionType().getCode())) {
+                for (var translation : payment.getContributionType().getTranslations()) {
+                    if ("en".equalsIgnoreCase(translation.getLocale())) {
+                        contributionTypeName = translation.getName();
+                        break;
+                    }
                 }
             }
         }

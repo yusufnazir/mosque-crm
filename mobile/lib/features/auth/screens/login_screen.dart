@@ -110,13 +110,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline,
+                              const Icon(Icons.error_outline,
                                   color: AppColors.error, size: 20),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   authState.error!,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       color: AppColors.error, fontSize: 14),
                                 ),
                               ),
@@ -169,6 +169,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           }
                           return null;
                         },
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => context.go('/forgot-password'),
+                          child: const Text('Forgot password?'),
+                        ),
                       ),
                       const SizedBox(height: 24),
 

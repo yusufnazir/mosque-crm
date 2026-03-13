@@ -169,10 +169,12 @@ export default function MembersPage() {
                 className="p-4"
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-semibold flex-shrink-0 ${
+                  <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-semibold flex-shrink-0 overflow-hidden ${
                     member.status === 'DECEASED' ? 'bg-red-600' : 'bg-emerald-600'
                   }`}>
-                    {member.firstName && member.lastName 
+                    {member.profileImageUrl ? (
+                      <img src={member.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                    ) : member.firstName && member.lastName 
                       ? getInitials(member.firstName, member.lastName)
                       : 'M'}
                   </div>
@@ -279,10 +281,12 @@ export default function MembersPage() {
                   <tr key={member.id || `member-${index}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-semibold ${
+                        <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-semibold overflow-hidden ${
                           member.status === 'DECEASED' ? 'bg-red-600' : 'bg-emerald-600'
                         }`}>
-                          {member.firstName && member.lastName 
+                          {member.profileImageUrl ? (
+                            <img src={member.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                          ) : member.firstName && member.lastName 
                             ? getInitials(member.firstName, member.lastName)
                             : 'M'}
                         </div>

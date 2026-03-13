@@ -19,6 +19,7 @@ interface MemberFormData {
   city: string;
   country: string;
   postalCode: string;
+  idNumber: string;
   membershipStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   username: string;
   roles: string[];
@@ -48,6 +49,7 @@ export default function EditMemberPage() {
     city: '',
     country: '',
     postalCode: '',
+    idNumber: '',
     membershipStatus: 'ACTIVE',
     username: '',
     roles: ['MEMBER'],
@@ -88,6 +90,7 @@ export default function EditMemberPage() {
         city: data.city || '',
         country: data.country || '',
         postalCode: data.postalCode || '',
+        idNumber: data.idNumber || '',
         membershipStatus: data.membershipStatus || 'ACTIVE',
         username: data.username || data.email || '',
         roles: data.roles || ['MEMBER'],
@@ -295,6 +298,20 @@ export default function EditMemberPage() {
                       <option value="FEMALE">{t('member_edit.female')}</option>
                     </select>
                   </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('member_edit.id_number')}
+                  </label>
+                  <input
+                    type="text"
+                    name="idNumber"
+                    value={formData.idNumber}
+                    onChange={handleInputChange}
+                    placeholder="e.g. CBB-001"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                  />
                 </div>
 
                 <div className="mt-4">

@@ -94,6 +94,12 @@ public class Person implements MosqueAware {
     @Column(name = "hash", unique = true, length = 128)
     private String hash;
 
+    @Column(name = "profile_image_key", length = 500)
+    private String profileImageKey;
+
+    @Column(name = "id_number", length = 50)
+    private String idNumber;
+
     // Relationships
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Membership> memberships = new ArrayList<>();
@@ -243,6 +249,22 @@ public class Person implements MosqueAware {
 
     public void setHash(String hash) {
         this.hash = hash;
+    }
+
+    public String getProfileImageKey() {
+        return profileImageKey;
+    }
+
+    public void setProfileImageKey(String profileImageKey) {
+        this.profileImageKey = profileImageKey;
+    }
+
+    public String getIdNumber() {
+        return idNumber;
+    }
+
+    public void setIdNumber(String idNumber) {
+        this.idNumber = idNumber;
     }
 
     public List<Membership> getMemberships() {

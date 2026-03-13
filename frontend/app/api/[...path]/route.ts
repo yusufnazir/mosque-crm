@@ -86,6 +86,12 @@ async function proxyRequest(
     responseHeaders.set('Content-Type', upstreamContentType);
   }
 
+  // Pass through Cache-Control for cacheable responses (e.g., profile images)
+  const cacheControl = upstream.headers.get('Cache-Control');
+  if (cacheControl) {
+    responseHeaders.set('Cache-Control', cacheControl);
+  }
+
   const response = new NextResponse(responseBody, {
     status: upstream.status,
     statusText: upstream.statusText,

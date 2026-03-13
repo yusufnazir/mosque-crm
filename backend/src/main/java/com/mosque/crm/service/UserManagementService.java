@@ -23,6 +23,9 @@ import com.mosque.crm.repository.PasswordResetTokenRepository;
 import com.mosque.crm.repository.RoleRepository;
 import com.mosque.crm.repository.UserPreferencesRepository;
 import com.mosque.crm.repository.UserRepository;
+import com.mosque.crm.subscription.FeatureKeys;
+import com.mosque.crm.subscription.PlanLimitExceededException;
+import com.mosque.crm.service.OrganizationSubscriptionService;
 
 @Service
 public class UserManagementService {
@@ -41,6 +44,7 @@ public class UserManagementService {
     private final AuthorizationService authorizationService;
     private final UserPreferencesRepository userPreferencesRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final OrganizationSubscriptionService organizationSubscriptionService;
 
     public UserManagementService(UserRepository userRepository,
                                   RoleRepository roleRepository,
@@ -48,7 +52,8 @@ public class UserManagementService {
                                   PasswordEncoder passwordEncoder,
                                   AuthorizationService authorizationService,
                                   UserPreferencesRepository userPreferencesRepository,
-                                  PasswordResetTokenRepository passwordResetTokenRepository) {
+                                  PasswordResetTokenRepository passwordResetTokenRepository,
+                                  OrganizationSubscriptionService organizationSubscriptionService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.mosqueRepository = mosqueRepository;
@@ -56,6 +61,7 @@ public class UserManagementService {
         this.authorizationService = authorizationService;
         this.userPreferencesRepository = userPreferencesRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.organizationSubscriptionService = organizationSubscriptionService;
     }
 
     /**
@@ -118,6 +124,26 @@ public class UserManagementService {
         if (request.getEmail() != null && !request.getEmail().isBlank()
                 && userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists: " + request.getEmail());
+        }
+
+        // Plan limit check: enforce max users per mosque based on subscription plan.
+        // Skipped for super-admin created users (mosqueId == null).
+        Long targetMosqueId = request.getMosqueId();
+        if (targetMosqueId != null) {
+            try {
+                Integer userLimit = organizationSubscriptionService.getFeatureLimit(targetMosqueId, FeatureKeys.ADMIN_USERS_MAX);
+                if (userLimit != null) {
+                    long currentCount = userRepository.countByMosqueId(targetMosqueId);
+                    if (currentCount >= userLimit) {
+                        throw new PlanLimitExceededException(FeatureKeys.ADMIN_USERS_MAX, userLimit, (int) currentCount);
+                    }
+                }
+            } catch (PlanLimitExceededException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                // No active subscription found — allow creation with a warning (grace period for new mosques)
+                log.warn("Could not verify user limit for mosqueId={}: {}", targetMosqueId, e.getMessage());
+            }
         }
 
         User user = new User();

@@ -18,6 +18,7 @@ public class PersonUpdateDTO {
     private String country;
     private String postalCode;
     private PersonStatus status;
+    private String idNumber;
 
     public PersonUpdateDTO() {
     }
@@ -124,5 +125,13 @@ public class PersonUpdateDTO {
 
     public void setStatus(PersonStatus status) {
         this.status = status;
+    }
+
+    public String getIdNumber() {
+        return idNumber;
+    }
+
+    public void setIdNumber(String idNumber) {
+        this.idNumber = idNumber;
     }
 }

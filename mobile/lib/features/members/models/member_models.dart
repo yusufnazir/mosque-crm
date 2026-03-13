@@ -23,6 +23,7 @@ class Person {
   final bool hasGedcomData;
   final String? gedcomIndividualId;
   final bool hasActiveMembership;
+  final String? idNumber;
 
   Person({
     this.id,
@@ -48,6 +49,7 @@ class Person {
     this.hasGedcomData = false,
     this.gedcomIndividualId,
     this.hasActiveMembership = false,
+    this.idNumber,
   });
 
   String get fullName => '$firstName $lastName';
@@ -77,6 +79,7 @@ class Person {
       hasGedcomData: json['hasGedcomData'] as bool? ?? false,
       gedcomIndividualId: json['gedcomIndividualId'] as String?,
       hasActiveMembership: json['hasActiveMembership'] as bool? ?? false,
+      idNumber: json['idNumber'] as String?,
     );
   }
 
@@ -92,6 +95,7 @@ class Person {
         'city': city,
         'country': country,
         'postalCode': postalCode,
+        if (idNumber != null) 'idNumber': idNumber,
       };
 }
 

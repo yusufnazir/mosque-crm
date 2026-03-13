@@ -98,6 +98,25 @@ export class ApiClient {
     });
     return this.handleResponse<T>(response);
   }
+
+  /**
+   * Upload a file via multipart/form-data.
+   * Do NOT set Content-Type — the browser will generate the boundary automatically.
+   */
+  static async uploadFile<T>(endpoint: string, file: File, fieldName = 'file'): Promise<T> {
+    const mosqueId = typeof window !== 'undefined' ? localStorage.getItem('selectedMosqueId') : null;
+    const formData = new FormData();
+    formData.append(fieldName, file);
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        ...(mosqueId ? { 'X-Mosque-Id': mosqueId } : {}),
+      },
+      body: formData,
+    });
+    return this.handleResponse<T>(response);
+  }
 }
 
 // Auth API
@@ -186,6 +205,24 @@ export const portalApi = {
   getProfile: () => ApiClient.get('/member/profile'),
 };
 
+// Profile Image API — all images served through backend (no direct MinIO URLs)
+export const profileImageApi = {
+  /** Upload (or replace) the current user's own profile image */
+  uploadMy: (file: File) =>
+    ApiClient.uploadFile<{ message: string; imageUrl: string }>('/profile-image/me', file),
+  /** Get the URL path for the current user's profile image */
+  getMyUrl: () => '/api/profile-image/me',
+  /** Delete the current user's profile image */
+  deleteMy: () => ApiClient.delete('/profile-image/me'),
+  /** Admin: upload profile image for any person */
+  uploadForPerson: (personId: string | number, file: File) =>
+    ApiClient.uploadFile<{ message: string; imageUrl: string }>(`/profile-image/persons/${personId}`, file),
+  /** Get the URL path for any person's profile image */
+  getPersonUrl: (personId: string | number) => `/api/profile-image/persons/${personId}`,
+  /** Admin: delete profile image for any person */
+  deleteForPerson: (personId: string | number) => ApiClient.delete(`/profile-image/persons/${personId}`),
+};
+
 // Genealogy/Relationship API
 export const relationshipApi = {
   searchPersons: (query: string) => ApiClient.get(`/persons/search?q=${encodeURIComponent(query)}`),
@@ -266,5 +303,65 @@ export const reportApi = {
     ApiClient.get(`/reports/payment-summary?year=${year}&locale=${encodeURIComponent(locale)}&page=0&size=0`),
   getContributionTotals: (year: number, locale: string = 'en'): Promise<ContributionTotalReport> =>
     ApiClient.get(`/reports/contribution-totals?year=${year}&locale=${encodeURIComponent(locale)}`),
+};
+
+// ── Subscription / Plan types ──────────────────────────────────────────────
+export interface PlanEntitlementDTO {
+  id: number;
+  featureKey: string;
+  enabled: boolean;
+  limitValue: number | null;
+}
+
+export interface SubscriptionPlanDTO {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  isActive: boolean;
+  entitlements: PlanEntitlementDTO[];
+}
+
+export interface OrganizationSubscriptionDTO {
+  id: number;
+  mosqueId: number;
+  plan: SubscriptionPlanDTO;
+  status: string;
+  billingCycle: string;
+  startsAt: string;
+  endsAt: string | null;
+  canceledAt: string | null;
+}
+
+export interface CreateSubscriptionRequest {
+  mosqueId: number;
+  planCode: string;
+  billingCycle: string;
+  startsAt?: string;
+  endsAt?: string;
+  autoRenew?: boolean;
+}
+
+// Subscription API
+export const subscriptionApi = {
+  getCurrent: (): Promise<OrganizationSubscriptionDTO | null> =>
+    ApiClient.get('/subscription/current'),
+  getPlans: (): Promise<SubscriptionPlanDTO[]> =>
+    ApiClient.get('/subscription/plans'),
+  getPlanByCode: (code: string): Promise<SubscriptionPlanDTO> =>
+    ApiClient.get(`/subscription/plans/${code}`),
+  assign: (data: CreateSubscriptionRequest): Promise<OrganizationSubscriptionDTO> =>
+    ApiClient.post('/admin/subscription', data),
+  assignSimple: (data: { mosqueId: number; planCode: string; billingCycle?: 'MONTHLY' | 'YEARLY' }): Promise<OrganizationSubscriptionDTO> =>
+    ApiClient.post('/admin/subscription', {
+      mosqueId: data.mosqueId,
+      planCode: data.planCode,
+      billingCycle: data.billingCycle ?? 'MONTHLY',
+      autoRenew: true,
+    }),
+  updateStatus: (id: number, status: string): Promise<OrganizationSubscriptionDTO> =>
+    ApiClient.put(`/admin/subscription/${id}/status`, { status }),
 };
 

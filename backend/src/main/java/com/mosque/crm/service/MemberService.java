@@ -119,6 +119,7 @@ public class MemberService {
                 person.setCity(memberDTO.getCity());
                 person.setCountry(memberDTO.getCountry());
                 person.setPostalCode(memberDTO.getPostalCode());
+                person.setIdNumber(memberDTO.getIdNumber());
                 // Only update status if it's provided in the DTO
                 if (memberDTO.getMembershipStatus() != null) {
                     try {

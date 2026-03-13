@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mosque.crm.dto.MemberPaymentCreateDTO;
 import com.mosque.crm.dto.MemberPaymentDTO;
 import com.mosque.crm.service.MemberPaymentService;
+import com.mosque.crm.service.AuthorizationService;
 
 import jakarta.validation.Valid;
 
@@ -41,9 +42,11 @@ import jakarta.validation.Valid;
 public class MemberPaymentController {
 
     private final MemberPaymentService paymentService;
+    private final AuthorizationService authorizationService;
 
-    public MemberPaymentController(MemberPaymentService paymentService) {
+    public MemberPaymentController(MemberPaymentService paymentService, AuthorizationService authorizationService) {
         this.paymentService = paymentService;
+        this.authorizationService = authorizationService;
     }
 
     /**
@@ -161,6 +164,41 @@ public class MemberPaymentController {
     @GetMapping("/by-type/{typeId}")
     public ResponseEntity<List<MemberPaymentDTO>> getPaymentsByType(@PathVariable Long typeId) {
         List<MemberPaymentDTO> payments = paymentService.getPaymentsByType(typeId);
+        return ResponseEntity.ok(payments);
+    }
+
+    /**
+     * Get all payments for the currently logged-in user (by their personId).
+     * Returns all payments for the current user without pagination.
+     * This endpoint enforces that users can only see their own payments.
+     *
+     * GET /contributions/payments/my
+     */
+    @GetMapping("/my")
+    public ResponseEntity<?> getCurrentUserPayments(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String[] sort) {
+        var currentUser = authorizationService.getCurrentUser();
+        if (currentUser == null || currentUser.getPerson() == null) {
+            return ResponseEntity.status(403).body("No person profile linked to current user");
+        }
+
+        Long personId = currentUser.getPerson().getId();
+
+        if (page != null && size != null) {
+            Pageable pageable = PageRequest.of(page, size, buildSort(sort));
+            Page<MemberPaymentDTO> payments;
+            if (year != null) {
+                payments = paymentService.getPaymentsByPerson(personId, year, pageable);
+            } else {
+                payments = paymentService.getPaymentsByPerson(personId, pageable);
+            }
+            return ResponseEntity.ok(payments);
+        }
+
+        List<MemberPaymentDTO> payments = paymentService.getPaymentsByPerson(personId);
         return ResponseEntity.ok(payments);
     }
 

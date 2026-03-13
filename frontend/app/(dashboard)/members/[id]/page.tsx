@@ -610,8 +610,16 @@ export default function MemberDetailPage() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-emerald-600 text-white flex items-center justify-center text-lg md:text-2xl font-bold flex-shrink-0">
-              {member.firstName?.[0] || '?'}{member.lastName?.[0] || '?'}
+            <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-emerald-600 text-white flex items-center justify-center text-lg md:text-2xl font-bold flex-shrink-0 overflow-hidden">
+              {member.profileImageUrl ? (
+                <img
+                  src={member.profileImageUrl}
+                  alt={`${member.firstName} ${member.lastName}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <>{member.firstName?.[0] || '?'}{member.lastName?.[0] || '?'}</>
+              )}
             </div>
             <div className="min-w-0">
               <h1 className="text-2xl md:text-3xl font-bold text-charcoal truncate">
@@ -760,6 +768,12 @@ export default function MemberDetailPage() {
                     {t('member_detail.username')}
                   </label>
                   <p className="text-gray-900">{member.username || t('member_detail.no_account')}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                    {t('member_detail.id_number')}
+                  </label>
+                  <p className="text-gray-900">{member.idNumber || t('member_detail.not_provided')}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">

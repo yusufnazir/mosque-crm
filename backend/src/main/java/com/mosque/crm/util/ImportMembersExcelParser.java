@@ -170,6 +170,12 @@ public class ImportMembersExcelParser {
 			dto.setGender(gesl.trim());
 		}
 
+		// Extract CBB ID# (external ID number)
+		String cbbId = ExcelParserUtil.getCellValueAsString(row, columnIndexMap.get("CBB ID#"));
+		if (StringUtils.isNotBlank(cbbId)) {
+			dto.setIdNumber(cbbId.trim());
+		}
+
 		// Extract Heengegaan (date of death) - handle missing dates gracefully
 		String heengegaanStr = null;
 		// Check for multiple possible column names for date of death

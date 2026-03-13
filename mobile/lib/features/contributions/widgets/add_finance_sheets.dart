@@ -1102,6 +1102,429 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  Edit Payment Bottom Sheet
+// ═══════════════════════════════════════════════════════════════
+
+Future<bool?> showEditPaymentSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  required MemberPayment payment,
+}) {
+  return showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _EditPaymentSheet(ref: ref, payment: payment),
+  );
+}
+
+class _EditPaymentSheet extends StatefulWidget {
+  final WidgetRef ref;
+  final MemberPayment payment;
+
+  const _EditPaymentSheet({required this.ref, required this.payment});
+
+  @override
+  State<_EditPaymentSheet> createState() => _EditPaymentSheetState();
+}
+
+class _EditPaymentSheetState extends State<_EditPaymentSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _amountCtrl = TextEditingController();
+  final _referenceCtrl = TextEditingController();
+  final _notesCtrl = TextEditingController();
+
+  List<ContributionType> _types = [];
+  ContributionType? _selectedType;
+  List<dynamic> _currencies = [];
+  int? _selectedCurrencyId;
+  String _paymentDate = '';
+  int? _periodFromMonth;
+  int? _periodFromYear;
+  int? _periodToMonth;
+  int? _periodToYear;
+  bool _isLoading = true;
+  bool _isSaving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill with existing payment data
+    _amountCtrl.text = widget.payment.amount.toStringAsFixed(2);
+    _referenceCtrl.text = widget.payment.reference ?? '';
+    _notesCtrl.text = widget.payment.notes ?? '';
+    _paymentDate = widget.payment.paymentDate ?? '';
+    _selectedCurrencyId = widget.payment.currencyId;
+    
+    // Parse period dates if available
+    if (widget.payment.periodFrom != null) {
+      final from = DateTime.tryParse(widget.payment.periodFrom!);
+      if (from != null) {
+        _periodFromMonth = from.month;
+        _periodFromYear = from.year;
+      }
+    }
+    if (widget.payment.periodTo != null) {
+      final to = DateTime.tryParse(widget.payment.periodTo!);
+      if (to != null) {
+        _periodToMonth = to.month;
+        _periodToYear = to.year;
+      }
+    }
+    
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    _amountCtrl.dispose();
+    _referenceCtrl.dispose();
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final service = widget.ref.read(contributionServiceProvider);
+      final currencyService = widget.ref.read(currencyServiceProvider);
+      
+      final results = await Future.wait([
+        service.getActiveTypes(),
+        currencyService.getMosqueCurrencies(),
+      ]);
+      
+      if (mounted) {
+        setState(() {
+          _types = results[0] as List<ContributionType>;
+          _currencies = results[1];
+          
+          // Find and set the selected type
+          try {
+            _selectedType = _types.firstWhere(
+              (t) => t.id == widget.payment.contributionTypeId,
+            );
+          } catch (_) {
+            _selectedType = _types.isNotEmpty ? _types.first : null;
+          }
+          
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickDate(String label, String current,
+      ValueChanged<String> onPicked) async {
+    final initial = current.isNotEmpty
+        ? DateTime.tryParse(current) ?? DateTime.now()
+        : DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: AppColors.emerald,
+            onPrimary: Colors.white,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) {
+      onPicked(
+          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedType == null) {
+      setState(() => _error = 'Please select a contribution type');
+      return;
+    }
+    if (_selectedCurrencyId == null) {
+      setState(() => _error = 'Please select a currency');
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+      _error = null;
+    });
+
+    try {
+      final service = widget.ref.read(contributionServiceProvider);
+      final amount = double.parse(_amountCtrl.text.trim());
+
+      final data = <String, dynamic>{
+        'personId': widget.payment.personId,
+        'contributionTypeId': _selectedType!.id,
+        'currencyId': _selectedCurrencyId,
+        'amount': amount,
+        'paymentDate': _paymentDate,
+      };
+
+      if (_periodFromMonth != null && _periodFromYear != null) {
+        data['periodFrom'] =
+            '$_periodFromYear-${_periodFromMonth.toString().padLeft(2, '0')}-01';
+      }
+      if (_periodToMonth != null && _periodToYear != null) {
+        final lastDay =
+            DateTime(_periodToYear!, _periodToMonth! + 1, 0).day;
+        data['periodTo'] =
+            '$_periodToYear-${_periodToMonth.toString().padLeft(2, '0')}-${lastDay.toString().padLeft(2, '0')}';
+      }
+      
+      if (_referenceCtrl.text.trim().isNotEmpty) {
+        data['reference'] = _referenceCtrl.text.trim();
+      }
+      if (_notesCtrl.text.trim().isNotEmpty) {
+        data['notes'] = _notesCtrl.text.trim();
+      }
+
+      await service.updatePayment(widget.payment.id!, data);
+
+      if (mounted) {
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isSaving = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: 20 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag handle
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.stone300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Title
+                    const Text(
+                      'Edit Payment',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Error message
+                    if (_error != null)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(_error!,
+                            style: const TextStyle(
+                                color: AppColors.error, fontSize: 12)),
+                      ),
+
+                    // ── Contribution Type ──
+                    DropdownButtonFormField<ContributionType>(
+                      value: _selectedType,
+                      decoration: _inputDecoration('Contribution Type'),
+                      items: _types
+                          .map((t) => DropdownMenuItem(
+                                value: t,
+                                child: Text(t.code),
+                              ))
+                          .toList(),
+                      onChanged: (t) => setState(() => _selectedType = t),
+                      validator: (v) => v == null ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Period Section (bordered card) ──
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.stone50,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.stone200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Period',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.stone600)),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _MonthYearPicker(
+                                  label: 'Period From',
+                                  month: _periodFromMonth,
+                                  year: _periodFromYear,
+                                  onMonthChanged: (m) =>
+                                      setState(() => _periodFromMonth = m),
+                                  onYearChanged: (y) =>
+                                      setState(() => _periodFromYear = y),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _MonthYearPicker(
+                                  label: 'Period To',
+                                  month: _periodToMonth,
+                                  year: _periodToYear,
+                                  onMonthChanged: (m) =>
+                                      setState(() => _periodToMonth = m),
+                                  onYearChanged: (y) =>
+                                      setState(() => _periodToYear = y),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Amount ──
+                    TextFormField(
+                      controller: _amountCtrl,
+                      decoration: _inputDecoration('Amount *'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Required';
+                        if (double.tryParse(v) == null) return 'Invalid number';
+                        if (double.parse(v) <= 0) return 'Must be > 0';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Currency Dropdown ──
+                    DropdownButtonFormField<int>(
+                      value: _selectedCurrencyId,
+                      decoration: _inputDecoration('Currency *'),
+                      items: _currencies
+                          .map((c) {
+                            int? currencyId;
+                            String? code;
+                            String? symbol;
+                            
+                            if (c is MosqueCurrency) {
+                              currencyId = c.currencyId;
+                              code = c.currencyCode;
+                              symbol = c.currencySymbol;
+                            } else if (c is Map<String, dynamic>) {
+                              currencyId = c['currencyId'] ?? c['id'] as int?;
+                              code = c['currencyCode'] ?? c['code'] as String?;
+                              symbol = c['currencySymbol'] ?? c['symbol'] as String?;
+                            }
+                            
+                            if (currencyId != null && code != null) {
+                              final displayLabel = symbol != null && symbol.isNotEmpty
+                                  ? '$code ($symbol)'
+                                  : code;
+                              return DropdownMenuItem<int>(
+                                value: currencyId,
+                                child: Text(displayLabel),
+                              );
+                            }
+                            return null;
+                          })
+                          .whereType<DropdownMenuItem<int>>()
+                          .toList(),
+                      onChanged: (id) => setState(() => _selectedCurrencyId = id),
+                      validator: (v) => v == null ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Payment Date ──
+                    _DateField(
+                      label: 'Payment Date *',
+                      value: _paymentDate,
+                      onTap: () => _pickDate('Payment Date', _paymentDate,
+                          (v) => setState(() => _paymentDate = v)),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Reference ──
+                    TextFormField(
+                      controller: _referenceCtrl,
+                      decoration: _inputDecoration('Reference')
+                          .copyWith(hintText: 'e.g. bank transfer number'),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Notes ──
+                    TextFormField(
+                      controller: _notesCtrl,
+                      decoration: _inputDecoration('Notes'),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Submit ──
+                    _SubmitButton(
+                      label: 'Update Payment',
+                      isSaving: _isSaving,
+                      onPressed: _submit,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Helper Widgets
+// ═══════════════════════════════════════════════════════════════
+
 class _MonthYearPicker extends StatelessWidget {
   final String label;
   final int? month;

@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:memberflow/core/config/api_config.dart';
+import 'package:memberflow/core/providers/locale_provider.dart';
 
 /// Provides the configured Dio HTTP client.
 final dioProvider = Provider<Dio>((ref) {
+  ref.keepAlive();
+  
   final dio = Dio(BaseOptions(
     baseUrl: ApiConfig.baseUrl,
     connectTimeout: const Duration(milliseconds: ApiConfig.connectTimeout),
@@ -20,7 +23,6 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(LogInterceptor(
     requestBody: true,
     responseBody: true,
-    logPrint: (obj) => print('[API] $obj'),
   ));
 
   return dio;
@@ -28,6 +30,8 @@ final dioProvider = Provider<Dio>((ref) {
 
 /// Provides secure storage for sensitive data (JWT).
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
+  ref.keepAlive();
+  
   return const FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
@@ -56,9 +60,18 @@ class AuthInterceptor extends Interceptor {
 
     // Attach mosque ID
     final prefs = await SharedPreferences.getInstance();
-    final mosqueId = prefs.getString(ApiConfig.mosqueIdKey);
-    if (mosqueId != null && mosqueId.isNotEmpty) {
-      options.headers['X-Mosque-Id'] = mosqueId;
+    final mosqueId = prefs.getInt(ApiConfig.mosqueIdKey);
+    if (mosqueId != null) {
+      options.headers['X-Mosque-Id'] = mosqueId.toString();
+    }
+
+    // Attach Accept-Language header based on user's locale
+    try {
+      final locale = _ref.read(localeProvider);
+      options.headers['Accept-Language'] = locale.languageCode;
+    } catch (_) {
+      // If locale provider is not available (during initialization), default to 'en'
+      options.headers['Accept-Language'] = 'en';
     }
 
     handler.next(options);

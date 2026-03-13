@@ -38,6 +38,12 @@ public class PersonDTO {
     // Active membership indicator
     private boolean hasActiveMembership;
 
+    // Profile image URL (served through backend)
+    private String profileImageUrl;
+
+    // External ID number (CBB ID, national ID, etc.)
+    private String idNumber;
+
     public PersonDTO() {
     }
 
@@ -231,6 +237,22 @@ public class PersonDTO {
 
     public void setHasActiveMembership(boolean hasActiveMembership) {
         this.hasActiveMembership = hasActiveMembership;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public String getIdNumber() {
+        return idNumber;
+    }
+
+    public void setIdNumber(String idNumber) {
+        this.idNumber = idNumber;
     }
 
     public String getFullName() {

@@ -24,6 +24,8 @@ export interface Member {
   partnerName?: string;
   partnerId?: string;
   children?: Member[];
+  profileImageUrl?: string;
+  idNumber?: string;
 }
 
 

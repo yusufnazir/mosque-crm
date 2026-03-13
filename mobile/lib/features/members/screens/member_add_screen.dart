@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -64,8 +65,10 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_dateOfBirth == null) {
+      final t = AppLocalizations.of(context)!;
+      final isDutch = t.localeName.startsWith('nl');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Date of birth is required')),
+        SnackBar(content: Text(isDutch ? 'Geboortedatum is verplicht' : 'Date of birth is required')),
       );
       return;
     }
@@ -104,9 +107,11 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
       await service.createPerson(data);
 
       if (mounted) {
+        final t2 = AppLocalizations.of(context)!;
+        final isDutch2 = t2.localeName.startsWith('nl');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Member created successfully'),
+          SnackBar(
+            content: Text(isDutch2 ? 'Lid succesvol aangemaakt' : 'Member created successfully'),
             backgroundColor: AppColors.emerald,
           ),
         );
@@ -128,8 +133,10 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Member')),
+      appBar: AppBar(title: Text(isDutch ? 'Lid toevoegen' : 'Add Member')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -138,32 +145,32 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Personal Information ──
-              _sectionHeader('Personal Information'),
+              _sectionHeader(isDutch ? 'Persoonlijke informatie' : 'Personal Information'),
               const SizedBox(height: 8),
               _buildCard([
                 TextFormField(
                   controller: _firstNameCtrl,
-                  decoration: const InputDecoration(labelText: 'First Name *'),
+                  decoration: InputDecoration(labelText: isDutch ? 'Voornaam *' : 'First Name *'),
                   validator: (v) =>
                       v == null || v.trim().isEmpty ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _lastNameCtrl,
-                  decoration: const InputDecoration(labelText: 'Last Name *'),
+                  decoration: InputDecoration(labelText: isDutch ? 'Achternaam *' : 'Last Name *'),
                   validator: (v) =>
                       v == null || v.trim().isEmpty ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _emailCtrl,
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: InputDecoration(labelText: isDutch ? 'E-mail' : 'Email'),
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _phoneCtrl,
-                  decoration: const InputDecoration(labelText: 'Phone'),
+                  decoration: InputDecoration(labelText: isDutch ? 'Telefoon' : 'Phone'),
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 12),
@@ -173,11 +180,11 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                   child: AbsorbPointer(
                     child: TextFormField(
                       decoration: InputDecoration(
-                        labelText: 'Date of Birth *',
+                        labelText: isDutch ? 'Geboortedatum *' : 'Date of Birth *',
                         suffixIcon: const Icon(Icons.calendar_today, size: 18),
                         hintText: _dateOfBirth != null
                             ? '${_dateOfBirth!.year}-${_dateOfBirth!.month.toString().padLeft(2, '0')}-${_dateOfBirth!.day.toString().padLeft(2, '0')}'
-                            : 'Select date',
+                            : isDutch ? 'Selecteer datum' : 'Select date',
                       ),
                       controller: TextEditingController(
                         text: _dateOfBirth != null
@@ -191,10 +198,10 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                 // Gender
                 DropdownButtonFormField<String>(
                   value: _gender,
-                  decoration: const InputDecoration(labelText: 'Gender *'),
-                  items: const [
-                    DropdownMenuItem(value: 'M', child: Text('Male')),
-                    DropdownMenuItem(value: 'V', child: Text('Female')),
+                  decoration: InputDecoration(labelText: isDutch ? 'Geslacht *' : 'Gender *'),
+                  items: [
+                    DropdownMenuItem(value: 'M', child: Text(isDutch ? 'Man' : 'Male')),
+                    DropdownMenuItem(value: 'V', child: Text(isDutch ? 'Vrouw' : 'Female')),
                   ],
                   onChanged: (v) => setState(() => _gender = v ?? 'M'),
                 ),
@@ -203,12 +210,12 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
               const SizedBox(height: 20),
 
               // ── Address ──
-              _sectionHeader('Address'),
+              _sectionHeader(isDutch ? 'Adres' : 'Address'),
               const SizedBox(height: 8),
               _buildCard([
                 TextFormField(
                   controller: _streetCtrl,
-                  decoration: const InputDecoration(labelText: 'Street'),
+                  decoration: InputDecoration(labelText: isDutch ? 'Straat' : 'Street'),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -216,7 +223,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _cityCtrl,
-                        decoration: const InputDecoration(labelText: 'City'),
+                        decoration: InputDecoration(labelText: isDutch ? 'Plaats' : 'City'),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -224,7 +231,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                       child: TextFormField(
                         controller: _postalCodeCtrl,
                         decoration:
-                            const InputDecoration(labelText: 'Postal Code'),
+                            InputDecoration(labelText: isDutch ? 'Postcode' : 'Postal Code'),
                       ),
                     ),
                   ],
@@ -232,26 +239,26 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _countryCtrl,
-                  decoration: const InputDecoration(labelText: 'Country'),
+                  decoration: InputDecoration(labelText: isDutch ? 'Land' : 'Country'),
                 ),
               ]),
 
               const SizedBox(height: 20),
 
               // ── Membership ──
-              _sectionHeader('Membership'),
+              _sectionHeader(isDutch ? 'Lidmaatschap' : 'Membership'),
               const SizedBox(height: 8),
               _buildCard([
                 DropdownButtonFormField<String>(
                   value: _status,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items: const [
+                  decoration: InputDecoration(labelText: isDutch ? 'Status' : 'Status'),
+                  items: [
                     DropdownMenuItem(
-                        value: 'ACTIVE', child: Text('Active')),
+                        value: 'ACTIVE', child: Text(isDutch ? 'Actief' : 'Active')),
                     DropdownMenuItem(
-                        value: 'INACTIVE', child: Text('Inactive')),
+                        value: 'INACTIVE', child: Text(isDutch ? 'Inactief' : 'Inactive')),
                     DropdownMenuItem(
-                        value: 'SUSPENDED', child: Text('Suspended')),
+                        value: 'SUSPENDED', child: Text(isDutch ? 'Opgeschort' : 'Suspended')),
                   ],
                   onChanged: (v) =>
                       setState(() => _status = v ?? 'ACTIVE'),
@@ -272,7 +279,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white))
-                      : const Text('Create Member'),
+                      : Text(isDutch ? 'Lid aanmaken' : 'Create Member'),
                 ),
               ),
               const SizedBox(height: 16),

@@ -16,6 +16,7 @@ public class MemberDTO {
     private String city;
     private String country;
     private String postalCode;
+    private String idNumber;
     private String membershipStatus;
     private LocalDate memberSince;
     private String partnerId; // Kept for backward compatibility with frontend
@@ -75,6 +76,8 @@ public class MemberDTO {
     public void setCountry(String country) { this.country = country; }
     public String getPostalCode() { return postalCode; }
     public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
+    public String getIdNumber() { return idNumber; }
+    public void setIdNumber(String idNumber) { this.idNumber = idNumber; }
     public String getMembershipStatus() { return membershipStatus; }
     public void setMembershipStatus(String membershipStatus) { this.membershipStatus = membershipStatus; }
     public LocalDate getMemberSince() { return memberSince; }

@@ -74,6 +74,17 @@
     <include file="db/changelog/changes/ddl/040-create-group-translations-table.xml"/>
     <include file="db/changelog/changes/ddl/041-create-group-roles-table.xml"/>
 
+    <!-- Profile image storage -->
+    <include file="db/changelog/changes/ddl/042-add-profile-image-key-to-persons.xml"/>
+
+    <!-- ID number field on persons -->
+    <include file="db/changelog/changes/ddl/043-add-id-number-to-persons.xml"/>
+
+    <!-- Subscription plans and entitlements -->
+    <include file="db/changelog/changes/ddl/044-create-subscription-plans-table.xml"/>
+    <include file="db/changelog/changes/ddl/045-create-plan-entitlements-table.xml"/>
+    <include file="db/changelog/changes/ddl/046-create-organization-subscriptions-table.xml"/>
+
     <!-- Foreign Key Constraints (loaded LAST, after all tables exist) -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>
 

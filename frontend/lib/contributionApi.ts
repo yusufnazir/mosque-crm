@@ -191,6 +191,23 @@ export const memberPaymentApi = {
   getByType: (typeId: number): Promise<MemberPayment[]> =>
     ApiClient.get(`/contributions/payments/by-type/${typeId}`),
 
+  // Get current user's payments (enforced server-side)
+  getCurrentUserPayments: (params: PaginationParams): Promise<PageResponse<MemberPayment> | MemberPayment[]> => {
+    const searchParams = new URLSearchParams();
+    if (params.page != null) {
+      searchParams.set('page', String(params.page));
+      searchParams.set('size', String(params.size));
+    }
+    if (params.sort) {
+      params.sort.forEach(s => searchParams.append('sort', s));
+    }
+    if (params.year != null) {
+      searchParams.set('year', String(params.year));
+    }
+    const query = searchParams.toString();
+    return ApiClient.get(`/contributions/payments/my${query ? '?' + query : ''}`);
+  },
+
   create: (data: MemberPaymentCreate): Promise<MemberPayment> =>
     ApiClient.post('/contributions/payments', data),
 

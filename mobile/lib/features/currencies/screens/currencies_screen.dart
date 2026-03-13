@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../services/currency_service.dart';
@@ -31,18 +32,20 @@ class _CurrenciesScreenState extends ConsumerState<CurrenciesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Currencies'),
+        title: Text(isDutch ? 'Valuta' : 'Currencies'),
         bottom: TabBar(
           controller: _tabCtrl,
           labelColor: AppColors.emerald,
           unselectedLabelColor: AppColors.stone500,
           indicatorColor: AppColors.emerald,
-          tabs: const [
-            Tab(text: 'Mosque'),
-            Tab(text: 'Rates'),
-            Tab(text: 'All'),
+          tabs: [
+            Tab(text: isDutch ? 'Moskee' : 'Mosque'),
+            Tab(text: isDutch ? 'Koersen' : 'Rates'),
+            Tab(text: isDutch ? 'Alle' : 'All'),
           ],
         ),
       ),
@@ -104,19 +107,20 @@ class _MosqueCurrenciesTabState extends ConsumerState<_MosqueCurrenciesTab>
   }
 
   Future<void> _remove(MosqueCurrency mc) async {
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Remove Currency'),
-        content: Text('Remove ${mc.currencyCode}?'),
+        title: Text(isDutch ? 'Valuta verwijderen' : 'Remove Currency'),
+        content: Text('${isDutch ? 'Verwijder' : 'Remove'} ${mc.currencyCode}?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel')),
+              child: Text(isDutch ? 'Annuleren' : 'Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Remove'),
+            child: Text(isDutch ? 'Verwijderen' : 'Remove'),
           ),
         ],
       ),
@@ -236,6 +240,7 @@ class _MosqueCurrenciesTabState extends ConsumerState<_MosqueCurrenciesTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     return Column(
       children: [
@@ -243,13 +248,13 @@ class _MosqueCurrenciesTabState extends ConsumerState<_MosqueCurrenciesTab>
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              Text('${_items.length} currencies configured',
+              Text('${_items.length} ${isDutch ? 'valuta geconfigureerd' : 'currencies configured'}',
                   style:
                       const TextStyle(fontSize: 13, color: AppColors.stone500)),
               const Spacer(),
               TextButton.icon(
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add'),
+                label: Text(isDutch ? 'Toevoegen' : 'Add'),
                 onPressed: _showAddSheet,
               ),
             ],
@@ -292,9 +297,9 @@ class _MosqueCurrenciesTabState extends ConsumerState<_MosqueCurrenciesTab>
                               color: AppColors.gold.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text('Primary',
-                                style: TextStyle(
-                                    fontSize: 10, color: AppColors.gold)),
+                            child: Text(isDutch ? 'Primair' : 'Primary',
+                              style: const TextStyle(
+                                fontSize: 10, color: AppColors.gold)),
                           ),
                       ],
                     ),
@@ -303,12 +308,12 @@ class _MosqueCurrenciesTabState extends ConsumerState<_MosqueCurrenciesTab>
                     trailing: PopupMenuButton(
                       itemBuilder: (_) => [
                         if (!mc.isPrimary)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                               value: 'primary',
-                              child: Text('Set as Primary')),
-                        const PopupMenuItem(
+                              child: Text(isDutch ? 'Als primair instellen' : 'Set as Primary')),
+                        PopupMenuItem(
                           value: 'remove',
-                          child: Text('Remove',
+                          child: Text(isDutch ? 'Verwijderen' : 'Remove',
                               style: TextStyle(color: AppColors.error)),
                         ),
                       ],
@@ -360,6 +365,7 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
   }
 
   void _showRateForm({ExchangeRate? rate}) {
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     final fromCtrl = TextEditingController(text: rate?.fromCurrencyCode ?? '');
     final toCtrl = TextEditingController(text: rate?.toCurrencyCode ?? '');
     final rateCtrl =
@@ -390,7 +396,7 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
               ),
             )),
             const SizedBox(height: 16),
-            Text(isEdit ? 'Edit Rate' : 'Add Rate',
+            Text(isEdit ? (isDutch ? 'Koers bewerken' : 'Edit Rate') : (isDutch ? 'Koers toevoegen' : 'Add Rate'),
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             const SizedBox(height: 16),
@@ -399,7 +405,7 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
                 Expanded(
                   child: TextFormField(
                     controller: fromCtrl,
-                    decoration: const InputDecoration(labelText: 'From *'),
+                    decoration: InputDecoration(labelText: isDutch ? 'Van *' : 'From *'),
                     textCapitalization: TextCapitalization.characters,
                     readOnly: isEdit,
                   ),
@@ -411,7 +417,7 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
                 Expanded(
                   child: TextFormField(
                     controller: toCtrl,
-                    decoration: const InputDecoration(labelText: 'To *'),
+                    decoration: InputDecoration(labelText: isDutch ? 'Naar *' : 'To *'),
                     textCapitalization: TextCapitalization.characters,
                     readOnly: isEdit,
                   ),
@@ -421,7 +427,7 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
             const SizedBox(height: 12),
             TextFormField(
               controller: rateCtrl,
-              decoration: const InputDecoration(labelText: 'Rate *'),
+              decoration: InputDecoration(labelText: isDutch ? 'Koers *' : 'Rate *'),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
             ),
@@ -458,7 +464,7 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
                     );
                   }
                 },
-                child: Text(isEdit ? 'Save' : 'Add Rate'),
+                child: Text(isEdit ? (isDutch ? 'Opslaan' : 'Save') : (isDutch ? 'Koers toevoegen' : 'Add Rate')),
               ),
             ),
           ],
@@ -468,20 +474,21 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
   }
 
   Future<void> _deleteRate(ExchangeRate rate) async {
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Rate'),
+        title: Text(isDutch ? 'Koers verwijderen' : 'Delete Rate'),
         content: Text(
-            'Delete ${rate.fromCurrencyCode} → ${rate.toCurrencyCode}?'),
+            '${isDutch ? 'Verwijder' : 'Delete'} ${rate.fromCurrencyCode} → ${rate.toCurrencyCode}?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel')),
+              child: Text(isDutch ? 'Annuleren' : 'Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
+            child: Text(isDutch ? 'Verwijderen' : 'Delete'),
           ),
         ],
       ),
@@ -502,6 +509,7 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     return Column(
       children: [
@@ -509,13 +517,13 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              Text('${_rates.length} exchange rates',
+              Text('${_rates.length} ${isDutch ? 'wisselkoersen' : 'exchange rates'}',
                   style:
                       const TextStyle(fontSize: 13, color: AppColors.stone500)),
               const Spacer(),
               TextButton.icon(
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add'),
+                label: Text(isDutch ? 'Toevoegen' : 'Add'),
                 onPressed: () => _showRateForm(),
               ),
             ],
@@ -536,7 +544,7 @@ class _ExchangeRatesTabState extends ConsumerState<_ExchangeRatesTab>
                         '${r.fromCurrencyCode} → ${r.toCurrencyCode}',
                         style:
                             const TextStyle(fontWeight: FontWeight.w500)),
-                    subtitle: Text('Rate: ${r.rate}',
+                    subtitle: Text('${isDutch ? 'Koers' : 'Rate'}: ${r.rate}',
                         style: const TextStyle(fontSize: 13)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -608,6 +616,7 @@ class _AllCurrenciesTabState extends ConsumerState<_AllCurrenciesTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final isDutch = AppLocalizations.of(context)!.localeName.startsWith('nl');
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     final filtered = _filtered;
     return Column(
@@ -615,8 +624,8 @@ class _AllCurrenciesTabState extends ConsumerState<_AllCurrenciesTab>
         Padding(
           padding: const EdgeInsets.all(12),
           child: TextField(
-            decoration: const InputDecoration(
-              hintText: 'Search currencies...',
+            decoration: InputDecoration(
+              hintText: isDutch ? 'Zoek valuta...' : 'Search currencies...',
               prefixIcon: Icon(Icons.search),
               filled: true,
               fillColor: Colors.white,

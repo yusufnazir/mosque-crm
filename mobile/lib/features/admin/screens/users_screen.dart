@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../models/user_models.dart';
@@ -62,6 +63,8 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
   }
 
   void _showUserForm({AppUser? user}) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     final usernameCtrl = TextEditingController(text: user?.username ?? '');
     final passwordCtrl = TextEditingController();
     final emailCtrl = TextEditingController(text: user?.email ?? '');
@@ -105,7 +108,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  isEdit ? 'Edit User' : 'Create User',
+                  isEdit ? (isDutch ? 'Gebruiker bewerken' : 'Edit User') : (isDutch ? 'Gebruiker aanmaken' : 'Create User'),
                   style: const TextStyle(
                       fontSize: 18, fontWeight: FontWeight.w600),
                 ),
@@ -114,7 +117,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 TextFormField(
                   controller: usernameCtrl,
                   decoration:
-                      const InputDecoration(labelText: 'Username *'),
+                      InputDecoration(labelText: isDutch ? 'Gebruikersnaam *' : 'Username *'),
                   readOnly: isEdit,
                   enabled: !isEdit,
                 ),
@@ -124,8 +127,8 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                   controller: passwordCtrl,
                   decoration: InputDecoration(
                     labelText: isEdit
-                        ? 'Password (leave blank to keep)'
-                        : 'Password *',
+                        ? (isDutch ? 'Wachtwoord (leeg laten om te behouden)' : 'Password (leave blank to keep)')
+                        : (isDutch ? 'Wachtwoord *' : 'Password *'),
                   ),
                   obscureText: true,
                 ),
@@ -133,13 +136,13 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 // Email
                 TextFormField(
                   controller: emailCtrl,
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: InputDecoration(labelText: isDutch ? 'E-mail' : 'Email'),
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
                 // Roles
-                const Text('Roles',
-                    style: TextStyle(
+                Text(isDutch ? 'Rollen' : 'Roles',
+                    style: const TextStyle(
                         fontSize: 14, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 8),
                 ..._roles
@@ -165,11 +168,12 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                               ListTileControlAffinity.leading,
                           activeColor: AppColors.emerald,
                         )),
-                if (isEdit) ...[
+                if (isEdit)
+                  ...[
                   const SizedBox(height: 8),
                   SwitchListTile(
                     value: enabled,
-                    title: const Text('Account Enabled'),
+                    title: Text(isDutch ? 'Account ingeschakeld' : 'Account Enabled'),
                     activeColor: AppColors.emerald,
                     onChanged: (v) =>
                         setSheetState(() => enabled = v),
@@ -222,7 +226,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                         );
                       }
                     },
-                    child: Text(isEdit ? 'Save Changes' : 'Create User'),
+                    child: Text(isEdit ? (isDutch ? 'Wijzigingen opslaan' : 'Save Changes') : (isDutch ? 'Gebruiker aanmaken' : 'Create User')),
                   ),
                 ),
               ],
@@ -234,15 +238,17 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
   }
 
   void _confirmDelete(AppUser user) {
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete User'),
-        content: Text('Delete user "${user.username}"? This cannot be undone.'),
+        title: Text(isDutch ? 'Gebruiker verwijderen' : 'Delete User'),
+        content: Text(isDutch ? 'Gebruiker "${user.username}" verwijderen? Dit kan niet ongedaan gemaakt worden.' : 'Delete user "${user.username}"? This cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(isDutch ? 'Annuleren' : 'Cancel'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -254,8 +260,8 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 _loadData();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('User deleted'),
+                    SnackBar(
+                      content: Text(isDutch ? 'Gebruiker verwijderd' : 'User deleted'),
                       backgroundColor: AppColors.emerald,
                     ),
                   );
@@ -270,7 +276,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 }
               }
             },
-            child: const Text('Delete'),
+            child: Text(isDutch ? 'Verwijderen' : 'Delete'),
           ),
         ],
       ),
@@ -294,10 +300,12 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
   Widget build(BuildContext context) {
     final currentUsername = ref.watch(authProvider).user?.username;
     final filtered = _filteredUsers;
+    final t = AppLocalizations.of(context)!;
+    final isDutch = t.localeName.startsWith('nl');
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Users'),
+        title: Text(isDutch ? 'Gebruikers' : 'Users'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -312,7 +320,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
             padding: const EdgeInsets.all(12),
             child: TextField(
               decoration: InputDecoration(
-                hintText: 'Search users...',
+                hintText: isDutch ? 'Zoek gebruikers...' : 'Search users...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -334,7 +342,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 : RefreshIndicator(
                     onRefresh: _loadData,
                     child: filtered.isEmpty
-                        ? const Center(child: Text('No users found'))
+                        ? Center(child: Text(isDutch ? 'Geen gebruikers gevonden' : 'No users found'))
                         : ListView.builder(
                             itemCount: filtered.length,
                             padding: const EdgeInsets.symmetric(
@@ -386,9 +394,9 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                                                 BorderRadius.circular(
                                                     4),
                                           ),
-                                          child: const Text(
-                                              'Disabled',
-                                              style: TextStyle(
+                                          child: Text(
+                                              isDutch ? 'Uitgeschakeld' : 'Disabled',
+                                              style: const TextStyle(
                                                   fontSize: 10,
                                                   color: AppColors
                                                       .error)),
@@ -428,14 +436,14 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                                   ),
                                   trailing: PopupMenuButton(
                                     itemBuilder: (ctx) => [
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: 'edit',
                                         child: Row(
                                           children: [
-                                            Icon(Icons.edit,
+                                            const Icon(Icons.edit,
                                                 size: 18),
-                                            SizedBox(width: 8),
-                                            Text('Edit'),
+                                            const SizedBox(width: 8),
+                                            Text(isDutch ? 'Bewerken' : 'Edit'),
                                           ],
                                         ),
                                       ),
@@ -452,23 +460,23 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                                               const SizedBox(
                                                   width: 8),
                                               Text(user.enabled
-                                                  ? 'Disable'
-                                                  : 'Enable'),
+                                                  ? (isDutch ? 'Uitschakelen' : 'Disable')
+                                                  : (isDutch ? 'Inschakelen' : 'Enable')),
                                             ],
                                           ),
                                         ),
                                       if (!isSelf)
-                                        const PopupMenuItem(
+                                        PopupMenuItem(
                                           value: 'delete',
                                           child: Row(
                                             children: [
-                                              Icon(Icons.delete,
+                                              const Icon(Icons.delete,
                                                   size: 18,
                                                   color: AppColors
                                                       .error),
-                                              SizedBox(width: 8),
-                                              Text('Delete',
-                                                  style: TextStyle(
+                                              const SizedBox(width: 8),
+                                              Text(isDutch ? 'Verwijderen' : 'Delete',
+                                                  style: const TextStyle(
                                                       color:
                                                           AppColors
                                                               .error)),

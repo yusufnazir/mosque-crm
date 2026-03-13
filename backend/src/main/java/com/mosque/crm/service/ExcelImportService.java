@@ -195,6 +195,9 @@ public class ExcelImportService {
 		if (updatedData.getPostalCode() != null) {
 			existingPerson.setPostalCode(updatedData.getPostalCode());
 		}
+		if (updatedData.getIdNumber() != null) {
+			existingPerson.setIdNumber(updatedData.getIdNumber());
+		}
 		if (updatedData.getStatus() != null) {
 			existingPerson.setStatus(updatedData.getStatus());
 		}

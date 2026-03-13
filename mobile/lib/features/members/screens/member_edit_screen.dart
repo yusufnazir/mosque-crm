@@ -35,6 +35,7 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
   String _gender = 'MALE';
   String _dateOfBirth = '';
   String _membershipStatus = 'ACTIVE';
+  String _idNumberValue = '';
 
   // Account
   bool _accountEnabled = false;
@@ -88,6 +89,7 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
       _cityCtrl.text = person.city ?? '';
       _countryCtrl.text = person.country ?? '';
       _postalCodeCtrl.text = person.postalCode ?? '';
+      _idNumberValue = person.idNumber ?? '';
       _gender = _normalizeGender(person.gender);
       _dateOfBirth = person.dateOfBirth ?? '';
       _membershipStatus = _normalizeStatus(person.status);
@@ -157,6 +159,7 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
         'city': _cityCtrl.text.trim(),
         'country': _countryCtrl.text.trim(),
         'postalCode': _postalCodeCtrl.text.trim(),
+        'idNumber': _idNumberValue.trim(),
         'membershipStatus': _membershipStatus,
         'accountEnabled': _accountEnabled,
       };
@@ -323,6 +326,12 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                initialValue: _person?.idNumber ?? '',
+                decoration: _inputDecoration('ID Number'),
+                onChanged: (v) => _idNumberValue = v,
               ),
             ],
           ),
