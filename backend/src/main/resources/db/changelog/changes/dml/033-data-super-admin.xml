@@ -226,6 +226,114 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ SUPER_ADMIN → group permissions (37-41) ═══════════ -->
+	<changeSet id="a1b2c3d4-e5f6-7890-groups-super037" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[37]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b2c3d4e5-f6a7-8901-groups-super038" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[38]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="c3d4e5f6-a7b8-9012-groups-super039" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[39]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="d4e5f6a7-b8c9-0123-groups-super040" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[40]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e5f6a7b8-c9d0-1234-groups-super041" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[41]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ SUPER_ADMIN → granular contribution permissions (42-52) ═══════════ -->
+	<changeSet id="f6a7b8c9-d0e1-2345-contypes-super042" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[42]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="a7b8c9d0-e1f2-3456-contypes-super043" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[43]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b8c9d0e1-f2a3-4567-conoblig-super044" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[44]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="c9d0e1f2-a3b4-5678-conoblig-super045" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[45]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="d0e1f2a3-b4c5-6789-conpmt-super046" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[46]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1f2a3b4-c5d6-7890-conexmt-super047" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[47]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="f2a3b4c5-d6e7-8901-conexmt-super048" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[48]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="a3b4c5d6-e7f8-9012-conassg-super049" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[49]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b4c5d6e7-f8a9-0123-conexmt-super050" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[50]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="c5d6e7f8-a9b0-1234-conexmt-super051" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[51]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="d6e7f8a9-b0c1-2345-selfonly-super052" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[52]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ SUPER_ADMIN → subscription permissions (53-54) ═══════════ -->
+	<changeSet id="e7f8a9b0-c1d2-3456-subview-super053" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[53]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="f8a9b0c1-d2e3-4567-submgmt-super054" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[54]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ SUPER_ADMIN ASSIGNABLE PERMISSIONS: ALL ═══════════ -->
+	<!--
+		SUPER_ADMIN can assign/manage ALL permissions in the system.
+		Uses SQL because this is a dynamic "sync all" operation, not per-row seed data.
+	-->
+	<changeSet id="aa11bb22-cc33-4444-ddee-superassign-all" author="mosque-crm">
+		<sql>
+			REPLACE INTO role_assignable_permissions (role_id, permission_id)
+			SELECT 5, id FROM permissions;
+		</sql>
+	</changeSet>
+
 	<!-- ═══════════ PROMOTE ADMIN USER TO SUPER_ADMIN ═══════════ -->
 	<!-- Update admin user (id=1) to have SUPER_ADMIN role instead of ADMIN -->
 	<changeSet id="99000155-d4b9-4d3d-9f45-00132e124fa0" author="mosque-crm">

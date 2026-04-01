@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <!-- STARTER (plan_id=1) -->
+    <changeSet id="8be2641d-95af-43d7-86c2-9f5935bcf5f9" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[1]]></param>
+            <param name="planId"><![CDATA[1]]></param>
+            <param name="featureKey"><![CDATA[admin.users.max]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+            <param name="limitValue"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="fe241d72-a05f-4cb8-b2e3-6ea628de5859" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[2]]></param>
+            <param name="planId"><![CDATA[1]]></param>
+            <param name="featureKey"><![CDATA[member.portal]]></param>
+            <param name="enabled"><![CDATA[false]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="237f15c7-6d8e-49e8-9b05-bf77ecdc454f" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[3]]></param>
+            <param name="planId"><![CDATA[1]]></param>
+            <param name="featureKey"><![CDATA[reports.advanced]]></param>
+            <param name="enabled"><![CDATA[false]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="2abbead4-b1b8-4831-a698-b84f2fcfda0f" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[4]]></param>
+            <param name="planId"><![CDATA[1]]></param>
+            <param name="featureKey"><![CDATA[import.excel]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="7f3b672f-e7b2-4a0e-9958-f7a34ab093f2" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[5]]></param>
+            <param name="planId"><![CDATA[1]]></param>
+            <param name="featureKey"><![CDATA[finance.multi_currency]]></param>
+            <param name="enabled"><![CDATA[false]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="ef0d5df7-edde-4eaf-a845-c1f77a6f5420" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[6]]></param>
+            <param name="planId"><![CDATA[1]]></param>
+            <param name="featureKey"><![CDATA[family.tree]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- GROWTH (plan_id=2) -->
+    <changeSet id="c42c6f70-4e3d-4f33-b5d8-5478d6f43079" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[7]]></param>
+            <param name="planId"><![CDATA[2]]></param>
+            <param name="featureKey"><![CDATA[admin.users.max]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+            <param name="limitValue"><![CDATA[5]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="211de423-d018-4c4d-9a98-b186a6ec65be" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[8]]></param>
+            <param name="planId"><![CDATA[2]]></param>
+            <param name="featureKey"><![CDATA[member.portal]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="50652825-1bfa-4e77-8d85-dd19f060381b" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[9]]></param>
+            <param name="planId"><![CDATA[2]]></param>
+            <param name="featureKey"><![CDATA[reports.advanced]]></param>
+            <param name="enabled"><![CDATA[false]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="90a6d384-7b53-4f2d-a8ac-c05315f4a9ff" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[10]]></param>
+            <param name="planId"><![CDATA[2]]></param>
+            <param name="featureKey"><![CDATA[import.excel]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="ba07e375-fdd6-4d85-8cf2-7d11695f6695" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[11]]></param>
+            <param name="planId"><![CDATA[2]]></param>
+            <param name="featureKey"><![CDATA[finance.multi_currency]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="dd8f2393-d769-4823-9f34-f6ec7f7a12a5" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[12]]></param>
+            <param name="planId"><![CDATA[2]]></param>
+            <param name="featureKey"><![CDATA[family.tree]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- PRO (plan_id=3) -->
+    <changeSet id="c1633e95-b2bd-495b-90ee-43f7fef9228e" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[13]]></param>
+            <param name="planId"><![CDATA[3]]></param>
+            <param name="featureKey"><![CDATA[admin.users.max]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+            <!-- null limit means unlimited -->
+        </customChange>
+    </changeSet>
+    <changeSet id="d8bcd7be-c951-4f7a-bb0d-d58a3c2986f4" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[14]]></param>
+            <param name="planId"><![CDATA[3]]></param>
+            <param name="featureKey"><![CDATA[member.portal]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="8de80cdd-19df-49fc-a377-c20f88b975e2" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[15]]></param>
+            <param name="planId"><![CDATA[3]]></param>
+            <param name="featureKey"><![CDATA[reports.advanced]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="c34cc16e-2137-45c8-ba7b-2474d5bd6348" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[16]]></param>
+            <param name="planId"><![CDATA[3]]></param>
+            <param name="featureKey"><![CDATA[import.excel]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="f3947a66-b284-4d2e-a22a-4f8fd640f5df" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[17]]></param>
+            <param name="planId"><![CDATA[3]]></param>
+            <param name="featureKey"><![CDATA[finance.multi_currency]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="f87df777-b000-4c5d-bf2c-7060694f4f27" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[18]]></param>
+            <param name="planId"><![CDATA[3]]></param>
+            <param name="featureKey"><![CDATA[family.tree]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

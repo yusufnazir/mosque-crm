@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+	<!--
+		role_template_permissions seed data.
+		Defines which permissions each role template grants by default.
+
+		Template IDs (from 039-data-role-templates.xml):
+			1 = ADMIN, 2 = MEMBER, 3 = TREASURER, 4 = IMAM
+
+		ADMIN gets: 1-19, 21-22, 24-36, 37-53
+		Excluded: 20 (superadmin.manage), 23 (organization.manage), 54 (subscription.manage)
+	-->
+
+	<!-- ═══════════════════════════════════════════════════════════
+	     ADMIN (template_id=1) — all non-superadmin permissions
+	     ═══════════════════════════════════════════════════════════ -->
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-01" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[1]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-02" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[2]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-03" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[3]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-04" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[4]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-05" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[5]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-06" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[6]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-07" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[7]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-08" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[8]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-09" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[9]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-10" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[10]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-11" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[11]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-12" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[12]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-13" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[13]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-14" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[14]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-15" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[15]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-16" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[16]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-17" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[17]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-18" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[18]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-19" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[19]]></param>
+		</customChange>
+	</changeSet>
+	<!-- skip 20 (superadmin.manage) -->
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-21" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[21]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-22" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[22]]></param>
+		</customChange>
+	</changeSet>
+	<!-- skip 23 (organization.manage) -->
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-24" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[24]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-25" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[25]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-26" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[26]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-27" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[27]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-28" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[28]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-29" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[29]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-30" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[30]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-31" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[31]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-32" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[32]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-33" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[33]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-34" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[34]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-35" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[35]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-36" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[36]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-37" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[37]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-38" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[38]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-39" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[39]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-40" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[40]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-41" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[41]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-42" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[42]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-43" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[43]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-44" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[44]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-45" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[45]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-46" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[46]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-47" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[47]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-48" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[48]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-49" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[49]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-50" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[50]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-51" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[51]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-52" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[52]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-53" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[53]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════════════════════════════════════════════════════
+	     MEMBER (template_id=2) — dashboard.view(1), family.view(6),
+	     profile.view(15), profile.fees(16), contribution.view(17),
+	     view_payments(46), view_exemptions(47), view_assignments(49),
+	     view_self_only(52)
+	     ═══════════════════════════════════════════════════════════ -->
+	<changeSet id="e1a20002-0039-4aaa-b002-tplperm-mem-01" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[1]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20002-0039-4aaa-b002-tplperm-mem-06" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[6]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20002-0039-4aaa-b002-tplperm-mem-15" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[15]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20002-0039-4aaa-b002-tplperm-mem-16" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[16]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20002-0039-4aaa-b002-tplperm-mem-17" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[17]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20002-0039-4aaa-b002-tplperm-mem-46" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[46]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20002-0039-4aaa-b002-tplperm-mem-47" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[47]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20002-0039-4aaa-b002-tplperm-mem-49" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[49]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20002-0039-4aaa-b002-tplperm-mem-52" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[52]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════════════════════════════════════════════════════
+	     TREASURER (template_id=3) — dashboard(1), member.view(2),
+	     finance(8,9,10), contribution(17,18), currency(21,22),
+	     reversal(26,27,28), payment(29,30,31), manage_assignments(32),
+	     view_types(42), view_obligations(44),
+	     view_payments(46), view_exemptions(47), create_exemption(48),
+	     view_assignments(49)
+	     ═══════════════════════════════════════════════════════════ -->
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-01" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[1]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-02" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[2]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-08" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[8]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-09" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[9]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-10" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[10]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-17" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[17]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-18" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[18]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-21" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[21]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-22" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[22]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-26" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[26]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-27" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[27]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-28" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[28]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-29" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[29]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-30" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[30]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-31" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[31]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-32" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[32]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-42" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[42]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-44" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[44]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-46" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[46]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-47" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[47]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-48" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[48]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20003-0039-4aaa-b003-tplperm-tre-49" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[49]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════════════════════════════════════════════════════
+	     IMAM (template_id=4) — dashboard.view(1), member.view(2),
+	     family.view(6)
+	     ═══════════════════════════════════════════════════════════ -->
+	<changeSet id="e1a20004-0039-4aaa-b004-tplperm-ima-01" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[4]]></param><param name="permissionId"><![CDATA[1]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20004-0039-4aaa-b004-tplperm-ima-02" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[4]]></param><param name="permissionId"><![CDATA[2]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20004-0039-4aaa-b004-tplperm-ima-06" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[4]]></param><param name="permissionId"><![CDATA[6]]></param>
+		</customChange>
+	</changeSet>
+
+</databaseChangeLog>

@@ -67,9 +67,8 @@ export default function EditMemberPage() {
 
   const fetchAvailableRoles = async () => {
     try {
-      const rolesData = await ApiClient.get<{id: number; name: string; description: string}[]>('/admin/roles');
-      // Filter out SUPER_ADMIN — not assignable via member edit
-      setAvailableRoles(rolesData.filter(r => r.name !== 'SUPER_ADMIN'));
+      const rolesData = await ApiClient.get<{id: number; name: string; description: string}[]>('/admin/roles/assignable');
+      setAvailableRoles(rolesData);
     } catch (error) {
       console.error('Failed to fetch roles:', error);
     }

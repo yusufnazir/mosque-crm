@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mosque.crm.dto.MosqueDTO;
 import com.mosque.crm.entity.Mosque;
 import com.mosque.crm.repository.MosqueRepository;
+import com.mosque.crm.service.RoleTemplateService;
 
 @RestController
 @RequestMapping("/mosques")
@@ -27,9 +28,12 @@ public class MosqueController {
     private static final Logger log = LoggerFactory.getLogger(MosqueController.class);
 
     private final MosqueRepository mosqueRepository;
+    private final RoleTemplateService roleTemplateService;
 
-    public MosqueController(MosqueRepository mosqueRepository) {
+    public MosqueController(MosqueRepository mosqueRepository,
+                            RoleTemplateService roleTemplateService) {
         this.mosqueRepository = mosqueRepository;
+        this.roleTemplateService = roleTemplateService;
     }
 
     @GetMapping
@@ -78,6 +82,7 @@ public class MosqueController {
         mosque.setActive(dto.getActive() != null ? dto.getActive() : true);
 
         Mosque saved = mosqueRepository.save(mosque);
+        roleTemplateService.provisionDefaultRolesForMosque(saved.getId());
         log.info("Created mosque: {} (id={})", saved.getName(), saved.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(saved));
     }

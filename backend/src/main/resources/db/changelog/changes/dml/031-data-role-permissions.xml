@@ -389,4 +389,49 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════════════════════════════════════════════════════
+	     DISTRIBUTION PERMISSIONS
+	     ═══════════════════════════════════════════════════════════ -->
+
+	<!-- ADMIN (role_id=1) → distribution.view (55), distribution.manage (56), distribution.distribute (57), distribution.delete (58) -->
+	<changeSet id="a1b2c3d4-dist-role-0001-admin-view-055" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[55]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b2c3d4e5-dist-role-0002-admin-manage-056" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[56]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="c3d4e5f6-dist-role-0003-admin-dist-057" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[57]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="d4e5f6a7-dist-role-0007-admin-delete-058" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[58]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- TREASURER (role_id=3) → distribution.view (55), distribution.distribute (57) -->
+	<changeSet id="d4e5f6a7-dist-role-0004-treas-view-055" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[55]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e5f6a7b8-dist-role-0005-treas-dist-057" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[57]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- IMAM (role_id=4) → distribution.view (55) -->
+	<changeSet id="f6a7b8c9-dist-role-0006-imam-view-055" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[4]]></param><param name="permissionId"><![CDATA[55]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

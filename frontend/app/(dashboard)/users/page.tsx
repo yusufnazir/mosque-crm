@@ -43,7 +43,7 @@ export default function UsersPage() {
       setLoading(true);
       const [usersData, rolesData] = await Promise.all([
         userApi.getAll(),
-        ApiClient.get<RoleDTO[]>('/admin/roles'),
+        ApiClient.get<RoleDTO[]>('/admin/roles/assignable'),
       ]);
       setUsers(usersData);
       setRoles(rolesData);

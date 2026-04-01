@@ -1,6 +1,7 @@
 package com.mosque.crm.controller;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,9 +26,13 @@ import com.mosque.crm.dto.RoleDTO;
 import com.mosque.crm.dto.RolePermissionUpdateRequest;
 import com.mosque.crm.entity.Permission;
 import com.mosque.crm.entity.Role;
+import com.mosque.crm.entity.User;
+import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.PermissionRepository;
 import com.mosque.crm.repository.RoleRepository;
 import com.mosque.crm.service.AuthorizationService;
+import com.mosque.crm.service.RoleGovernanceService;
+import com.mosque.crm.service.RoleTemplateService;
 
 import jakarta.validation.Valid;
 
@@ -46,13 +51,19 @@ public class RoleManagementController {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final AuthorizationService authorizationService;
+    private final RoleTemplateService roleTemplateService;
+    private final RoleGovernanceService roleGovernanceService;
 
     public RoleManagementController(RoleRepository roleRepository,
                                     PermissionRepository permissionRepository,
-                                    AuthorizationService authorizationService) {
+                                    AuthorizationService authorizationService,
+                                    RoleTemplateService roleTemplateService,
+                                    RoleGovernanceService roleGovernanceService) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.authorizationService = authorizationService;
+        this.roleTemplateService = roleTemplateService;
+        this.roleGovernanceService = roleGovernanceService;
     }
 
     /**
@@ -63,10 +74,36 @@ public class RoleManagementController {
     @GetMapping
     @PreAuthorize("@auth.hasAnyPermission('user.manage', 'role.view', 'privilege.view')")
     public ResponseEntity<List<RoleDTO>> getAllRoles() {
-        List<Role> roles = roleRepository.findAll();
+        List<Role> roles = getReadableRoles();
         boolean canManageSuperAdmin = authorizationService.hasPermission("superadmin.manage");
         List<RoleDTO> dtos = roles.stream()
                 .filter(r -> canManageSuperAdmin || !"SUPER_ADMIN".equals(r.getName()))
+                .map(this::toRoleDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    /**
+     * List only the roles that the current user is allowed to assign.
+     * Used by role-picker dropdowns in member-edit and user management UIs.
+     */
+    @GetMapping("/assignable")
+    @PreAuthorize("@auth.hasAnyPermission('user.manage', 'role.manage')")
+    public ResponseEntity<List<RoleDTO>> getAssignableRoles() {
+        boolean isSuperAdmin = authorizationService.hasPermission("superadmin.manage");
+        List<Role> roles;
+        if (isSuperAdmin) {
+            // Super admin can assign all tenant-scoped roles in the selected mosque
+            Long mosqueId = getCurrentMosqueId();
+            roles = mosqueId != null
+                    ? roleRepository.findByMosqueId(mosqueId)
+                    : roleRepository.findAll();
+        } else {
+            Set<Role> assignable = roleGovernanceService.getAssignableRolesForCurrentUser();
+            roles = List.copyOf(assignable);
+        }
+        List<RoleDTO> dtos = roles.stream()
+                .filter(r -> !"SUPER_ADMIN".equals(r.getName()))
                 .map(this::toRoleDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
@@ -78,10 +115,14 @@ public class RoleManagementController {
     @GetMapping("/{id}")
     @PreAuthorize("@auth.hasAnyPermission('user.manage', 'role.view', 'privilege.view')")
     public ResponseEntity<RoleDTO> getRoleById(@PathVariable Long id) {
-        return roleRepository.findById(id)
-                .map(this::toRoleDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Role role = roleRepository.findById(id).orElse(null);
+        if (role == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (!canReadRole(role)) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(toRoleDTO(role));
     }
 
     /**
@@ -116,6 +157,10 @@ public class RoleManagementController {
             return ResponseEntity.notFound().build();
         }
 
+        if (!canMutateRole(role)) {
+            return ResponseEntity.status(403).build();
+        }
+
         boolean canManageSuperAdmin = authorizationService.hasPermission("superadmin.manage");
 
         // Block editing the SUPER_ADMIN role unless requester has the permission
@@ -145,6 +190,10 @@ public class RoleManagementController {
         role.setPermissions(newPermissions);
         roleRepository.save(role);
 
+        if (shouldSyncTemplateRole(role)) {
+            roleTemplateService.syncTemplateRoleToAllTenants(role.getName());
+        }
+
         // Evict all caches since the role-permission mapping changed and may affect many users
         authorizationService.evictAllCaches();
 
@@ -170,9 +219,18 @@ public class RoleManagementController {
             return ResponseEntity.notFound().build();
         }
 
+        if (!canMutateRole(role)) {
+            return ResponseEntity.status(403).build();
+        }
+
         boolean canManageSuperAdmin = authorizationService.hasPermission("superadmin.manage");
 
         if ("SUPER_ADMIN".equals(role.getName()) && !canManageSuperAdmin) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // Rule F: verify actor can modify this role's pool and that changes ⊆ actor's assignable permissions
+        if (!roleGovernanceService.canModifyRolePool(role, new HashSet<>(request.getPermissionCodes()))) {
             return ResponseEntity.status(403).build();
         }
 
@@ -199,6 +257,10 @@ public class RoleManagementController {
         role.setPermissions(prunedGranted);
         roleRepository.save(role);
 
+        if (shouldSyncTemplateRole(role)) {
+            roleTemplateService.syncTemplateRoleToAllTenants(role.getName());
+        }
+
         authorizationService.evictAllCaches();
 
         log.info("Updated assignable permissions for role '{}' (id={}): pool={}, granted pruned from {} to {}",
@@ -218,7 +280,7 @@ public class RoleManagementController {
     @GetMapping("/pool")
     @PreAuthorize("@auth.hasPermission('privilege.view')")
     public ResponseEntity<List<String>> getPermissionPool() {
-        List<Role> roles = roleRepository.findAll();
+        List<Role> roles = getManageableRolesForPool();
         Set<String> pool = new HashSet<>();
         for (Role role : roles) {
             if ("SUPER_ADMIN".equals(role.getName())) {
@@ -257,8 +319,10 @@ public class RoleManagementController {
                 .map(Permission::getCode)
                 .collect(Collectors.toSet());
 
-        // Apply pool to all non-SUPER_ADMIN roles
-        List<Role> roles = roleRepository.findAll();
+        // Super admins update global templates; tenant admins update only their tenant roles.
+        List<Role> roles = canManageSuperAdmin
+            ? roleRepository.findByNameInAndMosqueIdIsNull(List.of("ADMIN", "MEMBER"))
+            : getManageableRolesForPool();
         for (Role role : roles) {
             if ("SUPER_ADMIN".equals(role.getName())) {
                 continue;
@@ -272,6 +336,11 @@ public class RoleManagementController {
             role.setPermissions(prunedGranted);
         }
         roleRepository.saveAll(roles);
+
+        if (canManageSuperAdmin) {
+            roleTemplateService.syncTemplateRoleToAllTenants("ADMIN");
+            roleTemplateService.syncTemplateRoleToAllTenants("MEMBER");
+        }
 
         authorizationService.evictAllCaches();
 
@@ -294,14 +363,18 @@ public class RoleManagementController {
     public ResponseEntity<?> createRole(@Valid @RequestBody RoleCreateRequest request) {
         String name = request.getName().trim().toUpperCase().replace(' ', '_');
 
-        if (roleRepository.existsByName(name)) {
+        Long scopedMosqueId = getCurrentMosqueId();
+
+        if (scopedMosqueId == null
+            ? roleRepository.existsByNameAndMosqueIdIsNull(name)
+            : roleRepository.existsByNameAndMosqueId(name, scopedMosqueId)) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "A role with name '" + name + "' already exists"));
         }
 
-        // Get current global pool (union of all non-SUPER_ADMIN roles' assignable permissions)
+        // Get current scoped pool (union of manageable non-SUPER_ADMIN roles' assignable permissions)
         Set<Permission> pool = new HashSet<>();
-        List<Role> existingRoles = roleRepository.findAll();
+        List<Role> existingRoles = getManageableRolesForPool();
         for (Role existing : existingRoles) {
             if (!"SUPER_ADMIN".equals(existing.getName())) {
                 pool.addAll(existing.getAssignablePermissions());
@@ -311,6 +384,7 @@ public class RoleManagementController {
         Role role = new Role();
         role.setName(name);
         role.setDescription(request.getDescription());
+        role.setMosqueId(scopedMosqueId);
         role.setAssignablePermissions(pool);
         role.setPermissions(new HashSet<>());
 
@@ -336,6 +410,10 @@ public class RoleManagementController {
             return ResponseEntity.notFound().build();
         }
 
+        if (!canMutateRole(role)) {
+            return ResponseEntity.status(403).build();
+        }
+
         // Don't allow renaming SUPER_ADMIN unless superadmin.manage
         boolean canManageSuperAdmin = authorizationService.hasPermission("superadmin.manage");
         if ("SUPER_ADMIN".equals(role.getName()) && !canManageSuperAdmin) {
@@ -344,15 +422,29 @@ public class RoleManagementController {
 
         String newName = request.getName().trim().toUpperCase().replace(' ', '_');
 
-        // Check uniqueness if name changed
-        if (!role.getName().equals(newName) && roleRepository.existsByName(newName)) {
+        if (roleTemplateService.isDefaultTemplateRole(role) && !role.getName().equals(newName)) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("error", "A role with name '" + newName + "' already exists"));
+                .body(Map.of("error", "Default template roles ADMIN and MEMBER cannot be renamed"));
+        }
+
+        // Check uniqueness if name changed
+        if (!role.getName().equals(newName)) {
+            boolean exists = role.getMosqueId() == null
+                ? roleRepository.existsByNameAndMosqueIdIsNull(newName)
+                : roleRepository.existsByNameAndMosqueId(newName, role.getMosqueId());
+            if (exists) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "A role with name '" + newName + "' already exists"));
+            }
         }
 
         role.setName(newName);
         role.setDescription(request.getDescription());
         roleRepository.save(role);
+
+        if (shouldSyncTemplateRole(role)) {
+            roleTemplateService.syncTemplateRoleToAllTenants(role.getName());
+        }
 
         authorizationService.evictAllCaches();
 
@@ -373,15 +465,34 @@ public class RoleManagementController {
             return ResponseEntity.notFound().build();
         }
 
+        if (!canMutateRole(role)) {
+            return ResponseEntity.status(403).build();
+        }
+
         if ("SUPER_ADMIN".equals(role.getName())) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "The SUPER_ADMIN role cannot be deleted"));
+        }
+
+        if (roleTemplateService.isDefaultTemplateRole(role)
+                && !authorizationService.hasPermission("superadmin.manage")) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "Template role '" + role.getName() + "' cannot be deleted"));
         }
 
         if (role.getUsers() != null && !role.getUsers().isEmpty()) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Cannot delete role '" + role.getName()
                             + "' because it is assigned to " + role.getUsers().size() + " user(s)"));
+        }
+
+        // Clear assignable-role references: this role's own outgoing set,
+        // plus any other role that lists this role as assignable.
+        role.getAssignableRoles().clear();
+        for (Role other : roleRepository.findAll()) {
+            if (other.getAssignableRoles().remove(role)) {
+                roleRepository.save(other);
+            }
         }
 
         roleRepository.delete(role);
@@ -403,10 +514,67 @@ public class RoleManagementController {
                 .map(Permission::getCode)
                 .sorted()
                 .collect(Collectors.toList());
-        return new RoleDTO(role.getId(), role.getName(), role.getDescription(), permCodes, assignableCodes);
+        List<String> assignableRoleNames = role.getAssignableRoles().stream()
+                .map(Role::getName)
+                .sorted()
+                .collect(Collectors.toList());
+        boolean isTemplate = roleTemplateService.isTemplateRole(role);
+        return new RoleDTO(role.getId(), role.getName(), role.getDescription(),
+                permCodes, assignableCodes, assignableRoleNames, isTemplate);
     }
 
     private PermissionDTO toPermissionDTO(Permission p) {
         return new PermissionDTO(p.getId(), p.getCode(), p.getDescription(), p.getCategory());
+    }
+
+    private List<Role> getReadableRoles() {
+        if (authorizationService.hasPermission("superadmin.manage")) {
+            // Super admin sees all tenant-scoped roles + the global SUPER_ADMIN role.
+            // Legacy null-mosque_id rows (ADMIN/MEMBER/TREASURER/IMAM) are templates managed
+            // via /admin/role-templates and are excluded from this view.
+            return roleRepository.findAll().stream()
+                    .filter(r -> r.getMosqueId() != null || "SUPER_ADMIN".equals(r.getName()))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
+        Long mosqueId = getCurrentMosqueId();
+        return roleRepository.findByMosqueId(mosqueId);
+    }
+
+    private List<Role> getManageableRolesForPool() {
+        if (authorizationService.hasPermission("superadmin.manage")) {
+            return roleRepository.findAll();
+        }
+        return roleRepository.findByMosqueId(getCurrentMosqueId());
+    }
+
+    private boolean canReadRole(Role role) {
+        if (authorizationService.hasPermission("superadmin.manage")) {
+            return true;
+        }
+        Long currentMosqueId = getCurrentMosqueId();
+        return role.getMosqueId() == null || role.getMosqueId().equals(currentMosqueId);
+    }
+
+    private boolean canMutateRole(Role role) {
+        if (authorizationService.hasPermission("superadmin.manage")) {
+            return true;
+        }
+        Long currentMosqueId = getCurrentMosqueId();
+        return role.getMosqueId() != null && role.getMosqueId().equals(currentMosqueId);
+    }
+
+    private Long getCurrentMosqueId() {
+        Long mosqueId = TenantContext.getCurrentMosqueId();
+        if (mosqueId != null) {
+            return mosqueId;
+        }
+        User currentUser = authorizationService.getCurrentUser();
+        return currentUser != null ? currentUser.getMosqueId() : null;
+    }
+
+    private boolean shouldSyncTemplateRole(Role role) {
+        return authorizationService.hasPermission("superadmin.manage")
+                && roleTemplateService.isDefaultTemplateRole(role);
     }
 }

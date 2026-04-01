@@ -1,0 +1,19 @@
+﻿ain] c.m.crm.service.RoleTemplateService      : Provisioned 4 template roles for
+ain] c.m.c.c.TenantRoleStartupProvisioner     : ??? DIAG [AFTER] ???
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   ROLE id=1 name=ADMIN mosque_id
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   ROLE id=2 name=MEMBER mosque_i
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   ROLE id=3 name=TREASURER mosqu
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   ROLE id=4 name=IMAM mosque_id=
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   ROLE id=5 name=SUPER_ADMIN mos
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   ROLE id=6 name=ADMIN mosque_id
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   ROLE id=7 name=MEMBER mosque_i
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   ROLE id=1003 name=TREASURER mo
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   ROLE id=1004 name=IMAM mosque_
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   USER id=1 username=admin email
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   USER id=1001 username=rafael.p
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   USER id=1002 username=a.moekal
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   USER id=1003 username=moentari
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   USER id=1005 username=mohameds
+ain] c.m.c.c.TenantRoleStartupProvisioner     :   USER id=1006 username=yusuf.na
+ain] c.m.c.c.TenantRoleStartupProvisioner     : ??? END DIAG [AFTER] ???        
+ain] c.m.c.c.TenantRoleStartupProvisioner     : Tenant role provisioning complet

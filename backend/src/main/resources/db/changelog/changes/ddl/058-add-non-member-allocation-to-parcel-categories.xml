@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="eid-dist-ddl-0008-add-non-member-allocation" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="parcel_categories" columnName="non_member_allocation"/></not>
+        </preConditions>
+        <addColumn tableName="parcel_categories">
+            <column name="non_member_allocation" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

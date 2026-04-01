@@ -84,6 +84,24 @@
     <include file="db/changelog/changes/ddl/044-create-subscription-plans-table.xml"/>
     <include file="db/changelog/changes/ddl/045-create-plan-entitlements-table.xml"/>
     <include file="db/changelog/changes/ddl/046-create-organization-subscriptions-table.xml"/>
+    <include file="db/changelog/changes/ddl/047-add-mosque-id-to-roles.xml"/>
+    <include file="db/changelog/changes/ddl/048-role-template-and-tenant-copy-model.xml"/>
+
+    <!-- Role Templates master table -->
+    <include file="db/changelog/changes/ddl/049-create-role-templates.xml"/>
+
+    <!-- Role Assignable Roles (governance / delegation) -->
+    <include file="db/changelog/changes/ddl/050-create-role-assignable-roles.xml"/>
+
+    <!-- Eid ul-Adha Distribution Tables -->
+    <include file="db/changelog/changes/ddl/051-create-distribution-events-table.xml"/>
+    <include file="db/changelog/changes/ddl/052-create-parcel-categories-table.xml"/>
+    <include file="db/changelog/changes/ddl/053-create-non-member-recipients-table.xml"/>
+    <include file="db/changelog/changes/ddl/054-create-member-distribution-registrations-table.xml"/>
+    <include file="db/changelog/changes/ddl/055-create-parcel-distributions-table.xml"/>
+    <include file="db/changelog/changes/ddl/056-add-event-type-to-distribution-events.xml"/>
+    <include file="db/changelog/changes/ddl/057-add-capacity-to-distribution-events.xml"/>
+    <include file="db/changelog/changes/ddl/058-add-non-member-allocation-to-parcel-categories.xml"/>
 
     <!-- Foreign Key Constraints (loaded LAST, after all tables exist) -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>

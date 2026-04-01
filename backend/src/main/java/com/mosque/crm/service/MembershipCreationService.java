@@ -357,11 +357,6 @@ public class MembershipCreationService {
         if (gender == null || gender.isBlank()) {
 			return null;
 		}
-        String g = gender.trim().toUpperCase();
-        return switch (g) {
-            case "MALE", "M", "MAN", "MEN" -> "M";
-            case "FEMALE", "F", "WOMAN", "WOMEN" -> "F";
-            default -> gender; // Keep original if unrecognized
-        };
+        return gender.trim().toUpperCase();
     }
 }

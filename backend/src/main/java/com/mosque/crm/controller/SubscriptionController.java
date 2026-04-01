@@ -17,8 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mosque.crm.dto.CreateSubscriptionRequest;
+import com.mosque.crm.dto.CreateSubscriptionPlanRequest;
+import com.mosque.crm.dto.ChangeSubscriptionPlanRequest;
+import com.mosque.crm.dto.ChangeSubscriptionPlanResultDTO;
 import com.mosque.crm.dto.OrganizationSubscriptionDTO;
 import com.mosque.crm.dto.SubscriptionPlanDTO;
+import com.mosque.crm.dto.UpdateSubscriptionPlanRequest;
 import com.mosque.crm.dto.UpdateSubscriptionStatusRequest;
 import com.mosque.crm.enums.OrganizationSubscriptionStatus;
 import com.mosque.crm.multitenancy.TenantContext;
@@ -108,6 +112,36 @@ public class SubscriptionController {
         }
     }
 
+    /**
+     * Changes current mosque subscription plan.
+     * Upgrade: applied immediately with prorated charge for remaining days.
+     * Downgrade: scheduled at end of current billing period.
+     */
+    @PostMapping("/subscription/change-plan")
+    public ResponseEntity<?> changePlan(@Valid @RequestBody ChangeSubscriptionPlanRequest request) {
+        try {
+            ChangeSubscriptionPlanResultDTO result =
+                    organizationSubscriptionService.changeCurrentPlanForCurrentMosque(request.getPlanCode());
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * Previews current mosque subscription plan change impact without persisting.
+     */
+    @PostMapping("/subscription/change-plan/preview")
+    public ResponseEntity<?> previewPlanChange(@Valid @RequestBody ChangeSubscriptionPlanRequest request) {
+        try {
+            ChangeSubscriptionPlanResultDTO result =
+                    organizationSubscriptionService.previewCurrentPlanChangeForCurrentMosque(request.getPlanCode());
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Admin-only: assign and manage subscriptions
     // -------------------------------------------------------------------------
@@ -134,6 +168,54 @@ public class SubscriptionController {
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (RuntimeException e) {
             log.warn("Failed to create subscription: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * Creates a new subscription plan with optional entitlements.
+     * Body: { code, name, description?, monthlyPrice, yearlyPrice, isActive?, entitlements?[] }
+     */
+    @PostMapping("/admin/subscription/plans")
+    public ResponseEntity<?> createPlan(@Valid @RequestBody CreateSubscriptionPlanRequest request) {
+        try {
+            SubscriptionPlanDTO created = organizationSubscriptionService.createPlanAsDTO(request);
+            log.info("POST /admin/subscription/plans — created plan code={} id={}",
+                    created.getCode(), created.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (RuntimeException e) {
+            log.warn("Failed to create subscription plan: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * Updates an existing subscription plan by code.
+     */
+    @PutMapping("/admin/subscription/plans/{code}")
+    public ResponseEntity<?> updatePlan(@PathVariable String code,
+            @Valid @RequestBody UpdateSubscriptionPlanRequest request) {
+        try {
+            SubscriptionPlanDTO updated = organizationSubscriptionService.updatePlanAsDTO(code, request);
+            log.info("PUT /admin/subscription/plans/{} — updated", code);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            log.warn("Failed to update subscription plan {}: {}", code, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * Deletes a plan from selection by deactivating it.
+     */
+    @PutMapping("/admin/subscription/plans/{code}/deactivate")
+    public ResponseEntity<?> deactivatePlan(@PathVariable String code) {
+        try {
+            SubscriptionPlanDTO updated = organizationSubscriptionService.deactivatePlanAsDTO(code);
+            log.info("PUT /admin/subscription/plans/{}/deactivate — deactivated", code);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            log.warn("Failed to deactivate subscription plan {}: {}", code, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }

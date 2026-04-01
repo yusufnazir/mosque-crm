@@ -491,7 +491,7 @@ public class ExcelImportService {
 		if (gender == null)
 			return false;
 		String g = gender.trim().toUpperCase();
-		return g.equals("V");
+		return g.equals("F");
 	}
 
 	// Helper method to add a person to a family as a child, with inferred flag

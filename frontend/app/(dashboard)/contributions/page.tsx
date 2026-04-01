@@ -1204,20 +1204,22 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
         contributionTypeId: typeFilter !== 'all' ? Number(typeFilter) : undefined,
       };
       
-      // Use /my endpoint if user has view_self_only permission
-      const data = can('contribution.view_self_only')
+      // Use /my endpoint only if user has view_self_only AND no management permissions
+      const selfOnly = can('contribution.view_self_only') && !hasManagementPermissions && !isSuperAdmin;
+      const data = selfOnly
         ? await memberPaymentApi.getCurrentUserPayments(params)
         : await memberPaymentApi.getAllPaginated(params);
       
-      setPayments(data.content || data);
-      setTotalElements(data.totalElements || (data as any).length || 0);
-      setTotalPages(data.totalPages || 1);
+      const page = data as any;
+      setPayments(page.content || data);
+      setTotalElements(page.totalElements || (Array.isArray(data) ? data.length : 0));
+      setTotalPages(page.totalPages || 1);
     } catch (err) {
       console.error('Failed to load payments:', err);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, yearFilter, personFilter, typeFilter, can]);
+  }, [currentPage, pageSize, yearFilter, personFilter, typeFilter, can, hasManagementPermissions, isSuperAdmin]);
 
   // Load available years once (and on refreshKey changes)
   useEffect(() => {
@@ -1365,8 +1367,8 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
           </div>
           {/* Filters row */}
           <div className="flex flex-col sm:flex-row gap-2">
-            {/* Person autocomplete - hidden for view-self-only users */}
-            {!can('contribution.view_self_only') && (
+            {/* Person autocomplete - hidden for view-self-only users (who lack management permissions) */}
+            {(!can('contribution.view_self_only') || hasManagementPermissions || isSuperAdmin) && (
             <div className="relative w-full sm:w-64" ref={personDropdownRef}>
               <div className="relative">
                 <input
@@ -1665,8 +1667,22 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                   >
                     ‹
                   </button>
-                  <span className="text-sm text-stone-600">
-                    {t('contributions.page_of', { page: currentPage + 1, total: totalPages })}
+                  <span className="text-sm text-stone-600 flex items-center gap-1">
+                    {t('contributions.page_prefix')}
+                    <input
+                      type="number"
+                      min={1}
+                      max={totalPages}
+                      value={currentPage + 1}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        if (!isNaN(val) && val >= 1 && val <= totalPages) {
+                          setCurrentPage(val - 1);
+                        }
+                      }}
+                      className="w-12 text-center border border-stone-300 rounded px-1 py-0.5 text-sm focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                    {t('contributions.page_of_total', { total: totalPages })}
                   </span>
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}

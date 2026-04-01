@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { ApiClient } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
@@ -20,10 +21,12 @@ interface RoleDTO {
   description: string;
   permissionCodes: string[];
   assignablePermissionCodes: string[];
+  template: boolean;
 }
 
 export default function RolesPage() {
   const { t } = useTranslation();
+  const { isSuperAdmin } = useAuth();
   const [roles, setRoles] = useState<RoleDTO[]>([]);
   const [permissions, setPermissions] = useState<PermissionDTO[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
@@ -331,7 +334,7 @@ export default function RolesPage() {
                       </svg>
                     </button>
                     {/* Delete role button */}
-                    {selectedRole.name !== 'SUPER_ADMIN' && (
+                    {selectedRole.name !== 'SUPER_ADMIN' && (!selectedRole.template || isSuperAdmin) && (
                       <button
                         onClick={() => setDeleteConfirm(selectedRole)}
                         className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"

@@ -1,0 +1,18 @@
+
+=== DIAG [BEFORE] ===
+  ROLE id=1     name=ADMIN        mosque_id=null  perm_count=43
+  ROLE id=2     name=MEMBER       mosque_id=null  perm_count=9
+  ROLE id=3     name=TREASURER    mosque_id=null  perm_count=14
+  ROLE id=4     name=IMAM         mosque_id=null  perm_count=3
+  ROLE id=5     name=SUPER_ADMIN  mosque_id=null  perm_count=54
+  ROLE id=6     name=ADMIN        mosque_id=1     perm_count=51
+  ROLE id=7     name=MEMBER       mosque_id=1     perm_count=9
+  ROLE id=1003  name=TREASURER    mosque_id=1     perm_count=22
+  ROLE id=1004  name=IMAM         mosque_id=1     perm_count=3
+  USER id=1     user=admin                     mosque_id=null  roles=[SUPER_ADMIN(5,m=NULL)]
+  USER id=1001  user=rafael.pawirokromo@telesur.sr mosque_id=1     roles=[ADMIN(6,m=1); MEMBER(7,m=1)]
+  USER id=1002  user=a.moekalil@gmail.com      mosque_id=1     roles=[ADMIN(6,m=1); MEMBER(7,m=1)]
+  USER id=1003  user=moentariandy@gmail.com    mosque_id=1     roles=[ADMIN(6,m=1); MEMBER(7,m=1)]
+  USER id=1005  user=mohamedskasto@gmail.com   mosque_id=1     roles=[ADMIN(6,m=1); MEMBER(7,m=1)]
+  USER id=1006  user=yusuf.nazir@gmail.com     mosque_id=1     roles=[ADMIN(6,m=1); MEMBER(7,m=1)]
+=== END DIAG [BEFORE] ===

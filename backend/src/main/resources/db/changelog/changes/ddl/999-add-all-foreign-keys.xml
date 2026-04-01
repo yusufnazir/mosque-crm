@@ -803,4 +803,176 @@
                                  referencedTableName="mosques" referencedColumnNames="id"/>
     </changeSet>
 
+    <!-- ========== Role Assignable Roles (Governance) ========== -->
+
+    <!-- role_assignable_roles.role_id → roles.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000240" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_roleassignrole_role"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="role_assignable_roles" baseColumnNames="role_id"
+                                 constraintName="fk_roleassignrole_role"
+                                 referencedTableName="roles" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- role_assignable_roles.assignable_role_id → roles.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000241" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_roleassignrole_assignable"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="role_assignable_roles" baseColumnNames="assignable_role_id"
+                                 constraintName="fk_roleassignrole_assignable"
+                                 referencedTableName="roles" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- role_template_assignable_roles.template_id → role_templates.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000242" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_tplassignrole_template"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="role_template_assignable_roles" baseColumnNames="template_id"
+                                 constraintName="fk_tplassignrole_template"
+                                 referencedTableName="role_templates" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- role_template_assignable_roles.assignable_template_id → role_templates.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000243" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_tplassignrole_assignable"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="role_template_assignable_roles" baseColumnNames="assignable_template_id"
+                                 constraintName="fk_tplassignrole_assignable"
+                                 referencedTableName="role_templates" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- ========== Eid ul-Adha Distribution Domain ========== -->
+
+    <!-- distribution_events.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000250" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_distevents_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="distribution_events" baseColumnNames="mosque_id"
+                                 constraintName="fk_distevents_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- parcel_categories.distribution_event_id → distribution_events.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000251" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_parcelcat_distevent"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="parcel_categories" baseColumnNames="distribution_event_id"
+                                 constraintName="fk_parcelcat_distevent"
+                                 referencedTableName="distribution_events" referencedColumnNames="id"/>
+        <createIndex tableName="parcel_categories" indexName="idx_parcelcat_distevent">
+            <column name="distribution_event_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- parcel_categories.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000252" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_parcelcat_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="parcel_categories" baseColumnNames="mosque_id"
+                                 constraintName="fk_parcelcat_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- non_member_recipients.distribution_event_id → distribution_events.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000253" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_nonmember_distevent"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="non_member_recipients" baseColumnNames="distribution_event_id"
+                                 constraintName="fk_nonmember_distevent"
+                                 referencedTableName="distribution_events" referencedColumnNames="id"/>
+        <createIndex tableName="non_member_recipients" indexName="idx_nonmember_distevent">
+            <column name="distribution_event_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- non_member_recipients.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000254" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_nonmember_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="non_member_recipients" baseColumnNames="mosque_id"
+                                 constraintName="fk_nonmember_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- member_distribution_registrations.distribution_event_id → distribution_events.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000255" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_memdistreg_distevent"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_distribution_registrations" baseColumnNames="distribution_event_id"
+                                 constraintName="fk_memdistreg_distevent"
+                                 referencedTableName="distribution_events" referencedColumnNames="id"/>
+        <createIndex tableName="member_distribution_registrations" indexName="idx_memdistreg_distevent">
+            <column name="distribution_event_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- member_distribution_registrations.person_id → persons.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000256" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_memdistreg_person"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_distribution_registrations" baseColumnNames="person_id"
+                                 constraintName="fk_memdistreg_person"
+                                 referencedTableName="persons" referencedColumnNames="id"/>
+        <createIndex tableName="member_distribution_registrations" indexName="idx_memdistreg_person">
+            <column name="person_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- member_distribution_registrations.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000257" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_memdistreg_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="member_distribution_registrations" baseColumnNames="mosque_id"
+                                 constraintName="fk_memdistreg_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- parcel_distributions.distribution_event_id → distribution_events.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000258" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_parceldist_distevent"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="parcel_distributions" baseColumnNames="distribution_event_id"
+                                 constraintName="fk_parceldist_distevent"
+                                 referencedTableName="distribution_events" referencedColumnNames="id"/>
+        <createIndex tableName="parcel_distributions" indexName="idx_parceldist_distevent">
+            <column name="distribution_event_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- parcel_distributions.parcel_category_id → parcel_categories.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000259" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_parceldist_category"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="parcel_distributions" baseColumnNames="parcel_category_id"
+                                 constraintName="fk_parceldist_category"
+                                 referencedTableName="parcel_categories" referencedColumnNames="id"/>
+        <createIndex tableName="parcel_distributions" indexName="idx_parceldist_category">
+            <column name="parcel_category_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- parcel_distributions.mosque_id → mosques.id -->
+    <changeSet id="99900001-fk00-0000-0000-000000000260" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_parceldist_mosque"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="parcel_distributions" baseColumnNames="mosque_id"
+                                 constraintName="fk_parceldist_mosque"
+                                 referencedTableName="mosques" referencedColumnNames="id"/>
+    </changeSet>
+
 </databaseChangeLog>

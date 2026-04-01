@@ -26,11 +26,14 @@ public class Role {
     @GeneratedValue(generator = "roles_seq", strategy = GenerationType.TABLE)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String name;
 
     @Column(length = 255)
     private String description;
+
+    @Column(name = "mosque_id")
+    private Long mosqueId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -53,6 +56,14 @@ public class Role {
             inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
     private Set<Permission> assignablePermissions = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "role_assignable_roles",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "assignable_role_id")
+    )
+    private Set<Role> assignableRoles = new HashSet<>();
 
     public Role() {
     }
@@ -89,6 +100,14 @@ public class Role {
         this.description = description;
     }
 
+    public Long getMosqueId() {
+        return mosqueId;
+    }
+
+    public void setMosqueId(Long mosqueId) {
+        this.mosqueId = mosqueId;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -121,6 +140,14 @@ public class Role {
         this.assignablePermissions = assignablePermissions;
     }
 
+    public Set<Role> getAssignableRoles() {
+        return assignableRoles;
+    }
+
+    public void setAssignableRoles(Set<Role> assignableRoles) {
+        this.assignableRoles = assignableRoles;
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -128,6 +155,6 @@ public class Role {
 
     @Override
     public String toString() {
-        return "Role{id=" + id + ", name='" + name + "'}";
+        return "Role{id=" + id + ", name='" + name + "', mosqueId=" + mosqueId + "}";
     }
 }

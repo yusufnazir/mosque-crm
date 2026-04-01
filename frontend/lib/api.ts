@@ -86,7 +86,13 @@ export class ApiClient {
       headers: this.getHeaders(),
     });
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let message = `HTTP error! status: ${response.status}`;
+      try {
+        const body = await response.json();
+        if (body.error) message = body.error;
+        else if (body.message) message = body.message;
+      } catch { /* ignore parse errors */ }
+      throw new Error(message);
     }
   }
 
@@ -307,7 +313,7 @@ export const reportApi = {
 
 // ── Subscription / Plan types ──────────────────────────────────────────────
 export interface PlanEntitlementDTO {
-  id: number;
+  id?: number;
   featureKey: string;
   enabled: boolean;
   limitValue: number | null;
@@ -344,6 +350,44 @@ export interface CreateSubscriptionRequest {
   autoRenew?: boolean;
 }
 
+export interface CreateSubscriptionPlanEntitlementInput {
+  featureKey: string;
+  enabled: boolean;
+  limitValue?: number | null;
+}
+
+export interface CreateSubscriptionPlanRequest {
+  code: string;
+  name: string;
+  description?: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  isActive?: boolean;
+  entitlements?: CreateSubscriptionPlanEntitlementInput[];
+}
+
+export interface UpdateSubscriptionPlanRequest {
+  name: string;
+  description?: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  isActive: boolean;
+  entitlements?: CreateSubscriptionPlanEntitlementInput[];
+}
+
+export interface ChangeSubscriptionPlanRequest {
+  planCode: string;
+}
+
+export interface ChangeSubscriptionPlanResultDTO {
+  action: 'UPGRADE_IMMEDIATE' | 'DOWNGRADE_SCHEDULED' | 'UPGRADE_PREVIEW' | 'DOWNGRADE_PREVIEW';
+  message: string;
+  amountDueNow: number;
+  remainingDays: number;
+  effectiveAt: string;
+  subscription: OrganizationSubscriptionDTO;
+}
+
 // Subscription API
 export const subscriptionApi = {
   getCurrent: (): Promise<OrganizationSubscriptionDTO | null> =>
@@ -352,6 +396,12 @@ export const subscriptionApi = {
     ApiClient.get('/subscription/plans'),
   getPlanByCode: (code: string): Promise<SubscriptionPlanDTO> =>
     ApiClient.get(`/subscription/plans/${code}`),
+  createPlan: (data: CreateSubscriptionPlanRequest): Promise<SubscriptionPlanDTO> =>
+    ApiClient.post('/admin/subscription/plans', data),
+  updatePlan: (code: string, data: UpdateSubscriptionPlanRequest): Promise<SubscriptionPlanDTO> =>
+    ApiClient.put(`/admin/subscription/plans/${code}`, data),
+  deletePlan: (code: string): Promise<SubscriptionPlanDTO> =>
+    ApiClient.put(`/admin/subscription/plans/${code}/deactivate`, {}),
   assign: (data: CreateSubscriptionRequest): Promise<OrganizationSubscriptionDTO> =>
     ApiClient.post('/admin/subscription', data),
   assignSimple: (data: { mosqueId: number; planCode: string; billingCycle?: 'MONTHLY' | 'YEARLY' }): Promise<OrganizationSubscriptionDTO> =>
@@ -361,6 +411,10 @@ export const subscriptionApi = {
       billingCycle: data.billingCycle ?? 'MONTHLY',
       autoRenew: true,
     }),
+  changePlan: (data: ChangeSubscriptionPlanRequest): Promise<ChangeSubscriptionPlanResultDTO> =>
+    ApiClient.post('/subscription/change-plan', data),
+  previewPlanChange: (data: ChangeSubscriptionPlanRequest): Promise<ChangeSubscriptionPlanResultDTO> =>
+    ApiClient.post('/subscription/change-plan/preview', data),
   updateStatus: (id: number, status: string): Promise<OrganizationSubscriptionDTO> =>
     ApiClient.put(`/admin/subscription/${id}/status`, { status }),
 };

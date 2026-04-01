@@ -64,6 +64,9 @@ public class MemberService {
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
+    @Autowired
+    private RoleGovernanceService roleGovernanceService;
+
     public List<MemberDTO> getAllMembers() {
         List<Person> persons = personRepository.findAll();
 
@@ -161,15 +164,28 @@ public class MemberService {
                         user.setPassword(passwordEncoder.encode(tempPassword));
                         user.setMustChangePassword(true);
                     }
-                    // Assign roles
+                    // Assign roles — use tenant-scoped lookup (mosque-specific first, then global fallback)
                     List<String> roleNames = memberDTO.getRoles();
                     if (roleNames == null || roleNames.isEmpty()) {
                         roleNames = List.of("MEMBER");
                     }
+                    Long currentMosqueId = com.mosque.crm.multitenancy.TenantContext.getCurrentMosqueId();
                     Set<Role> roleSet = new HashSet<>();
                     for (String roleName : roleNames) {
-                        Role role = roleRepository.findByName(roleName)
-                            .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+                        Role role = null;
+                        if (currentMosqueId != null) {
+                            role = roleRepository.findByNameAndMosqueId(roleName, currentMosqueId).orElse(null);
+                        }
+                        if (role == null) {
+                            role = roleRepository.findByNameAndMosqueIdIsNull(roleName).orElse(null);
+                        }
+                        if (role == null) {
+                            throw new IllegalArgumentException("Role not found: " + roleName);
+                        }
+                        // Rule C: verify actor is allowed to assign this role
+                        if (!roleGovernanceService.canAssignRole(role)) {
+                            throw new IllegalArgumentException("You are not allowed to assign role: " + roleName);
+                        }
                         roleSet.add(role);
                     }
                     user.setRoles(roleSet);

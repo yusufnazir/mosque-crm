@@ -60,8 +60,8 @@ export default function AddMemberPage() {
 
   const fetchAvailableRoles = async () => {
     try {
-      const rolesData = await ApiClient.get<{id: number; name: string; description: string}[]>('/admin/roles');
-      setAvailableRoles(rolesData.filter(r => r.name !== 'SUPER_ADMIN'));
+      const rolesData = await ApiClient.get<{id: number; name: string; description: string}[]>('/admin/roles/assignable');
+      setAvailableRoles(rolesData);
     } catch (error) {
       console.error('Failed to fetch roles:', error);
     }

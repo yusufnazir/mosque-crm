@@ -28,4 +28,11 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
            "JOIN p.roles r " +
            "WHERE r.id IN :roleIds")
     Set<String> findPermissionCodesByRoleIds(@Param("roleIds") Set<Long> roleIds);
+
+    /**
+     * Find all assignable permission codes for a given set of role IDs.
+     * Used by RoleGovernanceService to compute the effective "permission pool" for a user.
+     */
+    @Query("SELECT DISTINCT p.code FROM Role r JOIN r.assignablePermissions p WHERE r.id IN :roleIds")
+    Set<String> findAssignablePermissionCodesByRoleIds(@Param("roleIds") Set<Long> roleIds);
 }

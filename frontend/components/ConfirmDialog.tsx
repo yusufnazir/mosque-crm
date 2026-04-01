@@ -1,12 +1,15 @@
 'use client';
 
+import { ReactNode } from 'react';
+
 interface ConfirmDialogProps {
   open: boolean;
   title: string;
-  message: string;
+  message: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'danger' | 'warning' | 'default';
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -35,6 +38,7 @@ export default function ConfirmDialog({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   variant = 'danger',
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -51,7 +55,7 @@ export default function ConfirmDialog({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
         <h3 className="text-lg font-bold text-stone-900 mb-2">{title}</h3>
-        <p className="text-stone-600 mb-6">{message}</p>
+        <div className="text-stone-600 mb-6">{message}</div>
         <div className="flex justify-end gap-3">
           <button
             onClick={onCancel}
@@ -61,7 +65,8 @@ export default function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${confirmButtonClass}`}
+            disabled={confirmDisabled}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmButtonClass}`}
           >
             {confirmLabel}
           </button>

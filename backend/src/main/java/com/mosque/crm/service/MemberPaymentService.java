@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,11 +55,20 @@ public class MemberPaymentService {
     }
 
     /**
+     * Strip Sort from a Pageable, keeping only page number and size.
+     * Required because Sort cannot be combined with JOIN FETCH in JPQL queries —
+     * sorting is defined in the JPQL ORDER BY clause instead.
+     */
+    private Pageable unsorted(Pageable pageable) {
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+    }
+
+    /**
      * Get all payments with pagination.
      */
     @Transactional(readOnly = true)
     public Page<MemberPaymentDTO> getAllPayments(Pageable pageable) {
-        return paymentRepository.findAllWithDetails(pageable)
+        return paymentRepository.findAllWithDetails(unsorted(pageable))
                 .map(this::convertToDTO);
     }
 
@@ -67,7 +77,7 @@ public class MemberPaymentService {
      */
     @Transactional(readOnly = true)
     public Page<MemberPaymentDTO> getAllPayments(int year, Pageable pageable) {
-        return paymentRepository.findAllByYear(year, pageable)
+        return paymentRepository.findAllByYear(year, unsorted(pageable))
                 .map(this::convertToDTO);
     }
 
@@ -106,7 +116,7 @@ public class MemberPaymentService {
      */
     @Transactional(readOnly = true)
     public Page<MemberPaymentDTO> getPaymentsByPerson(Long personId, Pageable pageable) {
-        return paymentRepository.findByPersonIdWithDetails(personId, pageable)
+        return paymentRepository.findByPersonIdWithDetails(personId, unsorted(pageable))
                 .map(this::convertToDTO);
     }
 
@@ -115,7 +125,7 @@ public class MemberPaymentService {
      */
     @Transactional(readOnly = true)
     public Page<MemberPaymentDTO> getPaymentsByPerson(Long personId, int year, Pageable pageable) {
-        return paymentRepository.findByPersonIdAndYear(personId, year, pageable)
+        return paymentRepository.findByPersonIdAndYear(personId, year, unsorted(pageable))
                 .map(this::convertToDTO);
     }
 
@@ -134,7 +144,7 @@ public class MemberPaymentService {
      */
     @Transactional(readOnly = true)
     public Page<MemberPaymentDTO> getPaymentsByType(Long contributionTypeId, Pageable pageable) {
-        return paymentRepository.findByContributionTypeIdWithDetails(contributionTypeId, pageable)
+        return paymentRepository.findByContributionTypeIdWithDetails(contributionTypeId, unsorted(pageable))
                 .map(this::convertToDTO);
     }
 
@@ -143,7 +153,7 @@ public class MemberPaymentService {
      */
     @Transactional(readOnly = true)
     public Page<MemberPaymentDTO> getPaymentsByTypeAndYear(Long contributionTypeId, int year, Pageable pageable) {
-        return paymentRepository.findByContributionTypeIdAndYear(contributionTypeId, year, pageable)
+        return paymentRepository.findByContributionTypeIdAndYear(contributionTypeId, year, unsorted(pageable))
                 .map(this::convertToDTO);
     }
 
@@ -152,7 +162,7 @@ public class MemberPaymentService {
      */
     @Transactional(readOnly = true)
     public Page<MemberPaymentDTO> getPaymentsByPersonAndType(Long personId, Long contributionTypeId, Pageable pageable) {
-        return paymentRepository.findByPersonIdAndContributionTypeId(personId, contributionTypeId, pageable)
+        return paymentRepository.findByPersonIdAndContributionTypeId(personId, contributionTypeId, unsorted(pageable))
                 .map(this::convertToDTO);
     }
 
@@ -161,7 +171,7 @@ public class MemberPaymentService {
      */
     @Transactional(readOnly = true)
     public Page<MemberPaymentDTO> getPaymentsByPersonAndTypeAndYear(Long personId, Long contributionTypeId, int year, Pageable pageable) {
-        return paymentRepository.findByPersonIdAndContributionTypeIdAndYear(personId, contributionTypeId, year, pageable)
+        return paymentRepository.findByPersonIdAndContributionTypeIdAndYear(personId, contributionTypeId, year, unsorted(pageable))
                 .map(this::convertToDTO);
     }
 

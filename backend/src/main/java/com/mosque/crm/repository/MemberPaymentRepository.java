@@ -30,9 +30,11 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
 
     /**
      * Paginated: all payments with eager-loaded person + type.
-     * Sorting is delegated to the Pageable parameter.
+     * Note: ORDER BY is in the JPQL because Sort cannot be combined with JOIN FETCH.
+     * The Pageable must be passed with Sort.unsorted().
      */
-    @Query(value = "SELECT mp FROM MemberPayment mp JOIN FETCH mp.person JOIN FETCH mp.contributionType",
+    @Query(value = "SELECT mp FROM MemberPayment mp JOIN FETCH mp.person JOIN FETCH mp.contributionType " +
+           "ORDER BY mp.person.firstName ASC, mp.periodFrom ASC, mp.contributionType.code ASC",
            countQuery = "SELECT COUNT(mp) FROM MemberPayment mp")
     Page<MemberPayment> findAllWithDetails(Pageable pageable);
 
@@ -40,7 +42,8 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
      * Paginated: all payments filtered by year (based on periodFrom, falling back to paymentDate).
      */
     @Query(value = "SELECT mp FROM MemberPayment mp JOIN FETCH mp.person JOIN FETCH mp.contributionType " +
-           "WHERE YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year",
+           "WHERE YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year " +
+           "ORDER BY mp.person.firstName ASC, mp.periodFrom ASC, mp.contributionType.code ASC",
            countQuery = "SELECT COUNT(mp) FROM MemberPayment mp " +
            "WHERE YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year")
     Page<MemberPayment> findAllByYear(@Param("year") int year, Pageable pageable);
@@ -49,7 +52,8 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
      * Paginated: payments for a specific person with eager-loaded details.
      */
     @Query(value = "SELECT mp FROM MemberPayment mp JOIN FETCH mp.person JOIN FETCH mp.contributionType " +
-           "WHERE mp.person.id = :personId",
+           "WHERE mp.person.id = :personId " +
+           "ORDER BY mp.periodFrom ASC, mp.contributionType.code ASC",
            countQuery = "SELECT COUNT(mp) FROM MemberPayment mp WHERE mp.person.id = :personId")
     Page<MemberPayment> findByPersonIdWithDetails(@Param("personId") Long personId, Pageable pageable);
 
@@ -57,7 +61,8 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
      * Paginated: payments for a specific person filtered by year.
      */
     @Query(value = "SELECT mp FROM MemberPayment mp JOIN FETCH mp.person JOIN FETCH mp.contributionType " +
-           "WHERE mp.person.id = :personId AND YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year",
+           "WHERE mp.person.id = :personId AND YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year " +
+           "ORDER BY mp.periodFrom ASC, mp.contributionType.code ASC",
            countQuery = "SELECT COUNT(mp) FROM MemberPayment mp " +
            "WHERE mp.person.id = :personId AND YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year")
     Page<MemberPayment> findByPersonIdAndYear(@Param("personId") Long personId, @Param("year") int year, Pageable pageable);
@@ -70,7 +75,8 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
      * Paginated: all payments filtered by contribution type.
      */
     @Query(value = "SELECT mp FROM MemberPayment mp JOIN FETCH mp.person JOIN FETCH mp.contributionType " +
-           "WHERE mp.contributionType.id = :typeId",
+           "WHERE mp.contributionType.id = :typeId " +
+           "ORDER BY mp.person.firstName ASC, mp.periodFrom ASC",
            countQuery = "SELECT COUNT(mp) FROM MemberPayment mp WHERE mp.contributionType.id = :typeId")
     Page<MemberPayment> findByContributionTypeIdWithDetails(@Param("typeId") Long typeId, Pageable pageable);
 
@@ -78,7 +84,8 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
      * Paginated: all payments filtered by contribution type and year.
      */
     @Query(value = "SELECT mp FROM MemberPayment mp JOIN FETCH mp.person JOIN FETCH mp.contributionType " +
-           "WHERE mp.contributionType.id = :typeId AND YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year",
+           "WHERE mp.contributionType.id = :typeId AND YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year " +
+           "ORDER BY mp.person.firstName ASC, mp.periodFrom ASC",
            countQuery = "SELECT COUNT(mp) FROM MemberPayment mp " +
            "WHERE mp.contributionType.id = :typeId AND YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year")
     Page<MemberPayment> findByContributionTypeIdAndYear(@Param("typeId") Long typeId, @Param("year") int year, Pageable pageable);
@@ -87,7 +94,8 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
      * Paginated: payments for a specific person and contribution type.
      */
     @Query(value = "SELECT mp FROM MemberPayment mp JOIN FETCH mp.person JOIN FETCH mp.contributionType " +
-           "WHERE mp.person.id = :personId AND mp.contributionType.id = :typeId",
+           "WHERE mp.person.id = :personId AND mp.contributionType.id = :typeId " +
+           "ORDER BY mp.periodFrom ASC",
            countQuery = "SELECT COUNT(mp) FROM MemberPayment mp " +
            "WHERE mp.person.id = :personId AND mp.contributionType.id = :typeId")
     Page<MemberPayment> findByPersonIdAndContributionTypeId(@Param("personId") Long personId, @Param("typeId") Long typeId, Pageable pageable);
@@ -96,7 +104,8 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
      * Paginated: payments for a specific person, contribution type, and year.
      */
     @Query(value = "SELECT mp FROM MemberPayment mp JOIN FETCH mp.person JOIN FETCH mp.contributionType " +
-           "WHERE mp.person.id = :personId AND mp.contributionType.id = :typeId AND YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year",
+           "WHERE mp.person.id = :personId AND mp.contributionType.id = :typeId AND YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year " +
+           "ORDER BY mp.periodFrom ASC",
            countQuery = "SELECT COUNT(mp) FROM MemberPayment mp " +
            "WHERE mp.person.id = :personId AND mp.contributionType.id = :typeId AND YEAR(COALESCE(mp.periodFrom, mp.paymentDate)) = :year")
     Page<MemberPayment> findByPersonIdAndContributionTypeIdAndYear(@Param("personId") Long personId, @Param("typeId") Long typeId, @Param("year") int year, Pageable pageable);

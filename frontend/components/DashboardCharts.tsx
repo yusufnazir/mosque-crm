@@ -127,10 +127,10 @@ export default function DashboardCharts() {
     const found = Array.from(new Set(ageGenderData.map((d) => d.bucket)));
     return standard.filter((b) => found.includes(b)).concat(found.filter((b) => !standard.includes(b)));
   }, [ageGenderData]);
+  // Normalize ageGenderData: map null/empty gender to 'Unknown'
   const genders = React.useMemo(() => {
-    // Use all genders in data, fallback to ['M', 'F', 'Unknown']
-    const found = Array.from(new Set(ageGenderData.map((d) => d.gender)));
-    return ['M', 'F', 'Unknown'].filter((g) => found.includes(g)).concat(found.filter((g) => !['M','F','Unknown'].includes(g)));
+    const found = Array.from(new Set(ageGenderData.map((d) => d.gender || 'Unknown')));
+    return ['M', 'F', 'Unknown'].filter((g) => found.includes(g));
   }, [ageGenderData]);
 
   const ageGenderChart = {
@@ -138,12 +138,11 @@ export default function DashboardCharts() {
     datasets: genders.map((gender) => {
       let color = '#047857'; // Default: men (emerald)
       if (gender === 'F') color = '#D4AF37'; // Women: deep gold
-      else if (gender === 'V') color = '#D4AF37'; // Dutch 'V' for vrouw
-      else if (gender === 'Unknown' || gender === null || gender === undefined || gender === '') color = '#78716c'; // Unknown: visible gray
+      else if (gender === 'Unknown') color = '#78716c'; // Unknown: visible gray
       return {
-        label: t('gender.' + (gender === null || gender === undefined || gender === '' ? 'Unknown' : (gender === 'V' ? 'F' : gender))),
+        label: t('gender.' + gender),
         data: ageBuckets.map((bucket) => {
-          const found = ageGenderData.find((d) => d.bucket === bucket && d.gender === gender);
+          const found = ageGenderData.find((d) => d.bucket === bucket && (d.gender || 'Unknown') === gender);
           return found ? found.count : 0;
         }),
         backgroundColor: color,
@@ -196,18 +195,15 @@ export default function DashboardCharts() {
   };
 
   const genderChartColors = genderData.map((d) => {
-    let code = d.gender;
+    const code = d.gender;
     if (code === 'M') return '#047857'; // Men: emerald
-    if (code === 'F' || code === 'V') return '#D4AF37'; // Women: deep gold
-    if (code === 'Unknown' || code === null || code === undefined || code === '') return '#78716c'; // Unknown: visible gray
-    return '#78716c'; // fallback
+    if (code === 'F') return '#D4AF37'; // Women: deep gold
+    return '#78716c'; // Unknown: visible gray
   });
 
   const genderChart = {
     labels: genderData.map((d) => {
-      let code = d.gender;
-      if (code === null || code === undefined || code === "") code = "Unknown";
-      if (code === "V") code = "F";
+      const code = d.gender || 'Unknown';
       return t(`gender.${code}`);
     }),
     datasets: [

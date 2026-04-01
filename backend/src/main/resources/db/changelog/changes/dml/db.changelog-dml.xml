@@ -32,10 +32,19 @@
     <include file="db/changelog/changes/dml/032-data-mosques.xml"/>
     <include file="db/changelog/changes/dml/033-data-super-admin.xml"/>
 
-    <!-- Sync global permission pool for all roles -->
-    <include file="db/changelog/changes/dml/036-sync-global-permission-pool.xml"/>
-
     <!-- Currency Reference Data -->
     <include file="db/changelog/changes/dml/034-data-currencies.xml"/>
+
+    <!-- Subscription Plans and Entitlements -->
+    <include file="db/changelog/changes/dml/037-data-subscription-plans.xml"/>
+    <include file="db/changelog/changes/dml/038-data-plan-entitlements.xml"/>
+
+    <!-- Role Templates master data -->
+    <include file="db/changelog/changes/dml/039-data-role-templates.xml"/>
+    <include file="db/changelog/changes/dml/039a-data-role-template-permissions.xml"/>
+    <include file="db/changelog/changes/dml/039b-data-role-template-assignable-permissions.xml"/>
+
+    <!-- Role template assignable roles (governance/delegation) -->
+    <include file="db/changelog/changes/dml/041-data-role-assignable-roles.xml"/>
 
 </databaseChangeLog>

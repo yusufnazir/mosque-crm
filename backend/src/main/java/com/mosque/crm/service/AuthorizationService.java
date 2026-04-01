@@ -170,24 +170,13 @@ public class AuthorizationService {
                 .map(UserRole::getRoleId)
                 .collect(Collectors.toSet());
 
-        // If the user holds the SUPER_ADMIN role, grant all permission codes unconditionally.
-        return userRepository.findById(userId).map(user -> {
-            boolean isSuper = user.getRoles().stream().anyMatch(r -> "SUPER_ADMIN".equals(r.getName()));
-            if (isSuper) {
-                // Return every permission code from the permissions table
-                return permissionRepository.findAll().stream()
-                        .map(p -> p.getCode())
-                        .collect(Collectors.toSet());
-            }
+        if (activeRoleIds.isEmpty()) {
+            return Collections.emptySet();
+        }
 
-            if (activeRoleIds.isEmpty()) {
-                return Collections.<String>emptySet();
-            }
-
-            Set<String> permissions = permissionRepository.findPermissionCodesByRoleIds(activeRoleIds);
-            log.debug("Resolved {} permissions for user {}: {}", permissions.size(), userId, permissions);
-            return permissions;
-        }).orElse(Collections.emptySet());
+        Set<String> permissions = permissionRepository.findPermissionCodesByRoleIds(activeRoleIds);
+        log.debug("Resolved {} permissions for user {}: {}", permissions.size(), userId, permissions);
+        return permissions;
     }
 
     // ─── cache entry ─────────────────────────────────────────────────────

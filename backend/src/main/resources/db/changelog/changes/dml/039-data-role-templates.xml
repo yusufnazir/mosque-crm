@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+	<!--
+		Seeds the role_templates master table with default templates.
+		Templates serve as the source of truth for tenant role provisioning.
+		IDs 1-4 are reserved for system templates; API-created templates use IDs >= 1001.
+	-->
+
+	<!-- ═══════════ ADMIN ═══════════ -->
+	<changeSet id="a1b2c3d4-e5f6-4a7b-8c9d-tpl-admin-v1" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplate">
+			<param name="id"><![CDATA[1]]></param>
+			<param name="name"><![CDATA[ADMIN]]></param>
+			<param name="description"><![CDATA[Administrator with full access to all mosque features]]></param>
+			<param name="isActive"><![CDATA[true]]></param>
+			<param name="sortOrder"><![CDATA[1]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ MEMBER ═══════════ -->
+	<changeSet id="b2c3d4e5-f6a7-4b8c-9d0e-tpl-member-v1" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplate">
+			<param name="id"><![CDATA[2]]></param>
+			<param name="name"><![CDATA[MEMBER]]></param>
+			<param name="description"><![CDATA[Regular member with limited access to personal data]]></param>
+			<param name="isActive"><![CDATA[true]]></param>
+			<param name="sortOrder"><![CDATA[2]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ TREASURER ═══════════ -->
+	<changeSet id="c3d4e5f6-a7b8-4c9d-0e1f-tpl-treasurer-v1" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplate">
+			<param name="id"><![CDATA[3]]></param>
+			<param name="name"><![CDATA[TREASURER]]></param>
+			<param name="description"><![CDATA[Financial officer with access to fee management]]></param>
+			<param name="isActive"><![CDATA[true]]></param>
+			<param name="sortOrder"><![CDATA[3]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ IMAM ═══════════ -->
+	<changeSet id="d4e5f6a7-b8c9-4d0e-1f2a-tpl-imam-v1" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplate">
+			<param name="id"><![CDATA[4]]></param>
+			<param name="name"><![CDATA[IMAM]]></param>
+			<param name="description"><![CDATA[Religious leader with member and family viewing access]]></param>
+			<param name="isActive"><![CDATA[true]]></param>
+			<param name="sortOrder"><![CDATA[4]]></param>
+		</customChange>
+	</changeSet>
+
+</databaseChangeLog>

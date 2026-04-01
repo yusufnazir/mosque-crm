@@ -14,6 +14,7 @@ import {
 import { memberPaymentApi, MemberPayment } from '@/lib/contributionApi';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { formatDate } from '@/lib/utils';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -493,7 +494,7 @@ export default function ReportsPage() {
       const leftColumn = [
         { label: `${t('common.name')}:`, value: memberName },
         { label: `${t('reports.email')}:`, value: selectedMemberDetails.email || '-' },
-        { label: `${t('reports.date_of_birth')}:`, value: selectedMemberDetails.dateOfBirth ? new Date(selectedMemberDetails.dateOfBirth).toLocaleDateString() : '-' },
+        { label: `${t('reports.date_of_birth')}:`, value: formatDate(selectedMemberDetails.dateOfBirth) },
       ];
       
       const rightColumn = [
@@ -704,7 +705,7 @@ export default function ReportsPage() {
       const leftColumn = [
         { label: `${t('common.name')}:`, value: memberName },
         { label: `${t('reports.email')}:`, value: selectedMemberDetails.email || '-' },
-        { label: `${t('reports.date_of_birth')}:`, value: selectedMemberDetails.dateOfBirth ? new Date(selectedMemberDetails.dateOfBirth).toLocaleDateString() : '-' },
+        { label: `${t('reports.date_of_birth')}:`, value: formatDate(selectedMemberDetails.dateOfBirth) },
       ];
       
       const rightColumn = [
@@ -1470,9 +1471,7 @@ export default function ReportsPage() {
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase">{t('reports.date_of_birth')}</p>
                         <p className="text-sm font-medium text-charcoal">
-                          {selectedMemberDetails.dateOfBirth
-                            ? new Date(selectedMemberDetails.dateOfBirth).toLocaleDateString()
-                            : '-'}
+                          {formatDate(selectedMemberDetails.dateOfBirth)}
                         </p>
                       </div>
                       <div>

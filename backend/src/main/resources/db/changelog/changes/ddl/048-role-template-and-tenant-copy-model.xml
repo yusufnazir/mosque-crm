@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="048-role-template-and-tenant-copy-model" author="mosque-crm">
+        <comment>
+            Enable tenant-scoped role names and seed tenant copies of ADMIN and MEMBER
+            from global templates (mosque_id IS NULL).
+        </comment>
+
+        <sql>
+            ALTER TABLE roles DROP INDEX name;
+        </sql>
+
+        <addUniqueConstraint tableName="roles"
+                             columnNames="name,mosque_id"
+                             constraintName="uk_roles_name_mosque"/>
+
+        <!-- Mark global ADMIN/MEMBER as system templates -->
+        <sql>
+            UPDATE roles
+            SET is_system_role = TRUE
+            WHERE mosque_id IS NULL AND name IN ('ADMIN', 'MEMBER');
+        </sql>
+
+        <!-- Create tenant copies of template roles for existing mosques -->
+        <sql>
+            INSERT INTO roles (name, description, is_system_role, created_at, mosque_id)
+            SELECT gr.name, gr.description, FALSE, NOW(), m.id
+            FROM mosques m
+            JOIN roles gr
+              ON gr.mosque_id IS NULL
+             AND gr.name IN ('ADMIN', 'MEMBER')
+            LEFT JOIN roles tr
+              ON tr.mosque_id = m.id
+             AND tr.name = gr.name
+            WHERE tr.id IS NULL;
+        </sql>
+
+        <!-- Copy effective permissions from template roles to tenant copies -->
+        <sql>
+            INSERT IGNORE INTO role_permissions (role_id, permission_id, created_at)
+            SELECT tr.id, rp.permission_id, NOW()
+            FROM roles tr
+            JOIN roles gr
+              ON gr.name = tr.name
+             AND gr.mosque_id IS NULL
+            JOIN role_permissions rp
+              ON rp.role_id = gr.id
+            WHERE tr.mosque_id IS NOT NULL
+              AND tr.name IN ('ADMIN', 'MEMBER');
+        </sql>
+
+        <!-- Copy assignable permission pool from template roles to tenant copies -->
+        <sql>
+            INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id, created_at)
+            SELECT tr.id, rap.permission_id, NOW()
+            FROM roles tr
+            JOIN roles gr
+              ON gr.name = tr.name
+             AND gr.mosque_id IS NULL
+            JOIN role_assignable_permissions rap
+              ON rap.role_id = gr.id
+            WHERE tr.mosque_id IS NOT NULL
+              AND tr.name IN ('ADMIN', 'MEMBER');
+        </sql>
+
+        <!-- Move existing user assignments from global ADMIN/MEMBER to tenant copies -->
+        <sql>
+            INSERT IGNORE INTO user_roles (user_id, role_id, mosque_id, start_date, end_date)
+            SELECT ur.user_id,
+                   tr.id,
+                   COALESCE(ur.mosque_id, u.mosque_id),
+                   ur.start_date,
+                   ur.end_date
+            FROM user_roles ur
+            JOIN users u
+              ON u.id = ur.user_id
+            JOIN roles gr
+              ON gr.id = ur.role_id
+             AND gr.mosque_id IS NULL
+             AND gr.name IN ('ADMIN', 'MEMBER')
+            JOIN roles tr
+              ON tr.name = gr.name
+             AND tr.mosque_id = u.mosque_id
+            WHERE u.mosque_id IS NOT NULL;
+        </sql>
+
+        <sql>
+            DELETE ur
+            FROM user_roles ur
+            JOIN users u
+              ON u.id = ur.user_id
+            JOIN roles gr
+              ON gr.id = ur.role_id
+             AND gr.mosque_id IS NULL
+             AND gr.name IN ('ADMIN', 'MEMBER')
+            WHERE u.mosque_id IS NOT NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

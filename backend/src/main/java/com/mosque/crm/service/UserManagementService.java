@@ -18,6 +18,7 @@ import com.mosque.crm.entity.Mosque;
 import com.mosque.crm.entity.Person;
 import com.mosque.crm.entity.Role;
 import com.mosque.crm.entity.User;
+import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.MosqueRepository;
 import com.mosque.crm.repository.PasswordResetTokenRepository;
 import com.mosque.crm.repository.RoleRepository;
@@ -45,6 +46,7 @@ public class UserManagementService {
     private final UserPreferencesRepository userPreferencesRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final OrganizationSubscriptionService organizationSubscriptionService;
+    private final RoleGovernanceService roleGovernanceService;
 
     public UserManagementService(UserRepository userRepository,
                                   RoleRepository roleRepository,
@@ -53,7 +55,8 @@ public class UserManagementService {
                                   AuthorizationService authorizationService,
                                   UserPreferencesRepository userPreferencesRepository,
                                   PasswordResetTokenRepository passwordResetTokenRepository,
-                                  OrganizationSubscriptionService organizationSubscriptionService) {
+                                  OrganizationSubscriptionService organizationSubscriptionService,
+                                  RoleGovernanceService roleGovernanceService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.mosqueRepository = mosqueRepository;
@@ -62,6 +65,7 @@ public class UserManagementService {
         this.userPreferencesRepository = userPreferencesRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.organizationSubscriptionService = organizationSubscriptionService;
+        this.roleGovernanceService = roleGovernanceService;
     }
 
     /**
@@ -161,6 +165,12 @@ public class UserManagementService {
                 throw new IllegalArgumentException("Insufficient permissions to assign SUPER_ADMIN role");
             }
             Set<Role> roles = resolveRoles(request.getRoles());
+            // Rule C: verify each role is within actor's assignable-role pool
+            for (Role role : roles) {
+                if (!roleGovernanceService.canAssignRole(role)) {
+                    throw new IllegalArgumentException("You are not allowed to assign role: " + role.getName());
+                }
+            }
             user.setRoles(roles);
         }
 
@@ -179,6 +189,11 @@ public class UserManagementService {
         // Block editing super admin users unless requester has the permission
         if (isSuperAdminUser(user) && !canManageSuperAdmin()) {
             throw new IllegalArgumentException("Insufficient permissions to modify a super admin user");
+        }
+
+        // Rule D: verify actor can modify this user (all target roles ∈ actor's assignable roles)
+        if (!roleGovernanceService.canModifyUser(user)) {
+            throw new IllegalArgumentException("You do not have permission to modify this user's roles");
         }
 
         boolean isSelf = id.equals(getCurrentUserId());
@@ -231,8 +246,21 @@ public class UserManagementService {
                     throw new IllegalArgumentException("You cannot remove roles from your own account");
                 }
             }
-            Set<Role> roles = resolveRoles(request.getRoles());
-            user.setRoles(roles);
+            Set<Role> newRoles = resolveRoles(request.getRoles());
+            // Rule C: verify each newly added role is within actor's assignable-role pool
+            Set<Role> currentRoles = user.getRoles();
+            for (Role role : newRoles) {
+                if (!currentRoles.contains(role) && !roleGovernanceService.canAssignRole(role)) {
+                    throw new IllegalArgumentException("You are not allowed to assign role: " + role.getName());
+                }
+            }
+            // Rule E: verify each removed role is within actor's assignable-role pool
+            for (Role role : currentRoles) {
+                if (!newRoles.contains(role) && !roleGovernanceService.canRemoveRole(role)) {
+                    throw new IllegalArgumentException("You are not allowed to remove role: " + role.getName());
+                }
+            }
+            user.setRoles(newRoles);
             // Evict permission cache for this user since roles changed
             authorizationService.evictCache(id);
         }
@@ -255,6 +283,10 @@ public class UserManagementService {
         // Block deleting super admin users unless requester has the permission
         if (isSuperAdminUser(user) && !canManageSuperAdmin()) {
             throw new IllegalArgumentException("Insufficient permissions to delete a super admin user");
+        }
+        // Rule D: verify actor can modify this user (all target roles ∈ actor's assignable roles)
+        if (!roleGovernanceService.canModifyUser(user)) {
+            throw new IllegalArgumentException("You do not have permission to delete this user");
         }
         // Clean up related records that have FK constraints to users table
         userPreferencesRepository.deleteByUserId(id);
@@ -279,6 +311,10 @@ public class UserManagementService {
         if (isSuperAdminUser(user) && !canManageSuperAdmin()) {
             throw new IllegalArgumentException("Insufficient permissions to modify a super admin user");
         }
+        // Rule D: verify actor can modify this user
+        if (!roleGovernanceService.canModifyUser(user)) {
+            throw new IllegalArgumentException("You do not have permission to modify this user");
+        }
         user.setAccountEnabled(!user.isAccountEnabled());
         User saved = userRepository.save(user);
         log.info("Toggled enabled for user '{}' (id={}) → {}", saved.getUsername(), id, saved.isAccountEnabled());
@@ -286,11 +322,42 @@ public class UserManagementService {
     }
 
     private Set<Role> resolveRoles(List<String> roleNames) {
+        Long currentMosqueId = getCurrentMosqueId();
+        boolean canManageSuperAdmin = canManageSuperAdmin();
+
         Set<Role> roles = new HashSet<>();
         for (String name : roleNames) {
-            roleRepository.findByName(name).ifPresent(roles::add);
+            Role role = null;
+
+            if (currentMosqueId != null) {
+                role = roleRepository.findByNameAndMosqueId(name, currentMosqueId).orElse(null);
+            }
+
+            if (role == null) {
+                role = roleRepository.findByNameAndMosqueIdIsNull(name).orElse(null);
+            }
+
+            if (role == null) {
+                continue;
+            }
+
+            // Tenant admins cannot assign global roles (mosque_id NULL).
+            if (role.getMosqueId() == null && !canManageSuperAdmin) {
+                continue;
+            }
+
+            roles.add(role);
         }
         return roles;
+    }
+
+    private Long getCurrentMosqueId() {
+        Long mosqueId = TenantContext.getCurrentMosqueId();
+        if (mosqueId != null) {
+            return mosqueId;
+        }
+        User current = authorizationService.getCurrentUser();
+        return current != null ? current.getMosqueId() : null;
     }
 
     private UserListDTO toUserListDTO(User user, Long currentUserId) {
