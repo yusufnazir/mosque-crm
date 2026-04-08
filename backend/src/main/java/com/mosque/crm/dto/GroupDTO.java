@@ -16,7 +16,7 @@ public class GroupDTO {
     private LocalDate endDate;
     private Boolean isActive;
     private Long createdBy;
-    private Long mosqueId;
+    private Long organizationId;
     private LocalDateTime createdAt;
     private List<GroupTranslationDTO> translations;
     private Long memberCount;
@@ -80,12 +80,12 @@ public class GroupDTO {
         this.createdBy = createdBy;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public LocalDateTime getCreatedAt() {

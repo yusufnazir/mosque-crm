@@ -14,15 +14,15 @@ public class CurrentUserDTO {
     private Long id;
     private String username;
     private String email;
-    private Long mosqueId;
-    private String mosqueName;
+    private Long organizationId;
+    private String organizationName;
     private boolean superAdmin;
     private String personId;
     private List<String> permissions;
     private List<String> roles;
     private UserPreferencesDTO preferences;
-    private Long selectedMosqueId;
-    private String selectedMosqueName;
+    private Long selectedOrganizationId;
+    private String selectedOrganizationName;
     private boolean mustChangePassword;
 
     public CurrentUserDTO() {
@@ -53,20 +53,20 @@ public class CurrentUserDTO {
         this.email = email;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
-    public String getMosqueName() {
-        return mosqueName;
+    public String getOrganizationName() {
+        return organizationName;
     }
 
-    public void setMosqueName(String mosqueName) {
-        this.mosqueName = mosqueName;
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
     }
 
     public boolean isSuperAdmin() {
@@ -109,20 +109,20 @@ public class CurrentUserDTO {
         this.preferences = preferences;
     }
 
-    public Long getSelectedMosqueId() {
-        return selectedMosqueId;
+    public Long getSelectedOrganizationId() {
+        return selectedOrganizationId;
     }
 
-    public void setSelectedMosqueId(Long selectedMosqueId) {
-        this.selectedMosqueId = selectedMosqueId;
+    public void setSelectedOrganizationId(Long selectedOrganizationId) {
+        this.selectedOrganizationId = selectedOrganizationId;
     }
 
-    public String getSelectedMosqueName() {
-        return selectedMosqueName;
+    public String getSelectedOrganizationName() {
+        return selectedOrganizationName;
     }
 
-    public void setSelectedMosqueName(String selectedMosqueName) {
-        this.selectedMosqueName = selectedMosqueName;
+    public void setSelectedOrganizationName(String selectedOrganizationName) {
+        this.selectedOrganizationName = selectedOrganizationName;
     }
 
     public boolean isMustChangePassword() {

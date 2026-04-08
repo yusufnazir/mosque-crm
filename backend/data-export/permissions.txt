@@ -1,0 +1,42 @@
+﻿id	code	description	category	created_at	updated_at
+1	dashboard.view	View the main dashboard with statistics	dashboard	NULL	NULL
+2	member.view	View member list and details	member	NULL	NULL
+3	member.create	Create new members	member	NULL	NULL
+4	member.edit	Edit existing members	member	NULL	NULL
+5	member.delete	Delete members	member	NULL	NULL
+6	family.view	View family tree and relationships	family	NULL	NULL
+7	family.manage	Add and remove family relationships	family	NULL	NULL
+8	finance.view	View fees and payment information	finance	NULL	NULL
+9	finance.manage	Create and update fees, record payments	finance	NULL	NULL
+10	finance.export	Export financial data and reports	finance	NULL	NULL
+11	import.execute	Execute data imports (Excel etc.)	import	NULL	NULL
+12	settings.view	View system settings	settings	NULL	NULL
+13	settings.manage	Manage system settings and configuration	settings	NULL	NULL
+14	user.manage	Manage user accounts and role assignments	user	NULL	NULL
+15	profile.view	View own profile and family	profile	NULL	NULL
+16	profile.fees	View own fee status and payment history	profile	NULL	NULL
+17	contribution.view	View contribution types, obligations, and payments	contribution	NULL	NULL
+18	contribution.manage	Create and manage contribution types, obligations, and record payments	contribution	NULL	NULL
+19	user.view	View user accounts list	user	NULL	NULL
+20	superadmin.manage	View super admin users and assign SUPER_ADMIN role	superadmin	NULL	NULL
+21	currency.view	View currencies and exchange rates	currency	NULL	NULL
+22	currency.manage	Manage mosque currencies and exchange rates	currency	NULL	NULL
+23	organization.manage	Manage organizations (create, edit, deactivate)	organization	NULL	NULL
+24	privilege.view	View role and permission assignments	privilege	NULL	NULL
+25	privilege.manage	Manage role definitions and permission assignments	privilege	NULL	NULL
+26	contribution.reverse	Create reversal payments to negate existing payments	contribution	NULL	NULL
+27	contribution.edit_reversal	Edit existing reversal payments	contribution	NULL	NULL
+28	contribution.delete_reversal	Delete reversal payments	contribution	NULL	NULL
+29	contribution.create_payment	Create new payments	contribution	NULL	NULL
+30	contribution.edit_payment	Edit existing payments	contribution	NULL	NULL
+31	contribution.delete_payment	Delete payments	contribution	NULL	NULL
+32	contribution.manage_assignments	Manage member contribution assignments	contribution	NULL	NULL
+33	role.view	View roles and their assigned permissions	role	NULL	NULL
+34	role.manage	Create, edit, and delete roles and assign permissions to roles	role	NULL	NULL
+35	report.view	View and generate reports	report	NULL	NULL
+36	report.export	Export reports to Excel and PDF	report	NULL	NULL
+37	group.view	View groups and their details	group	NULL	NULL
+38	group.create	Create new groups	group	NULL	NULL
+39	group.edit	Edit existing groups	group	NULL	NULL
+40	group.delete	Delete groups	group	NULL	NULL
+41	group.manage_members	Add and remove members from groups	group	NULL	NULL

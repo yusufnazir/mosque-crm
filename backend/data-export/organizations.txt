@@ -1,0 +1,4 @@
+﻿id	name	short_name	address	city	postal_code	country	phone	email	website	active	created_at	updated_at	handle
+1	Moskee Baitur Rochim	BTR	NULL	Paramaribo	NULL	SR	NULL	NULL	NULL	1	NULL	NULL	NULL
+3	home	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	1	2026-04-01 13:40:21	2026-04-01 13:40:21	home
+4	Test Mosque Seq	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	1	2026-04-02 06:39:48	2026-04-02 06:39:48	test-seq-fix

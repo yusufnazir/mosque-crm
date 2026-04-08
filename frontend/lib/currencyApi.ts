@@ -10,7 +10,7 @@ export interface CurrencyDTO {
   decimalPlaces: number;
 }
 
-export interface MosqueCurrencyDTO {
+export interface OrganizationCurrencyDTO {
   id: number;
   currencyId: number;
   currencyCode: string;
@@ -22,7 +22,7 @@ export interface MosqueCurrencyDTO {
   createdAt: string;
 }
 
-export interface MosqueCurrencyCreateDTO {
+export interface OrganizationCurrencyCreateDTO {
   currencyId: number;
   isPrimary?: boolean;
   isActive?: boolean;
@@ -56,13 +56,13 @@ export const currencyApi = {
   getCurrencyById: (id: number) => ApiClient.get<CurrencyDTO>(`/currencies/${id}`),
   getCurrencyByCode: (code: string) => ApiClient.get<CurrencyDTO>(`/currencies/code/${code}`),
 
-  // Per-mosque currencies
-  getMosqueCurrencies: () => ApiClient.get<MosqueCurrencyDTO[]>('/mosque-currencies'),
-  getActiveMosqueCurrencies: () => ApiClient.get<MosqueCurrencyDTO[]>('/mosque-currencies/active'),
-  addMosqueCurrency: (data: MosqueCurrencyCreateDTO) => ApiClient.post<MosqueCurrencyDTO>('/mosque-currencies', data),
-  updateMosqueCurrency: (id: number, data: MosqueCurrencyCreateDTO) => ApiClient.put<MosqueCurrencyDTO>(`/mosque-currencies/${id}`, data),
-  setPrimaryCurrency: (id: number) => ApiClient.put<MosqueCurrencyDTO>(`/mosque-currencies/${id}/primary`, {}),
-  removeMosqueCurrency: (id: number) => ApiClient.delete(`/mosque-currencies/${id}`),
+  // Per-organization currencies
+  getOrganizationCurrencies: () => ApiClient.get<OrganizationCurrencyDTO[]>('/organization-currencies'),
+  getActiveOrganizationCurrencies: () => ApiClient.get<OrganizationCurrencyDTO[]>('/organization-currencies/active'),
+  addOrganizationCurrency: (data: OrganizationCurrencyCreateDTO) => ApiClient.post<OrganizationCurrencyDTO>('/organization-currencies', data),
+  updateOrganizationCurrency: (id: number, data: OrganizationCurrencyCreateDTO) => ApiClient.put<OrganizationCurrencyDTO>(`/organization-currencies/${id}`, data),
+  setPrimaryCurrency: (id: number) => ApiClient.put<OrganizationCurrencyDTO>(`/organization-currencies/${id}/primary`, {}),
+  removeOrganizationCurrency: (id: number) => ApiClient.delete(`/organization-currencies/${id}`),
 
   // Exchange rates
   getExchangeRates: () => ApiClient.get<ExchangeRateDTO[]>('/exchange-rates'),

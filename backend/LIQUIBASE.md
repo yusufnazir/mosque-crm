@@ -246,8 +246,10 @@ File: `001-create-members-table.xml`
 ### DDL Rules
 
 ✅ **DO:**
-- Use UUID for changeset ID (consistency across all changesets)
-- Add `<preConditions>` with `onFail="MARK_RAN"` to skip if table exists
+- Use UUID-version format for changeset IDs (e.g., `550e8400-e29b-41d4-a716-446655440000-1`)
+- **Create table**: add `<preConditions onFail="MARK_RAN">` with `<not><tableExists .../></not>` — skip silently if the table already exists
+- **Add column**: add `<preConditions onFail="MARK_RAN">` with `<not><columnExists .../></not>` — skip silently if the column already exists
+- **Modify column**: add `<preConditions onFail="MARK_RAN">` with `<columnExists .../>` — skip silently if the column does not exist
 - Define all constraints inline with columns (except foreign keys — see below)
 - Use appropriate data types (BIGINT for IDs, VARCHAR for text, etc.)
 - Add non-FK indexes in the table file (e.g., `idx_donation_date`, `idx_resettoken_token`)
@@ -259,7 +261,7 @@ File: `001-create-members-table.xml`
 - Don't change DDL changesets after deployment to production
 - Don't use sequential IDs like "001", "002" (use UUIDs)
 - Don't forget `autoIncrement="true"` on primary key IDs
-- Don't create tables without preconditions (causes errors on re-run)
+- Don't create tables, add columns, or modify columns without preconditions (causes errors on re-run)
 - **Don't add `addForeignKeyConstraint` in individual table files** — see Foreign Key Separation below
 
 ### Foreign Key Separation Convention
@@ -324,8 +326,15 @@ Group FK constraints by domain with XML comments:
 ### Common DDL Operations
 
 #### Add Column
+Always add a precondition to check that the column does **not** already exist. Use `onFail="MARK_RAN"` so the changeset is silently skipped if the column is already present.
+
 ```xml
-<changeSet id="550e8400-e29b-41d4-a716-446655440000" author="dev">
+<changeSet id="550e8400-e29b-41d4-a716-446655440000-1" author="dev">
+    <preConditions onFail="MARK_RAN">
+        <not>
+            <columnExists tableName="members" columnName="middle_name"/>
+        </not>
+    </preConditions>
     <addColumn tableName="members">
         <column name="middle_name" type="VARCHAR(100)"/>
     </addColumn>
@@ -333,10 +342,15 @@ Group FK constraints by domain with XML comments:
 ```
 
 #### Modify Column Type
+Always add a precondition to check that the column **exists** before modifying it. Use `onFail="MARK_RAN"` so the changeset is silently skipped if the column is not present.
+
 ```xml
-<changeSet id="550e8400-e29b-41d4-a716-446655440001" author="dev">
-    <modifyDataType tableName="members" 
-                     columnName="phone" 
+<changeSet id="550e8400-e29b-41d4-a716-446655440001-1" author="dev">
+    <preConditions onFail="MARK_RAN">
+        <columnExists tableName="members" columnName="phone"/>
+    </preConditions>
+    <modifyDataType tableName="members"
+                     columnName="phone"
                      newDataType="VARCHAR(30)"/>
 </changeSet>
 ```
@@ -427,6 +441,38 @@ Insert and update seed/reference/test data with automatic UPSERT logic.
 - Simpler to add/remove data for individual entities
 
 ## Key Concept: UUID-Based Changeset IDs
+
+### Changeset ID Format
+
+**Format:** `<uuid>-<version>`
+
+Every changeset ID in this project is a UUID followed by a hyphen and a version number:
+
+```
+550e8400-e29b-41d4-a716-446655440000-1
+└─────────────────────────────────┘ └┘
+              UUID                  version
+```
+
+**Rules:**
+- The UUID part is a standard UUID v4 (randomly generated)
+- The version number starts at `1` and increments each time the changeset needs to re-run
+- The same UUID base is reused across versions — only the version suffix changes
+- This makes the intent clear: same UUID = same logical change, different version = updated data
+
+**Examples:**
+```xml
+<!-- Initial changeset: version 1 -->
+<changeSet id="550e8400-e29b-41d4-a716-446655440000-1" author="mosque-crm">
+
+<!-- Updated data: bump to version 2 (same UUID, new suffix) -->
+<changeSet id="550e8400-e29b-41d4-a716-446655440000-2" author="mosque-crm">
+
+<!-- A different logical change uses a different UUID, starting at version 1 -->
+<changeSet id="a3f5c8e1-4b2d-4c9f-8a7e-1d2e3f4a5b6c-1" author="mosque-crm">
+```
+
+---
 
 ### Traditional Liquibase Problem
 Standard Liquibase changesets run once and are tracked by their ID. Once executed, they never run again. This makes it difficult to update seed/test data.

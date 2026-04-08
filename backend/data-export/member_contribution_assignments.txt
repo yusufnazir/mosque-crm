@@ -1,0 +1,2 @@
+﻿id	person_id	contribution_type_id	start_date	end_date	is_active	notes	mosque_id	created_at
+1001	1228	1001	2026-01-01	NULL	1	NULL	1	2026-02-26 16:14:52

@@ -57,10 +57,12 @@ export default function RolesPage() {
         ApiClient.get<RoleDTO[]>('/admin/roles'),
         ApiClient.get<PermissionDTO[]>('/admin/roles/permissions'),
       ]);
-      setRoles(rolesData);
-      setPermissions(permsData);
-      if (rolesData.length > 0 && selectedRoleId === null) {
-        const first = rolesData[0];
+      const safeRoles = Array.isArray(rolesData) ? rolesData : [];
+      const safePerms = Array.isArray(permsData) ? permsData : [];
+      setRoles(safeRoles);
+      setPermissions(safePerms);
+      if (safeRoles.length > 0 && selectedRoleId === null) {
+        const first = safeRoles[0];
         setSelectedRoleId(first.id);
         setEditPermissions(new Set(first.permissionCodes));
       }

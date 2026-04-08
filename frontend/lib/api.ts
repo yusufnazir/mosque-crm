@@ -1,6 +1,42 @@
 import { RelationshipResponse, PersonSearchResult } from '../types';
 
 /**
+ * Returned instead of throwing when the backend rejects a request due to
+ * plan entitlement / limit restrictions.  Callers can check with
+ * `isPlanRestriction(result)` before using the data.
+ */
+export interface PlanRestriction {
+  __planRestriction: true;
+  code: 'PLAN_ENTITLEMENT_REQUIRED' | 'PLAN_LIMIT_EXCEEDED';
+  featureKey?: string;
+  message: string;
+  limit?: number;
+  current?: number;
+}
+
+export function isPlanRestriction(value: unknown): value is PlanRestriction {
+  return typeof value === 'object' && value !== null && (value as any).__planRestriction === true;
+}
+
+/**
+ * Returned when the backend responds with 402 because the tenant's
+ * subscription is inactive (canceled, expired, or missing).
+ * The SubscriptionContext listens for this via a custom event.
+ */
+export interface SubscriptionInactive {
+  __subscriptionInactive: true;
+  code: string;
+  message: string;
+}
+
+export function isSubscriptionInactive(value: unknown): value is SubscriptionInactive {
+  return typeof value === 'object' && value !== null && (value as any).__subscriptionInactive === true;
+}
+
+/** Custom event fired when a 402 is received so the layout can show the overlay */
+export const SUBSCRIPTION_INACTIVE_EVENT = 'subscription:inactive';
+
+/**
  * BFF API Client.
  *
  * All requests go to /api/* on the SAME ORIGIN (Next.js server).
@@ -16,10 +52,10 @@ const API_BASE_URL = '/api';
 
 export class ApiClient {
   private static getHeaders(): HeadersInit {
-    const mosqueId = typeof window !== 'undefined' ? localStorage.getItem('selectedMosqueId') : null;
+    const organizationId = typeof window !== 'undefined' ? localStorage.getItem('selectedOrganizationId') : null;
     return {
       'Content-Type': 'application/json',
-      ...(mosqueId ? { 'X-Mosque-Id': mosqueId } : {}),
+      ...(organizationId ? { 'X-Organization-Id': organizationId } : {}),
     };
   }
 
@@ -34,6 +70,47 @@ export class ApiClient {
           }, 100);
         }
         throw new Error('Authentication required. Please login again.');
+      }
+
+      // 402 = subscription inactive (canceled, expired, or missing)
+      if (response.status === 402) {
+        const errorText = await response.text();
+        let code = 'SUBSCRIPTION_INACTIVE';
+        let message = 'Your subscription is inactive.';
+        try {
+          const body = JSON.parse(errorText);
+          code = body.code || code;
+          message = body.message || message;
+        } catch { /* not JSON */ }
+        // Fire a global event so the layout can show the blocking overlay
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent(SUBSCRIPTION_INACTIVE_EVENT, { detail: { code, message } }));
+        }
+        return {
+          __subscriptionInactive: true,
+          code,
+          message,
+        } as unknown as T;
+      }
+
+      if (response.status === 403) {
+        const errorText = await response.text();
+        try {
+          const body = JSON.parse(errorText);
+          if (body.code === 'PLAN_ENTITLEMENT_REQUIRED' || body.code === 'PLAN_LIMIT_EXCEEDED') {
+            return {
+              __planRestriction: true,
+              code: body.code,
+              featureKey: body.featureKey,
+              message: body.message || 'Feature not available on your plan',
+              ...(body.limit !== undefined ? { limit: body.limit } : {}),
+              ...(body.current !== undefined ? { current: body.current } : {}),
+            } as unknown as T;
+          }
+        } catch {
+          // not JSON, fall through
+        }
+        throw new Error(errorText || 'Access denied');
       }
 
       if (response.status === 404) {
@@ -110,18 +187,35 @@ export class ApiClient {
    * Do NOT set Content-Type — the browser will generate the boundary automatically.
    */
   static async uploadFile<T>(endpoint: string, file: File, fieldName = 'file'): Promise<T> {
-    const mosqueId = typeof window !== 'undefined' ? localStorage.getItem('selectedMosqueId') : null;
+    const organizationId = typeof window !== 'undefined' ? localStorage.getItem('selectedOrganizationId') : null;
     const formData = new FormData();
     formData.append(fieldName, file);
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
-        ...(mosqueId ? { 'X-Mosque-Id': mosqueId } : {}),
+        ...(organizationId ? { 'X-Organization-Id': organizationId } : {}),
       },
       body: formData,
     });
     return this.handleResponse<T>(response);
+  }
+
+  /**
+   * Fetch a binary resource (e.g. PDF) and return it as a Blob.
+   */
+  static async getBlob(endpoint: string): Promise<Blob> {
+    const organizationId = typeof window !== 'undefined' ? localStorage.getItem('selectedOrganizationId') : null;
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'GET',
+      headers: {
+        ...(organizationId ? { 'X-Organization-Id': organizationId } : {}),
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: failed to download file`);
+    }
+    return response.blob();
   }
 }
 
@@ -332,22 +426,67 @@ export interface SubscriptionPlanDTO {
 
 export interface OrganizationSubscriptionDTO {
   id: number;
-  mosqueId: number;
+  organizationId: number;
   plan: SubscriptionPlanDTO;
   status: string;
   billingCycle: string;
   startsAt: string;
   endsAt: string | null;
   canceledAt: string | null;
+  nextDueDate: string | null;
+  graceEndDate: string | null;
+  readOnlyDate: string | null;
+  lockDate: string | null;
+  lastPaymentDate: string | null;
+  billingEnabled?: boolean;
+}
+
+export interface SubscriptionInvoiceDTO {
+  id: number;
+  organizationId: number;
+  organizationName?: string;
+  subscriptionId: number;
+  planName?: string;
+  amount: number;
+  currency: string;
+  issueDate: string;
+  dueDate: string;
+  periodStart: string;
+  periodEnd: string;
+  status: 'PENDING' | 'PAID' | 'OVERDUE';
+  paidAt: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubscriptionPaymentDTO {
+  id: number;
+  organizationId: number;
+  invoiceId: number;
+  amount: number;
+  currency: string;
+  paymentDate: string;
+  paymentMethod: string | null;
+  reference: string | null;
+  createdAt: string;
+}
+
+export interface RecordSubscriptionPaymentRequest {
+  amount: number;
+  currency?: string;
+  paymentMethod?: string;
+  reference?: string;
 }
 
 export interface CreateSubscriptionRequest {
-  mosqueId: number;
+  organizationId: number;
   planCode: string;
   billingCycle: string;
   startsAt?: string;
   endsAt?: string;
   autoRenew?: boolean;
+  billingEnabled?: boolean;
 }
 
 export interface CreateSubscriptionPlanEntitlementInput {
@@ -404,18 +543,41 @@ export const subscriptionApi = {
     ApiClient.put(`/admin/subscription/plans/${code}/deactivate`, {}),
   assign: (data: CreateSubscriptionRequest): Promise<OrganizationSubscriptionDTO> =>
     ApiClient.post('/admin/subscription', data),
-  assignSimple: (data: { mosqueId: number; planCode: string; billingCycle?: 'MONTHLY' | 'YEARLY' }): Promise<OrganizationSubscriptionDTO> =>
+  assignSimple: (data: { organizationId: number; planCode: string; billingCycle?: 'MONTHLY' | 'YEARLY' }): Promise<OrganizationSubscriptionDTO> =>
     ApiClient.post('/admin/subscription', {
-      mosqueId: data.mosqueId,
+      organizationId: data.organizationId,
       planCode: data.planCode,
       billingCycle: data.billingCycle ?? 'MONTHLY',
       autoRenew: true,
     }),
   changePlan: (data: ChangeSubscriptionPlanRequest): Promise<ChangeSubscriptionPlanResultDTO> =>
     ApiClient.post('/subscription/change-plan', data),
+  choosePlan: (data: ChangeSubscriptionPlanRequest): Promise<OrganizationSubscriptionDTO> =>
+    ApiClient.post('/subscription/choose-plan', data),
   previewPlanChange: (data: ChangeSubscriptionPlanRequest): Promise<ChangeSubscriptionPlanResultDTO> =>
     ApiClient.post('/subscription/change-plan/preview', data),
   updateStatus: (id: number, status: string): Promise<OrganizationSubscriptionDTO> =>
     ApiClient.put(`/admin/subscription/${id}/status`, { status }),
+  updateBillingEnabled: (id: number, billingEnabled: boolean): Promise<OrganizationSubscriptionDTO> =>
+    ApiClient.patch(`/admin/subscription/${id}/billing-enabled`, { billingEnabled }),
+  getInvoices: (): Promise<SubscriptionInvoiceDTO[]> =>
+    ApiClient.get('/subscription/invoices'),
+  getInvoice: (id: number): Promise<SubscriptionInvoiceDTO> =>
+    ApiClient.get(`/subscription/invoices/${id}`),
+  downloadInvoicePdf: async (id: number): Promise<void> => {
+    const blob = await ApiClient.getBlob(`/subscription/invoices/${id}/pdf`);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice-${id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+  recordPayment: (invoiceId: number, data: RecordSubscriptionPaymentRequest): Promise<SubscriptionPaymentDTO> =>
+    ApiClient.post(`/admin/subscription/invoices/${invoiceId}/payment`, data),
+  deleteInvoice: (invoiceId: number): Promise<void> =>
+    ApiClient.delete(`/admin/subscription/invoices/${invoiceId}`),
 };
 

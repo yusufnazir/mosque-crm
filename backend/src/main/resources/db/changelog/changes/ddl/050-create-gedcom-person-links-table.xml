@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000004-0050-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="gedcom_person_links"/></not>
+        </preConditions>
+        <comment>Create gedcom_person_links table (optional bridge: persons ↔ GEDCOM individuals)</comment>
+        <createTable tableName="gedcom_person_links">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_gedcom_person_links_person"/>
+            </column>
+            <column name="gedcom_individual_id" type="VARCHAR(20)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_gedcom_person_links_individual"/>
+            </column>
+            <column name="linked_by" type="VARCHAR(100)"/>
+            <column name="link_reason" type="VARCHAR(500)"/>
+            <column name="linked_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

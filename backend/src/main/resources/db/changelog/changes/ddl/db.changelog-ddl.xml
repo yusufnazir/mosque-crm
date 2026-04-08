@@ -5,105 +5,88 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <include file="db/changelog/changes/ddl/create-table-sequence.xml"/>
+    <!-- ======================== UTILITY ======================== -->
+    <include file="db/changelog/changes/ddl/000-create-sequences-table.xml"/>
+    <include file="db/changelog/changes/ddl/001-create-organizations-table.xml"/>
 
-    <!-- GEDCOM Tables -->
-    <include file="db/changelog/changes/ddl/002-create-membership-fees-table.xml"/>
-    <include file="db/changelog/changes/ddl/003-create-gedcom-individuals.xml"/>
-    <include file="db/changelog/changes/ddl/004-create-gedcom-families.xml"/>
-    <include file="db/changelog/changes/ddl/005-create-gedcom-family-children.xml"/>
-    <include file="db/changelog/changes/ddl/006-create-gedcom-events.xml"/>
-    <include file="db/changelog/changes/ddl/007-create-gedcom-event-participants.xml"/>
-    <include file="db/changelog/changes/ddl/008-create-gedcom-sources.xml"/>
-    <include file="db/changelog/changes/ddl/009-create-gedcom-citations.xml"/>
-    <include file="db/changelog/changes/ddl/010-create-gedcom-notes.xml"/>
-    <include file="db/changelog/changes/ddl/011-create-gedcom-note-links.xml"/>
-    <include file="db/changelog/changes/ddl/012-create-gedcom-media.xml"/>
-    
-
-
-    <!-- Security Tables -->
+    <!-- ======================== SECURITY ======================== -->
     <include file="db/changelog/changes/ddl/010-create-users-table.xml"/>
     <include file="db/changelog/changes/ddl/011-create-roles-table.xml"/>
     <include file="db/changelog/changes/ddl/012-create-user-roles-table.xml"/>
-    <include file="db/changelog/changes/ddl/016-create-persons-table.xml"/>
-    <include file="db/changelog/changes/ddl/013-create-user-member-link-table.xml"/>
-    <include file="db/changelog/changes/ddl/007-create-user-preferences-table.xml"/>
-    <include file="db/changelog/changes/ddl/008-create-password-reset-tokens-table.xml"/>
-    <include file="db/changelog/changes/ddl/009-create-configurations-table.xml"/>
+    <include file="db/changelog/changes/ddl/013-create-permissions-table.xml"/>
+    <include file="db/changelog/changes/ddl/014-create-role-permissions-table.xml"/>
+    <include file="db/changelog/changes/ddl/015-create-role-assignable-permissions-table.xml"/>
+    <include file="db/changelog/changes/ddl/016-create-role-assignable-roles-table.xml"/>
+    <include file="db/changelog/changes/ddl/017-create-role-templates-table.xml"/>
+    <include file="db/changelog/changes/ddl/018-create-role-template-permissions-table.xml"/>
+    <include file="db/changelog/changes/ddl/019-create-role-template-assignable-permissions-table.xml"/>
+    <include file="db/changelog/changes/ddl/020-create-role-template-assignable-roles-table.xml"/>
+    <include file="db/changelog/changes/ddl/021-create-password-reset-tokens-table.xml"/>
+    <include file="db/changelog/changes/ddl/022-create-user-preferences-table.xml"/>
 
-    <!-- Person-Centric Architecture Tables -->
-    <include file="db/changelog/changes/ddl/017-create-memberships-table.xml"/>
-    <include file="db/changelog/changes/ddl/018-create-subscriptions-table.xml"/>
-    <include file="db/changelog/changes/ddl/019-create-donations-table.xml"/>
-    <include file="db/changelog/changes/ddl/020-create-gedcom-person-links-table.xml"/>
+    <!-- ======================== CRM / PERSON ======================== -->
+    <include file="db/changelog/changes/ddl/030-create-persons-table.xml"/>
+    <include file="db/changelog/changes/ddl/031-create-user-member-link-table.xml"/>
+    <include file="db/changelog/changes/ddl/032-create-memberships-table.xml"/>
 
-    <!-- Authorization Tables -->
-    <include file="db/changelog/changes/ddl/021-create-permissions-table.xml"/>
-    <include file="db/changelog/changes/ddl/022-create-role-permissions-table.xml"/>
-    <include file="db/changelog/changes/ddl/032-create-role-assignable-permissions-table.xml"/>
+    <!-- ======================== GEDCOM ======================== -->
+    <include file="db/changelog/changes/ddl/040-create-gedcom-individuals-table.xml"/>
+    <include file="db/changelog/changes/ddl/041-create-gedcom-families-table.xml"/>
+    <include file="db/changelog/changes/ddl/042-create-gedcom-family-children-table.xml"/>
+    <include file="db/changelog/changes/ddl/043-create-gedcom-events-table.xml"/>
+    <include file="db/changelog/changes/ddl/044-create-gedcom-event-participants-table.xml"/>
+    <include file="db/changelog/changes/ddl/045-create-gedcom-sources-table.xml"/>
+    <include file="db/changelog/changes/ddl/046-create-gedcom-citations-table.xml"/>
+    <include file="db/changelog/changes/ddl/047-create-gedcom-notes-table.xml"/>
+    <include file="db/changelog/changes/ddl/048-create-gedcom-note-links-table.xml"/>
+    <include file="db/changelog/changes/ddl/049-create-gedcom-media-table.xml"/>
+    <include file="db/changelog/changes/ddl/050-create-gedcom-person-links-table.xml"/>
 
-    <!-- Multi-Mosque Tables -->
-    <include file="db/changelog/changes/ddl/024-create-mosques-table.xml"/>
+    <!-- ======================== FINANCE ======================== -->
+    <include file="db/changelog/changes/ddl/060-create-currencies-table.xml"/>
+    <include file="db/changelog/changes/ddl/061-create-contribution-types-table.xml"/>
+    <include file="db/changelog/changes/ddl/062-create-contribution-type-translations-table.xml"/>
+    <include file="db/changelog/changes/ddl/063-create-contribution-obligations-table.xml"/>
+    <include file="db/changelog/changes/ddl/064-create-member-payments-table.xml"/>
+    <include file="db/changelog/changes/ddl/065-create-member-contribution-assignments-table.xml"/>
+    <include file="db/changelog/changes/ddl/066-create-member-contribution-exemptions-table.xml"/>
+    <include file="db/changelog/changes/ddl/067-create-donations-table.xml"/>
+    <include file="db/changelog/changes/ddl/068-create-organization-currencies-table.xml"/>
+    <include file="db/changelog/changes/ddl/069-create-exchange-rates-table.xml"/>
 
-    <!-- Contributions & Payments Tables -->
-    <include file="db/changelog/changes/ddl/025-create-contribution-types-table.xml"/>
-    <include file="db/changelog/changes/ddl/026-create-contribution-type-translations-table.xml"/>
-    <include file="db/changelog/changes/ddl/027-create-contribution-obligations-table.xml"/>
-    <include file="db/changelog/changes/ddl/028-create-member-payments-table.xml"/>
-    <include file="db/changelog/changes/ddl/033-add-period-columns-to-member-payments.xml"/>
-    <include file="db/changelog/changes/ddl/034-create-member-contribution-exemptions-table.xml"/>
-    <include file="db/changelog/changes/ddl/035-add-reversal-columns-to-member-payments.xml"/>
+    <!-- ======================== GROUPS ======================== -->
+    <include file="db/changelog/changes/ddl/070-create-groups-table.xml"/>
+    <include file="db/changelog/changes/ddl/071-create-group-translations-table.xml"/>
+    <include file="db/changelog/changes/ddl/072-create-group-roles-table.xml"/>
+    <include file="db/changelog/changes/ddl/073-create-group-role-translations-table.xml"/>
+    <include file="db/changelog/changes/ddl/074-create-group-members-table.xml"/>
 
-    <!-- Currency & Exchange Rate Tables -->
-    <include file="db/changelog/changes/ddl/029-create-currencies-table.xml"/>
-    <include file="db/changelog/changes/ddl/030-create-mosque-currencies-table.xml"/>
-    <include file="db/changelog/changes/ddl/031-create-exchange-rates-table.xml"/>
+    <!-- ======================== DISTRIBUTION ======================== -->
+    <include file="db/changelog/changes/ddl/080-create-distribution-events-table.xml"/>
+    <include file="db/changelog/changes/ddl/081-create-parcel-categories-table.xml"/>
+    <include file="db/changelog/changes/ddl/082-create-non-member-recipients-table.xml"/>
+    <include file="db/changelog/changes/ddl/083-create-member-distribution-registrations-table.xml"/>
+    <include file="db/changelog/changes/ddl/084-create-parcel-distributions-table.xml"/>
 
-    <!-- Member Contribution Assignments -->
-    <include file="db/changelog/changes/ddl/037-create-member-contribution-assignments-table.xml"/>
+    <!-- ======================== SETTINGS ======================== -->
+    <include file="db/changelog/changes/ddl/090-create-configurations-table.xml"/>
+    <include file="db/changelog/changes/ddl/091-create-tenant-setting-fields-table.xml"/>
 
-    <!-- User account enhancements -->
-    <include file="db/changelog/changes/ddl/036-add-must-change-password-to-users.xml"/>
+    <!-- ======================== SUBSCRIPTION ======================== -->
+    <include file="db/changelog/changes/ddl/100-create-subscription-plans-table.xml"/>
+    <include file="db/changelog/changes/ddl/101-create-plan-entitlements-table.xml"/>
+    <include file="db/changelog/changes/ddl/102-create-organization-subscriptions-table.xml"/>
+    <include file="db/changelog/changes/ddl/103-add-billing-columns-to-subscriptions.xml"/>
+    <include file="db/changelog/changes/ddl/104-create-subscription-invoices-table.xml"/>
+    <include file="db/changelog/changes/ddl/105-create-subscription-payments-table.xml"/>
+    <include file="db/changelog/changes/ddl/106-add-billing-enabled-to-subscription-plans.xml"/>
+    <include file="db/changelog/changes/ddl/107-fix-configurations-unique-constraint.xml"/>
 
-    <!-- Data integrity fixes -->
-    <include file="db/changelog/changes/ddl/038-fix-user-member-link-unique-constraints.xml"/>
+    <!-- ======================== DOCUMENT MANAGEMENT ======================== -->
+    <include file="db/changelog/changes/ddl/110-add-payment-group-id-column.xml"/>
+    <include file="db/changelog/changes/ddl/111-create-payment-documents-table.xml"/>
 
-    <!-- Groups feature -->
-    <include file="db/changelog/changes/ddl/039-create-groups-table.xml"/>
-    <include file="db/changelog/changes/ddl/040-create-group-translations-table.xml"/>
-    <include file="db/changelog/changes/ddl/041-create-group-roles-table.xml"/>
-
-    <!-- Profile image storage -->
-    <include file="db/changelog/changes/ddl/042-add-profile-image-key-to-persons.xml"/>
-
-    <!-- ID number field on persons -->
-    <include file="db/changelog/changes/ddl/043-add-id-number-to-persons.xml"/>
-
-    <!-- Subscription plans and entitlements -->
-    <include file="db/changelog/changes/ddl/044-create-subscription-plans-table.xml"/>
-    <include file="db/changelog/changes/ddl/045-create-plan-entitlements-table.xml"/>
-    <include file="db/changelog/changes/ddl/046-create-organization-subscriptions-table.xml"/>
-    <include file="db/changelog/changes/ddl/047-add-mosque-id-to-roles.xml"/>
-    <include file="db/changelog/changes/ddl/048-role-template-and-tenant-copy-model.xml"/>
-
-    <!-- Role Templates master table -->
-    <include file="db/changelog/changes/ddl/049-create-role-templates.xml"/>
-
-    <!-- Role Assignable Roles (governance / delegation) -->
-    <include file="db/changelog/changes/ddl/050-create-role-assignable-roles.xml"/>
-
-    <!-- Eid ul-Adha Distribution Tables -->
-    <include file="db/changelog/changes/ddl/051-create-distribution-events-table.xml"/>
-    <include file="db/changelog/changes/ddl/052-create-parcel-categories-table.xml"/>
-    <include file="db/changelog/changes/ddl/053-create-non-member-recipients-table.xml"/>
-    <include file="db/changelog/changes/ddl/054-create-member-distribution-registrations-table.xml"/>
-    <include file="db/changelog/changes/ddl/055-create-parcel-distributions-table.xml"/>
-    <include file="db/changelog/changes/ddl/056-add-event-type-to-distribution-events.xml"/>
-    <include file="db/changelog/changes/ddl/057-add-capacity-to-distribution-events.xml"/>
-    <include file="db/changelog/changes/ddl/058-add-non-member-allocation-to-parcel-categories.xml"/>
-
-    <!-- Foreign Key Constraints (loaded LAST, after all tables exist) -->
+    <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>
 
 </databaseChangeLog>

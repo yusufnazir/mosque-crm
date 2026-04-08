@@ -293,103 +293,6 @@
 	</changeSet>
 
 	<!-- ═══════════════════════════════════════════════════════════
-	     TREASURER (role_id=3) → dashboard, member.view, finance.*, contribution.*
-	     ═══════════════════════════════════════════════════════════ -->
-	<changeSet id="011b8ab1-eab4-4bb0-afd9-354668637a4e" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[1]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="9761b12f-0b52-43c0-be68-7663f206f95c" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[2]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="c87e67df-5c0b-4359-abf3-8def56ca8d47" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[8]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="caeadd91-77ae-428f-9b60-d4fcb2c32990" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[9]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="3b6f0b90-313f-405e-a711-a53436ec0eef" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[10]]></param>
-		</customChange>
-	</changeSet>
-
-	<changeSet id="c5d6e7f8-3456-4cde-1f02-contribution03" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[17]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="d6e7f8a9-4567-4def-2a13-contribution04" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[18]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="e3f4a5b6-0034-4aaa-bbbb-treas0curv21" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[21]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="f4a5b6c7-0034-4aaa-bbbb-treas0curm22" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[22]]></param>
-		</customChange>
-	</changeSet>
-	<!-- contribution.reverse (26), contribution.edit_reversal (27), contribution.delete_reversal (28) -->
-	<changeSet id="a6b7c8d9-0036-4aaa-bbbb-treas0rev26" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[26]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="b7c8d9e0-0036-4aaa-bbbb-treas0rev27" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[27]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="c8d9e0f1-0036-4aaa-bbbb-treas0rev28" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[28]]></param>
-		</customChange>
-	</changeSet>
-	<!-- contribution.create_payment (29) — edit_payment (30) and delete_payment (31) are NOT granted by default -->
-	<changeSet id="d9e0f1a2-0037-4aaa-bbbb-treas0pay29" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[29]]></param>
-		</customChange>
-	</changeSet>
-	<!-- contribution.manage_assignments (32) -->
-	<changeSet id="e0f1a2b3-0038-4aaa-bbbb-treas0asg32" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[32]]></param>
-		</customChange>
-	</changeSet>
-
-	<!-- ═══════════════════════════════════════════════════════════
-	     IMAM (role_id=4) → dashboard, member.view, family.view
-	     ═══════════════════════════════════════════════════════════ -->
-	<changeSet id="ecbaba55-19dc-4d93-9702-404a2cf372c1" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[4]]></param><param name="permissionId"><![CDATA[1]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="683241b4-8008-41d5-8a49-da09b3b13159" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[4]]></param><param name="permissionId"><![CDATA[2]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="4d161211-f27b-43c0-a22d-e567c9e36bba" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[4]]></param><param name="permissionId"><![CDATA[6]]></param>
-		</customChange>
-	</changeSet>
-
-	<!-- ═══════════════════════════════════════════════════════════
 	     DISTRIBUTION PERMISSIONS
 	     ═══════════════════════════════════════════════════════════ -->
 
@@ -415,22 +318,27 @@
 		</customChange>
 	</changeSet>
 
-	<!-- TREASURER (role_id=3) → distribution.view (55), distribution.distribute (57) -->
-	<changeSet id="d4e5f6a7-dist-role-0004-treas-view-055" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[55]]></param>
-		</customChange>
-	</changeSet>
-	<changeSet id="e5f6a7b8-dist-role-0005-treas-dist-057" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[3]]></param><param name="permissionId"><![CDATA[57]]></param>
-		</customChange>
-	</changeSet>
+	<!-- ═══════════════════════════════════════════════════════════
+	     BILLING PERMISSIONS — billing.view (61), billing.manage (62)
+	     ADMIN gets both; MEMBER gets billing.view to see own invoices
+	     ═══════════════════════════════════════════════════════════ -->
 
-	<!-- IMAM (role_id=4) → distribution.view (55) -->
-	<changeSet id="f6a7b8c9-dist-role-0006-imam-view-055" author="mosque-crm">
+	<!-- ADMIN (role_id=1) → billing.view (61) -->
+	<changeSet id="e5f6a7b8-billing-role-0001-admin-view-061" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
-			<param name="roleId"><![CDATA[4]]></param><param name="permissionId"><![CDATA[55]]></param>
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[61]]></param>
+		</customChange>
+	</changeSet>
+	<!-- ADMIN (role_id=1) → billing.manage (62) -->
+	<changeSet id="f6a7b8c9-billing-role-0002-admin-manage-062" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[62]]></param>
+		</customChange>
+	</changeSet>
+	<!-- MEMBER (role_id=2) → billing.view (61) to see own invoices -->
+	<changeSet id="a7b8c9d0-billing-role-0003-member-view-061" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[61]]></param>
 		</customChange>
 	</changeSet>
 

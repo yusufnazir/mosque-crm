@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.Filter;
 
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,10 +29,10 @@ import lombok.Data;
  */
 @Entity
 @Table(name = "gedcom_notes")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
 @Data
-public class Note implements MosqueAware {
+public class Note implements OrganizationAware {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,17 +47,17 @@ public class Note implements MosqueAware {
     @Column(name = "created_by", length = 100)
     private String createdBy;  // User who created the note
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     @PrePersist

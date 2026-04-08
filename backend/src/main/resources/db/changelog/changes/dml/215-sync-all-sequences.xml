@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Runs on EVERY startup. For each Hibernate TableGenerator sequence in the
+         sequences_ table, ensures PK_VALUE >= MAX(id)+1 of its corresponding table.
+         This prevents Duplicate PK errors when seed/migration data inserts rows
+         with explicit IDs that exceed the sequence's current value. -->
+    <changeSet id="c2150001-0215-0000-0000-000000000001-2" author="mosque-crm" runAlways="true">
+        <comment>Sync all Hibernate TableGenerator sequences to actual max IDs on startup</comment>
+        <sql>
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM configurations)) WHERE PK_NAME = 'configurations_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM contribution_obligations)) WHERE PK_NAME = 'contribution_obligations_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM contribution_type_translations)) WHERE PK_NAME = 'contribution_type_translations_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM contribution_types)) WHERE PK_NAME = 'contribution_types_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM currencies)) WHERE PK_NAME = 'currencies_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM distribution_events)) WHERE PK_NAME = 'distribution_events_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM donations)) WHERE PK_NAME = 'donations_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM exchange_rates)) WHERE PK_NAME = 'exchange_rates_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM gedcom_events)) WHERE PK_NAME = 'gedcom_events_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM gedcom_family_children)) WHERE PK_NAME = 'gedcom_family_children_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM gedcom_notes)) WHERE PK_NAME = 'gedcom_notes_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM gedcom_person_links)) WHERE PK_NAME = 'gedcom_person_links_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM group_members)) WHERE PK_NAME = 'group_members_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM group_roles)) WHERE PK_NAME = 'group_roles_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM group_translations)) WHERE PK_NAME = 'group_translations_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM groups)) WHERE PK_NAME = 'groups_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM member_contribution_assignments)) WHERE PK_NAME = 'member_contribution_assignments_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM member_contribution_exemptions)) WHERE PK_NAME = 'member_contribution_exemptions_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM member_distribution_registrations)) WHERE PK_NAME = 'member_distribution_registrations_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM member_payments)) WHERE PK_NAME = 'member_payments_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM memberships)) WHERE PK_NAME = 'memberships_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM non_member_recipients)) WHERE PK_NAME = 'non_member_recipients_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM organization_currencies)) WHERE PK_NAME = 'organization_currencies_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM organization_subscriptions)) WHERE PK_NAME = 'organization_subscriptions_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM parcel_categories)) WHERE PK_NAME = 'parcel_categories_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM parcel_distributions)) WHERE PK_NAME = 'parcel_distributions_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM password_reset_tokens)) WHERE PK_NAME = 'password_reset_tokens_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM persons)) WHERE PK_NAME = 'persons_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM plan_entitlements)) WHERE PK_NAME = 'plan_entitlements_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM role_templates)) WHERE PK_NAME = 'role_templates_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM roles)) WHERE PK_NAME = 'roles_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM subscription_plans)) WHERE PK_NAME = 'subscription_plans_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM user_member_link)) WHERE PK_NAME = 'user_member_link_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM user_preferences)) WHERE PK_NAME = 'user_preferences_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM users)) WHERE PK_NAME = 'users_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM subscription_invoices)) WHERE PK_NAME = 'subscription_invoices_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM subscription_payments)) WHERE PK_NAME = 'subscription_payments_seq';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

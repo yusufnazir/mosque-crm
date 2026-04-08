@@ -8,7 +8,7 @@ import com.mosque.crm.enums.PlanBillingCycle;
 public class OrganizationSubscriptionDTO {
 
     private Long id;
-    private Long mosqueId;
+    private Long organizationId;
     private SubscriptionPlanDTO plan;
     private PlanBillingCycle billingCycle;
     private OrganizationSubscriptionStatus status;
@@ -18,6 +18,12 @@ public class OrganizationSubscriptionDTO {
     private LocalDateTime canceledAt;
     private Boolean autoRenew;
     private String providerRef;
+    private LocalDateTime nextDueDate;
+    private LocalDateTime graceEndDate;
+    private LocalDateTime readOnlyDate;
+    private LocalDateTime lockDate;
+    private LocalDateTime lastPaymentDate;
+    private Boolean billingEnabled;
     private boolean currentlyActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -33,12 +39,12 @@ public class OrganizationSubscriptionDTO {
         this.id = id;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public SubscriptionPlanDTO getPlan() {
@@ -111,6 +117,54 @@ public class OrganizationSubscriptionDTO {
 
     public void setProviderRef(String providerRef) {
         this.providerRef = providerRef;
+    }
+
+    public LocalDateTime getNextDueDate() {
+        return nextDueDate;
+    }
+
+    public void setNextDueDate(LocalDateTime nextDueDate) {
+        this.nextDueDate = nextDueDate;
+    }
+
+    public LocalDateTime getGraceEndDate() {
+        return graceEndDate;
+    }
+
+    public void setGraceEndDate(LocalDateTime graceEndDate) {
+        this.graceEndDate = graceEndDate;
+    }
+
+    public LocalDateTime getReadOnlyDate() {
+        return readOnlyDate;
+    }
+
+    public void setReadOnlyDate(LocalDateTime readOnlyDate) {
+        this.readOnlyDate = readOnlyDate;
+    }
+
+    public LocalDateTime getLockDate() {
+        return lockDate;
+    }
+
+    public void setLockDate(LocalDateTime lockDate) {
+        this.lockDate = lockDate;
+    }
+
+    public LocalDateTime getLastPaymentDate() {
+        return lastPaymentDate;
+    }
+
+    public void setLastPaymentDate(LocalDateTime lastPaymentDate) {
+        this.lastPaymentDate = lastPaymentDate;
+    }
+
+    public Boolean getBillingEnabled() {
+        return billingEnabled;
+    }
+
+    public void setBillingEnabled(Boolean billingEnabled) {
+        this.billingEnabled = billingEnabled;
     }
 
     public boolean isCurrentlyActive() {

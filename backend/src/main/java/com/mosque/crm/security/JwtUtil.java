@@ -40,8 +40,8 @@ public class JwtUtil {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
-    public Long extractMosqueId(String token) {
-        return extractClaim(token, claims -> claims.get("mosqueId", Long.class));
+    public Long extractOrganizationId(String token) {
+        return extractClaim(token, claims -> claims.get("organizationId", Long.class));
     }
 
     public Long extractUserId(String token) {
@@ -75,10 +75,10 @@ public class JwtUtil {
     }
 
     /**
-     * Generate a token with userId and mosqueId embedded.
+     * Generate a token with userId and organizationId embedded.
      * Permissions are NOT stored in the token — they are resolved per request.
      */
-    public String generateToken(UserDetails userDetails, Long userId, Long mosqueId) {
+    public String generateToken(UserDetails userDetails, Long userId, Long organizationId) {
         Map<String, Object> claims = new HashMap<>();
         if (!userDetails.getAuthorities().isEmpty()) {
             claims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
@@ -86,8 +86,8 @@ public class JwtUtil {
         if (userId != null) {
             claims.put("userId", userId);
         }
-        if (mosqueId != null) {
-            claims.put("mosqueId", mosqueId);
+        if (organizationId != null) {
+            claims.put("organizationId", organizationId);
         }
         return createToken(claims, userDetails.getUsername());
     }

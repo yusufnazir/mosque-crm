@@ -20,7 +20,7 @@ import {
   contributionAssignmentApi,
   createPeriodicPayments,
 } from '@/lib/contributionApi';
-import { currencyApi, MosqueCurrencyDTO } from '@/lib/currencyApi';
+import { currencyApi, OrganizationCurrencyDTO } from '@/lib/currencyApi';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import PaymentReceiptModal from '@/components/PaymentReceiptModal';
 import { Member, RelationshipResponse } from '@/types';
@@ -70,7 +70,7 @@ export default function MemberDetailPage() {
 
   // Contribution types & currencies for modals
   const [contributionTypes, setContributionTypes] = useState<ContributionType[]>([]);
-  const [mosqueCurrencies, setMosqueCurrencies] = useState<MosqueCurrencyDTO[]>([]);
+  const [organizationCurrencies, setOrganizationCurrencies] = useState<OrganizationCurrencyDTO[]>([]);
 
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -182,10 +182,10 @@ export default function MemberDetailPage() {
       try {
         const [typesData, currData] = await Promise.all([
           contributionTypeApi.getAll(),
-          currencyApi.getActiveMosqueCurrencies(),
+          currencyApi.getActiveOrganizationCurrencies(),
         ]);
         setContributionTypes(typesData);
-        setMosqueCurrencies(currData);
+        setOrganizationCurrencies(currData);
       } catch (err) {
         console.log('Failed to load contribution types or currencies');
       }
@@ -218,9 +218,9 @@ export default function MemberDetailPage() {
         year: paymentYearFilter !== 'all' ? Number(paymentYearFilter) : undefined,
       };
       const data = await memberPaymentApi.getByPersonPaginated(personId, params);
-      setMemberPayments(data.content);
-      setPaymentTotalElements(data.totalElements);
-      setPaymentTotalPages(data.totalPages);
+      setMemberPayments(Array.isArray(data?.content) ? data.content : []);
+      setPaymentTotalElements(data?.totalElements ?? 0);
+      setPaymentTotalPages(data?.totalPages ?? 0);
     } catch (err) {
       console.log('Failed to load member payments');
     }
@@ -1367,7 +1367,7 @@ export default function MemberDetailPage() {
           personId={member.personId!}
           personName={`${capitalizeName(member.firstName)} ${capitalizeName(member.lastName)}`}
           types={contributionTypes.filter(t => t.isActive)}
-          mosqueCurrencies={mosqueCurrencies}
+          organizationCurrencies={organizationCurrencies}
           onSave={handleSavePayment}
           onClose={() => { setShowPaymentModal(false); setEditingPayment(null); }}
           getTypeName={getTypeName}
@@ -1416,12 +1416,12 @@ export default function MemberDetailPage() {
 }
 
 // ===== Member Payment Modal (person is pre-selected) =====
-function MemberPaymentModal({ payment, personId, personName, types, mosqueCurrencies, onSave, onClose, getTypeName, t }: {
+function MemberPaymentModal({ payment, personId, personName, types, organizationCurrencies, onSave, onClose, getTypeName, t }: {
   payment: MemberPayment | null;
   personId: number | string;
   personName: string;
   types: ContributionType[];
-  mosqueCurrencies: MosqueCurrencyDTO[];
+  organizationCurrencies: OrganizationCurrencyDTO[];
   onSave: (data: MemberPaymentCreate) => Promise<string | null>;
   onClose: () => void;
   getTypeName: (type: ContributionType) => string;
@@ -1557,8 +1557,8 @@ function MemberPaymentModal({ payment, personId, personName, types, mosqueCurren
                   if (!payment) {
                     if (newObligation?.currencyId) {
                       setCurrencyId(newObligation.currencyId);
-                    } else if (mosqueCurrencies.length === 1) {
-                      setCurrencyId(mosqueCurrencies[0].currencyId);
+                    } else if (organizationCurrencies.length === 1) {
+                      setCurrencyId(organizationCurrencies[0].currencyId);
                     }
                   }
                 }}
@@ -1735,7 +1735,7 @@ function MemberPaymentModal({ payment, personId, personName, types, mosqueCurren
 
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.currency')}</label>
-              {mosqueCurrencies.length === 0 ? (
+              {organizationCurrencies.length === 0 ? (
                 <p className="text-xs text-amber-600">{t('contributions.no_currencies')}</p>
               ) : (
                 <select
@@ -1744,7 +1744,7 @@ function MemberPaymentModal({ payment, personId, personName, types, mosqueCurren
                   className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="">{t('contributions.select_currency')}</option>
-                  {mosqueCurrencies.map((mc) => (
+                  {organizationCurrencies.map((mc) => (
                     <option key={mc.currencyId} value={mc.currencyId}>
                       {mc.currencyCode} — {mc.currencyName} ({mc.currencySymbol})
                     </option>

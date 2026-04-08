@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000008-0107-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="uq_config_name_org" tableName="configurations"/>
+            </not>
+        </preConditions>
+        <comment>
+            Fix configurations unique constraint to support per-organization overrides.
+            Drops the name-only unique constraint and replaces it with a composite
+            (name, organization_id) unique index so that:
+              - Global settings remain unique per name (organization_id IS NULL)
+              - Each tenant can have its own override per key (name + organization_id unique pair)
+        </comment>
+        <!-- Drop old name-only unique constraint if present (IF EXISTS handles missing constraint) -->
+        <sql>ALTER TABLE configurations DROP INDEX IF EXISTS uq_configurations_name</sql>
+        <!-- Add composite unique index: one row per (name, organization_id) pair -->
+        <createIndex indexName="uq_config_name_org" tableName="configurations" unique="true">
+            <column name="name"/>
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

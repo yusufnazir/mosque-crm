@@ -93,10 +93,10 @@ public class RoleManagementController {
         boolean isSuperAdmin = authorizationService.hasPermission("superadmin.manage");
         List<Role> roles;
         if (isSuperAdmin) {
-            // Super admin can assign all tenant-scoped roles in the selected mosque
-            Long mosqueId = getCurrentMosqueId();
-            roles = mosqueId != null
-                    ? roleRepository.findByMosqueId(mosqueId)
+            // Super admin can assign all tenant-scoped roles in the selected organization
+            Long organizationId = getCurrentOrganizationId();
+            roles = organizationId != null
+                    ? roleRepository.findByOrganizationId(organizationId)
                     : roleRepository.findAll();
         } else {
             Set<Role> assignable = roleGovernanceService.getAssignableRolesForCurrentUser();
@@ -157,7 +157,8 @@ public class RoleManagementController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!canMutateRole(role)) {
+        boolean canMutate = canMutateRole(role);
+        if (!canMutate) {
             return ResponseEntity.status(403).build();
         }
 
@@ -321,7 +322,7 @@ public class RoleManagementController {
 
         // Super admins update global templates; tenant admins update only their tenant roles.
         List<Role> roles = canManageSuperAdmin
-            ? roleRepository.findByNameInAndMosqueIdIsNull(List.of("ADMIN", "MEMBER"))
+            ? roleRepository.findByNameInAndOrganizationIdIsNull(List.of("ADMIN", "MEMBER"))
             : getManageableRolesForPool();
         for (Role role : roles) {
             if ("SUPER_ADMIN".equals(role.getName())) {
@@ -363,11 +364,11 @@ public class RoleManagementController {
     public ResponseEntity<?> createRole(@Valid @RequestBody RoleCreateRequest request) {
         String name = request.getName().trim().toUpperCase().replace(' ', '_');
 
-        Long scopedMosqueId = getCurrentMosqueId();
+        Long scopedOrganizationId = getCurrentOrganizationId();
 
-        if (scopedMosqueId == null
-            ? roleRepository.existsByNameAndMosqueIdIsNull(name)
-            : roleRepository.existsByNameAndMosqueId(name, scopedMosqueId)) {
+        if (scopedOrganizationId == null
+            ? roleRepository.existsByNameAndOrganizationIdIsNull(name)
+            : roleRepository.existsByNameAndOrganizationId(name, scopedOrganizationId)) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "A role with name '" + name + "' already exists"));
         }
@@ -384,7 +385,7 @@ public class RoleManagementController {
         Role role = new Role();
         role.setName(name);
         role.setDescription(request.getDescription());
-        role.setMosqueId(scopedMosqueId);
+        role.setOrganizationId(scopedOrganizationId);
         role.setAssignablePermissions(pool);
         role.setPermissions(new HashSet<>());
 
@@ -429,9 +430,9 @@ public class RoleManagementController {
 
         // Check uniqueness if name changed
         if (!role.getName().equals(newName)) {
-            boolean exists = role.getMosqueId() == null
-                ? roleRepository.existsByNameAndMosqueIdIsNull(newName)
-                : roleRepository.existsByNameAndMosqueId(newName, role.getMosqueId());
+            boolean exists = role.getOrganizationId() == null
+                ? roleRepository.existsByNameAndOrganizationIdIsNull(newName)
+                : roleRepository.existsByNameAndOrganizationId(newName, role.getOrganizationId());
             if (exists) {
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "A role with name '" + newName + "' already exists"));
@@ -528,49 +529,59 @@ public class RoleManagementController {
     }
 
     private List<Role> getReadableRoles() {
+        Long organizationId = getCurrentOrganizationId();
         if (authorizationService.hasPermission("superadmin.manage")) {
-            // Super admin sees all tenant-scoped roles + the global SUPER_ADMIN role.
-            // Legacy null-mosque_id rows (ADMIN/MEMBER/TREASURER/IMAM) are templates managed
+            // Super admin sees tenant-scoped roles for the selected org + the global SUPER_ADMIN role.
+            // Legacy null-organization_id rows (ADMIN/MEMBER/TREASURER/IMAM) are templates managed
             // via /admin/role-templates and are excluded from this view.
+            if (organizationId != null) {
+                List<Role> orgRoles = roleRepository.findByOrganizationId(organizationId);
+                roleRepository.findByNameAndOrganizationIdIsNull("SUPER_ADMIN")
+                        .ifPresent(orgRoles::add);
+                return orgRoles;
+            }
             return roleRepository.findAll().stream()
-                    .filter(r -> r.getMosqueId() != null || "SUPER_ADMIN".equals(r.getName()))
+                    .filter(r -> r.getOrganizationId() != null || "SUPER_ADMIN".equals(r.getName()))
                     .collect(java.util.stream.Collectors.toList());
         }
 
-        Long mosqueId = getCurrentMosqueId();
-        return roleRepository.findByMosqueId(mosqueId);
+        return roleRepository.findByOrganizationId(organizationId);
     }
 
     private List<Role> getManageableRolesForPool() {
+        Long organizationId = getCurrentOrganizationId();
         if (authorizationService.hasPermission("superadmin.manage")) {
+            if (organizationId != null) {
+                return roleRepository.findByOrganizationId(organizationId);
+            }
             return roleRepository.findAll();
         }
-        return roleRepository.findByMosqueId(getCurrentMosqueId());
+        return roleRepository.findByOrganizationId(organizationId);
     }
 
     private boolean canReadRole(Role role) {
         if (authorizationService.hasPermission("superadmin.manage")) {
             return true;
         }
-        Long currentMosqueId = getCurrentMosqueId();
-        return role.getMosqueId() == null || role.getMosqueId().equals(currentMosqueId);
+        Long currentOrganizationId = getCurrentOrganizationId();
+        return role.getOrganizationId() == null || role.getOrganizationId().equals(currentOrganizationId);
     }
 
     private boolean canMutateRole(Role role) {
         if (authorizationService.hasPermission("superadmin.manage")) {
             return true;
         }
-        Long currentMosqueId = getCurrentMosqueId();
-        return role.getMosqueId() != null && role.getMosqueId().equals(currentMosqueId);
+        Long currentOrganizationId = getCurrentOrganizationId();
+        return role.getOrganizationId() != null && role.getOrganizationId().equals(currentOrganizationId);
     }
 
-    private Long getCurrentMosqueId() {
-        Long mosqueId = TenantContext.getCurrentMosqueId();
-        if (mosqueId != null) {
-            return mosqueId;
+    private Long getCurrentOrganizationId() {
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId != null) {
+            return organizationId;
         }
         User currentUser = authorizationService.getCurrentUser();
-        return currentUser != null ? currentUser.getMosqueId() : null;
+        return currentUser != null ? currentUser.getOrganizationId() : null;
     }
 
     private boolean shouldSyncTemplateRole(Role role) {

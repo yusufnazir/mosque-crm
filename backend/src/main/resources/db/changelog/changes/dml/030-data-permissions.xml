@@ -508,4 +508,40 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ TENANT SETTINGS ═══════════ -->
+	<changeSet id="a1b2c3d4-0059-4tst-aaaa-tenantsett059" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[59]]></param>
+			<param name="code"><![CDATA[tenant_settings.view]]></param>
+			<param name="description"><![CDATA[View tenant-editable settings]]></param>
+			<param name="category"><![CDATA[tenant_settings]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="b2c3d4e5-0060-4tst-bbbb-tenantsett060" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[60]]></param>
+			<param name="code"><![CDATA[tenant_settings.manage]]></param>
+			<param name="description"><![CDATA[Update tenant-editable settings values]]></param>
+			<param name="category"><![CDATA[tenant_settings]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ═══════════ BILLING / INVOICES ═══════════ -->
+	<changeSet id="c3d4e5f6-0061-4bil-cccc-billingview061" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[61]]></param>
+			<param name="code"><![CDATA[billing.view]]></param>
+			<param name="description"><![CDATA[View subscription invoices]]></param>
+			<param name="category"><![CDATA[billing]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="d4e5f6a7-0062-4bil-dddd-billingmgmt062" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataPermission">
+			<param name="id"><![CDATA[62]]></param>
+			<param name="code"><![CDATA[billing.manage]]></param>
+			<param name="description"><![CDATA[Record payments and manage invoices]]></param>
+			<param name="category"><![CDATA[billing]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

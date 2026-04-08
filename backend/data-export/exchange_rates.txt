@@ -1,0 +1,2 @@
+﻿id	mosque_id	from_currency_id	to_currency_id	rate	effective_date	created_at
+1001	1	60	2	38.00000000	2026-02-01	2026-02-25 18:29:14

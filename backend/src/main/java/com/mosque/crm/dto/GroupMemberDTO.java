@@ -17,7 +17,7 @@ public class GroupMemberDTO {
     private Long groupRoleId;
     private String roleName;
     private Long createdBy;
-    private Long mosqueId;
+    private Long organizationId;
     private LocalDateTime createdAt;
     private String personFirstName;
     private String personLastName;
@@ -97,12 +97,12 @@ public class GroupMemberDTO {
         this.createdBy = createdBy;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public LocalDateTime getCreatedAt() {

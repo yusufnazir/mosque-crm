@@ -1,7 +1,7 @@
 package com.mosque.crm.enums;
 
 /**
- * Types of donations accepted by the mosque.
+ * Types of donations accepted by the organization.
  */
 public enum DonationType {
     /**

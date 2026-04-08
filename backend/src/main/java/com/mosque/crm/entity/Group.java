@@ -8,8 +8,8 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -24,13 +24,13 @@ import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
 /**
- * Group - Represents a named group/activity within a mosque (e.g., Quran class).
+ * Group - Represents a named group/activity within a organization (e.g., Quran class).
  */
 @Entity
 @Table(name = "groups")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class Group implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class Group implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "groups_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -57,8 +57,8 @@ public class Group implements MosqueAware {
     private Long createdBy;
 
     // Multi-tenancy
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
@@ -134,13 +134,13 @@ public class Group implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public LocalDateTime getCreatedAt() {

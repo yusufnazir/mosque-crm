@@ -10,10 +10,14 @@ try {
     Write-Host "✅ Login successful" -ForegroundColor Green
     Write-Host "Username: $($response.username)" -ForegroundColor Yellow
     Write-Host "Role: $($response.role)" -ForegroundColor Yellow
+    Write-Host "SuperAdmin: $($response.superAdmin)" -ForegroundColor Yellow
+    Write-Host "OrganizationHandle: $($response.organizationHandle)" -ForegroundColor Yellow
     Write-Host "MemberId: $($response.memberId)" -ForegroundColor Yellow
     Write-Host "Token: $($response.token.Substring(0,50))..." -ForegroundColor Gray
     
-    if ($response.role -eq "ADMIN") {
+    if ($response.superAdmin -eq $true -and $response.organizationHandle -eq "admin") {
+        Write-Host "`n✅ SUCCESS: Super admin with handle 'admin' → will navigate to admin.lvh.me" -ForegroundColor Green
+    } elseif ($response.role -eq "ADMIN") {
         Write-Host "`n✅ SUCCESS: Role is ADMIN - Sidebar should show Members menu" -ForegroundColor Green
     } else {
         Write-Host "`n❌ FAILURE: Role is '$($response.role)' - Should be 'ADMIN'" -ForegroundColor Red

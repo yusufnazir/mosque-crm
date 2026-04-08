@@ -20,7 +20,7 @@ import jakarta.persistence.TableGenerator;
 
 /**
  * Master template definition for tenant roles.
- * When a new mosque/tenant is created, roles are provisioned by copying these templates.
+ * When a new organization/tenant is created, roles are provisioned by copying these templates.
  * Super-admin changes here propagate to all tenant role copies.
  */
 @Entity

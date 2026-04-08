@@ -26,6 +26,7 @@ export default function FamilyTreePage() {
   const [graphData, setGraphData] = useState<GenealogyGraph | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [planRestricted, setPlanRestricted] = useState(false);
 
   useEffect(() => {
     fetchCompleteGenealogyGraph();
@@ -35,10 +36,20 @@ export default function FamilyTreePage() {
     try {
       setLoading(true);
       setError(null);
+      setPlanRestricted(false);
       
       const response = await fetch('/api/genealogy/graph/complete');
 
       if (!response.ok) {
+        if (response.status === 403) {
+          try {
+            const body = await response.json();
+            if (body.code === 'PLAN_ENTITLEMENT_REQUIRED') {
+              setPlanRestricted(true);
+              return;
+            }
+          } catch { /* not JSON, fall through */ }
+        }
         throw new Error(`Failed to fetch genealogy graph: ${response.statusText}`);
       }
 
@@ -59,6 +70,24 @@ export default function FamilyTreePage() {
           <CardContent className="p-12 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading complete family tree...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (planRestricted) {
+    return (
+      <div className="p-4 md:p-8">
+        <Card>
+          <CardContent className="p-12 text-center">
+            <div className="text-amber-500 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Family Tree Not Available</h3>
+            <p className="text-gray-600">The Family Tree feature is not included in your current plan. Upgrade to access genealogy and family relationship management.</p>
           </CardContent>
         </Card>
       </div>

@@ -1,0 +1,4 @@
+﻿id	organization_id	currency_id	is_primary	is_active	created_at
+1001	1	60	1	1	2026-02-22 18:49:45
+1002	1	2	0	1	2026-02-22 18:49:53
+1003	1	1	0	1	2026-02-22 18:49:59

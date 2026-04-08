@@ -21,7 +21,7 @@ import com.mosque.crm.repository.ContributionTypeRepository;
  * Service for managing ContributionTypes and their translations.
  *
  * Business rules:
- * - Code must be unique within the mosque
+ * - Code must be unique within the organization
  * - Optional types cannot have obligations
  * - Deactivated types prevent new payments (enforced in MemberPaymentService)
  * - Translations use locale fallback: requested locale -> "en" -> null

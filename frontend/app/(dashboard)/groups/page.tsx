@@ -52,7 +52,7 @@ export default function GroupsPage() {
     try {
       setLoading(true);
       const data = await groupApi.list();
-      setGroups(data);
+      setGroups(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load groups', err);
       setToast({ message: t('groups.load_error') || 'Failed to load groups', type: 'error' });

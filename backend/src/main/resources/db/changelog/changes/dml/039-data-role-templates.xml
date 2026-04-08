@@ -34,26 +34,4 @@
 		</customChange>
 	</changeSet>
 
-	<!-- ═══════════ TREASURER ═══════════ -->
-	<changeSet id="c3d4e5f6-a7b8-4c9d-0e1f-tpl-treasurer-v1" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRoleTemplate">
-			<param name="id"><![CDATA[3]]></param>
-			<param name="name"><![CDATA[TREASURER]]></param>
-			<param name="description"><![CDATA[Financial officer with access to fee management]]></param>
-			<param name="isActive"><![CDATA[true]]></param>
-			<param name="sortOrder"><![CDATA[3]]></param>
-		</customChange>
-	</changeSet>
-
-	<!-- ═══════════ IMAM ═══════════ -->
-	<changeSet id="d4e5f6a7-b8c9-4d0e-1f2a-tpl-imam-v1" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRoleTemplate">
-			<param name="id"><![CDATA[4]]></param>
-			<param name="name"><![CDATA[IMAM]]></param>
-			<param name="description"><![CDATA[Religious leader with member and family viewing access]]></param>
-			<param name="isActive"><![CDATA[true]]></param>
-			<param name="sortOrder"><![CDATA[4]]></param>
-		</customChange>
-	</changeSet>
-
 </databaseChangeLog>

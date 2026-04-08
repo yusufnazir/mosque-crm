@@ -1,0 +1,2 @@
+﻿id	contribution_type_id	amount	frequency	start_date	mosque_id	currency_id
+1001	1001	50.00	MONTHLY	2026-01-01	1	60

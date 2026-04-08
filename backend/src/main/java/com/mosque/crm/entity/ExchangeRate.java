@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,16 +23,16 @@ import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
 /**
- * ExchangeRate - Per-mosque exchange rates between currencies.
+ * ExchangeRate - Per-organization exchange rates between currencies.
  *
  * Stores the conversion rate from one currency to another,
- * effective from a given date. Mosque-scoped for multi-tenancy.
+ * effective from a given date. Organization-scoped for multi-tenancy.
  */
 @Entity
 @Table(name = "exchange_rates")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class ExchangeRate implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class ExchangeRate implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "exchange_rates_seq", table = "sequences_",
@@ -42,8 +42,8 @@ public class ExchangeRate implements MosqueAware {
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "from_currency_id", nullable = false)
@@ -84,13 +84,13 @@ public class ExchangeRate implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public Currency getFromCurrency() {

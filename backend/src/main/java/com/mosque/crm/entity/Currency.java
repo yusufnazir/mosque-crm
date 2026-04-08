@@ -11,8 +11,8 @@ import jakarta.persistence.TableGenerator;
 /**
  * Currency - Global reference table of ISO 4217 currencies.
  * 
- * NOT mosque-scoped. This is a system-wide reference table.
- * Individual mosques select which currencies they use via MosqueCurrency.
+ * NOT organization-scoped. This is a system-wide reference table.
+ * Individual organizations select which currencies they use via OrganizationCurrency.
  */
 @Entity
 @Table(name = "currencies")

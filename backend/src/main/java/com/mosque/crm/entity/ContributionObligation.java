@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.mosque.crm.enums.ContributionFrequency;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import org.hibernate.annotations.Filter;
 
@@ -35,9 +35,9 @@ import jakarta.validation.constraints.NotNull;
  */
 @Entity
 @Table(name = "contribution_obligations")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class ContributionObligation implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class ContributionObligation implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "contribution_obligations_seq", table = "sequences_",
@@ -70,8 +70,8 @@ public class ContributionObligation implements MosqueAware {
     private Currency currency;
 
     // Multi-tenancy
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     // Constructors
     public ContributionObligation() {
@@ -135,13 +135,13 @@ public class ContributionObligation implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     // Utility methods

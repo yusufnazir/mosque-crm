@@ -1,7 +1,7 @@
 package com.mosque.crm.enums;
 
 /**
- * Types of mosque memberships.
+ * Types of organization memberships.
  */
 public enum MembershipType {
     /**

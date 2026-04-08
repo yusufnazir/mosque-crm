@@ -59,13 +59,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-                // Set tenant context from JWT mosqueId claim
-                // null mosqueId = super admin (sees all mosques)
+                // Set tenant context from JWT organizationId claim
+                // null organizationId = super admin (sees all organizations)
                 try {
-                    Long mosqueId = jwtUtil.extractMosqueId(jwt);
-                    TenantContext.setCurrentMosqueId(mosqueId);
+                    Long organizationId = jwtUtil.extractOrganizationId(jwt);
+                    TenantContext.setCurrentOrganizationId(organizationId);
                 } catch (Exception e) {
-                    logger.warn("Could not extract mosqueId from JWT: " + e.getMessage());
+                    logger.warn("Could not extract organizationId from JWT: " + e.getMessage());
                 }
             }
         }

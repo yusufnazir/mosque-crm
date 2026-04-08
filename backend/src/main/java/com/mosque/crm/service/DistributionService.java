@@ -28,7 +28,7 @@ import com.mosque.crm.entity.ParcelCategory;
 import com.mosque.crm.entity.ParcelDistribution;
 import com.mosque.crm.entity.Person;
 import com.mosque.crm.enums.DistributionEventStatus;
-import com.mosque.crm.enums.MosqueEventType;
+import com.mosque.crm.enums.OrganizationEventType;
 import com.mosque.crm.enums.RecipientStatus;
 import com.mosque.crm.enums.RecipientType;
 import com.mosque.crm.enums.RegistrationStatus;
@@ -79,7 +79,7 @@ public class DistributionService {
         event.setLocation(dto.getLocation());
         event.setStatus(DistributionEventStatus.PLANNED);
         if (dto.getEventType() != null) {
-            event.setEventType(MosqueEventType.valueOf(dto.getEventType()));
+            event.setEventType(OrganizationEventType.valueOf(dto.getEventType()));
         }
         if (dto.getMemberCapacity() != null) {
             event.setMemberCapacity(dto.getMemberCapacity());

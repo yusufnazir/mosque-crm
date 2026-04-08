@@ -1,0 +1,61 @@
+﻿id	code	name	symbol	decimal_places
+1	EUR	Euro	?	2
+2	USD	US Dollar	$	2
+3	GBP	British Pound	£	2
+4	TRY	Turkish Lira	?	2
+5	SAR	Saudi Riyal	?	2
+6	AED	UAE Dirham	?.?	2
+7	MAD	Moroccan Dirham	?.?.	2
+8	EGP	Egyptian Pound	£	2
+9	PKR	Pakistani Rupee	?	2
+10	IDR	Indonesian Rupiah	Rp	0
+11	MYR	Malaysian Ringgit	RM	2
+12	BDT	Bangladeshi Taka	?	2
+13	INR	Indian Rupee	?	2
+14	NGN	Nigerian Naira	?	2
+15	ZAR	South African Rand	R	2
+16	CAD	Canadian Dollar	C$	2
+17	AUD	Australian Dollar	A$	2
+18	CHF	Swiss Franc	CHF	2
+19	JPY	Japanese Yen	¥	0
+20	CNY	Chinese Yuan	¥	2
+21	KWD	Kuwaiti Dinar	?.?	3
+22	BHD	Bahraini Dinar	.?.?	3
+23	QAR	Qatari Riyal	?.?	2
+24	OMR	Omani Rial	?.?.	3
+25	JOD	Jordanian Dinar	?.?	3
+26	IQD	Iraqi Dinar	?.?	3
+27	LBP	Lebanese Pound	?.?	2
+28	DZD	Algerian Dinar	?.?	2
+29	TND	Tunisian Dinar	?.?	3
+30	LYD	Libyan Dinar	?.?	3
+31	SDG	Sudanese Pound	?.?	2
+32	SYP	Syrian Pound	£	2
+33	YER	Yemeni Rial	?	2
+34	AFN	Afghan Afghani	?	2
+35	IRR	Iranian Rial	?	2
+36	KES	Kenyan Shilling	KSh	2
+37	GHS	Ghanaian Cedi	?	2
+38	TZS	Tanzanian Shilling	TSh	2
+39	UGX	Ugandan Shilling	USh	0
+40	XOF	West African CFA Franc	CFA	0
+41	SGD	Singapore Dollar	S$	2
+42	BND	Brunei Dollar	B$	2
+43	MVR	Maldivian Rufiyaa	Rf	2
+44	SEK	Swedish Krona	kr	2
+45	NOK	Norwegian Krone	kr	2
+46	DKK	Danish Krone	kr	2
+47	PLN	Polish Zloty	z?	2
+48	CZK	Czech Koruna	K?	2
+49	RUB	Russian Ruble	?	2
+50	BRL	Brazilian Real	R$	2
+51	MXN	Mexican Peso	$	2
+52	ARS	Argentine Peso	$	2
+53	COP	Colombian Peso	$	2
+54	NZD	New Zealand Dollar	NZ$	2
+55	KZT	Kazakh Tenge	?	2
+56	UZS	Uzbekistani Som	???	2
+57	SOS	Somali Shilling	Sh	2
+58	MRU	Mauritanian Ouguiya	UM	2
+59	GMD	Gambian Dalasi	D	2
+60	SRD	Surinamese Dollar	$	2

@@ -24,7 +24,7 @@ const SEGMENT_TO_KEY: Record<string, string> = {
   roles: 'sidebar.roles',
   privileges: 'sidebar.privileges',
   'role-templates': 'sidebar.role_templates',
-  mosques: 'sidebar.mosques',
+  organizations: 'sidebar.organizations',
   subscription: 'sidebar.subscription',
   settings: 'sidebar.settings',
   account: 'sidebar.account',
@@ -44,7 +44,7 @@ interface HeaderProps {
 }
 
 export default function Header({ onMenuToggle }: HeaderProps) {
-  const { user, isSuperAdmin, activeMosqueName } = useAuth();
+  const { user, isSuperAdmin, activeOrganizationName } = useAuth();
   const { breadcrumbs: contextBreadcrumbs } = usePageHeader();
   const { t } = useTranslation();
   const router = useRouter();
@@ -96,8 +96,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   const handleLogout = () => {
     localStorage.removeItem('personId');
     localStorage.removeItem('memberId');
-    localStorage.removeItem('selectedMosque');
-    localStorage.removeItem('selectedMosqueId');
+    localStorage.removeItem('selectedOrganization');
+    localStorage.removeItem('selectedOrganizationId');
     localStorage.removeItem('lang');
     window.location.href = '/api/auth/logout';
   };
@@ -183,7 +183,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                   )}
                 </div>
                 <p className="text-xs text-gray-400">
-                  {activeMosqueName || primaryRole || ''}
+                  {activeOrganizationName || primaryRole || ''}
                 </p>
               </div>
               {/* Chevron */}
@@ -208,7 +208,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-400">{activeMosqueName || primaryRole || ''}</p>
+                  <p className="text-xs text-gray-400">{activeOrganizationName || primaryRole || ''}</p>
                 </div>
 
                 {/* Account */}

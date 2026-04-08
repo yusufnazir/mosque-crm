@@ -1,7 +1,7 @@
 package com.mosque.crm.enums;
 
 /**
- * Status of a person in the mosque system.
+ * Status of a person in the organization system.
  */
 public enum PersonStatus {
     /**

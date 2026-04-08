@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000005-0065-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="member_contribution_assignments"/></not>
+        </preConditions>
+        <comment>Create member_contribution_assignments table</comment>
+        <createTable tableName="member_contribution_assignments">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="contribution_type_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date" type="DATE"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notes" type="VARCHAR(500)"/>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="member_contribution_assignments"
+                             columnNames="person_id, contribution_type_id"
+                             constraintName="uk_member_contrib_assign"/>
+    </changeSet>
+
+</databaseChangeLog>

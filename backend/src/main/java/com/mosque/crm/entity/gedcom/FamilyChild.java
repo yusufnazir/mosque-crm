@@ -1,8 +1,8 @@
 package com.mosque.crm.entity.gedcom;
 
 import com.mosque.crm.enums.RelationshipType;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 // Lombok removed. Explicit getters/setters/constructors below.
 import jakarta.persistence.Column;
@@ -29,9 +29,9 @@ import org.hibernate.annotations.Filter;
  */
 @Entity
 @Table(name = "gedcom_family_children")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class FamilyChild implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class FamilyChild implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "gedcom_family_children_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -51,8 +51,8 @@ public class FamilyChild implements MosqueAware {
     @Column(name = "birth_order")
     private Integer birthOrder;  // Optional: order of birth within family
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     /**
      * Example queries:
@@ -94,7 +94,7 @@ public class FamilyChild implements MosqueAware {
     public void setBirthOrder(Integer birthOrder) { this.birthOrder = birthOrder; }
 
     @Override
-    public Long getMosqueId() { return mosqueId; }
+    public Long getOrganizationId() { return organizationId; }
     @Override
-    public void setMosqueId(Long mosqueId) { this.mosqueId = mosqueId; }
+    public void setOrganizationId(Long organizationId) { this.organizationId = organizationId; }
 }

@@ -142,7 +142,7 @@ export default function DistributionPage() {
     setLoading(true);
     try {
       const data = await distributionApi.listEvents();
-      setEvents(data);
+      setEvents(Array.isArray(data) ? data : []);
     } catch {
       setToast({ message: t('distribution.create_event_error'), type: 'error' });
     } finally {
@@ -160,10 +160,10 @@ export default function DistributionPage() {
         distributionApi.listDistributions(event.id),
       ]);
       setSummary(summaryData);
-      setCategories(cats);
-      setMemberRegistrations(members);
-      setNonMembers(nonMems);
-      setDistributions(dists);
+      setCategories(Array.isArray(cats) ? cats : []);
+      setMemberRegistrations(Array.isArray(members) ? members : []);
+      setNonMembers(Array.isArray(nonMems) ? nonMems : []);
+      setDistributions(Array.isArray(dists) ? dists : []);
     } catch {
       setToast({ message: 'Failed to load event data', type: 'error' });
     }

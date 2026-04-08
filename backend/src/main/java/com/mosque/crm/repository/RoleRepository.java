@@ -16,25 +16,25 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 
     Optional<Role> findByName(String name);
 
-    Optional<Role> findByNameAndMosqueId(String name, Long mosqueId);
+    Optional<Role> findByNameAndOrganizationId(String name, Long organizationId);
 
-    Optional<Role> findByNameAndMosqueIdIsNull(String name);
+    Optional<Role> findByNameAndOrganizationIdIsNull(String name);
 
-    List<Role> findByNameInAndMosqueIdIsNull(List<String> names);
+    List<Role> findByNameInAndOrganizationIdIsNull(List<String> names);
 
-    List<Role> findByNameAndMosqueIdIsNotNull(String name);
+    List<Role> findByNameAndOrganizationIdIsNotNull(String name);
 
     boolean existsByName(String name);
 
-    boolean existsByNameAndMosqueId(String name, Long mosqueId);
+    boolean existsByNameAndOrganizationId(String name, Long organizationId);
 
-    boolean existsByNameAndMosqueIdIsNull(String name);
+    boolean existsByNameAndOrganizationIdIsNull(String name);
 
-    List<Role> findByMosqueId(Long mosqueId);
+    List<Role> findByOrganizationId(Long organizationId);
 
-    List<Role> findByMosqueIdOrMosqueIdIsNull(Long mosqueId);
+    List<Role> findByOrganizationIdOrOrganizationIdIsNull(Long organizationId);
 
-    List<Role> findByMosqueIdIsNull();
+    List<Role> findByOrganizationIdIsNull();
 
     /**
      * Find the union of all assignable roles across a set of role IDs.

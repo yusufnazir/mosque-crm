@@ -12,8 +12,8 @@ public class UserListDTO {
     private boolean accountLocked;
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
-    private Long mosqueId;
-    private String mosqueName;
+    private Long organizationId;
+    private String organizationName;
     private List<String> roles;
     private Long personId;
     private String personName;
@@ -79,20 +79,20 @@ public class UserListDTO {
         this.lastLogin = lastLogin;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
-    public String getMosqueName() {
-        return mosqueName;
+    public String getOrganizationName() {
+        return organizationName;
     }
 
-    public void setMosqueName(String mosqueName) {
-        this.mosqueName = mosqueName;
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
     }
 
     public List<String> getRoles() {

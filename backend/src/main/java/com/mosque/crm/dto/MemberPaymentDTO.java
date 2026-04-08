@@ -28,6 +28,8 @@ public class MemberPaymentDTO {
     private String currencySymbol;
     private Boolean isReversal;
     private Long reversedPaymentId;
+    private String paymentGroupId;
+    private int documentCount;
 
     public MemberPaymentDTO() {
     }
@@ -183,5 +185,21 @@ public class MemberPaymentDTO {
 
     public void setReversedPaymentId(Long reversedPaymentId) {
         this.reversedPaymentId = reversedPaymentId;
+    }
+
+    public String getPaymentGroupId() {
+        return paymentGroupId;
+    }
+
+    public void setPaymentGroupId(String paymentGroupId) {
+        this.paymentGroupId = paymentGroupId;
+    }
+
+    public int getDocumentCount() {
+        return documentCount;
+    }
+
+    public void setDocumentCount(int documentCount) {
+        this.documentCount = documentCount;
     }
 }

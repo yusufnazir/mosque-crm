@@ -6,38 +6,51 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
                         http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
-    <changeSet id="8f5db5f0-0f55-4be7-b6e0-86d71004e8b1" author="mosque-crm">
+    <changeSet id="8f5db5f0-0f55-4be7-b6e0-86d71004e8b1-1" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataSubscriptionPlan">
             <param name="id"><![CDATA[1]]></param>
             <param name="code"><![CDATA[STARTER]]></param>
             <param name="name"><![CDATA[Starter]]></param>
             <param name="description"><![CDATA[Basic membership management for small organizations]]></param>
+            <param name="monthlyPrice"><![CDATA[5.00]]></param>
+            <param name="yearlyPrice"><![CDATA[50.00]]></param>
+            <param name="isActive"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="4de35098-df30-4604-8f6e-e3251a6ee9cb-1" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataSubscriptionPlan">
+            <param name="id"><![CDATA[2]]></param>
+            <param name="code"><![CDATA[GROWTH]]></param>
+            <param name="name"><![CDATA[Growth]]></param>
+            <param name="description"><![CDATA[Member portal and engagement features]]></param>
+            <param name="monthlyPrice"><![CDATA[10.00]]></param>
+            <param name="yearlyPrice"><![CDATA[100.00]]></param>
+            <param name="isActive"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="2206ca89-5dc7-4154-9ba5-f45ece0f40db-1" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataSubscriptionPlan">
+            <param name="id"><![CDATA[3]]></param>
+            <param name="code"><![CDATA[PRO]]></param>
+            <param name="name"><![CDATA[Pro]]></param>
+            <param name="description"><![CDATA[Advanced automation, payments, and integrations]]></param>
             <param name="monthlyPrice"><![CDATA[15.00]]></param>
             <param name="yearlyPrice"><![CDATA[150.00]]></param>
             <param name="isActive"><![CDATA[true]]></param>
         </customChange>
     </changeSet>
 
-    <changeSet id="4de35098-df30-4604-8f6e-e3251a6ee9cb" author="mosque-crm">
+    <!-- FREE plan -->
+    <changeSet id="a3c7f1e2-8b4d-4a9e-b5c6-d7e8f9a0b1c2" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataSubscriptionPlan">
-            <param name="id"><![CDATA[2]]></param>
-            <param name="code"><![CDATA[GROWTH]]></param>
-            <param name="name"><![CDATA[Growth]]></param>
-            <param name="description"><![CDATA[Member portal and engagement features]]></param>
-            <param name="monthlyPrice"><![CDATA[30.00]]></param>
-            <param name="yearlyPrice"><![CDATA[300.00]]></param>
-            <param name="isActive"><![CDATA[true]]></param>
-        </customChange>
-    </changeSet>
-
-    <changeSet id="2206ca89-5dc7-4154-9ba5-f45ece0f40db" author="mosque-crm">
-        <customChange class="com.mosque.crm.liquibase.DataSubscriptionPlan">
-            <param name="id"><![CDATA[3]]></param>
-            <param name="code"><![CDATA[PRO]]></param>
-            <param name="name"><![CDATA[Pro]]></param>
-            <param name="description"><![CDATA[Advanced automation, payments, and integrations]]></param>
-            <param name="monthlyPrice"><![CDATA[60.00]]></param>
-            <param name="yearlyPrice"><![CDATA[600.00]]></param>
+            <param name="id"><![CDATA[4]]></param>
+            <param name="code"><![CDATA[FREE]]></param>
+            <param name="name"><![CDATA[Free]]></param>
+            <param name="description"><![CDATA[Basic plan for small mosques — 1 admin, up to 20 members]]></param>
+            <param name="monthlyPrice"><![CDATA[0.00]]></param>
+            <param name="yearlyPrice"><![CDATA[0.00]]></param>
             <param name="isActive"><![CDATA[true]]></param>
         </customChange>
     </changeSet>

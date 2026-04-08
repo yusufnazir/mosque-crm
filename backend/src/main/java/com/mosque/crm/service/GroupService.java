@@ -51,7 +51,7 @@ public class GroupService {
         g.setEndDate(dto.getEndDate());
         g.setIsActive(dto.getIsActive() == null ? true : dto.getIsActive());
         g.setCreatedBy(dto.getCreatedBy());
-        g.setMosqueId(dto.getMosqueId());
+        g.setOrganizationId(dto.getOrganizationId());
 
         // Add translations if provided
         if (dto.getTranslations() != null) {
@@ -122,7 +122,7 @@ public class GroupService {
             gm.setGroupRole(role);
         }
         gm.setCreatedBy(dto.getCreatedBy());
-        gm.setMosqueId(dto.getMosqueId());
+        gm.setOrganizationId(dto.getOrganizationId());
         GroupMember saved = groupMemberRepository.save(gm);
         return toMemberDto(saved);
     }
@@ -164,7 +164,7 @@ public class GroupService {
         dto.setEndDate(g.getEndDate());
         dto.setIsActive(g.getIsActive());
         dto.setCreatedBy(g.getCreatedBy());
-        dto.setMosqueId(g.getMosqueId());
+        dto.setOrganizationId(g.getOrganizationId());
         dto.setCreatedAt(g.getCreatedAt());
 
         // Add member count
@@ -195,7 +195,7 @@ public class GroupService {
         dto.setEndDate(gm.getEndDate());
         dto.setRoleInGroup(gm.getRoleInGroup());
         dto.setCreatedBy(gm.getCreatedBy());
-        dto.setMosqueId(gm.getMosqueId());
+        dto.setOrganizationId(gm.getOrganizationId());
         dto.setCreatedAt(gm.getCreatedAt());
 
         // Set group role info
@@ -224,7 +224,7 @@ public class GroupService {
         role.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : 0);
         role.setMaxMembers(dto.getMaxMembers());
         role.setIsActive(dto.getIsActive() == null ? true : dto.getIsActive());
-        role.setMosqueId(dto.getMosqueId());
+        role.setOrganizationId(dto.getOrganizationId());
 
         if (dto.getTranslations() != null) {
             for (GroupRoleTranslationDTO tDto : dto.getTranslations()) {
@@ -277,7 +277,7 @@ public class GroupService {
         dto.setSortOrder(role.getSortOrder());
         dto.setMaxMembers(role.getMaxMembers());
         dto.setIsActive(role.getIsActive());
-        dto.setMosqueId(role.getMosqueId());
+        dto.setOrganizationId(role.getOrganizationId());
         dto.setCreatedAt(role.getCreatedAt());
 
         if (role.getTranslations() != null) {

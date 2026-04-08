@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a controller method (or entire controller class) as requiring a
- * specific plan entitlement to be enabled for the current mosque.
+ * specific plan entitlement to be enabled for the current organization.
  *
  * Usage:
  * <pre>
@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
  *   public ResponseEntity<?> getAdvancedReport() { ... }
  * </pre>
  *
- * Enforced by {@link PlanFeatureAspect}. Super-admins (mosqueId == null)
+ * Enforced by {@link PlanFeatureAspect}. Super-admins (organizationId == null)
  * bypass all plan checks.
  *
  * If the feature is not enabled, {@link PlanEntitlementException} is thrown

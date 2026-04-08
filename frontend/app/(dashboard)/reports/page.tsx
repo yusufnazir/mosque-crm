@@ -12,6 +12,7 @@ import {
   CurrencyAmount,
 } from '@/lib/api';
 import { memberPaymentApi, MemberPayment } from '@/lib/contributionApi';
+import { isPlanRestriction } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { formatDate } from '@/lib/utils';
@@ -21,7 +22,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export default function ReportsPage() {
   const { t, language } = useTranslation();
-  const { can, user, activeMosqueName } = useAuth();
+  const { can, user, activeOrganizationName } = useAuth();
 
   // Report selection
   const [selectedReport, setSelectedReport] = useState<string>('payment-summary');
@@ -70,6 +71,7 @@ export default function ReportsPage() {
     setLoading(true);
     try {
       const data = await reportApi.getPaymentSummary(selectedYear, language, page, pageSize);
+      if (isPlanRestriction(data)) return;
       setReport(data);
       setTotalElements(data.totalElements);
       setTotalPages(data.totalPages);
@@ -85,6 +87,7 @@ export default function ReportsPage() {
     setLoading(true);
     try {
       const data = await reportApi.getContributionTotals(selectedYear, language);
+      if (isPlanRestriction(data)) return;
       setContribReport(data);
     } catch (error) {
       console.error('Failed to fetch contribution totals:', error);
@@ -246,6 +249,7 @@ export default function ReportsPage() {
     try {
       // Fetch ALL rows for export (no pagination)
       const allData = await reportApi.getPaymentSummaryAll(selectedYear, language);
+      if (isPlanRestriction(allData)) return;
       const XLSX = await import('xlsx');
       const currencies = getUniqueCurrencies(allData);
       const headers = buildExportHeaders(allData.contributionTypes, currencies);
@@ -273,6 +277,7 @@ export default function ReportsPage() {
     try {
       // Fetch ALL rows for export (no pagination)
       const allData = await reportApi.getPaymentSummaryAll(selectedYear, language);
+      if (isPlanRestriction(allData)) return;
       const { jsPDF } = await import('jspdf');
       const autoTable = (await import('jspdf-autotable')).default;
 
@@ -471,14 +476,14 @@ export default function ReportsPage() {
       doc.text(t('reports.member_payment_history'), 14, 18);
       
       // Organization name
-      if (activeMosqueName) {
+      if (activeOrganizationName) {
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
-        doc.text(activeMosqueName, 14, 25);
+        doc.text(activeOrganizationName, 14, 25);
       }
 
       // Member details section
-      let yPosition = activeMosqueName ? 33 : 28;
+      let yPosition = activeOrganizationName ? 33 : 28;
       doc.setFontSize(11);
       doc.setTextColor(28, 25, 23);
       doc.setFont('helvetica', 'bold');
@@ -682,14 +687,14 @@ export default function ReportsPage() {
       doc.text(t('reports.member_payment_history'), 14, 18);
       
       // Organization name
-      if (activeMosqueName) {
+      if (activeOrganizationName) {
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
-        doc.text(activeMosqueName, 14, 25);
+        doc.text(activeOrganizationName, 14, 25);
       }
 
       // Member details section
-      let yPosition = activeMosqueName ? 33 : 28;
+      let yPosition = activeOrganizationName ? 33 : 28;
       doc.setFontSize(11);
       doc.setTextColor(28, 25, 23);
       doc.setFont('helvetica', 'bold');

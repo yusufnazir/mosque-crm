@@ -14,6 +14,7 @@ import com.mosque.crm.repository.FamilyChildRepository;
 import com.mosque.crm.repository.FamilyRepository;
 import com.mosque.crm.repository.PersonRepository;
 import com.mosque.crm.service.GenealogyGraphService;
+import com.mosque.crm.subscription.PlanFeatureRequired;
 
 
 
@@ -24,6 +25,7 @@ import com.mosque.crm.service.GenealogyGraphService;
 
 @RestController
 @RequestMapping("/genealogy")
+@PlanFeatureRequired("family.tree")
 public class GenealogyGraphController {
 
     private final FamilyChildRepository familyChildRepository;

@@ -7,8 +7,8 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.mosque.crm.enums.RegistrationStatus;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,9 +26,9 @@ import jakarta.persistence.TableGenerator;
 
 @Entity
 @Table(name = "member_distribution_registrations")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class MemberDistributionRegistration implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class MemberDistributionRegistration implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "member_dist_reg_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -59,8 +59,8 @@ public class MemberDistributionRegistration implements MosqueAware {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     public MemberDistributionRegistration() {
     }
@@ -122,12 +122,12 @@ public class MemberDistributionRegistration implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 }

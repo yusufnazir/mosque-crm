@@ -15,10 +15,10 @@ export default function ImportPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { selectedMosque, activeMosqueName } = useAuth();
+  const { selectedOrganization, activeOrganizationName } = useAuth();
 
-  const mosqueName = activeMosqueName || selectedMosque?.name || null;
-  const mosqueSelected = !!mosqueName;
+  const organizationName = activeOrganizationName || selectedOrganization?.name || null;
+  const organizationSelected = !!organizationName;
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -58,9 +58,9 @@ export default function ImportPage() {
     const formData = new FormData();
     formData.append('file', file!);
 
-    const mosqueId = typeof window !== 'undefined' ? localStorage.getItem('selectedMosqueId') : null;
+    const organizationId = typeof window !== 'undefined' ? localStorage.getItem('selectedOrganizationId') : null;
 
-    if (!mosqueId) {
+    if (!organizationId) {
       setNotification({ type: 'error', message: 'No organization selected. Please select an organization first.' });
       setIsUploading(false);
       return;
@@ -70,7 +70,7 @@ export default function ImportPage() {
       const response = await fetch('/api/admin/import/excel', {
         method: 'POST',
         headers: {
-          'X-Mosque-Id': mosqueId,
+          'X-Organization-Id': organizationId,
         },
         body: formData,
       });
@@ -126,7 +126,7 @@ export default function ImportPage() {
         </div>
       )}
 
-      {!mosqueSelected && (
+      {!organizationSelected && (
         <div className="mb-6 bg-amber-50 border border-amber-300 rounded-xl p-5 flex items-start gap-3">
           <svg className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -140,7 +140,7 @@ export default function ImportPage() {
         </div>
       )}
 
-      <Card className={`p-6 ${!mosqueSelected ? 'opacity-50 pointer-events-none' : ''}`}>
+      <Card className={`p-6 ${!organizationSelected ? 'opacity-50 pointer-events-none' : ''}`}>
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Upload Excel File</h2>
           <p className="text-gray-600 text-sm mb-6">Select an Excel file containing member information to import</p>
@@ -159,7 +159,7 @@ export default function ImportPage() {
             <div className="self-end">
               <Button
                 onClick={handleImportClick}
-                disabled={!file || isUploading || !mosqueSelected}
+                disabled={!file || isUploading || !organizationSelected}
                 className="whitespace-nowrap h-[42px]"
               >
                 {isUploading ? (
@@ -175,7 +175,7 @@ export default function ImportPage() {
             </div>
           </div>
 
-          {showConfirm && file && mosqueSelected && (
+          {showConfirm && file && organizationSelected && (
             <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-5 mb-6">
               <div className="flex items-start gap-3">
                 <svg className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +184,7 @@ export default function ImportPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-emerald-800">Confirm Import</h3>
                   <p className="text-sm text-emerald-700 mt-1">
-                    You are about to import <strong>{file.name}</strong> for organization <strong>{mosqueName}</strong>. All imported members will be linked to this organization.
+                    You are about to import <strong>{file.name}</strong> for organization <strong>{organizationName}</strong>. All imported members will be linked to this organization.
                   </p>
                   <div className="flex gap-3 mt-4">
                     <Button onClick={handleUpload} size="sm">

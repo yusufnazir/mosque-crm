@@ -10,10 +10,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mosque.crm.dto.ExcelImportResult;
 import com.mosque.crm.service.ExcelImportService;
+import com.mosque.crm.subscription.PlanFeatureRequired;
 
 @RestController
 @RequestMapping("/admin/import")
 @CrossOrigin(origins = "*")
+@PlanFeatureRequired("import.excel")
 public class ExcelImportController {
 
     private final ExcelImportService excelImportService;

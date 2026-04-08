@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        Backfill next_due_date for existing subscriptions that have it NULL.
+        Sets next_due_date = starts_at + 1 month (MONTHLY) or starts_at + 1 year (YEARLY).
+        This fixes subscriptions created before the code was updated to auto-set next_due_date.
+    -->
+    <changeSet id="216-backfill-next-due-date-monthly" author="system">
+        <sql>
+            UPDATE organization_subscriptions
+            SET next_due_date = DATE_ADD(starts_at, INTERVAL 1 MONTH)
+            WHERE next_due_date IS NULL
+              AND billing_cycle = 'MONTHLY'
+              AND starts_at IS NOT NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="216-backfill-next-due-date-yearly" author="system">
+        <sql>
+            UPDATE organization_subscriptions
+            SET next_due_date = DATE_ADD(starts_at, INTERVAL 1 YEAR)
+            WHERE next_due_date IS NULL
+              AND billing_cycle = 'YEARLY'
+              AND starts_at IS NOT NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -7,27 +7,28 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import ToastNotification from '@/components/ToastNotification';
 import {
   CurrencyDTO,
-  MosqueCurrencyDTO,
-  MosqueCurrencyCreateDTO,
+  OrganizationCurrencyDTO,
+  OrganizationCurrencyCreateDTO,
   ExchangeRateDTO,
   ExchangeRateCreateDTO,
   currencyApi,
 } from '@/lib/currencyApi';
+import { isPlanRestriction } from '@/lib/api';
 
-type Tab = 'available' | 'mosque' | 'rates';
+type Tab = 'available' | 'organization' | 'rates';
 
 export default function CurrenciesPage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<Tab>('mosque');
+  const [activeTab, setActiveTab] = useState<Tab>('organization');
 
   // ===== Available Currencies State =====
   const [allCurrencies, setAllCurrencies] = useState<CurrencyDTO[]>([]);
   const [currenciesLoading, setCurrenciesLoading] = useState(true);
   const [currencySearch, setCurrencySearch] = useState('');
 
-  // ===== Mosque Currencies State =====
-  const [mosqueCurrencies, setMosqueCurrencies] = useState<MosqueCurrencyDTO[]>([]);
-  const [mosqueLoading, setMosqueLoading] = useState(true);
+  // ===== Organization Currencies State =====
+  const [organizationCurrencies, setOrganizationCurrencies] = useState<OrganizationCurrencyDTO[]>([]);
+  const [organizationLoading, setOrganizationLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addSearch, setAddSearch] = useState('');
 
@@ -50,7 +51,7 @@ export default function CurrenciesPage() {
   // Load data on mount
   useEffect(() => {
     loadAllCurrencies();
-    loadMosqueCurrencies();
+    loadOrganizationCurrencies();
   }, []);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function CurrenciesPage() {
     setCurrenciesLoading(true);
     try {
       const data = await currencyApi.getAllCurrencies();
-      setAllCurrencies(data);
+      if (!isPlanRestriction(data) && Array.isArray(data)) setAllCurrencies(data);
     } catch (err) {
       console.error('Failed to load currencies:', err);
     } finally {
@@ -70,15 +71,15 @@ export default function CurrenciesPage() {
     }
   };
 
-  const loadMosqueCurrencies = async () => {
-    setMosqueLoading(true);
+  const loadOrganizationCurrencies = async () => {
+    setOrganizationLoading(true);
     try {
-      const data = await currencyApi.getMosqueCurrencies();
-      setMosqueCurrencies(data);
+      const data = await currencyApi.getOrganizationCurrencies();
+      if (!isPlanRestriction(data) && Array.isArray(data)) setOrganizationCurrencies(data);
     } catch (err) {
-      console.error('Failed to load mosque currencies:', err);
+      console.error('Failed to load organization currencies:', err);
     } finally {
-      setMosqueLoading(false);
+      setOrganizationLoading(false);
     }
   };
 
@@ -86,7 +87,7 @@ export default function CurrenciesPage() {
     setRatesLoading(true);
     try {
       const data = await currencyApi.getExchangeRates();
-      setExchangeRates(data);
+      if (!isPlanRestriction(data) && Array.isArray(data)) setExchangeRates(data);
     } catch (err) {
       console.error('Failed to load exchange rates:', err);
     } finally {
@@ -94,16 +95,16 @@ export default function CurrenciesPage() {
     }
   };
 
-  // ===== Mosque Currency Actions =====
+  // ===== Organization Currency Actions =====
   const handleAddCurrency = async (currencyId: number) => {
     try {
-      const dto: MosqueCurrencyCreateDTO = {
+      const dto: OrganizationCurrencyCreateDTO = {
         currencyId,
-        isPrimary: mosqueCurrencies.length === 0, // First currency is automatically primary
+        isPrimary: organizationCurrencies.length === 0, // First currency is automatically primary
         isActive: true,
       };
-      await currencyApi.addMosqueCurrency(dto);
-      await loadMosqueCurrencies();
+      await currencyApi.addOrganizationCurrency(dto);
+      await loadOrganizationCurrencies();
       setShowAddModal(false);
       setAddSearch('');
       setToast({ message: t('currency.currencyAdded'), type: 'success' });
@@ -116,7 +117,7 @@ export default function CurrenciesPage() {
   const handleSetPrimary = async (id: number) => {
     try {
       await currencyApi.setPrimaryCurrency(id);
-      await loadMosqueCurrencies();
+      await loadOrganizationCurrencies();
       setToast({ message: t('currency.primaryUpdated'), type: 'success' });
     } catch (err) {
       console.error('Failed to set primary currency:', err);
@@ -124,13 +125,13 @@ export default function CurrenciesPage() {
     }
   };
 
-  const handleToggleActive = async (mc: MosqueCurrencyDTO) => {
+  const handleToggleActive = async (mc: OrganizationCurrencyDTO) => {
     try {
-      await currencyApi.updateMosqueCurrency(mc.id, {
+      await currencyApi.updateOrganizationCurrency(mc.id, {
         currencyId: mc.currencyId,
         isActive: !mc.isActive,
       });
-      await loadMosqueCurrencies();
+      await loadOrganizationCurrencies();
     } catch (err) {
       console.error('Failed to toggle currency:', err);
     }
@@ -143,8 +144,8 @@ export default function CurrenciesPage() {
       onConfirm: async () => {
         setConfirmAction(null);
         try {
-          await currencyApi.removeMosqueCurrency(id);
-          await loadMosqueCurrencies();
+          await currencyApi.removeOrganizationCurrency(id);
+          await loadOrganizationCurrencies();
           setToast({ message: t('currency.currencyRemoved'), type: 'success' });
         } catch (err) {
           console.error('Failed to remove currency:', err);
@@ -209,7 +210,7 @@ export default function CurrenciesPage() {
       c.name.toLowerCase().includes(currencySearch.toLowerCase())
   );
 
-  const existingCurrencyIds = new Set(mosqueCurrencies.map((mc) => mc.currencyId));
+  const existingCurrencyIds = new Set(organizationCurrencies.map((mc) => mc.currencyId));
   const availableToAdd = allCurrencies.filter(
     (c) =>
       !existingCurrencyIds.has(c.id) &&
@@ -217,11 +218,11 @@ export default function CurrenciesPage() {
         c.name.toLowerCase().includes(addSearch.toLowerCase()))
   );
 
-  // Active mosque currencies for exchange rate dropdowns
-  const activeMosqueCurrencies = mosqueCurrencies.filter((mc) => mc.isActive);
+  // Active organization currencies for exchange rate dropdowns
+  const activeOrganizationCurrencies = organizationCurrencies.filter((mc) => mc.isActive);
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'mosque', label: t('currency.mosqueCurrencies') },
+    { key: 'organization', label: t('currency.organizationCurrencies') },
     { key: 'rates', label: t('currency.exchangeRates') },
     { key: 'available', label: t('currency.availableCurrencies') },
   ];
@@ -258,11 +259,11 @@ export default function CurrenciesPage() {
         ))}
       </div>
 
-      {/* ====== Mosque Currencies Tab ====== */}
-      {activeTab === 'mosque' && (
+      {/* ====== Organization Currencies Tab ====== */}
+      {activeTab === 'organization' && (
         <Card className="p-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h2 className="text-lg font-semibold text-stone-900">{t('currency.mosqueCurrencies')}</h2>
+            <h2 className="text-lg font-semibold text-stone-900">{t('currency.organizationCurrencies')}</h2>
             <button
               onClick={() => setShowAddModal(true)}
               className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm w-full sm:w-auto"
@@ -271,11 +272,11 @@ export default function CurrenciesPage() {
             </button>
           </div>
 
-          {mosqueLoading ? (
+          {organizationLoading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-700" />
             </div>
-          ) : mosqueCurrencies.length === 0 ? (
+          ) : organizationCurrencies.length === 0 ? (
             <div className="text-center py-8 text-stone-500">
               <p>{t('currency.noCurrencies')}</p>
               <p className="text-sm mt-1">{t('currency.addFirst')}</p>
@@ -284,7 +285,7 @@ export default function CurrenciesPage() {
             <>
               {/* Mobile: Card list */}
               <div className="md:hidden divide-y divide-stone-200">
-                {mosqueCurrencies.map((mc) => (
+                {organizationCurrencies.map((mc) => (
                   <div key={mc.id} className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
@@ -354,7 +355,7 @@ export default function CurrenciesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mosqueCurrencies.map((mc) => (
+                    {organizationCurrencies.map((mc) => (
                       <tr key={mc.id} className="border-b border-stone-100 hover:bg-stone-50">
                         <td className="py-3 px-4 font-mono font-medium text-stone-900">{mc.currencyCode}</td>
                         <td className="py-3 px-4 text-stone-700">{mc.currencyName}</td>
@@ -416,21 +417,21 @@ export default function CurrenciesPage() {
               onClick={() => {
                 setEditingRate(null);
                 setRateForm({
-                  fromCurrencyId: activeMosqueCurrencies[0]?.currencyId || 0,
-                  toCurrencyId: activeMosqueCurrencies[1]?.currencyId || 0,
+                  fromCurrencyId: activeOrganizationCurrencies[0]?.currencyId || 0,
+                  toCurrencyId: activeOrganizationCurrencies[1]?.currencyId || 0,
                   rate: 0,
                   effectiveDate: (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })(),
                 });
                 setShowRateModal(true);
               }}
               className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm w-full sm:w-auto"
-              disabled={activeMosqueCurrencies.length < 2}
+              disabled={activeOrganizationCurrencies.length < 2}
             >
               {t('currency.addRate')}
             </button>
           </div>
 
-          {activeMosqueCurrencies.length < 2 && (
+          {activeOrganizationCurrencies.length < 2 && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-sm text-amber-800">
               {t('currency.needTwoCurrencies')}
             </div>
@@ -596,13 +597,13 @@ export default function CurrenciesPage() {
                                   onConfirm: async () => {
                                     setConfirmAction(null);
                                     try {
-                                      const dto: MosqueCurrencyCreateDTO = {
+                                      const dto: OrganizationCurrencyCreateDTO = {
                                         currencyId: c.id,
-                                        isPrimary: mosqueCurrencies.length === 0,
+                                        isPrimary: organizationCurrencies.length === 0,
                                         isActive: true,
                                       };
-                                      await currencyApi.addMosqueCurrency(dto);
-                                      await loadMosqueCurrencies();
+                                      await currencyApi.addOrganizationCurrency(dto);
+                                      await loadOrganizationCurrencies();
                                       setToast({ message: t('currency.currencyAdded'), type: 'success' });
                                     } catch (err) {
                                       console.error('Failed to add currency:', err);
@@ -661,13 +662,13 @@ export default function CurrenciesPage() {
                                   onConfirm: async () => {
                                     setConfirmAction(null);
                                     try {
-                                      const dto: MosqueCurrencyCreateDTO = {
+                                      const dto: OrganizationCurrencyCreateDTO = {
                                         currencyId: c.id,
-                                        isPrimary: mosqueCurrencies.length === 0,
+                                        isPrimary: organizationCurrencies.length === 0,
                                         isActive: true,
                                       };
-                                      await currencyApi.addMosqueCurrency(dto);
-                                      await loadMosqueCurrencies();
+                                      await currencyApi.addOrganizationCurrency(dto);
+                                      await loadOrganizationCurrencies();
                                       setToast({ message: t('currency.currencyAdded'), type: 'success' });
                                     } catch (err) {
                                       console.error('Failed to add currency:', err);
@@ -774,7 +775,7 @@ export default function CurrenciesPage() {
                   className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value={0}>{t('currency.selectCurrency')}</option>
-                  {activeMosqueCurrencies.map((mc) => (
+                  {activeOrganizationCurrencies.map((mc) => (
                     <option key={mc.currencyId} value={mc.currencyId}>
                       {mc.currencyCode} - {mc.currencyName}
                     </option>
@@ -789,7 +790,7 @@ export default function CurrenciesPage() {
                   className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value={0}>{t('currency.selectCurrency')}</option>
-                  {activeMosqueCurrencies
+                  {activeOrganizationCurrencies
                     .filter((mc) => mc.currencyId !== rateForm.fromCurrencyId)
                     .map((mc) => (
                       <option key={mc.currencyId} value={mc.currencyId}>

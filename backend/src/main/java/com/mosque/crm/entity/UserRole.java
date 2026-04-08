@@ -36,8 +36,8 @@ public class UserRole {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @Column(name = "start_date")
     private LocalDate startDate;
@@ -92,12 +92,12 @@ public class UserRole {
         this.role = role;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public LocalDate getStartDate() {

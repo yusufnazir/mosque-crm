@@ -7,8 +7,8 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -30,9 +30,9 @@ import jakarta.persistence.TableGenerator;
  */
 @Entity
 @Table(name = "group_roles")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class GroupRole implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class GroupRole implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "group_roles_seq", table = "sequences_",
@@ -58,8 +58,8 @@ public class GroupRole implements MosqueAware {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
@@ -126,13 +126,13 @@ public class GroupRole implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public LocalDateTime getCreatedAt() {

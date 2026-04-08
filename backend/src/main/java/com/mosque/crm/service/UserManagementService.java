@@ -14,12 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.mosque.crm.dto.CreateUserRequest;
 import com.mosque.crm.dto.UpdateUserRequest;
 import com.mosque.crm.dto.UserListDTO;
-import com.mosque.crm.entity.Mosque;
+import com.mosque.crm.entity.Organization;
 import com.mosque.crm.entity.Person;
 import com.mosque.crm.entity.Role;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.multitenancy.TenantContext;
-import com.mosque.crm.repository.MosqueRepository;
+import com.mosque.crm.repository.OrganizationRepository;
 import com.mosque.crm.repository.PasswordResetTokenRepository;
 import com.mosque.crm.repository.RoleRepository;
 import com.mosque.crm.repository.UserPreferencesRepository;
@@ -40,7 +40,7 @@ public class UserManagementService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final MosqueRepository mosqueRepository;
+    private final OrganizationRepository organizationRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthorizationService authorizationService;
     private final UserPreferencesRepository userPreferencesRepository;
@@ -50,7 +50,7 @@ public class UserManagementService {
 
     public UserManagementService(UserRepository userRepository,
                                   RoleRepository roleRepository,
-                                  MosqueRepository mosqueRepository,
+                                  OrganizationRepository organizationRepository,
                                   PasswordEncoder passwordEncoder,
                                   AuthorizationService authorizationService,
                                   UserPreferencesRepository userPreferencesRepository,
@@ -59,7 +59,7 @@ public class UserManagementService {
                                   RoleGovernanceService roleGovernanceService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.mosqueRepository = mosqueRepository;
+        this.organizationRepository = organizationRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorizationService = authorizationService;
         this.userPreferencesRepository = userPreferencesRepository;
@@ -130,14 +130,14 @@ public class UserManagementService {
             throw new IllegalArgumentException("Email already exists: " + request.getEmail());
         }
 
-        // Plan limit check: enforce max users per mosque based on subscription plan.
-        // Skipped for super-admin created users (mosqueId == null).
-        Long targetMosqueId = request.getMosqueId();
-        if (targetMosqueId != null) {
+        // Plan limit check: enforce max users per organization based on subscription plan.
+        // Skipped for super-admin created users (organizationId == null).
+        Long targetOrganizationId = request.getOrganizationId();
+        if (targetOrganizationId != null) {
             try {
-                Integer userLimit = organizationSubscriptionService.getFeatureLimit(targetMosqueId, FeatureKeys.ADMIN_USERS_MAX);
+                Integer userLimit = organizationSubscriptionService.getFeatureLimit(targetOrganizationId, FeatureKeys.ADMIN_USERS_MAX);
                 if (userLimit != null) {
-                    long currentCount = userRepository.countByMosqueId(targetMosqueId);
+                    long currentCount = userRepository.countByOrganizationId(targetOrganizationId);
                     if (currentCount >= userLimit) {
                         throw new PlanLimitExceededException(FeatureKeys.ADMIN_USERS_MAX, userLimit, (int) currentCount);
                     }
@@ -145,8 +145,8 @@ public class UserManagementService {
             } catch (PlanLimitExceededException e) {
                 throw e;
             } catch (RuntimeException e) {
-                // No active subscription found — allow creation with a warning (grace period for new mosques)
-                log.warn("Could not verify user limit for mosqueId={}: {}", targetMosqueId, e.getMessage());
+                // No active subscription found — allow creation with a warning (grace period for new organizations)
+                log.warn("Could not verify user limit for organizationId={}: {}", targetOrganizationId, e.getMessage());
             }
         }
 
@@ -157,7 +157,7 @@ public class UserManagementService {
         user.setAccountEnabled(true);
         user.setAccountLocked(false);
         user.setCredentialsExpired(false);
-        user.setMosqueId(request.getMosqueId());
+        user.setOrganizationId(request.getOrganizationId());
 
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             // Block SUPER_ADMIN role assignment unless requester has the permission
@@ -223,8 +223,8 @@ public class UserManagementService {
             user.setAccountLocked(request.getAccountLocked());
         }
 
-        if (request.getMosqueId() != null) {
-            user.setMosqueId(request.getMosqueId());
+        if (request.getOrganizationId() != null) {
+            user.setOrganizationId(request.getOrganizationId());
         }
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
@@ -322,27 +322,27 @@ public class UserManagementService {
     }
 
     private Set<Role> resolveRoles(List<String> roleNames) {
-        Long currentMosqueId = getCurrentMosqueId();
+        Long currentOrganizationId = getCurrentOrganizationId();
         boolean canManageSuperAdmin = canManageSuperAdmin();
 
         Set<Role> roles = new HashSet<>();
         for (String name : roleNames) {
             Role role = null;
 
-            if (currentMosqueId != null) {
-                role = roleRepository.findByNameAndMosqueId(name, currentMosqueId).orElse(null);
+            if (currentOrganizationId != null) {
+                role = roleRepository.findByNameAndOrganizationId(name, currentOrganizationId).orElse(null);
             }
 
             if (role == null) {
-                role = roleRepository.findByNameAndMosqueIdIsNull(name).orElse(null);
+                role = roleRepository.findByNameAndOrganizationIdIsNull(name).orElse(null);
             }
 
             if (role == null) {
                 continue;
             }
 
-            // Tenant admins cannot assign global roles (mosque_id NULL).
-            if (role.getMosqueId() == null && !canManageSuperAdmin) {
+            // Tenant admins cannot assign global roles (organization_id NULL).
+            if (role.getOrganizationId() == null && !canManageSuperAdmin) {
                 continue;
             }
 
@@ -351,13 +351,13 @@ public class UserManagementService {
         return roles;
     }
 
-    private Long getCurrentMosqueId() {
-        Long mosqueId = TenantContext.getCurrentMosqueId();
-        if (mosqueId != null) {
-            return mosqueId;
+    private Long getCurrentOrganizationId() {
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId != null) {
+            return organizationId;
         }
         User current = authorizationService.getCurrentUser();
-        return current != null ? current.getMosqueId() : null;
+        return current != null ? current.getOrganizationId() : null;
     }
 
     private UserListDTO toUserListDTO(User user, Long currentUserId) {
@@ -369,13 +369,13 @@ public class UserManagementService {
         dto.setAccountLocked(user.isAccountLocked());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setLastLogin(user.getLastLogin());
-        dto.setMosqueId(user.getMosqueId());
+        dto.setOrganizationId(user.getOrganizationId());
         dto.setCurrentUser(user.getId().equals(currentUserId));
 
-        // Resolve mosque name
-        if (user.getMosqueId() != null) {
-            mosqueRepository.findById(user.getMosqueId())
-                    .ifPresent(mosque -> dto.setMosqueName(mosque.getName()));
+        // Resolve organization name
+        if (user.getOrganizationId() != null) {
+            organizationRepository.findById(user.getOrganizationId())
+                    .ifPresent(organization -> dto.setOrganizationName(organization.getName()));
         }
 
         // Map roles

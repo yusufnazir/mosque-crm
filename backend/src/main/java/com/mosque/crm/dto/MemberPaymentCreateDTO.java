@@ -32,6 +32,8 @@ public class MemberPaymentCreateDTO {
 
     private Long currencyId;
 
+    private String paymentGroupId;
+
     public MemberPaymentCreateDTO() {
     }
 
@@ -106,5 +108,13 @@ public class MemberPaymentCreateDTO {
 
     public void setCurrencyId(Long currencyId) {
         this.currencyId = currencyId;
+    }
+
+    public String getPaymentGroupId() {
+        return paymentGroupId;
+    }
+
+    public void setPaymentGroupId(String paymentGroupId) {
+        this.paymentGroupId = paymentGroupId;
     }
 }

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
 import { MemberPayment } from '@/lib/contributionApi';
-import { Mosque, mosqueApi } from '@/lib/mosqueApi';
+import { Organization, organizationApi } from '@/lib/organizationApi';
 
 interface PaymentReceiptModalProps {
   open: boolean;
@@ -29,7 +29,7 @@ export default function PaymentReceiptModal({
   formatPeriod,
   t,
 }: PaymentReceiptModalProps) {
-  const [mosque, setMosque] = useState<Mosque | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [sharing, setSharing] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
@@ -38,24 +38,24 @@ export default function PaymentReceiptModal({
   useEffect(() => {
     if (!open) return;
     preRenderedImage.current = null;
-    const loadMosque = async () => {
+    const loadOrganization = async () => {
       try {
-        const mosqueId = localStorage.getItem('selectedMosqueId');
-        if (mosqueId) {
-          const mosques = await mosqueApi.getActive();
-          const current = mosques.find((m) => m.id === Number(mosqueId));
-          if (current) setMosque(current);
+        const organizationId = localStorage.getItem('selectedOrganizationId');
+        if (organizationId) {
+          const organizations = await organizationApi.getActive();
+          const current = organizations.find((m) => m.id === Number(organizationId));
+          if (current) setOrganization(current);
         }
       } catch (err) {
-        console.error('Failed to load mosque info:', err);
+        console.error('Failed to load organization info:', err);
       }
     };
-    loadMosque();
+    loadOrganization();
   }, [open]);
 
   // Pre-render receipt as image after content is painted, so share is instant
   useEffect(() => {
-    if (!open || !payment || !mosque) return;
+    if (!open || !payment || !organization) return;
     const timer = setTimeout(async () => {
       if (!receiptRef.current) return;
       try {
@@ -73,7 +73,7 @@ export default function PaymentReceiptModal({
       }
     }, 300); // small delay to ensure DOM has painted
     return () => clearTimeout(timer);
-  }, [open, payment, mosque]);
+  }, [open, payment, organization]);
 
   if (!open || !payment) return null;
 
@@ -134,13 +134,13 @@ export default function PaymentReceiptModal({
               border-bottom: 2px solid #047857;
               margin-bottom: 20px;
             }
-            .mosque-name {
+            .organization-name {
               font-size: 20px;
               font-weight: 700;
               color: #047857;
               margin-bottom: 4px;
             }
-            .mosque-details {
+            .organization-details {
               font-size: 11px;
               color: #57534E;
               line-height: 1.5;
@@ -375,23 +375,23 @@ export default function PaymentReceiptModal({
         {/* Receipt Content */}
         <div className="p-4 sm:p-6">
           <div ref={receiptRef}>
-            {/* Header - Mosque Info */}
+            {/* Header - Organization Info */}
             <div className="receipt-header" style={{ textAlign: 'center', paddingBottom: '16px', borderBottom: '2px solid #047857', marginBottom: '20px' }}>
-              <div className="mosque-name" style={{ fontSize: '20px', fontWeight: 700, color: '#047857', marginBottom: '4px' }}>
-                {mosque?.name || t('receipt.organization')}
+              <div className="organization-name" style={{ fontSize: '20px', fontWeight: 700, color: '#047857', marginBottom: '4px' }}>
+                {organization?.name || t('receipt.organization')}
               </div>
-              {mosque && (
-                <div className="mosque-details" style={{ fontSize: '11px', color: '#57534E', lineHeight: 1.5 }}>
-                  {mosque.address && <div>{mosque.address}</div>}
-                  {(mosque.city || mosque.postalCode) && (
+              {organization && (
+                <div className="organization-details" style={{ fontSize: '11px', color: '#57534E', lineHeight: 1.5 }}>
+                  {organization.address && <div>{organization.address}</div>}
+                  {(organization.city || organization.postalCode) && (
                     <div>
-                      {[mosque.postalCode, mosque.city].filter(Boolean).join(' ')}
-                      {mosque.country && `, ${mosque.country}`}
+                      {[organization.postalCode, organization.city].filter(Boolean).join(' ')}
+                      {organization.country && `, ${organization.country}`}
                     </div>
                   )}
-                  {(mosque.phone || mosque.email) && (
+                  {(organization.phone || organization.email) && (
                     <div>
-                      {[mosque.phone && `Tel: ${mosque.phone}`, mosque.email].filter(Boolean).join(' | ')}
+                      {[organization.phone && `Tel: ${organization.phone}`, organization.email].filter(Boolean).join(' | ')}
                     </div>
                   )}
                 </div>

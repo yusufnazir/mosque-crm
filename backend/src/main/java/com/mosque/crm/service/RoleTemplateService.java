@@ -22,7 +22,7 @@ import com.mosque.crm.repository.RoleTemplateRepository;
  * Manages provisioning of default roles for new tenants and syncing of
  * template changes to all existing tenant role copies.
  *
- * Source of truth: {@code role_templates} table (not null-mosque_id rows in {@code roles}).
+ * Source of truth: {@code role_templates} table (not null-organization_id rows in {@code roles}).
  */
 @Service
 public class RoleTemplateService {
@@ -39,14 +39,14 @@ public class RoleTemplateService {
     }
 
     /**
-     * Provision tenant roles for a newly created mosque by copying ALL active templates.
+     * Provision tenant roles for a newly created organization by copying ALL active templates.
      * Uses a 2-pass approach:
      * 1. Create/update all tenant roles (permissions + assignable permissions)
      * 2. Wire up assignable roles (template→template mappings resolved to tenant roles)
      */
     @Transactional
-    public void provisionDefaultRolesForMosque(Long mosqueId) {
-        if (mosqueId == null) {
+    public void provisionDefaultRolesForOrganization(Long organizationId) {
+        if (organizationId == null) {
             return;
         }
 
@@ -54,11 +54,11 @@ public class RoleTemplateService {
 
         // Pass 1: create all tenant roles (permissions + assignable permissions)
         for (RoleTemplate template : templates) {
-            upsertTenantRoleFromTemplate(template, mosqueId);
+            upsertTenantRoleFromTemplate(template, organizationId);
         }
 
         // Pass 2: wire up assignable roles from template relationships
-        Map<String, Role> tenantRolesByName = buildTenantRoleMap(mosqueId);
+        Map<String, Role> tenantRolesByName = buildTenantRoleMap(organizationId);
         for (RoleTemplate template : templates) {
             Role tenantRole = tenantRolesByName.get(template.getName());
             if (tenantRole == null) {
@@ -75,7 +75,7 @@ public class RoleTemplateService {
             roleRepository.save(tenantRole);
         }
 
-        log.info("Provisioned {} template roles for mosque_id={}", templates.size(), mosqueId);
+        log.info("Provisioned {} template roles for organization_id={}", templates.size(), organizationId);
     }
 
     /**
@@ -90,7 +90,7 @@ public class RoleTemplateService {
             return;
         }
 
-        List<Role> tenantRoles = roleRepository.findByNameAndMosqueIdIsNotNull(templateName);
+        List<Role> tenantRoles = roleRepository.findByNameAndOrganizationIdIsNotNull(templateName);
         for (Role tenantRole : tenantRoles) {
             tenantRole.setDescription(template.getDescription());
             Set<Permission> newAssignable = new HashSet<>(template.getAssignablePermissions());
@@ -99,8 +99,8 @@ public class RoleTemplateService {
             tenantRole.setPermissions(newGranted);
 
             // Sync assignable roles from template relationships
-            if (tenantRole.getMosqueId() != null) {
-                Map<String, Role> tenantRoleMap = buildTenantRoleMap(tenantRole.getMosqueId());
+            if (tenantRole.getOrganizationId() != null) {
+                Map<String, Role> tenantRoleMap = buildTenantRoleMap(tenantRole.getOrganizationId());
                 Set<Role> assignableRoles = new HashSet<>();
                 for (RoleTemplate assignableTpl : template.getAssignableRoleTemplates()) {
                     Role target = tenantRoleMap.get(assignableTpl.getName());
@@ -127,11 +127,11 @@ public class RoleTemplateService {
     }
 
     /**
-     * Check if a role is a default template copy (i.e., has a mosque_id and a corresponding template exists).
+     * Check if a role is a default template copy (i.e., has a organization_id and a corresponding template exists).
      */
     public boolean isTemplateRole(Role role) {
         return role != null
-                && role.getMosqueId() != null
+                && role.getOrganizationId() != null
                 && templateRepository.existsByName(role.getName());
     }
 
@@ -145,12 +145,12 @@ public class RoleTemplateService {
 
     // ─── private helpers ─────────────────────────────────────────────
 
-    private void upsertTenantRoleFromTemplate(RoleTemplate template, Long mosqueId) {
-        Role tenantRole = roleRepository.findByNameAndMosqueId(template.getName(), mosqueId).orElse(null);
+    private void upsertTenantRoleFromTemplate(RoleTemplate template, Long organizationId) {
+        Role tenantRole = roleRepository.findByNameAndOrganizationId(template.getName(), organizationId).orElse(null);
         if (tenantRole == null) {
             tenantRole = new Role();
             tenantRole.setName(template.getName());
-            tenantRole.setMosqueId(mosqueId);
+            tenantRole.setOrganizationId(organizationId);
         }
 
         tenantRole.setDescription(template.getDescription());
@@ -171,9 +171,9 @@ public class RoleTemplateService {
                 .collect(Collectors.toSet());
     }
 
-    private Map<String, Role> buildTenantRoleMap(Long mosqueId) {
+    private Map<String, Role> buildTenantRoleMap(Long organizationId) {
         Map<String, Role> map = new HashMap<>();
-        for (Role role : roleRepository.findByMosqueId(mosqueId)) {
+        for (Role role : roleRepository.findByOrganizationId(organizationId)) {
             map.put(role.getName(), role);
         }
         return map;

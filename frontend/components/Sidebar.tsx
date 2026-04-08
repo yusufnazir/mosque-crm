@@ -9,9 +9,10 @@ import ChangePasswordModal from './ChangePasswordModal';
 import LanguageSelector from './LanguageSelector';
 import { authApi } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
-import { useAuth, MosqueOption } from '@/lib/auth/AuthContext';
+import { useAuth, OrganizationOption } from '@/lib/auth/AuthContext';
+import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import { useAppName } from '@/lib/AppNameContext';
-import { mosqueApi, Mosque } from '@/lib/mosqueApi';
+import { organizationApi, Organization } from '@/lib/organizationApi';
 
 interface NavItem {
   name: string;
@@ -19,6 +20,8 @@ interface NavItem {
   icon: React.ReactNode;
   /** Permission code required to see this item. If undefined the item is always visible. */
   permission?: string;
+  /** Subscription entitlement key. If the feature is disabled on the plan, the item is hidden. */
+  entitlement?: string;
   /** If true, show a divider above this item */
   divider?: boolean;
 }
@@ -83,6 +86,7 @@ const allNavItems: NavItem[] = [
     name: 'Currencies', 
     href: '/currencies', 
     permission: 'currency.view',
+    entitlement: 'finance.multi_currency',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -93,6 +97,7 @@ const allNavItems: NavItem[] = [
     name: 'Reports', 
     href: '/reports', 
     permission: 'report.view',
+    entitlement: 'reports.advanced',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -113,6 +118,7 @@ const allNavItems: NavItem[] = [
     name: 'Import', 
     href: '/import', 
     permission: 'import.execute',
+    entitlement: 'import.excel',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -171,8 +177,8 @@ const allNavItems: NavItem[] = [
     )
   },
   { 
-    name: 'Mosques', 
-    href: '/mosques', 
+    name: 'Organizations', 
+    href: '/organizations', 
     permission: 'organization.manage',
       icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,12 +187,12 @@ const allNavItems: NavItem[] = [
     ) 
   },
     { 
-      name: 'Subscription', 
-      href: '/subscription', 
+      name: 'Billing', 
+      href: '/billing', 
       permission: 'subscription.view',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       ) 
     },
@@ -201,6 +207,16 @@ const allNavItems: NavItem[] = [
       </svg>
     ) 
   },
+  { 
+    name: 'Tenant Settings', 
+    href: '/tenant-settings', 
+    permission: 'tenant_settings.view',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+      </svg>
+    ) 
+  },
 ];
 
 interface SidebarProps {
@@ -210,37 +226,41 @@ interface SidebarProps {
 export default function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const { t } = useTranslation();
-  const { can, canAny, user, isSuperAdmin, selectedMosque, selectMosque, activeMosqueName } = useAuth();
+  const { can, canAny, user, isSuperAdmin, selectedOrganization, selectOrganization, activeOrganizationName } = useAuth();
+  const { hasFeature } = useSubscription();
   const { appName } = useAppName();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  const [mosqueList, setMosqueList] = useState<Mosque[]>([]);
-  const [isMosqueSelectorOpen, setIsMosqueSelectorOpen] = useState(false);
-  const mosqueSelectorRef = useRef<HTMLDivElement>(null);
+  const [organizationList, setOrganizationList] = useState<Organization[]>([]);
+  const [isOrganizationSelectorOpen, setIsOrganizationSelectorOpen] = useState(false);
+  const organizationSelectorRef = useRef<HTMLDivElement>(null);
 
-  // Load mosque list for super admin
+  // Load organization list for super admin
   useEffect(() => {
     if (isSuperAdmin) {
-      mosqueApi.getActive().then(setMosqueList).catch(() => {});
+      organizationApi.getActive().then(setOrganizationList).catch(() => {});
     }
   }, [isSuperAdmin]);
 
-  // Close mosque selector on outside click
+  // Close organization selector on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (mosqueSelectorRef.current && !mosqueSelectorRef.current.contains(event.target as Node)) {
-        setIsMosqueSelectorOpen(false);
+      if (organizationSelectorRef.current && !organizationSelectorRef.current.contains(event.target as Node)) {
+        setIsOrganizationSelectorOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter nav items by permission. Super admins see all items.
+  // Filter nav items by permission and subscription entitlement.
+  // Super admins see all items.
   const navItems = allNavItems.filter((item) => {
     if (!item.permission) return true;
     if (isSuperAdmin) return true;
-    return can(item.permission);
+    if (!can(item.permission)) return false;
+    if (item.entitlement && !hasFeature(item.entitlement)) return false;
+    return true;
   });
 
   // Determine panel label based on permissions rather than role string
@@ -250,8 +270,8 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     // Clear local state first
     localStorage.removeItem('personId');
     localStorage.removeItem('memberId');
-    localStorage.removeItem('selectedMosque');
-    localStorage.removeItem('selectedMosqueId');
+    localStorage.removeItem('selectedOrganization');
+    localStorage.removeItem('selectedOrganizationId');
     localStorage.removeItem('lang');
     // Navigate directly to the logout endpoint — the server clears the httpOnly
     // cookie and redirects to /login. Direct navigation is more reliable than
@@ -289,13 +309,13 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             </svg>
           </button>
         </div>
-        {/* Mosque context indicator / selector */}
+        {/* Organization context indicator / selector */}
         {user && (
           <div className="mt-2">
             {isSuperAdmin ? (
-              <div ref={mosqueSelectorRef} className="relative">
+              <div ref={organizationSelectorRef} className="relative">
                 <button
-                  onClick={() => setIsMosqueSelectorOpen(!isMosqueSelectorOpen)}
+                  onClick={() => setIsOrganizationSelectorOpen(!isOrganizationSelectorOpen)}
                   className="w-full flex items-center justify-between gap-1 px-2 py-1.5 bg-emerald-700/50 hover:bg-emerald-700 rounded text-xs text-emerald-200 transition-all cursor-pointer"
                 >
                   <span className="flex items-center gap-1 truncate">
@@ -303,44 +323,44 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                     <span className="truncate">
-                      {selectedMosque ? selectedMosque.name : t('sidebar.all_mosques')}
+                      {selectedOrganization ? selectedOrganization.name : t('sidebar.all_organizations')}
                     </span>
                   </span>
-                  <svg className={`w-3 h-3 flex-shrink-0 transition-transform ${isMosqueSelectorOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`w-3 h-3 flex-shrink-0 transition-transform ${isOrganizationSelectorOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
                 {/* Dropdown */}
-                {isMosqueSelectorOpen && (
+                {isOrganizationSelectorOpen && (
                   <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-emerald-700 rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
-                    {/* All Mosques option */}
+                    {/* All Organizations option */}
                     <button
-                      onClick={() => { selectMosque(null); setIsMosqueSelectorOpen(false); }}
+                      onClick={() => { selectOrganization(null); setIsOrganizationSelectorOpen(false); }}
                       className={`w-full text-left px-3 py-2 text-xs transition-all flex items-center gap-2 ${
-                        !selectedMosque ? 'bg-emerald-600 text-white' : 'text-emerald-200 hover:bg-emerald-600'
+                        !selectedOrganization ? 'bg-emerald-600 text-white' : 'text-emerald-200 hover:bg-emerald-600'
                       }`}
                     >
                       <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      {t('sidebar.all_mosques')}
+                      {t('sidebar.all_organizations')}
                     </button>
                     <hr className="border-emerald-600" />
-                    {mosqueList.map((mosque) => (
+                    {organizationList.map((organization) => (
                       <button
-                        key={mosque.id}
-                        onClick={() => { selectMosque({ id: mosque.id, name: mosque.name, shortName: mosque.shortName }); setIsMosqueSelectorOpen(false); }}
+                        key={organization.id}
+                        onClick={() => { selectOrganization({ id: organization.id, name: organization.name, shortName: organization.shortName }); setIsOrganizationSelectorOpen(false); }}
                         className={`w-full text-left px-3 py-2 text-xs transition-all truncate ${
-                          selectedMosque?.id === mosque.id ? 'bg-emerald-600 text-white' : 'text-emerald-200 hover:bg-emerald-600'
+                          selectedOrganization?.id === organization.id ? 'bg-emerald-600 text-white' : 'text-emerald-200 hover:bg-emerald-600'
                         }`}
                       >
-                        {mosque.name}
+                        {organization.name}
                       </button>
                     ))}
-                    {mosqueList.length === 0 && (
+                    {organizationList.length === 0 && (
                       <div className="px-3 py-2 text-xs text-emerald-400 italic">
-                        {t('sidebar.no_mosques_found')}
+                        {t('sidebar.no_organizations_found')}
                       </div>
                     )}
                   </div>
@@ -352,8 +372,8 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                   <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  <span className="truncate" title={user.mosqueName || ''}>
-                    {user.mosqueName || t('sidebar.no_mosque')}
+                  <span className="truncate" title={user.organizationName || ''}>
+                    {user.organizationName || t('sidebar.no_organization')}
                   </span>
                 </span>
               </div>

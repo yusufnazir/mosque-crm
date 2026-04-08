@@ -42,7 +42,7 @@ export interface AuthResponse {
   role: string;
   memberId: string;
   personId?: string;
-  mosqueId?: number;
+  organizationId?: number;
   permissions?: string[];
   preferences?: UserPreferences;
 }

@@ -9,27 +9,13 @@
     <include file="db/changelog/changes/dml/020-data-roles.xml"/>
     <include file="db/changelog/changes/dml/021-data-users.xml"/>
     <include file="db/changelog/changes/dml/022-data-user-roles.xml"/>
-    
-    <!-- GEDCOM Data -->
-<!--    <include file="db/changelog/changes/dml/005-data-gedcom-individuals-families.xml"/>-->
-<!--    <include file="db/changelog/changes/dml/006-data-gedcom-events.xml"/>-->
-
-    <!-- Person Data (Foundational identity layer) -->
-<!--    <include file="db/changelog/changes/dml/024-data-persons.xml"/>-->
-
-    <!-- GEDCOM-Person Links (Connect persons to family tree) -->
-<!--    <include file="db/changelog/changes/dml/025-data-gedcom-person-links.xml"/>-->
-
-    <!-- Membership Data (Mosque membership status for persons) -->
-<!--    <include file="db/changelog/changes/dml/026-data-memberships.xml"/>-->
 
     <!-- Authorization Data -->
     <include file="db/changelog/changes/dml/030-data-permissions.xml"/>
     <include file="db/changelog/changes/dml/031-data-role-permissions.xml"/>
     <include file="db/changelog/changes/dml/035-data-role-assignable-permissions.xml"/>
 
-    <!-- Multi-Mosque Data -->
-    <include file="db/changelog/changes/dml/032-data-mosques.xml"/>
+    <!-- Multi-Organization Data -->
     <include file="db/changelog/changes/dml/033-data-super-admin.xml"/>
 
     <!-- Currency Reference Data -->
@@ -46,5 +32,17 @@
 
     <!-- Role template assignable roles (governance/delegation) -->
     <include file="db/changelog/changes/dml/041-data-role-assignable-roles.xml"/>
+
+    <!-- Tenant Setting Fields seed data -->
+    <include file="db/changelog/changes/dml/060-data-tenant-setting-fields.xml"/>
+
+    <!-- Production Data Migration (runs after all seed data) -->
+    <include file="db/changelog/changes/dml/200-prod-data-migration.xml"/>
+
+    <!-- Sync all Hibernate TableGenerator sequences on every startup -->
+    <include file="db/changelog/changes/dml/215-sync-all-sequences.xml"/>
+
+    <!-- Backfill next_due_date for subscriptions created before auto-set was implemented -->
+    <include file="db/changelog/changes/dml/216-backfill-subscription-next-due-date.xml"/>
 
 </databaseChangeLog>

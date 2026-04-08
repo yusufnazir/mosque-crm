@@ -1,0 +1,9 @@
+﻿id	contribution_type_id	locale	name	description
+1001	1001	en	Contribution	NULL
+1002	1001	nl	Contributie	NULL
+1003	1002	en	Buildingfund	NULL
+1004	1002	nl	Bouwfonds	NULL
+1005	1003	en	Sodaqoh	NULL
+1006	1003	nl	Sodaqoh	NULL
+1007	1004	en	Sodaqoh contribution	NULL
+1008	1004	nl	Sodaqoh contributie	NULL

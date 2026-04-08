@@ -14,16 +14,21 @@ import com.mosque.crm.enums.OrganizationSubscriptionStatus;
 @Repository
 public interface OrganizationSubscriptionRepository extends JpaRepository<OrganizationSubscription, Long> {
 
-    List<OrganizationSubscription> findByMosqueIdOrderByStartsAtDesc(Long mosqueId);
+    List<OrganizationSubscription> findByOrganizationIdOrderByStartsAtDesc(Long organizationId);
 
-    Optional<OrganizationSubscription> findFirstByMosqueIdAndStatusInOrderByStartsAtDesc(
-            Long mosqueId, List<OrganizationSubscriptionStatus> statuses);
+    Optional<OrganizationSubscription> findFirstByOrganizationIdAndStatusInOrderByStartsAtDesc(
+            Long organizationId, List<OrganizationSubscriptionStatus> statuses);
 
-        Optional<OrganizationSubscription> findFirstByMosqueIdAndStatusInAndStartsAtLessThanEqualOrderByStartsAtDesc(
-            Long mosqueId, List<OrganizationSubscriptionStatus> statuses, LocalDateTime startsAt);
+        Optional<OrganizationSubscription> findFirstByOrganizationIdAndStatusInAndStartsAtLessThanEqualOrderByStartsAtDesc(
+            Long organizationId, List<OrganizationSubscriptionStatus> statuses, LocalDateTime startsAt);
 
-        List<OrganizationSubscription> findByMosqueIdAndStatusInAndStartsAtGreaterThanOrderByStartsAtAsc(
-            Long mosqueId, List<OrganizationSubscriptionStatus> statuses, LocalDateTime startsAt);
+        List<OrganizationSubscription> findByOrganizationIdAndStatusInAndStartsAtGreaterThanOrderByStartsAtAsc(
+            Long organizationId, List<OrganizationSubscriptionStatus> statuses, LocalDateTime startsAt);
 
     List<OrganizationSubscription> findByStatus(OrganizationSubscriptionStatus status);
+
+    List<OrganizationSubscription> findByStatusIn(List<OrganizationSubscriptionStatus> statuses);
+
+    List<OrganizationSubscription> findByOrganizationIdAndStatusIn(
+            Long organizationId, List<OrganizationSubscriptionStatus> statuses);
 }

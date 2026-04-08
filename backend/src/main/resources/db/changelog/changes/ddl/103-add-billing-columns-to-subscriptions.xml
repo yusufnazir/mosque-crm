@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000009-0103-0000-0000-000000000001-1" author="mosque-crm">
+        <comment>Add billing date columns to organization_subscriptions for grace/read-only/lock lifecycle</comment>
+
+        <addColumn tableName="organization_subscriptions">
+            <column name="next_due_date" type="TIMESTAMP" afterColumn="ends_at"/>
+        </addColumn>
+        <addColumn tableName="organization_subscriptions">
+            <column name="grace_end_date" type="TIMESTAMP" afterColumn="next_due_date"/>
+        </addColumn>
+        <addColumn tableName="organization_subscriptions">
+            <column name="read_only_date" type="TIMESTAMP" afterColumn="grace_end_date"/>
+        </addColumn>
+        <addColumn tableName="organization_subscriptions">
+            <column name="lock_date" type="TIMESTAMP" afterColumn="read_only_date"/>
+        </addColumn>
+        <addColumn tableName="organization_subscriptions">
+            <column name="last_payment_date" type="TIMESTAMP" afterColumn="lock_date"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

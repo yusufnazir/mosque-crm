@@ -4,9 +4,15 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.Filter;
+
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,7 +28,9 @@ import jakarta.persistence.TableGenerator;
 
 @Entity
 @Table(name = "users")
-public class User {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class User implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "users_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -59,11 +67,11 @@ public class User {
     @Column(name = "must_change_password", nullable = false)
     private boolean mustChangePassword = false;
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
-    @Column(name = "selected_mosque_id")
-    private Long selectedMosqueId;
+    @Column(name = "selected_organization_id")
+    private Long selectedOrganizationId;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -178,20 +186,20 @@ public class User {
         this.lastLogin = lastLogin;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
-    public Long getSelectedMosqueId() {
-        return selectedMosqueId;
+    public Long getSelectedOrganizationId() {
+        return selectedOrganizationId;
     }
 
-    public void setSelectedMosqueId(Long selectedMosqueId) {
-        this.selectedMosqueId = selectedMosqueId;
+    public void setSelectedOrganizationId(Long selectedOrganizationId) {
+        this.selectedOrganizationId = selectedOrganizationId;
     }
 
     public Set<Role> getRoles() {

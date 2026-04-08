@@ -11,7 +11,7 @@
 		<customChange class="com.mosque.crm.liquibase.DataUser">
 			<param name="id"><![CDATA[1]]></param>
 			<param name="username"><![CDATA[admin]]></param>
-			<param name="password"><![CDATA[$2a$12$7BEY4T.DQ21/eC899q46G.ujaeTLPU1P4EqiyLv/xzOU1xBLE/lCu]]></param>
+			<param name="password"><![CDATA[$2a$12$4Vhq8IF5w9GXLrCCOAabB.JqkFR7/DrdYoPnSmaBAMkgk2HftehNu]]></param>
 			<param name="email"><![CDATA[admin@mosque.local]]></param>
 			<param name="accountEnabled"><![CDATA[true]]></param>
 			<param name="accountLocked"><![CDATA[false]]></param>

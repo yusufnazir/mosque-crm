@@ -17,10 +17,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.mosque.crm.config.BillingSchedulerConfig;
+import com.mosque.crm.dto.BillingSchedulerConfigDTO;
 import com.mosque.crm.dto.ConfigurationDTO;
 import com.mosque.crm.dto.MailServerConfigDTO;
+import com.mosque.crm.dto.MinioConfigDTO;
 import com.mosque.crm.entity.Configuration;
+import com.mosque.crm.multitenancy.TenantContext;
+import com.mosque.crm.service.BillingService;
 import com.mosque.crm.service.ConfigurationService;
+import com.mosque.crm.service.MinioStorageService;
 
 @RestController
 @RequestMapping("/configurations")
@@ -28,11 +34,15 @@ public class ConfigurationController {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationController.class);
     private final ConfigurationService configurationService;
+    private final MinioStorageService minioStorageService;
     private final RestTemplate restTemplate;
+    private final BillingService billingService;
 
-    public ConfigurationController(ConfigurationService configurationService, RestTemplate restTemplate) {
+    public ConfigurationController(ConfigurationService configurationService, MinioStorageService minioStorageService, RestTemplate restTemplate, BillingService billingService) {
         this.configurationService = configurationService;
+        this.minioStorageService = minioStorageService;
         this.restTemplate = restTemplate;
+        this.billingService = billingService;
     }
 
     @GetMapping
@@ -46,9 +56,12 @@ public class ConfigurationController {
 
     @GetMapping("/{name}")
     public ResponseEntity<ConfigurationDTO> getConfiguration(@PathVariable String name) {
-        return configurationService.getConfiguration(name)
-                .map(c -> ResponseEntity.ok(new ConfigurationDTO(c.getName(), c.getValue())))
-                .orElse(ResponseEntity.notFound().build());
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        String value = configurationService.getValueTenantAware(name, organizationId).orElse(null);
+        if (value == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(new ConfigurationDTO(name, value));
     }
 
     @PostMapping
@@ -159,5 +172,123 @@ public class ConfigurationController {
             response.put("message", "Test failed: " + e.getMessage());
             return ResponseEntity.ok(response);
         }
+    }
+
+    // MinIO / Document Storage configuration endpoints
+    @GetMapping("/minio")
+    public ResponseEntity<MinioConfigDTO> getMinioConfig() {
+        MinioConfigDTO config = new MinioConfigDTO(
+                minioStorageService.getEndpoint(),
+                minioStorageService.getAccessKey(),
+                minioStorageService.getSecretKey(),
+                minioStorageService.getBucket(),
+                minioStorageService.getRegion(),
+                minioStorageService.isUseSsl()
+        );
+        return ResponseEntity.ok(config);
+    }
+
+    @PostMapping("/minio")
+    public ResponseEntity<Map<String, String>> saveMinioConfig(@RequestBody MinioConfigDTO dto) {
+        configurationService.setValue("MINIO_ENDPOINT", dto.getEndpoint());
+        configurationService.setValue("MINIO_ACCESS_KEY", dto.getAccessKey());
+        configurationService.setValue("MINIO_SECRET_KEY", dto.getSecretKey());
+        configurationService.setValue("MINIO_BUCKET", dto.getBucket());
+        configurationService.setValue("MINIO_USE_SSL", String.valueOf(dto.isUseSsl()));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "MinIO configuration saved successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/minio/test")
+    public ResponseEntity<Map<String, String>> testMinioConnection() {
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            String error = minioStorageService.testConnection();
+            if (error == null) {
+                response.put("status", "success");
+                response.put("message", "MinIO connection successful! Bucket is accessible.");
+            } else {
+                response.put("status", "error");
+                response.put("message", error);
+            }
+        } catch (IllegalStateException e) {
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+        } catch (Exception e) {
+            log.error("MinIO connection test failed", e);
+            response.put("status", "error");
+            response.put("message", "Connection test failed: " + e.getMessage());
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    // Billing Scheduler configuration endpoints
+    @GetMapping("/billing-scheduler")
+    public ResponseEntity<BillingSchedulerConfigDTO> getBillingSchedulerConfig() {
+        boolean enabled = !"false".equalsIgnoreCase(
+                configurationService.getValue(BillingSchedulerConfig.KEY_ENABLED).orElse("true"));
+        String cron = configurationService.getValue(BillingSchedulerConfig.KEY_CRON)
+                .orElse(BillingSchedulerConfig.DEFAULT_CRON);
+        return ResponseEntity.ok(new BillingSchedulerConfigDTO(enabled, cron));
+    }
+
+    @PostMapping("/billing-scheduler")
+    public ResponseEntity<Map<String, String>> saveBillingSchedulerConfig(@RequestBody BillingSchedulerConfigDTO dto) {
+        configurationService.setValue(BillingSchedulerConfig.KEY_ENABLED, String.valueOf(dto.isEnabled()));
+        configurationService.setValue(BillingSchedulerConfig.KEY_CRON,
+                dto.getCron() != null && !dto.getCron().isBlank() ? dto.getCron() : BillingSchedulerConfig.DEFAULT_CRON);
+        log.info("Billing scheduler configuration updated: enabled={}, cron={}", dto.isEnabled(), dto.getCron());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Billing scheduler configuration saved successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/billing-scheduler/run")
+    public ResponseEntity<Map<String, String>> runBillingJobNow() {
+        log.info("Manual billing job triggered via API");
+        billingService.dailyBillingJob(true); // forced — bypasses the 7-day lookahead window
+        log.info("Manual billing job completed");
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Billing job completed successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    // Super admin subdomain configuration
+    public static final String KEY_SUPERADMIN_SUBDOMAIN = "SUPERADMIN_SUBDOMAIN";
+    public static final String DEFAULT_SUPERADMIN_SUBDOMAIN = "admin";
+
+    @GetMapping("/superadmin-subdomain")
+    public ResponseEntity<Map<String, String>> getSuperAdminSubdomain() {
+        String value = configurationService.getValue(KEY_SUPERADMIN_SUBDOMAIN)
+                .orElse(DEFAULT_SUPERADMIN_SUBDOMAIN);
+        Map<String, String> response = new HashMap<>();
+        response.put("subdomain", value);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/superadmin-subdomain")
+    public ResponseEntity<Map<String, String>> saveSuperAdminSubdomain(@RequestBody Map<String, String> body) {
+        String subdomain = body.get("subdomain");
+        if (subdomain == null || subdomain.isBlank()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Subdomain must not be empty");
+            return ResponseEntity.badRequest().body(error);
+        }
+        // Validate: only lowercase letters, digits, hyphens; no dots or slashes
+        if (!subdomain.matches("^[a-z0-9-]+$")) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Subdomain may only contain lowercase letters, digits and hyphens");
+            return ResponseEntity.badRequest().body(error);
+        }
+        configurationService.setValue(KEY_SUPERADMIN_SUBDOMAIN, subdomain.trim());
+        log.info("Super admin subdomain updated to: {}", subdomain);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Super admin subdomain saved successfully");
+        response.put("subdomain", subdomain.trim());
+        return ResponseEntity.ok(response);
     }
 }

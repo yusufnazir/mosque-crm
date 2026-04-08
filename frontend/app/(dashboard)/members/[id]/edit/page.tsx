@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import Button from '@/components/Button';
-import { memberApi, ApiClient } from '@/lib/api';
+import { memberApi, ApiClient, profileImageApi } from '@/lib/api';
 import { Member } from '@/types';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 
@@ -58,6 +58,10 @@ export default function EditMemberPage() {
   const [accountEnabled, setAccountEnabled] = useState(false);
   // Available roles fetched from API
   const [availableRoles, setAvailableRoles] = useState<{id: number; name: string}[]>([]);
+  // Profile image state
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchMemberData();
@@ -97,6 +101,7 @@ export default function EditMemberPage() {
         parentId: data.parentId,
       });
       setAccountEnabled(!!data.username);
+      setProfileImageUrl(data.profileImageUrl || null);
     } catch (error) {
       console.error('Failed to fetch member:', error);
       setError('Failed to load member data');
@@ -112,6 +117,36 @@ export default function EditMemberPage() {
       setHeadMembers(heads);
     } catch (error) {
       console.error('Failed to fetch head members:', error);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError('');
+    try {
+      const result = await profileImageApi.uploadForPerson(memberId, file);
+      setProfileImageUrl(result.imageUrl + '?t=' + Date.now());
+    } catch (err: any) {
+      setError(err.message || t('member_edit.image_upload_failed'));
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleImageDelete = async () => {
+    setUploading(true);
+    setError('');
+    try {
+      await profileImageApi.deleteForPerson(memberId);
+      setProfileImageUrl(null);
+    } catch (err: any) {
+      setError(err.message || t('member_edit.image_delete_failed'));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -368,6 +403,62 @@ export default function EditMemberPage() {
 
           {/* Account & Membership */}
           <div>
+            {/* Profile Picture */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('member_edit.profile_picture')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-24 h-24 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xl font-bold overflow-hidden flex-shrink-0">
+                    {profileImageUrl ? (
+                      <img
+                        src={profileImageUrl}
+                        alt={`${formData.firstName} ${formData.lastName}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <>{formData.firstName?.[0] || '?'}{formData.lastName?.[0] || '?'}</>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? t('member_edit.uploading') : t('member_edit.change_photo')}
+                    </Button>
+                    {profileImageUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleImageDelete}
+                        disabled={uploading}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        {t('member_edit.remove_photo')}
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    {t('member_edit.image_hint')}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="mt-6">
             <Card>
 
               <CardHeader>
@@ -458,6 +549,7 @@ export default function EditMemberPage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
 
             <div className="mt-6 space-y-3">
               <Button type="submit" className="w-full" disabled={loading}>

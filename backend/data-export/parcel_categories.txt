@@ -1,0 +1,4 @@
+﻿id	distribution_event_id	name	description	total_parcels	distributed_parcels	created_at	updated_at	organization_id	non_member_allocation
+1003	1002	beef	NULL	150	5	2026-03-31 08:39:03	2026-03-31 19:54:37	1	1
+1004	1002	lamb	NULL	100	0	2026-03-31 08:39:21	2026-03-31 18:15:42	1	1
+1005	1003	Parcels	NULL	100	2	2026-03-31 20:42:39	2026-03-31 20:44:11	1	25

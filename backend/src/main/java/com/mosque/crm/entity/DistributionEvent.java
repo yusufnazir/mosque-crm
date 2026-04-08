@@ -10,9 +10,9 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.mosque.crm.enums.DistributionEventStatus;
-import com.mosque.crm.enums.MosqueEventType;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.enums.OrganizationEventType;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -30,9 +30,9 @@ import jakarta.persistence.TableGenerator;
 
 @Entity
 @Table(name = "distribution_events")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class DistributionEvent implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class DistributionEvent implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "distribution_events_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -58,7 +58,7 @@ public class DistributionEvent implements MosqueAware {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false, length = 50)
-    private MosqueEventType eventType = MosqueEventType.EID_UL_ADHA_DISTRIBUTION;
+    private OrganizationEventType eventType = OrganizationEventType.EID_UL_ADHA_DISTRIBUTION;
 
     @Column(name = "member_capacity", nullable = false)
     private int memberCapacity = 0;
@@ -74,8 +74,8 @@ public class DistributionEvent implements MosqueAware {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @OneToMany(mappedBy = "distributionEvent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ParcelCategory> parcelCategories = new ArrayList<>();
@@ -131,11 +131,11 @@ public class DistributionEvent implements MosqueAware {
         this.status = status;
     }
 
-    public MosqueEventType getEventType() {
+    public OrganizationEventType getEventType() {
         return eventType;
     }
 
-    public void setEventType(MosqueEventType eventType) {
+    public void setEventType(OrganizationEventType eventType) {
         this.eventType = eventType;
     }
 
@@ -156,13 +156,13 @@ public class DistributionEvent implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public int getMemberCapacity() {

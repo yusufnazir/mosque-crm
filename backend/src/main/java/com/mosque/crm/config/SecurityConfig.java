@@ -71,12 +71,12 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // Parse allowed origins from environment/config
-        // Format: comma-separated list (e.g., "http://localhost:3000,https://app.mosque.com")
+        // Format: comma-separated list (e.g., "http://localhost:3000,https://app.organization.com")
         String[] origins = allowedOrigins.split(",");
         configuration.setAllowedOrigins(Arrays.asList(origins));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Mosque-Id"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Organization-Id"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

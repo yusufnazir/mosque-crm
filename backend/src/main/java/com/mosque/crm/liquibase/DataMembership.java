@@ -8,7 +8,7 @@ import liquibase.exception.DatabaseException;
 
 /**
  * Custom Liquibase task for upserting Membership data.
- * Memberships track mosque membership status for persons.
+ * Memberships track organization membership status for persons.
  */
 public class DataMembership extends CustomDataTaskChange {
 

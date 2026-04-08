@@ -28,9 +28,12 @@ import com.mosque.crm.entity.Person;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.enums.MembershipStatus;
 import com.mosque.crm.enums.PersonStatus;
+import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.GedcomPersonLinkRepository;
 import com.mosque.crm.repository.MembershipRepository;
 import com.mosque.crm.repository.PersonRepository;
+import com.mosque.crm.subscription.FeatureKeys;
+import com.mosque.crm.subscription.PlanLimitExceededException;
 
 @Service
 public class PersonService {
@@ -38,13 +41,16 @@ public class PersonService {
     private final PersonRepository personRepository;
     private final MembershipRepository membershipRepository;
     private final GedcomPersonLinkRepository gedcomPersonLinkRepository;
+    private final OrganizationSubscriptionService organizationSubscriptionService;
 
     public PersonService(PersonRepository personRepository,
                         MembershipRepository membershipRepository,
-                        GedcomPersonLinkRepository gedcomPersonLinkRepository) {
+                        GedcomPersonLinkRepository gedcomPersonLinkRepository,
+                        OrganizationSubscriptionService organizationSubscriptionService) {
         this.personRepository = personRepository;
         this.membershipRepository = membershipRepository;
         this.gedcomPersonLinkRepository = gedcomPersonLinkRepository;
+        this.organizationSubscriptionService = organizationSubscriptionService;
     }
 
     /**
@@ -238,6 +244,24 @@ public class PersonService {
      */
     @Transactional
     public PersonDTO createPerson(PersonCreateDTO createDTO) {
+        // Enforce members.max plan limit
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId != null) {
+            try {
+                Integer memberLimit = organizationSubscriptionService.getFeatureLimit(organizationId, FeatureKeys.MEMBERS_MAX);
+                if (memberLimit != null) {
+                    long currentCount = personRepository.countAllPersons();
+                    if (currentCount >= memberLimit) {
+                        throw new PlanLimitExceededException(FeatureKeys.MEMBERS_MAX, memberLimit, (int) currentCount);
+                    }
+                }
+            } catch (PlanLimitExceededException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                // No active subscription — allow creation (graceful degradation)
+            }
+        }
+
         Person person = new Person();
         person.setFirstName(createDTO.getFirstName());
         person.setLastName(createDTO.getLastName());

@@ -27,16 +27,19 @@ import com.mosque.crm.dto.AuthResponse;
 import com.mosque.crm.dto.ForgotPasswordRequest;
 import com.mosque.crm.dto.LoginRequest;
 import com.mosque.crm.dto.PasswordChangeDTO;
+import com.mosque.crm.dto.RegistrationRequest;
 import com.mosque.crm.dto.ResetPasswordRequest;
 import com.mosque.crm.dto.UserPreferencesDTO;
-import com.mosque.crm.entity.Mosque;
+import com.mosque.crm.entity.Organization;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.entity.UserPreferences;
-import com.mosque.crm.repository.MosqueRepository;
+import com.mosque.crm.repository.OrganizationRepository;
 import com.mosque.crm.repository.UserRepository;
 import com.mosque.crm.security.JwtUtil;
 import com.mosque.crm.service.AuthorizationService;
+import com.mosque.crm.service.ConfigurationService;
 import com.mosque.crm.service.PasswordResetService;
+import com.mosque.crm.service.RegistrationService;
 import com.mosque.crm.service.UserPreferencesService;
 
 @RestController
@@ -56,7 +59,7 @@ public class AuthController {
     private UserRepository userRepository;
 
     @Autowired
-    private MosqueRepository mosqueRepository;
+    private OrganizationRepository organizationRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -70,9 +73,14 @@ public class AuthController {
     @Autowired
     private AuthorizationService authorizationService;
 
+    @Autowired
+    private RegistrationService registrationService;
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
@@ -108,8 +116,14 @@ public class AuthController {
         User user = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Generate JWT with userId and mosqueId embedded
-        final String token = jwtUtil.generateToken(userDetails, user.getId(), user.getMosqueId());
+        // Super admins must have null organizationId in the JWT so the tenant filter
+        // is not applied and they can see data across all organizations.
+        boolean isSuperAdmin = user.getRoles().stream()
+                .anyMatch(r -> "SUPER_ADMIN".equals(r.getName()));
+        Long effectiveOrganizationId = isSuperAdmin ? null : user.getOrganizationId();
+
+        // Generate JWT with userId and organizationId embedded
+        final String token = jwtUtil.generateToken(userDetails, user.getId(), effectiveOrganizationId);
 
         // Get primary role (first role in the set)
         String roleName = user.getRoles().isEmpty() ? "MEMBER" :
@@ -131,22 +145,29 @@ public class AuthController {
         java.util.Set<String> permissions = authorizationService.getPermissions(user.getId());
 
         AuthResponse response = new AuthResponse(token, user.getUsername(), roleName, memberId, personId, preferencesDTO);
-        response.setMosqueId(user.getMosqueId());
-        response.setSuperAdmin(user.getRoles().stream().anyMatch(r -> "SUPER_ADMIN".equals(r.getName())));
+        response.setOrganizationId(effectiveOrganizationId);
+        response.setSuperAdmin(isSuperAdmin);
         response.setPermissions(new java.util.ArrayList<>(permissions));
         response.setMustChangePassword(user.isMustChangePassword());
 
-        // Resolve mosque name if user is assigned to a mosque
-        if (user.getMosqueId() != null) {
-            mosqueRepository.findById(user.getMosqueId())
-                    .ifPresent(mosque -> response.setMosqueName(mosque.getName()));
+        // Resolve organization name and handle if user is assigned to an organization.
+        // Super admins have no organization, so they get the configured super admin subdomain.
+        if (isSuperAdmin) {
+            String superAdminSubdomain = configurationService.getValue(ConfigurationController.KEY_SUPERADMIN_SUBDOMAIN)
+                    .orElse(ConfigurationController.DEFAULT_SUPERADMIN_SUBDOMAIN);
+            response.setOrganizationHandle(superAdminSubdomain);
+        } else if (user.getOrganizationId() != null) {
+            organizationRepository.findById(user.getOrganizationId()).ifPresent(organization -> {
+                response.setOrganizationName(organization.getName());
+                response.setOrganizationHandle(organization.getHandle());
+            });
         }
 
-        // Include super admin's persisted mosque selection
-        if (response.isSuperAdmin() && user.getSelectedMosqueId() != null) {
-            response.setSelectedMosqueId(user.getSelectedMosqueId());
-            mosqueRepository.findById(user.getSelectedMosqueId())
-                    .ifPresent(mosque -> response.setSelectedMosqueName(mosque.getName()));
+        // Include super admin's persisted organization selection
+        if (response.isSuperAdmin() && user.getSelectedOrganizationId() != null) {
+            response.setSelectedOrganizationId(user.getSelectedOrganizationId());
+            organizationRepository.findById(user.getSelectedOrganizationId())
+                    .ifPresent(organization -> response.setSelectedOrganizationName(organization.getName()));
         }
 
         return ResponseEntity.ok(response);
@@ -248,6 +269,54 @@ public class AuthController {
             Map<String, String> response = new HashMap<>();
             response.put("message", messageSource.getMessage("reset_password.invalid_token", null, locale));
             return ResponseEntity.status(400).body(response);
+        }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegistrationRequest request) {
+        try {
+            User user = registrationService.register(request);
+
+            // Auto-login: generate JWT for the new user
+            final String token = jwtUtil.generateToken(
+                    org.springframework.security.core.userdetails.User.builder()
+                            .username(user.getUsername())
+                            .password(user.getPassword())
+                            .authorities(user.getRoles().stream()
+                                    .map(r -> "ROLE_" + r.getName())
+                                    .toArray(String[]::new))
+                            .build(),
+                    user.getId(),
+                    user.getOrganizationId()
+            );
+
+            // Build auth response (same as login)
+            String roleName = user.getRoles().isEmpty() ? "MEMBER" :
+                    user.getRoles().iterator().next().getName();
+
+            java.util.Set<String> permissions = authorizationService.getPermissions(user.getId());
+
+            UserPreferences prefs = userPreferencesService.getOrCreate(user);
+            UserPreferencesDTO preferencesDTO = userPreferencesService.toDTO(prefs);
+
+            AuthResponse authResponse = new AuthResponse(token, user.getUsername(), roleName, null, null, preferencesDTO);
+            authResponse.setOrganizationId(user.getOrganizationId());
+            authResponse.setSuperAdmin(false);
+            authResponse.setPermissions(new java.util.ArrayList<>(permissions));
+            authResponse.setMustChangePassword(false);
+
+            // Resolve organization name
+            if (user.getOrganizationId() != null) {
+                organizationRepository.findById(user.getOrganizationId())
+                        .ifPresent(organization -> authResponse.setOrganizationName(organization.getName()));
+            }
+
+            return ResponseEntity.status(201).body(authResponse);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("code", "validation_error");
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(400).body(error);
         }
     }
 }

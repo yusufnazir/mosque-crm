@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- =====================================================================
+         Production Data Migration
+         =====================================================================
+         Migrates production data from old schema to new clean DDL schema.
+         Runs AFTER seed data (020-041, 060) so INSERT IGNORE skips duplicates.
+
+         Key transformations applied:
+           - mosque_id -> organization_id
+           - selected_mosque_id -> selected_organization_id
+           - Dropped columns: persons.notes, persons.active,
+             configurations.description, configurations.category,
+             gedcom_family_children.pedigree
+
+         Tables covered:
+           organizations, currencies, users, user_roles, user_preferences,
+           user_member_link, configurations, organization_currencies,
+           exchange_rates, organization_subscriptions, persons, memberships,
+           contribution_types, contribution_type_translations,
+           contribution_obligations, member_contribution_assignments,
+           member_payments, gedcom_individuals, gedcom_families,
+           gedcom_family_children, gedcom_person_links, groups,
+           group_translations, group_roles, group_role_translations,
+           distribution_events, parcel_categories, non_member_recipients,
+           member_distribution_registrations, parcel_distributions,
+           sequences_
+         ===================================================================== -->
+
+    <changeSet id="c2000001-0200-0000-0000-000000000001-1" author="mosque-crm">
+        <comment>Production data migration from old schema to new clean DDL</comment>
+        <sqlFile path="db/changelog/changes/dml/sql/200-prod-data-migration.sql"
+                 encoding="UTF-8"
+                 splitStatements="true"
+                 stripComments="true"
+                 endDelimiter=";"/>
+    </changeSet>
+
+</databaseChangeLog>

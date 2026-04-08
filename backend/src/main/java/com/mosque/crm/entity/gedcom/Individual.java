@@ -6,8 +6,8 @@ import java.time.LocalDate;
 import org.hibernate.annotations.Filter;
 
 import com.mosque.crm.enums.GenderEnum;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,9 +28,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "gedcom_individuals")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class Individual implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class Individual implements OrganizationAware {
 
     @Id
     @Column(name = "id", length = 20)
@@ -61,8 +61,8 @@ public class Individual implements MosqueAware {
     @Column(name = "living")
     private Boolean living = true;
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     /**
      * Note: To find relationships, query:
@@ -114,7 +114,7 @@ public class Individual implements MosqueAware {
     public void setLiving(Boolean living) { this.living = living; }
 
     @Override
-    public Long getMosqueId() { return mosqueId; }
+    public Long getOrganizationId() { return organizationId; }
     @Override
-    public void setMosqueId(Long mosqueId) { this.mosqueId = mosqueId; }
+    public void setOrganizationId(Long organizationId) { this.organizationId = organizationId; }
 }

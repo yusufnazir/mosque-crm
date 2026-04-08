@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.repository.UserRepository;
 import com.mosque.crm.service.MembershipListingService;
+import com.mosque.crm.subscription.PlanFeatureRequired;
 
 @RestController
 @RequestMapping("/member")
+@PlanFeatureRequired("member.portal")
 public class MemberPortalController {
 
     private static final Logger log = LoggerFactory.getLogger(MemberPortalController.class);

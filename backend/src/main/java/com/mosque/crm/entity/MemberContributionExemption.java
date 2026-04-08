@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.mosque.crm.enums.ExemptionType;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import org.hibernate.annotations.Filter;
 
@@ -36,9 +36,9 @@ import jakarta.validation.constraints.NotNull;
  */
 @Entity
 @Table(name = "member_contribution_exemptions")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class MemberContributionExemption implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class MemberContributionExemption implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "member_contribution_exemptions_seq", table = "sequences_",
@@ -78,8 +78,8 @@ public class MemberContributionExemption implements MosqueAware {
     private Boolean isActive = true;
 
     // Multi-tenancy
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     // Constructors
     public MemberContributionExemption() {
@@ -114,9 +114,9 @@ public class MemberContributionExemption implements MosqueAware {
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
     @Override
-    public Long getMosqueId() { return mosqueId; }
+    public Long getOrganizationId() { return organizationId; }
     @Override
-    public void setMosqueId(Long mosqueId) { this.mosqueId = mosqueId; }
+    public void setOrganizationId(Long organizationId) { this.organizationId = organizationId; }
 
     /**
      * Check if this exemption is currently in effect.

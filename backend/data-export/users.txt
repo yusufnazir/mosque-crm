@@ -1,0 +1,7 @@
+﻿id	username	password	email	account_enabled	account_locked	credentials_expired	last_login_at	created_at	updated_at	mosque_id	selected_mosque_id	must_change_password
+1	admin	$2a$10$Vhp8.biuScz/pM/..uCAN.ZDCLXotjPcKpO03bDthOjA4YnUN61ZW	admin@mosque.local	1	0	0	NULL	NULL	2026-02-26 09:58:30	NULL	1	0
+1001	rafael.pawirokromo@telesur.sr	$2a$10$MUxw6GeI6w3sQs2xM9nI6OU8JV5dSZJZEorcFeWu4NYtiqt4xxKGq	rafael.pawirokromo@telesur.sr	1	0	0	NULL	2026-02-24 00:42:03	2026-03-03 17:00:17	1	NULL	0
+1002	a.moekalil@gmail.com	$2a$10$TRLaLaJvCqygxhYNBnnr1e8ejVNMhSvd7goQDfxHn4vy6ojifNZxK	a.moekalil@gmail.com	1	0	0	NULL	2026-02-24 00:42:31	2026-02-24 00:42:31	1	NULL	1
+1003	moentariandy@gmail.com	$2a$10$QbWWJC.jfa3xE4dcC5BbpeyCDMvirQRZo0JgYK3GtXjadofxdcczy	moentariandy@gmail.com	1	0	0	NULL	2026-02-24 00:43:41	2026-02-25 00:52:06	1	NULL	0
+1005	mohamedskasto@gmail.com	$2a$10$kIBL2lnZ5JpCWfsb2BXunOgODEghJnB1HR1EVxW6cFqQwdYmZhsI.	mohamedskasto@gmail.com	1	0	0	NULL	2026-02-25 10:55:17	2026-02-25 10:57:04	1	NULL	0
+1006	yusuf.nazir@gmail.com	$2a$10$pVNsEwKbA6kK/jeQl6TVgepb1fWr86R1rpM5aId6/2EM3xzHmifla	yusuf.nazir@gmail.com	1	0	0	NULL	2026-03-01 09:36:07	2026-03-04 18:23:00	1	NULL	0

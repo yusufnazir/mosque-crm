@@ -14,7 +14,7 @@ public class GroupRoleDTO {
     private Integer sortOrder;
     private Integer maxMembers;
     private Boolean isActive;
-    private Long mosqueId;
+    private Long organizationId;
     private LocalDateTime createdAt;
     private List<GroupRoleTranslationDTO> translations;
 
@@ -70,12 +70,12 @@ public class GroupRoleDTO {
         this.isActive = isActive;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public LocalDateTime getCreatedAt() {

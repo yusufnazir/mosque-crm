@@ -10,8 +10,8 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.mosque.crm.enums.PersonStatus;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -30,7 +30,7 @@ import jakarta.persistence.TableGenerator;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * Person - Core identity entity for the Mosque CRM.
+ * Person - Core identity entity for the Organization CRM.
  *
  * This is the PRIMARY person record used by all CRM features:
  * - Memberships
@@ -43,9 +43,9 @@ import jakarta.validation.constraints.NotBlank;
  */
 @Entity
 @Table(name = "persons")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class Person implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class Person implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "persons_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -105,9 +105,6 @@ public class Person implements MosqueAware {
     private List<Membership> memberships = new ArrayList<>();
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Subscription> subscriptions = new ArrayList<>();
-
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Donation> donations = new ArrayList<>();
 
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -117,8 +114,8 @@ public class Person implements MosqueAware {
     private GedcomPersonLink gedcomLink;
 
     // Multi-tenancy
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     // Audit
     @CreationTimestamp
@@ -275,14 +272,6 @@ public class Person implements MosqueAware {
         this.memberships = memberships;
     }
 
-    public List<Subscription> getSubscriptions() {
-        return subscriptions;
-    }
-
-    public void setSubscriptions(List<Subscription> subscriptions) {
-        this.subscriptions = subscriptions;
-    }
-
     public List<Donation> getDonations() {
         return donations;
     }
@@ -324,13 +313,13 @@ public class Person implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     // Helper Methods

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import com.mosque.crm.entity.Person;
 import com.mosque.crm.repository.ContributionTypeRepository;
 import com.mosque.crm.repository.CurrencyRepository;
 import com.mosque.crm.repository.MemberPaymentRepository;
+import com.mosque.crm.repository.PaymentDocumentRepository;
 import com.mosque.crm.repository.PersonRepository;
 
 /**
@@ -43,15 +45,18 @@ public class MemberPaymentService {
     private final PersonRepository personRepository;
     private final ContributionTypeRepository contributionTypeRepository;
     private final CurrencyRepository currencyRepository;
+    private final PaymentDocumentRepository paymentDocumentRepository;
 
     public MemberPaymentService(MemberPaymentRepository paymentRepository,
                                  PersonRepository personRepository,
                                  ContributionTypeRepository contributionTypeRepository,
-                                 CurrencyRepository currencyRepository) {
+                                 CurrencyRepository currencyRepository,
+                                 PaymentDocumentRepository paymentDocumentRepository) {
         this.paymentRepository = paymentRepository;
         this.personRepository = personRepository;
         this.contributionTypeRepository = contributionTypeRepository;
         this.currencyRepository = currencyRepository;
+        this.paymentDocumentRepository = paymentDocumentRepository;
     }
 
     /**
@@ -200,6 +205,13 @@ public class MemberPaymentService {
         payment.setPeriodTo(createDTO.getPeriodTo());
         payment.setReference(createDTO.getReference());
         payment.setNotes(createDTO.getNotes());
+
+        // Set payment group ID: use provided value or generate a new one
+        if (createDTO.getPaymentGroupId() != null && !createDTO.getPaymentGroupId().isBlank()) {
+            payment.setPaymentGroupId(createDTO.getPaymentGroupId());
+        } else {
+            payment.setPaymentGroupId(UUID.randomUUID().toString());
+        }
 
         if (createDTO.getCurrencyId() != null) {
             Currency currency = currencyRepository.findById(createDTO.getCurrencyId())
@@ -356,6 +368,10 @@ public class MemberPaymentService {
         dto.setIsReversal(payment.getIsReversal());
         if (payment.getReversedPayment() != null) {
             dto.setReversedPaymentId(payment.getReversedPayment().getId());
+        }
+        dto.setPaymentGroupId(payment.getPaymentGroupId());
+        if (payment.getPaymentGroupId() != null) {
+            dto.setDocumentCount(paymentDocumentRepository.countByPaymentGroupId(payment.getPaymentGroupId()));
         }
         return dto;
     }

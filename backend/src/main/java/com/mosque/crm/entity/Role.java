@@ -32,8 +32,8 @@ public class Role {
     @Column(length = 255)
     private String description;
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -100,12 +100,12 @@ public class Role {
         this.description = description;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -155,6 +155,6 @@ public class Role {
 
     @Override
     public String toString() {
-        return "Role{id=" + id + ", name='" + name + "', mosqueId=" + mosqueId + "}";
+        return "Role{id=" + id + ", name='" + name + "', organizationId=" + organizationId + "}";
     }
 }

@@ -1,0 +1,6 @@
+﻿id	name	description	is_system_role	created_at
+1	ADMIN	Administrator with full access to all features	0	NULL
+2	MEMBER	Regular member with limited access to personal data	0	NULL
+3	TREASURER	Financial officer with access to fee management	0	NULL
+4	IMAM	Religious leader with member viewing access	0	NULL
+5	SUPER_ADMIN	Super administrator with access to all mosques and system settings	0	NULL

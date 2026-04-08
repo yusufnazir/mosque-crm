@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mosque.crm.dto.AddRelationshipRequest;
 import com.mosque.crm.dto.RelationshipResponse;
 import com.mosque.crm.service.RelationshipService;
+import com.mosque.crm.subscription.PlanFeatureRequired;
 
 import jakarta.validation.Valid;
 
@@ -32,6 +33,7 @@ import jakarta.validation.Valid;
  */
 @RestController
 @RequestMapping("/genealogy")
+@PlanFeatureRequired("family.tree")
 public class RelationshipController {
 
     private static final Logger log = LoggerFactory.getLogger(RelationshipController.class);

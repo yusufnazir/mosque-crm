@@ -16,8 +16,11 @@ public final class FeatureKeys {
     // -------------------------------------------------------------------------
     // User / admin limits
     // -------------------------------------------------------------------------
-    /** Maximum number of users allowed for the mosque. Stored as limit_value. */
+    /** Maximum number of users allowed for the organization. Stored as limit_value. */
     public static final String ADMIN_USERS_MAX = "admin.users.max";
+
+    /** Maximum number of members (persons) allowed for the organization. Stored as limit_value. */
+    public static final String MEMBERS_MAX = "members.max";
 
     // -------------------------------------------------------------------------
     // Member portal access

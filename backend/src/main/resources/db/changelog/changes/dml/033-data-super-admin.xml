@@ -322,12 +322,24 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ SUPER_ADMIN → tenant_settings permissions (59-60) ═══════════ -->
+	<changeSet id="aa11bb22-cc33-4444-ddee-superassign-all" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[59]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="a9b0c1d2-e3f4-5678-tntsett-super059" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[5]]></param><param name="permissionId"><![CDATA[60]]></param>
+		</customChange>
+	</changeSet>
+
 	<!-- ═══════════ SUPER_ADMIN ASSIGNABLE PERMISSIONS: ALL ═══════════ -->
 	<!--
 		SUPER_ADMIN can assign/manage ALL permissions in the system.
 		Uses SQL because this is a dynamic "sync all" operation, not per-row seed data.
 	-->
-	<changeSet id="aa11bb22-cc33-4444-ddee-superassign-all" author="mosque-crm">
+	<changeSet id="b0c1d2e3-f4a5-6789-tntsett-super060" author="mosque-crm">
 		<sql>
 			REPLACE INTO role_assignable_permissions (role_id, permission_id)
 			SELECT 5, id FROM permissions;
@@ -342,31 +354,5 @@
 		</sql>
 	</changeSet>
 
-	<!-- ═══════════ ASSIGN EXISTING DATA TO DEFAULT MOSQUE ═══════════ -->
-	<!-- Set mosque_id = 1 for all existing records that don't have a mosque assigned -->
-	<changeSet id="871f30fc-7a59-421b-aa3a-0d3aaeba86ee" author="mosque-crm">
-		<sql>
-			UPDATE users SET mosque_id = NULL WHERE id = 1;
-			UPDATE users SET mosque_id = 1 WHERE mosque_id IS NULL AND id != 1;
-			UPDATE persons SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE memberships SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE subscriptions SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE donations SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE membership_fees SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE user_member_link SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE configurations SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_individuals SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_families SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_family_children SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_events SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_event_participants SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_sources SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_citations SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_notes SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_note_links SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_media SET mosque_id = 1 WHERE mosque_id IS NULL;
-			UPDATE gedcom_person_links SET mosque_id = 1 WHERE mosque_id IS NULL;
-		</sql>
-	</changeSet>
 
 </databaseChangeLog>

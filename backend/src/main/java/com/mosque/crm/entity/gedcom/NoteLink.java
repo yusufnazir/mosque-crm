@@ -3,8 +3,8 @@ package com.mosque.crm.entity.gedcom;
 import org.hibernate.annotations.Filter;
 
 import com.mosque.crm.enums.EntityType;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,10 +29,10 @@ import lombok.Data;
  */
 @Entity
 @Table(name = "gedcom_note_links")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
 @Data
-public class NoteLink implements MosqueAware {
+public class NoteLink implements OrganizationAware {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,17 +48,17 @@ public class NoteLink implements MosqueAware {
     @Column(name = "entity_id", nullable = false, length = 50)
     private String entityId;  // Polymorphic reference to any entity
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     /**

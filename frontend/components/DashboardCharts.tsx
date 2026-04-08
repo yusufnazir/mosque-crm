@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './Card';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { familyApi } from '@/lib/familyApi';
-import { memberApi, reportApi, paymentStatsApi } from '@/lib/api';
+import { memberApi, reportApi, paymentStatsApi, isPlanRestriction } from '@/lib/api';
 import type { ContributionTotalReport } from '@/lib/api';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
@@ -60,22 +60,26 @@ export default function DashboardCharts() {
       let genderRes: GenderDatum[] = [];
       let ageGenderRes: AgeGenderBucket[] = [];
       try {
-        familySizeRes = await familyApi.getFamilySizeDistribution() as FamilySizeDatum[];
+        const res = await familyApi.getFamilySizeDistribution();
+        if (!isPlanRestriction(res) && Array.isArray(res)) familySizeRes = res as FamilySizeDatum[];
       } catch (e) {
         console.error('Family size API error', e);
       }
       try {
-        ageRes = await memberApi.getAgeDistribution() as AgeDatum[];
+        const res = await memberApi.getAgeDistribution();
+        if (!isPlanRestriction(res) && Array.isArray(res)) ageRes = res as AgeDatum[];
       } catch (e) {
         console.error('Age API error', e);
       }
       try {
-        genderRes = await memberApi.getGenderDistribution() as GenderDatum[];
+        const res = await memberApi.getGenderDistribution();
+        if (!isPlanRestriction(res) && Array.isArray(res)) genderRes = res as GenderDatum[];
       } catch (e) {
         console.error('Gender API error', e);
       }
       try {
-        ageGenderRes = await memberApi.getAgeGenderDistribution();
+        const res = await memberApi.getAgeGenderDistribution();
+        if (!isPlanRestriction(res) && Array.isArray(res)) ageGenderRes = res as AgeGenderBucket[];
       } catch (e) {
         console.error('Age-Gender API error', e);
       }
@@ -92,10 +96,12 @@ export default function DashboardCharts() {
   useEffect(() => {
     async function fetchYears() {
       try {
-        const years = await paymentStatsApi.getPaymentYears();
-        setIncomeYears(years);
-        if (years.length > 0 && !years.includes(selectedYear)) {
-          setSelectedYear(years[0]);
+        const res = await paymentStatsApi.getPaymentYears();
+        if (!isPlanRestriction(res)) {
+          setIncomeYears(res);
+          if (res.length > 0 && !res.includes(selectedYear)) {
+            setSelectedYear(res[0]);
+          }
         }
       } catch (e) {
         console.error('Payment years API error', e);
@@ -109,7 +115,11 @@ export default function DashboardCharts() {
       setIncomeLoading(true);
       try {
         const data = await reportApi.getContributionTotals(selectedYear, language);
-        setIncomeReport(data);
+        if (!isPlanRestriction(data)) {
+          setIncomeReport(data);
+        } else {
+          setIncomeReport(null);
+        }
       } catch (e) {
         console.error('Income by type API error', e);
         setIncomeReport(null);
@@ -233,7 +243,7 @@ export default function DashboardCharts() {
     '#ea580c', '#0891b2', '#be185d', '#4d7c0f', '#6366f1',
   ];
 
-  const incomeLabels = incomeReport?.rows.map(r => r.contributionTypeName) ?? [];
+  const incomeLabels = incomeReport?.rows?.map(r => r.contributionTypeName) ?? [];
   const incomeCurrencies = incomeReport?.currencies ?? [];
 
   // Assign a color to each currency

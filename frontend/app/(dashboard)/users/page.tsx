@@ -45,8 +45,8 @@ export default function UsersPage() {
         userApi.getAll(),
         ApiClient.get<RoleDTO[]>('/admin/roles/assignable'),
       ]);
-      setUsers(usersData);
-      setRoles(rolesData);
+      setUsers(Array.isArray(usersData) ? usersData : []);
+      setRoles(Array.isArray(rolesData) ? rolesData : []);
     } catch (err) {
       console.error('Failed to load users:', err);
       setToast({ message: t('users.load_error'), type: 'error' });
@@ -67,7 +67,7 @@ export default function UsersPage() {
       u.username.toLowerCase().includes(q) ||
       (u.email && u.email.toLowerCase().includes(q)) ||
       u.roles.some((r) => r.toLowerCase().includes(q)) ||
-      (u.mosqueName && u.mosqueName.toLowerCase().includes(q))
+      (u.organizationName && u.organizationName.toLowerCase().includes(q))
     );
   });
 
@@ -296,8 +296,8 @@ export default function UsersPage() {
                             </span>
                           ))}
                         </div>
-                        {user.mosqueName && (
-                          <div className="text-xs text-gray-400 mt-1">{user.mosqueName}</div>
+                        {user.organizationName && (
+                          <div className="text-xs text-gray-400 mt-1">{user.organizationName}</div>
                         )}
                         {/* Action buttons */}
                         <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-100">
@@ -358,7 +358,7 @@ export default function UsersPage() {
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.username')}</th>
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.email')}</th>
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.roles')}</th>
-                      <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.mosque')}</th>
+                      <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.organization')}</th>
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.status')}</th>
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.last_login')}</th>
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('common.actions')}</th>
@@ -393,7 +393,7 @@ export default function UsersPage() {
                             ))}
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-gray-600">{user.mosqueName || '—'}</td>
+                        <td className="py-3 px-4 text-gray-600">{user.organizationName || '—'}</td>
                         <td className="py-3 px-4">
                           {user.accountLocked ? (
                             <span className="inline-flex items-center gap-1 text-red-700 bg-red-100 text-xs font-medium px-2 py-0.5 rounded-full">

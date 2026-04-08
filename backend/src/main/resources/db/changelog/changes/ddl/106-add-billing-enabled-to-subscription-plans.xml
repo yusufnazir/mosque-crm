@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Original b1000009-0106-...-1 ran against subscription_plans; replaced with new ID targeting organization_subscriptions -->
+    <changeSet id="b1000009-0106-0000-0000-000000000001-2" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="subscription_plans" columnName="billing_enabled"/>
+        </preConditions>
+        <comment>Drop stale billing_enabled column from subscription_plans (moved to organization_subscriptions)</comment>
+        <dropColumn tableName="subscription_plans" columnName="billing_enabled"/>
+    </changeSet>
+
+    <changeSet id="b1000009-0106-0000-0000-000000000002-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="organization_subscriptions" columnName="billing_enabled"/></not>
+        </preConditions>
+        <comment>Add billing_enabled column to organization_subscriptions (default true). When false, the tenant is not invoiced and billing restrictions are bypassed.</comment>
+        <addColumn tableName="organization_subscriptions">
+            <column name="billing_enabled" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

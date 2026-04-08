@@ -66,6 +66,8 @@ export interface MemberPayment {
   currencySymbol?: string;
   isReversal?: boolean;
   reversedPaymentId?: number;
+  paymentGroupId?: string;
+  documentCount?: number;
 }
 
 export interface MemberPaymentCreate {
@@ -78,6 +80,7 @@ export interface MemberPaymentCreate {
   reference?: string;
   notes?: string;
   currencyId?: number;
+  paymentGroupId?: string;
 }
 
 // ===== Pagination types =====
@@ -276,10 +279,12 @@ export async function createPeriodicPayments(
   existingPayments?: MemberPayment[]
 ): Promise<PeriodicPaymentResult> {
   const existing = existingPayments ?? [];
+  // Generate a shared group ID so all records in this batch are linked
+  const groupId = crypto.randomUUID();
 
   if (!frequency || !data.periodFrom || !data.periodTo) {
     // No frequency or no period — single payment
-    const result = await memberPaymentApi.create(data);
+    const result = await memberPaymentApi.create({ ...data, paymentGroupId: groupId });
     return { created: [result], skippedCount: 0, skippedPeriods: [] };
   }
 
@@ -293,7 +298,7 @@ export async function createPeriodicPayments(
       if (isPeriodAlreadyPaid(data.personId, data.contributionTypeId, data.periodFrom, data.periodTo, existing)) {
         return { created: [], skippedCount: 1, skippedPeriods: [monthLabel(fy, fm)] };
       }
-      const result = await memberPaymentApi.create(data);
+      const result = await memberPaymentApi.create({ ...data, paymentGroupId: groupId });
       return { created: [result], skippedCount: 0, skippedPeriods: [] };
     }
 
@@ -317,6 +322,7 @@ export async function createPeriodicPayments(
           amount: parseFloat(unitAmount.toFixed(2)),
           periodFrom: pFrom,
           periodTo: pTo,
+          paymentGroupId: groupId,
         });
         results.push(result);
       }
@@ -335,7 +341,7 @@ export async function createPeriodicPayments(
       if (isPeriodAlreadyPaid(data.personId, data.contributionTypeId, data.periodFrom, data.periodTo, existing)) {
         return { created: [], skippedCount: 1, skippedPeriods: [String(fy)] };
       }
-      const result = await memberPaymentApi.create(data);
+      const result = await memberPaymentApi.create({ ...data, paymentGroupId: groupId });
       return { created: [result], skippedCount: 0, skippedPeriods: [] };
     }
 
@@ -356,6 +362,7 @@ export async function createPeriodicPayments(
           amount: parseFloat(unitAmount.toFixed(2)),
           periodFrom: pFrom,
           periodTo: pTo,
+          paymentGroupId: groupId,
         });
         results.push(result);
       }
@@ -364,7 +371,7 @@ export async function createPeriodicPayments(
   }
 
   // Fallback
-  const result = await memberPaymentApi.create(data);
+  const result = await memberPaymentApi.create({ ...data, paymentGroupId: groupId });
   return { created: [result], skippedCount: 0, skippedPeriods: [] };
 }
 
@@ -390,6 +397,33 @@ export interface MemberContributionAssignmentCreate {
   endDate?: string;
   notes?: string;
 }
+
+// ===== Payment Documents =====
+
+export interface PaymentDocument {
+  id: number;
+  paymentGroupId: string;
+  fileName: string;
+  contentType?: string;
+  fileSize?: number;
+  uploadedBy?: number;
+  createdAt?: string;
+}
+
+export const paymentDocumentApi = {
+  /** Upload a document for a payment group */
+  upload: (groupId: string, file: File): Promise<PaymentDocument> =>
+    ApiClient.uploadFile<PaymentDocument>(`/payment-documents/groups/${groupId}`, file),
+  /** List all documents for a payment group */
+  list: (groupId: string): Promise<PaymentDocument[]> =>
+    ApiClient.get<PaymentDocument[]>(`/payment-documents/groups/${groupId}`),
+  /** Get the download URL for a document (to open in new tab or trigger download) */
+  downloadUrl: (documentId: number): string =>
+    `/api/payment-documents/${documentId}/download`,
+  /** Delete a document */
+  delete: (documentId: number): Promise<void> =>
+    ApiClient.delete(`/payment-documents/${documentId}`),
+};
 
 export const contributionAssignmentApi = {
   getAll: (): Promise<MemberContributionAssignment[]> =>

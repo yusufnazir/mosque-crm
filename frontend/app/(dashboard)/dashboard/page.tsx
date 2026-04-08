@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { memberApi } from '@/lib/api';
+import { isPlanRestriction } from '@/lib/api';
 import { familyApi } from '@/lib/familyApi';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -25,10 +26,10 @@ export default function DashboardPage() {
       setLoading(true);
       // Fetch families data
       const familiesData: any = await familyApi.getAll();
-      const totalFamilies = typeof familiesData.count === 'number' ? familiesData.count : 0;
+      const totalFamilies = !isPlanRestriction(familiesData) && typeof familiesData.count === 'number' ? familiesData.count : 0;
       // Fetch members count (lightweight - no full entity loading)
       const memberStats: any = await memberApi.getStats();
-      const activeMembers = memberStats.active || 0;
+      const activeMembers = !isPlanRestriction(memberStats) && memberStats.active ? memberStats.active : 0;
       setStats({ totalFamilies, activeMembers });
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
@@ -17,14 +17,16 @@ import {
   MemberContributionAssignment,
   MemberContributionAssignmentCreate,
   PageResponse,
+  PaymentDocument,
   contributionTypeApi,
   contributionObligationApi,
   memberPaymentApi,
   exemptionApi,
   contributionAssignmentApi,
   createPeriodicPayments,
+  paymentDocumentApi,
 } from '@/lib/contributionApi';
-import { currencyApi, MosqueCurrencyDTO } from '@/lib/currencyApi';
+import { currencyApi, OrganizationCurrencyDTO } from '@/lib/currencyApi';
 import { memberApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth/AuthContext';
 import ToastNotification from '@/components/ToastNotification';
@@ -107,8 +109,8 @@ export default function ContributionsPage() {
   const [editingAssignment, setEditingAssignment] = useState<MemberContributionAssignment | null>(null);
   const [deleteAssignmentId, setDeleteAssignmentId] = useState<number | null>(null);
 
-  // ===== Mosque currencies =====
-  const [mosqueCurrencies, setMosqueCurrencies] = useState<MosqueCurrencyDTO[]>([]);
+  // ===== Organization currencies =====
+  const [organizationCurrencies, setOrganizationCurrencies] = useState<OrganizationCurrencyDTO[]>([]);
 
   // ===== Person search for payments =====
   const [personSearch, setPersonSearch] = useState('');
@@ -126,7 +128,7 @@ export default function ContributionsPage() {
   // Load types and currencies on mount
   useEffect(() => {
     loadTypes();
-    loadMosqueCurrencies();
+    loadOrganizationCurrencies();
   }, []);
 
   // Load tab-specific data when tab changes
@@ -141,7 +143,7 @@ export default function ContributionsPage() {
     setTypesLoading(true);
     try {
       const data = await contributionTypeApi.getAll();
-      setTypes(data);
+      setTypes(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load contribution types:', err);
     } finally {
@@ -153,7 +155,7 @@ export default function ContributionsPage() {
     setObligationsLoading(true);
     try {
       const data = await contributionObligationApi.getAll();
-      setObligations(data);
+      setObligations(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load obligations:', err);
     } finally {
@@ -161,12 +163,12 @@ export default function ContributionsPage() {
     }
   };
 
-  const loadMosqueCurrencies = async () => {
+  const loadOrganizationCurrencies = async () => {
     try {
-      const data = await currencyApi.getActiveMosqueCurrencies();
-      setMosqueCurrencies(data);
+      const data = await currencyApi.getActiveOrganizationCurrencies();
+      setOrganizationCurrencies(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to load mosque currencies:', err);
+      console.error('Failed to load organization currencies:', err);
     }
   };
 
@@ -616,7 +618,7 @@ export default function ContributionsPage() {
           onDelete={handleDeleteObligation}
           formatCurrency={formatCurrency}
           formatDate={formatDate}
-          mosqueCurrencies={mosqueCurrencies}
+          organizationCurrencies={organizationCurrencies}
           t={t}
         />
       )}
@@ -634,7 +636,7 @@ export default function ContributionsPage() {
           getTypeNameByCode={getTypeNameByCode}
           formatCurrency={formatCurrency}
           formatDate={formatDate}
-          mosqueCurrencies={mosqueCurrencies}
+          organizationCurrencies={organizationCurrencies}
           types={types}
           isSuperAdmin={isSuperAdmin}
           canReverse={can('contribution.reverse')}
@@ -697,7 +699,7 @@ export default function ContributionsPage() {
         <ObligationModal
           obligation={editingObligation}
           types={types.filter(t => t.isRequired && t.isActive)}
-          mosqueCurrencies={mosqueCurrencies}
+          organizationCurrencies={organizationCurrencies}
           onSave={handleSaveObligation}
           onClose={() => { setShowObligationModal(false); setEditingObligation(null); }}
           t={t}
@@ -721,7 +723,7 @@ export default function ContributionsPage() {
         <PaymentModal
           payment={editingPayment}
           types={types.filter(t => t.isActive)}
-          mosqueCurrencies={mosqueCurrencies}
+          organizationCurrencies={organizationCurrencies}
           onSave={handleSavePayment}
           onClose={() => { setShowPaymentModal(false); setEditingPayment(null); setSelectedPerson(null); setPersonSearch(''); }}
           personSearch={personSearch}
@@ -1008,7 +1010,7 @@ function TypesTab({ types, loading, getTypeName, canManage, onAdd, onEdit, onDea
 }
 
 // ===== Obligations Tab Component =====
-function ObligationsTab({ obligations, loading, types, getTypeNameByCode, canManage, onAdd, onEdit, onDelete, formatCurrency, formatDate, mosqueCurrencies, t }: {
+function ObligationsTab({ obligations, loading, types, getTypeNameByCode, canManage, onAdd, onEdit, onDelete, formatCurrency, formatDate, organizationCurrencies, t }: {
   obligations: ContributionObligation[];
   loading: boolean;
   types: ContributionType[];
@@ -1019,7 +1021,7 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, canMan
   onDelete: (id: number) => void;
   formatCurrency: (amount: number, currencyCode?: string) => string;
   formatDate: (date: string) => string;
-  mosqueCurrencies: MosqueCurrencyDTO[];
+  organizationCurrencies: OrganizationCurrencyDTO[];
   t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   return (
@@ -1127,7 +1129,7 @@ function ObligationsTab({ obligations, loading, types, getTypeNameByCode, canMan
 }
 
 // ===== Payments Tab Component =====
-function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelete, onReverse, onReceipt, getTypeNameByCode, formatCurrency, formatDate, mosqueCurrencies, types, isSuperAdmin, canReverse, canEditReversal, canDeleteReversal, canCreatePayment, canEditPayment, canDeletePayment, hasManagementPermissions, user, can, t }: {
+function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelete, onReverse, onReceipt, getTypeNameByCode, formatCurrency, formatDate, organizationCurrencies, types, isSuperAdmin, canReverse, canEditReversal, canDeleteReversal, canCreatePayment, canEditPayment, canDeletePayment, hasManagementPermissions, user, can, t }: {
   refreshKey: number;
   onTotalChange?: (total: number) => void;
   onAdd: () => void;
@@ -1139,7 +1141,7 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
   getTypeNameByCode: (code: string) => string;
   formatCurrency: (amount: number, currencyCode?: string) => string;
   formatDate: (date: string) => string;
-  mosqueCurrencies: MosqueCurrencyDTO[];
+  organizationCurrencies: OrganizationCurrencyDTO[];
   types: ContributionType[];
   isSuperAdmin: boolean;
   canReverse: boolean;
@@ -1500,12 +1502,24 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                       </td>
                       <td className="py-3 pr-4">{formatDate(payment.paymentDate)}</td>
                       <td className="py-3 pr-4 text-xs text-stone-500">
-                        {payment.reference || (hasBeenReversed ? '' : '-')}
-                        {hasBeenReversed && reversalPayment && (
-                          <span className="text-amber-600">
-                            {payment.reference ? ' · ' : ''}#{reversalPayment.id}
+                        <div className="flex items-center gap-1.5">
+                          <span>
+                            {payment.reference || (hasBeenReversed ? '' : '-')}
+                            {hasBeenReversed && reversalPayment && (
+                              <span className="text-amber-600">
+                                {payment.reference ? ' · ' : ''}#{reversalPayment.id}
+                              </span>
+                            )}
                           </span>
-                        )}
+                          {(payment.documentCount ?? 0) > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-emerald-600" title={t('contributions.documents_attached', { count: payment.documentCount ?? 0 })}>
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                              </svg>
+                              <span className="text-[10px] font-medium">{payment.documentCount}</span>
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3">
                         <div className="flex gap-2">
@@ -1604,6 +1618,14 @@ function PaymentsTab({ refreshKey, onTotalChange, onAdd, onEdit, onView, onDelet
                     {payment.reference && <span>{payment.reference}</span>}
                     {hasBeenReversed && reversalPayment && (
                       <span className="text-amber-600">#{reversalPayment.id}</span>
+                    )}
+                    {(payment.documentCount ?? 0) > 0 && (
+                      <span className="inline-flex items-center gap-0.5 text-emerald-600">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                        <span className="text-[10px] font-medium">{payment.documentCount}</span>
+                      </span>
                     )}
                   </div>
                   <div className="flex gap-3 pt-2 border-t border-stone-100">
@@ -1984,10 +2006,10 @@ function TypeModal({ type, onSave, onClose, t, locale }: {
 }
 
 // ===== Obligation Modal =====
-function ObligationModal({ obligation, types, mosqueCurrencies, onSave, onClose, t }: {
+function ObligationModal({ obligation, types, organizationCurrencies, onSave, onClose, t }: {
   obligation: ContributionObligation | null;
   types: ContributionType[];
-  mosqueCurrencies: MosqueCurrencyDTO[];
+  organizationCurrencies: OrganizationCurrencyDTO[];
   onSave: (data: ContributionObligationCreate) => Promise<string | null>;
   onClose: () => void;
   t: (key: string, params?: Record<string, string | number>) => string;
@@ -2052,7 +2074,7 @@ function ObligationModal({ obligation, types, mosqueCurrencies, onSave, onClose,
 
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.currency')}</label>
-              {mosqueCurrencies.length === 0 ? (
+              {organizationCurrencies.length === 0 ? (
                 <p className="text-xs text-amber-600">{t('contributions.no_currencies')}</p>
               ) : (
                 <select
@@ -2061,7 +2083,7 @@ function ObligationModal({ obligation, types, mosqueCurrencies, onSave, onClose,
                   className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="">{t('contributions.select_currency')}</option>
-                  {mosqueCurrencies.map((mc) => (
+                  {organizationCurrencies.map((mc) => (
                     <option key={mc.currencyId} value={mc.currencyId}>
                       {mc.currencyCode} — {mc.currencyName} ({mc.currencySymbol})
                     </option>
@@ -2124,6 +2146,11 @@ function PaymentViewModal({ payment, onClose, getTypeNameByCode, formatCurrency,
   t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const isRev = payment.isReversal === true;
+  const [documents, setDocuments] = useState<PaymentDocument[]>([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deleteDocId, setDeleteDocId] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatPeriod = (from: string, to: string): string => {
     const fd = new Date(from);
@@ -2137,9 +2164,60 @@ function PaymentViewModal({ payment, onClose, getTypeNameByCode, formatCurrency,
     return `${fMonth} ${fYear} – ${tMonth} ${tYear}`;
   };
 
+  const loadDocuments = useCallback(async () => {
+    if (!payment.paymentGroupId) return;
+    setDocsLoading(true);
+    try {
+      const docs = await paymentDocumentApi.list(payment.paymentGroupId);
+      setDocuments(docs);
+    } catch (err) {
+      console.error('Failed to load documents:', err);
+    } finally {
+      setDocsLoading(false);
+    }
+  }, [payment.paymentGroupId]);
+
+  useEffect(() => {
+    loadDocuments();
+  }, [loadDocuments]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !payment.paymentGroupId) return;
+    setUploading(true);
+    try {
+      await paymentDocumentApi.upload(payment.paymentGroupId, file);
+      await loadDocuments();
+    } catch (err) {
+      console.error('Failed to upload document:', err);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteDoc = async () => {
+    if (deleteDocId === null) return;
+    try {
+      await paymentDocumentApi.delete(deleteDocId);
+      setDocuments(prev => prev.filter(d => d.id !== deleteDocId));
+    } catch (err) {
+      console.error('Failed to delete document:', err);
+    } finally {
+      setDeleteDocId(null);
+    }
+  };
+
+  const formatFileSize = (bytes?: number): string => {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-stone-900">
@@ -2208,6 +2286,88 @@ function PaymentViewModal({ payment, onClose, getTypeNameByCode, formatCurrency,
                 <p className="text-sm text-stone-500">{formatDate(payment.createdAt)}</p>
               </div>
             )}
+
+            {/* Documents Section */}
+            {payment.paymentGroupId && (
+              <div className="pt-4 border-t border-stone-200">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-xs font-medium text-stone-500 uppercase tracking-wide">
+                    {t('contributions.documents')}
+                    {documents.length > 0 && (
+                      <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
+                        {documents.length}
+                      </span>
+                    )}
+                  </label>
+                  <div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={handleUpload}
+                      accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      {uploading ? t('contributions.uploading_document') : t('contributions.upload_document')}
+                    </button>
+                  </div>
+                </div>
+
+                {docsLoading ? (
+                  <p className="text-xs text-stone-400">{t('common.loading')}</p>
+                ) : documents.length === 0 ? (
+                  <p className="text-xs text-stone-400">{t('contributions.no_documents')}</p>
+                ) : (
+                  <div className="space-y-2">
+                    {documents.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between p-2.5 bg-stone-50 rounded-lg">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <svg className="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          </svg>
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-stone-700 truncate">{doc.fileName}</p>
+                            <p className="text-[10px] text-stone-400">
+                              {formatFileSize(doc.fileSize)}
+                              {doc.createdAt && ` \u00B7 ${formatDate(doc.createdAt)}`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                          <a
+                            href={paymentDocumentApi.downloadUrl(doc.id)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 text-emerald-600 hover:text-emerald-800 rounded hover:bg-emerald-50 transition-colors"
+                            title={t('common.download')}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                          </a>
+                          <button
+                            onClick={() => setDeleteDocId(doc.id)}
+                            className="p-1 text-red-500 hover:text-red-700 rounded hover:bg-red-50 transition-colors"
+                            title={t('common.delete')}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end pt-6">
@@ -2220,15 +2380,26 @@ function PaymentViewModal({ payment, onClose, getTypeNameByCode, formatCurrency,
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteDocId !== null}
+        title={t('contributions.delete_document_title')}
+        message={t('contributions.delete_document_message')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={handleDeleteDoc}
+        onCancel={() => setDeleteDocId(null)}
+      />
     </div>
   );
 }
 
 // ===== Payment Modal =====
-function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, personSearch, personResults, selectedPerson, onSearchPersons, onSelectPerson, getTypeName, t }: {
+function PaymentModal({ payment, types, organizationCurrencies, onSave, onClose, personSearch, personResults, selectedPerson, onSearchPersons, onSelectPerson, getTypeName, t }: {
   payment: MemberPayment | null;
   types: ContributionType[];
-  mosqueCurrencies: MosqueCurrencyDTO[];
+  organizationCurrencies: OrganizationCurrencyDTO[];
   onSave: (data: MemberPaymentCreate) => Promise<string | null>;
   onClose: () => void;
   personSearch: string;
@@ -2412,12 +2583,12 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
                     setPeriodFrom('');
                     setPeriodTo('');
                   }
-                  // Auto-set currency from obligation, or fall back to mosque's first currency
+                  // Auto-set currency from obligation, or fall back to organization's first currency
                   if (!payment) {
                     if (newObligation?.currencyId) {
                       setCurrencyId(newObligation.currencyId);
-                    } else if (mosqueCurrencies.length === 1) {
-                      setCurrencyId(mosqueCurrencies[0].currencyId);
+                    } else if (organizationCurrencies.length === 1) {
+                      setCurrencyId(organizationCurrencies[0].currencyId);
                     }
                   }
                 }}
@@ -2600,7 +2771,7 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
 
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.currency')}</label>
-              {mosqueCurrencies.length === 0 ? (
+              {organizationCurrencies.length === 0 ? (
                 <p className="text-xs text-amber-600">{t('contributions.no_currencies')}</p>
               ) : (
                 <select
@@ -2609,7 +2780,7 @@ function PaymentModal({ payment, types, mosqueCurrencies, onSave, onClose, perso
                   className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="">{t('contributions.select_currency')}</option>
-                  {mosqueCurrencies.map((mc) => (
+                  {organizationCurrencies.map((mc) => (
                     <option key={mc.currencyId} value={mc.currencyId}>
                       {mc.currencyCode} — {mc.currencyName} ({mc.currencySymbol})
                     </option>

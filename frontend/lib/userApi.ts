@@ -8,8 +8,8 @@ export interface UserDTO {
   accountLocked: boolean;
   createdAt: string;
   lastLogin: string | null;
-  mosqueId: number | null;
-  mosqueName: string | null;
+  organizationId: number | null;
+  organizationName: string | null;
   roles: string[];
   personId: number | null;
   personName: string | null;
@@ -20,7 +20,7 @@ export interface CreateUserRequest {
   username: string;
   password: string;
   email?: string;
-  mosqueId?: number | null;
+  organizationId?: number | null;
   roles?: string[];
 }
 
@@ -29,7 +29,7 @@ export interface UpdateUserRequest {
   password?: string;
   accountEnabled?: boolean;
   accountLocked?: boolean;
-  mosqueId?: number | null;
+  organizationId?: number | null;
   roles?: string[];
 }
 

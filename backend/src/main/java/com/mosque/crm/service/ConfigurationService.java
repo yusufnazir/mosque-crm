@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mosque.crm.entity.Configuration;
+import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.ConfigurationRepository;
 
 @Service
@@ -23,58 +24,100 @@ public class ConfigurationService {
     }
 
     /**
-     * Get configuration value by name
+     * Get the system-wide (global) configuration value.
+     * Uses a native query that bypasses the Hibernate org filter.
      */
     public Optional<String> getValue(String name) {
-        return configurationRepository.findByName(name)
+        return configurationRepository.findGlobalByName(name)
                 .map(Configuration::getValue);
     }
 
     /**
-     * Get configuration by name
+     * Get the system-wide (global) configuration entity.
+     * Uses a native query that bypasses the Hibernate org filter.
      */
     public Optional<Configuration> getConfiguration(String name) {
-        return configurationRepository.findByName(name);
+        return configurationRepository.findGlobalByName(name);
     }
 
     /**
-     * Get all configurations
+     * Get all configurations (super-admin use: shows all rows including org-specific).
      */
     public List<Configuration> getAllConfigurations() {
         return configurationRepository.findAll();
     }
 
     /**
-     * Set configuration value (create or update)
+     * Get the effective value for a given key in a tenant context.
+     * Returns the org-specific override if present, otherwise the global default.
+     */
+    public Optional<String> getValueTenantAware(String name, Long organizationId) {
+        if (organizationId != null) {
+            Optional<String> tenantValue = configurationRepository
+                    .findTenantByName(name, organizationId)
+                    .map(Configuration::getValue);
+            if (tenantValue.isPresent()) {
+                return tenantValue;
+            }
+        }
+        return configurationRepository.findGlobalByName(name).map(Configuration::getValue);
+    }
+
+    /**
+     * Write or update the system-wide (global) value for a configuration key.
+     * Should only be called from super-admin context.
      */
     @Transactional
     public Configuration setValue(String name, String value) {
-        Optional<Configuration> existing = configurationRepository.findByName(name);
+        Optional<Configuration> existing = configurationRepository.findGlobalByName(name);
 
         if (existing.isPresent()) {
             Configuration config = existing.get();
             config.setValue(value);
-            log.info("Updated configuration: {}", name);
+            log.info("Updated global configuration: {}", name);
             return configurationRepository.save(config);
         } else {
             Configuration config = new Configuration(name, value);
-            log.info("Created configuration: {}", name);
+            // Explicitly null out org_id so OrganizationEntityListener does not assign one
+            config.setOrganizationId(null);
+            log.info("Created global configuration: {}", name);
             return configurationRepository.save(config);
         }
     }
 
     /**
-     * Delete configuration by name
+     * Write or update an org-specific override for a configuration key.
+     * Does NOT touch the global (system-wide) value.
+     */
+    @Transactional
+    public Configuration setTenantValue(String name, String value, Long organizationId) {
+        Optional<Configuration> existing = configurationRepository.findTenantByName(name, organizationId);
+
+        if (existing.isPresent()) {
+            Configuration config = existing.get();
+            config.setValue(value);
+            log.info("Updated tenant configuration: {} for organization_id={}", name, organizationId);
+            return configurationRepository.save(config);
+        } else {
+            Configuration config = new Configuration(name, value);
+            config.setOrganizationId(organizationId);
+            log.info("Created tenant configuration: {} for organization_id={}", name, organizationId);
+            return configurationRepository.save(config);
+        }
+    }
+
+    /**
+     * Delete configuration by name (global only).
      */
     @Transactional
     public void deleteConfiguration(String name) {
-        configurationRepository.findByName(name).ifPresent(config -> {
+        configurationRepository.findGlobalByName(name).ifPresent(config -> {
             configurationRepository.delete(config);
-            log.info("Deleted configuration: {}", name);
+            log.info("Deleted global configuration: {}", name);
         });
     }
 
-    // Mail server configuration helpers
+    // Mail server configuration helpers (system-wide)
     public String getMailServerHost() {
         return getValue("MAIL_SERVER_HOST").orElse("");
     }
@@ -93,7 +136,8 @@ public class ConfigurationService {
 
     // Application settings helpers
     public String getAppName() {
-        return getValue("APP_NAME").orElse("MemberFlow");
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        return getValueTenantAware("APP_NAME", organizationId).orElse("MemberFlow");
     }
 
     public String getAppBaseUrl() {

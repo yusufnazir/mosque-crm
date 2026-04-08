@@ -16,7 +16,7 @@ import com.mosque.crm.repository.CurrencyRepository;
 import com.mosque.crm.repository.ExchangeRateRepository;
 
 /**
- * Service for managing per-mosque exchange rates.
+ * Service for managing per-organization exchange rates.
  */
 @Service
 public class ExchangeRateService {

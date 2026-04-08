@@ -1,0 +1,5 @@
+﻿id	group_id	name	sort_order	max_members	is_active	mosque_id	created_at
+1001	1001	Chair	0	1	1	1	2026-02-26 19:53:59
+1002	1001	Treasurer	2	1	1	1	2026-02-26 19:59:29
+1003	1001	Vice-chairman	1	1	1	1	2026-02-26 20:01:00
+1004	1001	Secretary	3	1	1	1	2026-02-26 20:01:25

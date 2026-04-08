@@ -1,39 +1,39 @@
 package com.mosque.crm.multitenancy;
 
 /**
- * Thread-local holder for the current mosque (tenant) context.
+ * Thread-local holder for the current organization (tenant) context.
  *
  * Set by {@link TenantInterceptor} after JWT authentication.
  * Read by:
  * - Hibernate filter enablement (to scope SELECT queries)
- * - {@link MosqueEntityListener} (to auto-set mosque_id on INSERT)
- * - Services that need the current mosque context
+ * - {@link OrganizationEntityListener} (to auto-set organization_id on INSERT)
+ * - Services that need the current organization context
  *
  * When the value is {@code null}, the user is a super administrator
  * and the Hibernate tenant filter is NOT applied (they see all data).
  */
 public final class TenantContext {
 
-    private static final ThreadLocal<Long> CURRENT_MOSQUE_ID = new ThreadLocal<>();
+    private static final ThreadLocal<Long> CURRENT_ORGANIZATION_ID = new ThreadLocal<>();
 
     private TenantContext() {
         // utility class
     }
 
     /**
-     * Get the current mosque ID for this request thread.
+     * Get the current organization ID for this request thread.
      * Returns null for super administrators.
      */
-    public static Long getCurrentMosqueId() {
-        return CURRENT_MOSQUE_ID.get();
+    public static Long getCurrentOrganizationId() {
+        return CURRENT_ORGANIZATION_ID.get();
     }
 
     /**
-     * Set the current mosque ID for this request thread.
+     * Set the current organization ID for this request thread.
      * Pass null for super administrators.
      */
-    public static void setCurrentMosqueId(Long mosqueId) {
-        CURRENT_MOSQUE_ID.set(mosqueId);
+    public static void setCurrentOrganizationId(Long organizationId) {
+        CURRENT_ORGANIZATION_ID.set(organizationId);
     }
 
     /**
@@ -41,13 +41,13 @@ public final class TenantContext {
      * to prevent ThreadLocal leaks in thread pools.
      */
     public static void clear() {
-        CURRENT_MOSQUE_ID.remove();
+        CURRENT_ORGANIZATION_ID.remove();
     }
 
     /**
-     * Returns true if the current user is a super administrator (no mosque scope).
+     * Returns true if the current user is a super administrator (no organization scope).
      */
     public static boolean isSuperAdmin() {
-        return CURRENT_MOSQUE_ID.get() == null;
+        return CURRENT_ORGANIZATION_ID.get() == null;
     }
 }

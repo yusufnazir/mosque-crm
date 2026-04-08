@@ -9,8 +9,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.mosque.crm.enums.MembershipStatus;
 import com.mosque.crm.enums.MembershipType;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,16 +27,16 @@ import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
 /**
- * Membership - Tracks mosque membership for a Person.
+ * Membership - Tracks organization membership for a Person.
  *
  * A person can have multiple memberships over time (historical records).
  * Financial features reference Person, not Membership.
  */
 @Entity
 @Table(name = "memberships")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class Membership implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class Membership implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "memberships_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
@@ -66,8 +66,8 @@ public class Membership implements MosqueAware {
     private String notes;
 
     // Multi-tenancy
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
@@ -153,13 +153,13 @@ public class Membership implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     // Helper Methods

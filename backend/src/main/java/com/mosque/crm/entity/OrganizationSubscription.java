@@ -8,8 +8,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.mosque.crm.enums.OrganizationSubscriptionStatus;
 import com.mosque.crm.enums.PlanBillingCycle;
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,9 +27,9 @@ import jakarta.persistence.TableGenerator;
 
 @Entity
 @Table(name = "organization_subscriptions")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class OrganizationSubscription implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class OrganizationSubscription implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "organization_subscriptions_seq", table = "sequences_",
@@ -39,8 +39,8 @@ public class OrganizationSubscription implements MosqueAware {
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "plan_id", nullable = false)
@@ -72,6 +72,24 @@ public class OrganizationSubscription implements MosqueAware {
     @Column(name = "provider_ref", length = 120)
     private String providerRef;
 
+    @Column(name = "next_due_date")
+    private LocalDateTime nextDueDate;
+
+    @Column(name = "grace_end_date")
+    private LocalDateTime graceEndDate;
+
+    @Column(name = "read_only_date")
+    private LocalDateTime readOnlyDate;
+
+    @Column(name = "lock_date")
+    private LocalDateTime lockDate;
+
+    @Column(name = "last_payment_date")
+    private LocalDateTime lastPaymentDate;
+
+    @Column(name = "billing_enabled", nullable = false)
+    private Boolean billingEnabled = true;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -101,13 +119,13 @@ public class OrganizationSubscription implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public SubscriptionPlan getPlan() {
@@ -182,6 +200,54 @@ public class OrganizationSubscription implements MosqueAware {
         this.providerRef = providerRef;
     }
 
+    public LocalDateTime getNextDueDate() {
+        return nextDueDate;
+    }
+
+    public void setNextDueDate(LocalDateTime nextDueDate) {
+        this.nextDueDate = nextDueDate;
+    }
+
+    public LocalDateTime getGraceEndDate() {
+        return graceEndDate;
+    }
+
+    public void setGraceEndDate(LocalDateTime graceEndDate) {
+        this.graceEndDate = graceEndDate;
+    }
+
+    public LocalDateTime getReadOnlyDate() {
+        return readOnlyDate;
+    }
+
+    public void setReadOnlyDate(LocalDateTime readOnlyDate) {
+        this.readOnlyDate = readOnlyDate;
+    }
+
+    public LocalDateTime getLockDate() {
+        return lockDate;
+    }
+
+    public void setLockDate(LocalDateTime lockDate) {
+        this.lockDate = lockDate;
+    }
+
+    public LocalDateTime getLastPaymentDate() {
+        return lastPaymentDate;
+    }
+
+    public void setLastPaymentDate(LocalDateTime lastPaymentDate) {
+        this.lastPaymentDate = lastPaymentDate;
+    }
+
+    public Boolean getBillingEnabled() {
+        return billingEnabled;
+    }
+
+    public void setBillingEnabled(Boolean billingEnabled) {
+        this.billingEnabled = billingEnabled;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -199,7 +265,9 @@ public class OrganizationSubscription implements MosqueAware {
     }
 
     public boolean isCurrentlyActive() {
-        if (status != OrganizationSubscriptionStatus.ACTIVE && status != OrganizationSubscriptionStatus.TRIALING) {
+        if (status != OrganizationSubscriptionStatus.ACTIVE
+                && status != OrganizationSubscriptionStatus.TRIALING
+                && status != OrganizationSubscriptionStatus.GRACE) {
             return false;
         }
         LocalDateTime now = LocalDateTime.now();

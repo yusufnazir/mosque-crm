@@ -154,9 +154,9 @@ public class MemberService {
                     }
                     user.setEmail(memberDTO.getEmail());
                     user.setAccountEnabled(true);
-                    // Assign mosque from current tenant context
-                    if (user.getMosqueId() == null) {
-                        user.setMosqueId(com.mosque.crm.multitenancy.TenantContext.getCurrentMosqueId());
+                    // Assign organization from current tenant context
+                    if (user.getOrganizationId() == null) {
+                        user.setOrganizationId(com.mosque.crm.multitenancy.TenantContext.getCurrentOrganizationId());
                     }
                     // For new users: generate a random temporary password and require change on first login
                     if (isNewUser) {
@@ -164,20 +164,20 @@ public class MemberService {
                         user.setPassword(passwordEncoder.encode(tempPassword));
                         user.setMustChangePassword(true);
                     }
-                    // Assign roles — use tenant-scoped lookup (mosque-specific first, then global fallback)
+                    // Assign roles — use tenant-scoped lookup (organization-specific first, then global fallback)
                     List<String> roleNames = memberDTO.getRoles();
                     if (roleNames == null || roleNames.isEmpty()) {
                         roleNames = List.of("MEMBER");
                     }
-                    Long currentMosqueId = com.mosque.crm.multitenancy.TenantContext.getCurrentMosqueId();
+                    Long currentOrganizationId = com.mosque.crm.multitenancy.TenantContext.getCurrentOrganizationId();
                     Set<Role> roleSet = new HashSet<>();
                     for (String roleName : roleNames) {
                         Role role = null;
-                        if (currentMosqueId != null) {
-                            role = roleRepository.findByNameAndMosqueId(roleName, currentMosqueId).orElse(null);
+                        if (currentOrganizationId != null) {
+                            role = roleRepository.findByNameAndOrganizationId(roleName, currentOrganizationId).orElse(null);
                         }
                         if (role == null) {
-                            role = roleRepository.findByNameAndMosqueIdIsNull(roleName).orElse(null);
+                            role = roleRepository.findByNameAndOrganizationIdIsNull(roleName).orElse(null);
                         }
                         if (role == null) {
                             throw new IllegalArgumentException("Role not found: " + roleName);

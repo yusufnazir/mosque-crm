@@ -2,8 +2,8 @@ package com.mosque.crm.entity.gedcom;
 
 import org.hibernate.annotations.Filter;
 
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,10 +25,10 @@ import lombok.Data;
  */
 @Entity
 @Table(name = "gedcom_citations")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
 @Data
-public class Citation implements MosqueAware {
+public class Citation implements OrganizationAware {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,16 +49,16 @@ public class Citation implements MosqueAware {
     @Column(name = "confidence", length = 20)
     private String confidence;  // HIGH, MEDIUM, LOW - data quality
 
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 }

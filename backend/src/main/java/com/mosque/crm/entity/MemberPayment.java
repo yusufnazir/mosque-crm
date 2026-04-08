@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 
-import com.mosque.crm.multitenancy.MosqueAware;
-import com.mosque.crm.multitenancy.MosqueEntityListener;
+import com.mosque.crm.multitenancy.OrganizationAware;
+import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,9 +32,9 @@ import jakarta.validation.constraints.NotNull;
  */
 @Entity
 @Table(name = "member_payments")
-@Filter(name = "mosqueFilter", condition = "mosque_id = :mosqueId")
-@EntityListeners(MosqueEntityListener.class)
-public class MemberPayment implements MosqueAware {
+@Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
+@EntityListeners(OrganizationEntityListener.class)
+public class MemberPayment implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "member_payments_seq", table = "sequences_",
@@ -80,8 +80,8 @@ public class MemberPayment implements MosqueAware {
     private Currency currency;
 
     // Multi-tenancy
-    @Column(name = "mosque_id")
-    private Long mosqueId;
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
@@ -93,6 +93,9 @@ public class MemberPayment implements MosqueAware {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reversed_payment_id")
     private MemberPayment reversedPayment;
+
+    @Column(name = "payment_group_id", length = 36)
+    private String paymentGroupId;
 
     // Constructors
     public MemberPayment() {
@@ -204,13 +207,13 @@ public class MemberPayment implements MosqueAware {
     }
 
     @Override
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
     @Override
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public Boolean getIsReversal() {
@@ -227,5 +230,13 @@ public class MemberPayment implements MosqueAware {
 
     public void setReversedPayment(MemberPayment reversedPayment) {
         this.reversedPayment = reversedPayment;
+    }
+
+    public String getPaymentGroupId() {
+        return paymentGroupId;
+    }
+
+    public void setPaymentGroupId(String paymentGroupId) {
+        this.paymentGroupId = paymentGroupId;
     }
 }

@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ApiClient } from '@/lib/api';
 
-export interface MosqueOption {
+export interface OrganizationOption {
   id: number;
   name: string;
   shortName?: string;
@@ -13,14 +13,15 @@ export interface CurrentUser {
   id: number;
   username: string;
   email?: string;
-  mosqueId?: number;
-  mosqueName?: string;
+  organizationId?: number;
+  organizationName?: string;
+  organizationHandle?: string;
   superAdmin: boolean;
   personId?: string;
   permissions: string[];
   roles: string[];
-  selectedMosqueId?: number;
-  selectedMosqueName?: string;
+  selectedOrganizationId?: number;
+  selectedOrganizationName?: string;
   mustChangePassword?: boolean;
   preferences?: {
     language?: string;
@@ -30,6 +31,36 @@ export interface CurrentUser {
   };
 }
 
+// ── Subdomain helpers ──────────────────────────────────────────────────────────
+
+/**
+ * Build the full URL for a tenant's subdomain.
+ * Falls back to same-origin /dashboard when BASE_DOMAIN is not configured.
+ */
+export function buildTenantUrl(handle: string, path = '/'): string {
+  if (typeof window === 'undefined') return path;
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+  if (!baseDomain) return path;
+  const { protocol, port } = window.location;
+  const portStr = port ? `:${port}` : '';
+  return `${protocol}//${handle}.${baseDomain}${portStr}${path}`;
+}
+
+/**
+ * Build the login URL on the auth subdomain.
+ * Falls back to /login when BASE_DOMAIN is not configured.
+ */
+export function buildAuthUrl(path = '/login'): string {
+  if (typeof window === 'undefined') return path;
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+  if (!baseDomain) return path;
+  const { protocol, port } = window.location;
+  const portStr = port ? `:${port}` : '';
+  return `${protocol}//auth.${baseDomain}${portStr}${path}`;
+}
+
+// ── Context types ──────────────────────────────────────────────────────────────
+
 interface AuthContextValue {
   /** The current user fetched from /api/me, null while loading or when not logged in */
   user: CurrentUser | null;
@@ -37,7 +68,7 @@ interface AuthContextValue {
   can: (permission: string) => boolean;
   /** Returns true if the user holds ANY of the listed permissions */
   canAny: (...permissions: string[]) => boolean;
-  /** Whether the user is a super admin (no mosque scope, sees all data) */
+  /** Whether the user is a super admin (no organization scope, sees all data) */
   isSuperAdmin: boolean;
   /** Whether the initial /api/me fetch is still in progress */
   loading: boolean;
@@ -45,12 +76,12 @@ interface AuthContextValue {
   refresh: () => Promise<void>;
   /** Clear local auth state (call on logout) */
   clearAuth: () => void;
-  /** The currently selected mosque for super admins (null = all mosques) */
-  selectedMosque: MosqueOption | null;
-  /** Select a mosque to scope data to (super admin only) */
-  selectMosque: (mosque: MosqueOption | null) => void;
-  /** The display name showing which mosque the user is viewing */
-  activeMosqueName: string | null;
+  /** The currently selected organization for super admins (null = all organizations) */
+  selectedOrganization: OrganizationOption | null;
+  /** Select a organization to scope data to (super admin only) */
+  selectOrganization: (organization: OrganizationOption | null) => void;
+  /** The display name showing which organization the user is viewing */
+  activeOrganizationName: string | null;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -61,16 +92,16 @@ const AuthContext = createContext<AuthContextValue>({
   loading: true,
   refresh: async () => {},
   clearAuth: () => {},
-  selectedMosque: null,
-  selectMosque: () => {},
-  activeMosqueName: null,
+  selectedOrganization: null,
+  selectOrganization: () => {},
+  activeOrganizationName: null,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [permissionSet, setPermissionSet] = useState<Set<string>>(new Set());
-  const [selectedMosque, setSelectedMosque] = useState<MosqueOption | null>(null);
+  const [selectedOrganization, setSelectedOrganization] = useState<OrganizationOption | null>(null);
 
   const fetchCurrentUser = useCallback(async () => {
     try {
@@ -78,11 +109,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // We call /api/me directly (not through ApiClient.handleResponse) so that
       // 401/403 from "not logged in" are handled silently — no console errors,
       // no redirect loops on the login page.
-      const mosqueId = typeof window !== 'undefined' ? localStorage.getItem('selectedMosqueId') : null;
+      const organizationId = typeof window !== 'undefined' ? localStorage.getItem('selectedOrganizationId') : null;
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (mosqueId) headers['X-Mosque-Id'] = mosqueId;
+      if (organizationId) headers['X-Organization-Id'] = organizationId;
 
-      const response = await fetch('/api/me', { headers });
+      // Try the standard proxy first; on cross-subdomain navigation the proxy
+      // cookie forwarding may already handle it. If not authenticated, also try
+      // /api/auth/me which reads the httpOnly cookie directly (handles the case
+      // where localStorage is empty after a subdomain hop).
+      let response = await fetch('/api/me', { headers });
+
+      if (!response.ok && response.status === 401) {
+        // Cross-subdomain hydration: try the dedicated auth/me route
+        response = await fetch('/api/auth/me', { headers });
+      }
 
       if (!response.ok) {
         // 401/403 = not authenticated — silently set user to null
@@ -96,20 +136,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data);
       setPermissionSet(new Set(data.permissions ?? []));
 
-      // Restore super admin's persisted mosque selection from backend
-      if (data.superAdmin && data.selectedMosqueId && data.selectedMosqueName) {
-        const restoredMosque: MosqueOption = {
-          id: data.selectedMosqueId,
-          name: data.selectedMosqueName,
+      // Restore super admin's persisted organization selection from backend
+      if (data.superAdmin && data.selectedOrganizationId && data.selectedOrganizationName) {
+        const restoredOrganization: OrganizationOption = {
+          id: data.selectedOrganizationId,
+          name: data.selectedOrganizationName,
         };
-        setSelectedMosque(restoredMosque);
-        localStorage.setItem('selectedMosque', JSON.stringify(restoredMosque));
-        localStorage.setItem('selectedMosqueId', String(data.selectedMosqueId));
+        setSelectedOrganization(restoredOrganization);
+        localStorage.setItem('selectedOrganization', JSON.stringify(restoredOrganization));
+        localStorage.setItem('selectedOrganizationId', String(data.selectedOrganizationId));
       } else if (data.superAdmin) {
-        // Super admin with no selection = "All Mosques"
-        setSelectedMosque(null);
-        localStorage.removeItem('selectedMosque');
-        localStorage.removeItem('selectedMosqueId');
+        // Super admin with no selection = "All Organizations"
+        setSelectedOrganization(null);
+        localStorage.removeItem('selectedOrganization');
+        localStorage.removeItem('selectedOrganizationId');
       }
     } catch {
       // Network error or unexpected failure — user stays null
@@ -137,41 +177,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearAuth = useCallback(() => {
     setUser(null);
     setPermissionSet(new Set());
-    setSelectedMosque(null);
+    setSelectedOrganization(null);
     setLoading(false);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('selectedMosque');
-      localStorage.removeItem('selectedMosqueId');
+      localStorage.removeItem('selectedOrganization');
+      localStorage.removeItem('selectedOrganizationId');
     }
   }, []);
 
-  const selectMosque = useCallback((mosque: MosqueOption | null) => {
-    setSelectedMosque(mosque);
+  const selectOrganization = useCallback((organization: OrganizationOption | null) => {
+    setSelectedOrganization(organization);
     if (typeof window !== 'undefined') {
-      if (mosque) {
-        localStorage.setItem('selectedMosque', JSON.stringify(mosque));
-        localStorage.setItem('selectedMosqueId', String(mosque.id));
+      if (organization) {
+        localStorage.setItem('selectedOrganization', JSON.stringify(organization));
+        localStorage.setItem('selectedOrganizationId', String(organization.id));
       } else {
-        localStorage.removeItem('selectedMosque');
-        localStorage.removeItem('selectedMosqueId');
+        localStorage.removeItem('selectedOrganization');
+        localStorage.removeItem('selectedOrganizationId');
       }
     }
-    // Persist to backend so the selection survives across devices
-    ApiClient.put('/me/selected-mosque', { mosqueId: mosque?.id ?? null }).catch((err) =>
-      console.error('Failed to persist mosque selection:', err),
-    );
+    // Persist to backend so the selection survives across devices,
+    // then reload the page so every view re-fetches data for the new organization.
+    ApiClient.put('/me/selected-organization', { organizationId: organization?.id ?? null })
+      .then(() => {
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      })
+      .catch((err) => console.error('Failed to persist organization selection:', err));
   }, []);
 
   const isSuperAdmin = user?.superAdmin === true;
 
-  // Determine the active mosque name for display
-  const activeMosqueName = isSuperAdmin
-    ? (selectedMosque?.name ?? null)
-    : (user?.mosqueName ?? null);
+  // Determine the active organization name for display
+  const activeOrganizationName = isSuperAdmin
+    ? (selectedOrganization?.name ?? null)
+    : (user?.organizationName ?? null);
 
   return (
     <AuthContext.Provider
-      value={{ user, can, canAny, isSuperAdmin, loading, refresh: fetchCurrentUser, clearAuth, selectedMosque, selectMosque, activeMosqueName }}
+      value={{ user, can, canAny, isSuperAdmin, loading, refresh: fetchCurrentUser, clearAuth, selectedOrganization, selectOrganization, activeOrganizationName }}
     >
       {children}
     </AuthContext.Provider>

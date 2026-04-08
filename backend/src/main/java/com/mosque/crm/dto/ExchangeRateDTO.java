@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * DTO for ExchangeRate - response object for per-mosque exchange rates.
+ * DTO for ExchangeRate - response object for per-organization exchange rates.
  */
 public class ExchangeRateDTO {
 

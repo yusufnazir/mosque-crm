@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000003-0031-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="user_member_link"/></not>
+        </preConditions>
+        <comment>Create user_member_link table (optional bridge: users ↔ persons)</comment>
+        <createTable tableName="user_member_link">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_user_member_link_user"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_user_member_link_person"/>
+            </column>
+            <column name="linked_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

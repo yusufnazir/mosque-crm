@@ -63,9 +63,9 @@ export default function MembersPage() {
         sortBy: sortConfig.key,
         direction: sortConfig.direction,
       }) as PageResponse<PersonSearchResult>;
-      setMembers(data.content);
-      setTotalElements(data.totalElements);
-      setTotalPages(data.totalPages);
+      setMembers(Array.isArray(data?.content) ? data.content : []);
+      setTotalElements(data?.totalElements ?? 0);
+      setTotalPages(data?.totalPages ?? 0);
     } catch (error) {
       console.error('Failed to fetch members:', error);
     } finally {

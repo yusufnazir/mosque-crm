@@ -9,8 +9,8 @@ import jakarta.validation.constraints.NotNull;
 
 public class CreateSubscriptionRequest {
 
-    @NotNull(message = "mosqueId is required")
-    private Long mosqueId;
+    @NotNull(message = "organizationId is required")
+    private Long organizationId;
 
     @NotBlank(message = "planCode is required")
     private String planCode;
@@ -21,16 +21,17 @@ public class CreateSubscriptionRequest {
     private LocalDateTime startsAt;
     private LocalDateTime endsAt;
     private Boolean autoRenew = true;
+    private Boolean billingEnabled = true;
 
     public CreateSubscriptionRequest() {
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public String getPlanCode() {
@@ -71,5 +72,13 @@ public class CreateSubscriptionRequest {
 
     public void setAutoRenew(Boolean autoRenew) {
         this.autoRenew = autoRenew;
+    }
+
+    public Boolean getBillingEnabled() {
+        return billingEnabled;
+    }
+
+    public void setBillingEnabled(Boolean billingEnabled) {
+        this.billingEnabled = billingEnabled;
     }
 }

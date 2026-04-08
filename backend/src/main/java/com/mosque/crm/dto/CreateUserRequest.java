@@ -18,7 +18,7 @@ public class CreateUserRequest {
     @Size(max = 100, message = "Email must not exceed 100 characters")
     private String email;
 
-    private Long mosqueId;
+    private Long organizationId;
 
     private List<String> roles;
 
@@ -50,12 +50,12 @@ public class CreateUserRequest {
         this.email = email;
     }
 
-    public Long getMosqueId() {
-        return mosqueId;
+    public Long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setMosqueId(Long mosqueId) {
-        this.mosqueId = mosqueId;
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public List<String> getRoles() {

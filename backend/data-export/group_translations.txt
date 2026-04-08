@@ -1,0 +1,3 @@
+﻿id	group_id	locale	name	description
+1001	1001	en	Board	NULL
+1002	1001	nl	Bestuur	NULL

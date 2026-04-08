@@ -88,30 +88,31 @@ public class OrganizationSubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public OrganizationSubscription getCurrentSubscription(Long mosqueId) {
+    public OrganizationSubscription getCurrentSubscription(Long organizationId) {
         LocalDateTime now = LocalDateTime.now();
         List<OrganizationSubscriptionStatus> activeStates = List.of(
                 OrganizationSubscriptionStatus.TRIALING,
                 OrganizationSubscriptionStatus.ACTIVE,
-                OrganizationSubscriptionStatus.PAST_DUE);
+                OrganizationSubscriptionStatus.PAST_DUE,
+                OrganizationSubscriptionStatus.GRACE,
+                OrganizationSubscriptionStatus.READ_ONLY);
 
-        return organizationSubscriptionRepository
-            .findFirstByMosqueIdAndStatusInAndStartsAtLessThanEqualOrderByStartsAtDesc(mosqueId, activeStates, now)
-                .orElseThrow(() -> new RuntimeException("No active subscription found for mosqueId: " + mosqueId));
+        return organizationSubscriptionRepository.findFirstByOrganizationIdAndStatusInAndStartsAtLessThanEqualOrderByStartsAtDesc(organizationId, activeStates, now)
+                .orElseThrow(() -> new RuntimeException("No active subscription found for organizationId: " + organizationId));
     }
 
     @Transactional(readOnly = true)
-    public OrganizationSubscription getCurrentSubscriptionForCurrentMosque() {
-        Long mosqueId = TenantContext.getCurrentMosqueId();
-        if (mosqueId == null) {
+    public OrganizationSubscription getCurrentSubscriptionForCurrentOrganization() {
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId == null) {
             throw new RuntimeException("No tenant context is set for current request");
         }
-        return getCurrentSubscription(mosqueId);
+        return getCurrentSubscription(organizationId);
     }
 
     @Transactional(readOnly = true)
-    public boolean isFeatureEnabled(Long mosqueId, String featureKey) {
-        OrganizationSubscription subscription = getCurrentSubscription(mosqueId);
+    public boolean isFeatureEnabled(Long organizationId, String featureKey) {
+        OrganizationSubscription subscription = getCurrentSubscription(organizationId);
         PlanEntitlement entitlement = planEntitlementRepository
                 .findByPlanIdAndFeatureKey(subscription.getPlan().getId(), featureKey)
                 .orElse(null);
@@ -119,8 +120,8 @@ public class OrganizationSubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public Integer getFeatureLimit(Long mosqueId, String featureKey) {
-        OrganizationSubscription subscription = getCurrentSubscription(mosqueId);
+    public Integer getFeatureLimit(Long organizationId, String featureKey) {
+        OrganizationSubscription subscription = getCurrentSubscription(organizationId);
         return planEntitlementRepository
                 .findByPlanIdAndFeatureKey(subscription.getPlan().getId(), featureKey)
                 .map(PlanEntitlement::getLimitValue)
@@ -128,34 +129,42 @@ public class OrganizationSubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public void assertFeatureEnabled(Long mosqueId, String featureKey) {
-        if (!isFeatureEnabled(mosqueId, featureKey)) {
+    public void assertFeatureEnabled(Long organizationId, String featureKey) {
+        if (!isFeatureEnabled(organizationId, featureKey)) {
             throw new PlanEntitlementException(featureKey);
         }
     }
 
     @Transactional
-    public OrganizationSubscription createSubscription(Long mosqueId,
+    public OrganizationSubscription createSubscription(Long organizationId,
             String planCode,
             PlanBillingCycle billingCycle,
             LocalDateTime startsAt,
             LocalDateTime endsAt,
-            Boolean autoRenew) {
+            Boolean autoRenew,
+            Boolean billingEnabled) {
 
         SubscriptionPlan plan = getPlanByCode(planCode);
 
+        LocalDateTime effectiveStart = startsAt != null ? startsAt : LocalDateTime.now();
+        LocalDateTime nextDueDate = billingCycle == PlanBillingCycle.YEARLY
+                ? effectiveStart.plusYears(1)
+                : effectiveStart.plusMonths(1);
+
         OrganizationSubscription subscription = new OrganizationSubscription();
-        subscription.setMosqueId(mosqueId);
+        subscription.setOrganizationId(organizationId);
         subscription.setPlan(plan);
         subscription.setBillingCycle(billingCycle);
         subscription.setStatus(OrganizationSubscriptionStatus.ACTIVE);
-        subscription.setStartsAt(startsAt != null ? startsAt : LocalDateTime.now());
+        subscription.setStartsAt(effectiveStart);
         subscription.setEndsAt(endsAt);
+        subscription.setNextDueDate(nextDueDate);
         subscription.setAutoRenew(autoRenew != null ? autoRenew : true);
+        subscription.setBillingEnabled(billingEnabled != null ? billingEnabled : true);
 
         OrganizationSubscription saved = organizationSubscriptionRepository.save(subscription);
-        log.info("Created subscription id={} for mosqueId={} with plan={}",
-                saved.getId(), mosqueId, planCode);
+        log.info("Created subscription id={} for organizationId={} with plan={}",
+                saved.getId(), organizationId, planCode);
         return saved;
     }
 
@@ -174,6 +183,16 @@ public class OrganizationSubscriptionService {
 
         OrganizationSubscription saved = organizationSubscriptionRepository.save(subscription);
         log.info("Updated subscription id={} to status={}", saved.getId(), status);
+        return saved;
+    }
+
+    @Transactional
+    public OrganizationSubscription updateBillingEnabled(Long subscriptionId, Boolean billingEnabled) {
+        OrganizationSubscription subscription = organizationSubscriptionRepository.findById(subscriptionId)
+                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + subscriptionId));
+        subscription.setBillingEnabled(billingEnabled != null ? billingEnabled : true);
+        OrganizationSubscription saved = organizationSubscriptionRepository.save(subscription);
+        log.info("Updated subscription id={} billingEnabled={}", saved.getId(), billingEnabled);
         return saved;
     }
 
@@ -203,7 +222,7 @@ public class OrganizationSubscriptionService {
     public OrganizationSubscriptionDTO toSubscriptionDTO(OrganizationSubscription sub) {
         OrganizationSubscriptionDTO dto = new OrganizationSubscriptionDTO();
         dto.setId(sub.getId());
-        dto.setMosqueId(sub.getMosqueId());
+        dto.setOrganizationId(sub.getOrganizationId());
         dto.setBillingCycle(sub.getBillingCycle());
         dto.setStatus(sub.getStatus());
         dto.setStartsAt(sub.getStartsAt());
@@ -212,6 +231,12 @@ public class OrganizationSubscriptionService {
         dto.setCanceledAt(sub.getCanceledAt());
         dto.setAutoRenew(sub.getAutoRenew());
         dto.setProviderRef(sub.getProviderRef());
+        dto.setNextDueDate(sub.getNextDueDate());
+        dto.setGraceEndDate(sub.getGraceEndDate());
+        dto.setReadOnlyDate(sub.getReadOnlyDate());
+        dto.setLockDate(sub.getLockDate());
+        dto.setLastPaymentDate(sub.getLastPaymentDate());
+        dto.setBillingEnabled(sub.getBillingEnabled());
         dto.setCurrentlyActive(sub.isCurrentlyActive());
         dto.setCreatedAt(sub.getCreatedAt());
         dto.setUpdatedAt(sub.getUpdatedAt());
@@ -284,19 +309,19 @@ public class OrganizationSubscriptionService {
     }
 
     @Transactional
-    public ChangeSubscriptionPlanResultDTO changeCurrentPlan(Long mosqueId, String requestedPlanCode) {
-        return evaluatePlanChange(mosqueId, requestedPlanCode, true);
+    public ChangeSubscriptionPlanResultDTO changeCurrentPlan(Long organizationId, String requestedPlanCode) {
+        return evaluatePlanChange(organizationId, requestedPlanCode, true);
     }
 
     @Transactional(readOnly = true)
-    public ChangeSubscriptionPlanResultDTO previewCurrentPlanChange(Long mosqueId, String requestedPlanCode) {
-        return evaluatePlanChange(mosqueId, requestedPlanCode, false);
+    public ChangeSubscriptionPlanResultDTO previewCurrentPlanChange(Long organizationId, String requestedPlanCode) {
+        return evaluatePlanChange(organizationId, requestedPlanCode, false);
     }
 
-    private ChangeSubscriptionPlanResultDTO evaluatePlanChange(Long mosqueId,
+    private ChangeSubscriptionPlanResultDTO evaluatePlanChange(Long organizationId,
             String requestedPlanCode,
             boolean applyChanges) {
-        OrganizationSubscription current = getCurrentSubscription(mosqueId);
+        OrganizationSubscription current = getCurrentSubscription(organizationId);
         SubscriptionPlan targetPlan = getPlanByCode(requestedPlanCode.trim().toUpperCase());
 
         if (current.getPlan().getCode().equalsIgnoreCase(targetPlan.getCode())) {
@@ -339,10 +364,10 @@ public class OrganizationSubscriptionService {
 
         // Downgrade: keep current plan active until period end, then switch.
         if (applyChanges) {
-            cancelFutureScheduledSubscriptions(mosqueId, now);
+            cancelFutureScheduledSubscriptions(organizationId, now);
 
             OrganizationSubscription scheduled = new OrganizationSubscription();
-            scheduled.setMosqueId(mosqueId);
+            scheduled.setOrganizationId(organizationId);
             scheduled.setPlan(targetPlan);
             scheduled.setBillingCycle(current.getBillingCycle());
             scheduled.setStatus(OrganizationSubscriptionStatus.ACTIVE);
@@ -364,36 +389,56 @@ public class OrganizationSubscriptionService {
     }
 
     @Transactional
-    public ChangeSubscriptionPlanResultDTO changeCurrentPlanForCurrentMosque(String requestedPlanCode) {
-        Long mosqueId = TenantContext.getCurrentMosqueId();
-        if (mosqueId == null) {
+    public ChangeSubscriptionPlanResultDTO changeCurrentPlanForCurrentOrganization(String requestedPlanCode) {
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId == null) {
             throw new RuntimeException("No tenant context is set for current request");
         }
-        return changeCurrentPlan(mosqueId, requestedPlanCode);
+        return changeCurrentPlan(organizationId, requestedPlanCode);
     }
 
     @Transactional(readOnly = true)
-    public ChangeSubscriptionPlanResultDTO previewCurrentPlanChangeForCurrentMosque(String requestedPlanCode) {
-        Long mosqueId = TenantContext.getCurrentMosqueId();
-        if (mosqueId == null) {
+    public ChangeSubscriptionPlanResultDTO previewCurrentPlanChangeForCurrentOrganization(String requestedPlanCode) {
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId == null) {
             throw new RuntimeException("No tenant context is set for current request");
         }
-        return previewCurrentPlanChange(mosqueId, requestedPlanCode);
+        return previewCurrentPlanChange(organizationId, requestedPlanCode);
     }
 
-    private void cancelFutureScheduledSubscriptions(Long mosqueId, LocalDateTime now) {
+    private void cancelFutureScheduledSubscriptions(Long organizationId, LocalDateTime now) {
         List<OrganizationSubscriptionStatus> activeStates = List.of(
                 OrganizationSubscriptionStatus.TRIALING,
                 OrganizationSubscriptionStatus.ACTIVE,
                 OrganizationSubscriptionStatus.PAST_DUE);
 
-        List<OrganizationSubscription> futureRows = organizationSubscriptionRepository
-                .findByMosqueIdAndStatusInAndStartsAtGreaterThanOrderByStartsAtAsc(mosqueId, activeStates, now);
+        List<OrganizationSubscription> futureRows = organizationSubscriptionRepository.findByOrganizationIdAndStatusInAndStartsAtGreaterThanOrderByStartsAtAsc(organizationId, activeStates, now);
 
         for (OrganizationSubscription row : futureRows) {
             row.setStatus(OrganizationSubscriptionStatus.CANCELED);
             row.setCanceledAt(now);
             organizationSubscriptionRepository.save(row);
+        }
+    }
+
+    @Transactional
+    public void cancelAllActiveSubscriptionsForOrganization(Long organizationId) {
+        LocalDateTime now = LocalDateTime.now();
+        List<OrganizationSubscriptionStatus> activeStates = List.of(
+                OrganizationSubscriptionStatus.TRIALING,
+                OrganizationSubscriptionStatus.ACTIVE,
+                OrganizationSubscriptionStatus.PAST_DUE,
+                OrganizationSubscriptionStatus.GRACE,
+                OrganizationSubscriptionStatus.READ_ONLY);
+
+        List<OrganizationSubscription> active = organizationSubscriptionRepository
+                .findByOrganizationIdAndStatusIn(organizationId, activeStates);
+
+        for (OrganizationSubscription sub : active) {
+            sub.setStatus(OrganizationSubscriptionStatus.CANCELED);
+            sub.setCanceledAt(now);
+            organizationSubscriptionRepository.save(sub);
+            log.info("Cancelled subscription={} for org={} before assigning new plan", sub.getId(), organizationId);
         }
     }
 
@@ -463,12 +508,12 @@ public class OrganizationSubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public OrganizationSubscriptionDTO getCurrentSubscriptionDTO(Long mosqueId) {
-        return toSubscriptionDTO(getCurrentSubscription(mosqueId));
+    public OrganizationSubscriptionDTO getCurrentSubscriptionDTO(Long organizationId) {
+        return toSubscriptionDTO(getCurrentSubscription(organizationId));
     }
 
     @Transactional(readOnly = true)
-    public OrganizationSubscriptionDTO getCurrentSubscriptionDTOForCurrentMosque() {
-        return toSubscriptionDTO(getCurrentSubscriptionForCurrentMosque());
+    public OrganizationSubscriptionDTO getCurrentSubscriptionDTOForCurrentOrganization() {
+        return toSubscriptionDTO(getCurrentSubscriptionForCurrentOrganization());
     }
 }

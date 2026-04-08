@@ -3,12 +3,15 @@
 import { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
+import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { PageHeaderProvider } from '@/lib/page-header';
+import { SubscriptionProvider } from '@/lib/subscription/SubscriptionContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
+    <SubscriptionProvider>
     <PageHeaderProvider>
       <div className="flex h-screen bg-cream">
         {/* Mobile overlay */}
@@ -32,9 +35,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Right column: header + main */}
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header onMenuToggle={() => setSidebarOpen(true)} />
+          <SubscriptionBanner />
           <main className="flex-1 overflow-auto w-full">{children}</main>
         </div>
       </div>
     </PageHeaderProvider>
+    </SubscriptionProvider>
   );
 }

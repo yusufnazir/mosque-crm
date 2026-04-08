@@ -17,7 +17,7 @@ import com.mosque.crm.dto.CurrentUserDTO;
 import com.mosque.crm.dto.UserPreferencesDTO;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.entity.UserPreferences;
-import com.mosque.crm.repository.MosqueRepository;
+import com.mosque.crm.repository.OrganizationRepository;
 import com.mosque.crm.repository.UserRepository;
 import com.mosque.crm.service.AuthorizationService;
 import com.mosque.crm.service.UserPreferencesService;
@@ -34,16 +34,16 @@ public class CurrentUserController {
 
     private final AuthorizationService authorizationService;
     private final UserPreferencesService userPreferencesService;
-    private final MosqueRepository mosqueRepository;
+    private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
 
     public CurrentUserController(AuthorizationService authorizationService,
                                   UserPreferencesService userPreferencesService,
-                                  MosqueRepository mosqueRepository,
+                                  OrganizationRepository organizationRepository,
                                   UserRepository userRepository) {
         this.authorizationService = authorizationService;
         this.userPreferencesService = userPreferencesService;
-        this.mosqueRepository = mosqueRepository;
+        this.organizationRepository = organizationRepository;
         this.userRepository = userRepository;
     }
 
@@ -67,64 +67,73 @@ public class CurrentUserController {
         UserPreferences prefs = userPreferencesService.getOrCreate(user);
         UserPreferencesDTO preferencesDTO = userPreferencesService.toDTO(prefs);
 
+        boolean isSuperAdmin = user.getRoles().stream()
+                .anyMatch(r -> "SUPER_ADMIN".equals(r.getName()));
+
+        // Super admins get null organizationId so the frontend knows
+        // not to apply tenant scoping (mirrors the JWT behavior).
+        Long effectiveOrganizationId = isSuperAdmin ? null : user.getOrganizationId();
+
         CurrentUserDTO dto = new CurrentUserDTO();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
-        dto.setMosqueId(user.getMosqueId());
-        dto.setSuperAdmin(user.getRoles().stream().anyMatch(r -> "SUPER_ADMIN".equals(r.getName())));
+        dto.setOrganizationId(effectiveOrganizationId);
+        dto.setSuperAdmin(isSuperAdmin);
         dto.setPersonId(personId);
         dto.setPermissions(new ArrayList<>(permissions));
         dto.setRoles(roleNames);
         dto.setPreferences(preferencesDTO);
         dto.setMustChangePassword(user.isMustChangePassword());
 
-        // Resolve mosque name if user is assigned to a mosque
-        if (user.getMosqueId() != null) {
-            mosqueRepository.findById(user.getMosqueId())
-                    .ifPresent(mosque -> dto.setMosqueName(mosque.getName()));
+        // Resolve organization name if user is assigned to a organization
+        if (effectiveOrganizationId != null) {
+            organizationRepository.findById(effectiveOrganizationId)
+                    .ifPresent(organization -> dto.setOrganizationName(organization.getName()));
         }
 
-        // Include super admin's persisted mosque selection
-        if (dto.isSuperAdmin() && user.getSelectedMosqueId() != null) {
-            dto.setSelectedMosqueId(user.getSelectedMosqueId());
-            mosqueRepository.findById(user.getSelectedMosqueId())
-                    .ifPresent(mosque -> dto.setSelectedMosqueName(mosque.getName()));
+        // Include super admin's persisted organization selection
+        if (dto.isSuperAdmin() && user.getSelectedOrganizationId() != null) {
+            dto.setSelectedOrganizationId(user.getSelectedOrganizationId());
+            organizationRepository.findById(user.getSelectedOrganizationId())
+                    .ifPresent(organization -> dto.setSelectedOrganizationName(organization.getName()));
         }
 
         return ResponseEntity.ok(dto);
     }
 
     /**
-     * PUT /api/me/selected-mosque
-     * Persists the super admin's mosque selection so it survives across sessions and devices.
-     * Body: { "mosqueId": 1 } or { "mosqueId": null } to clear the selection (= "All Mosques").
+     * PUT /api/me/selected-organization
+     * Persists the super admin's organization selection so it survives across sessions and devices.
+     * Body: { "organizationId": 1 } or { "organizationId": null } to clear the selection (= "All Organizations").
      */
-    @PutMapping("/selected-mosque")
-    public ResponseEntity<?> updateSelectedMosque(@RequestBody Map<String, Long> body) {
+    @PutMapping("/selected-organization")
+    public ResponseEntity<?> updateSelectedOrganization(@RequestBody Map<String, Long> body) {
         User user = authorizationService.getCurrentUser();
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
 
-        // Only super admins (mosque_id IS NULL) can use this feature
-        if (user.getMosqueId() != null) {
-            return ResponseEntity.status(403).body("Only super admins can change mosque selection");
+        // Only super admins can use this feature
+        boolean isSuperAdmin = user.getRoles().stream()
+                .anyMatch(r -> "SUPER_ADMIN".equals(r.getName()));
+        if (!isSuperAdmin) {
+            return ResponseEntity.status(403).body("Only super admins can change organization selection");
         }
 
-        Long mosqueId = body.get("mosqueId");
+        Long organizationId = body.get("organizationId");
 
-        // Validate the mosque exists if a non-null value is provided
-        if (mosqueId != null) {
-            boolean exists = mosqueRepository.existsById(mosqueId);
+        // Validate the organization exists if a non-null value is provided
+        if (organizationId != null) {
+            boolean exists = organizationRepository.existsById(organizationId);
             if (!exists) {
-                return ResponseEntity.status(400).body("Mosque not found");
+                return ResponseEntity.status(400).body("Organization not found");
             }
         }
 
-        user.setSelectedMosqueId(mosqueId);
+        user.setSelectedOrganizationId(organizationId);
         userRepository.save(user);
 
-        return ResponseEntity.ok(Map.of("selectedMosqueId", mosqueId != null ? mosqueId : "null"));
+        return ResponseEntity.ok(Map.of("selectedOrganizationId", organizationId != null ? organizationId : "null"));
     }
 }

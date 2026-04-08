@@ -1,0 +1,7 @@
+﻿id	field_key	label	category	tenant_editable	display_order	created_at	updated_at
+1	APP_NAME	Application Name	general	1	1	2026-04-01 09:55:04	2026-04-01 09:55:04
+2	APP_BASE_URL	Application Base URL	general	0	2	2026-04-01 09:55:04	2026-04-01 09:55:04
+3	MAIL_SERVER_HOST	Mail Server Host	mail	0	1	2026-04-01 09:55:04	2026-04-01 09:55:04
+4	MAIL_SERVER_USERNAME	Mail Server Username	mail	0	2	2026-04-01 09:55:04	2026-04-01 09:55:04
+5	MAIL_SERVER_PASSWORD	Mail Server Password	mail	0	3	2026-04-01 09:55:05	2026-04-01 09:55:05
+6	MAIL_SERVER_PROJECT_UUID	Mail Server Project UUID	mail	0	4	2026-04-01 09:55:05	2026-04-01 09:55:05

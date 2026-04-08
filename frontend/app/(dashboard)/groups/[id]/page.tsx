@@ -93,8 +93,8 @@ export default function GroupDetailPage() {
         groupApi.listRoles(groupId),
       ]);
       setGroup(g);
-      setMembers(m);
-      setRoles(r);
+      setMembers(Array.isArray(m) ? m : []);
+      setRoles(Array.isArray(r) ? r : []);
     } catch (err) {
       console.error('Failed to load group detail', err);
       setToast({ message: t('groups.load_error') || 'Failed to load group', type: 'error' });

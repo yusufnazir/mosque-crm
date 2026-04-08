@@ -42,10 +42,10 @@ async function proxyRequest(
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  // Pass through X-Mosque-Id for multi-tenancy
-  const mosqueId = request.headers.get('X-Mosque-Id');
-  if (mosqueId) {
-    headers.set('X-Mosque-Id', mosqueId);
+  // Pass through X-Organization-Id for multi-tenancy
+  const organizationId = request.headers.get('X-Organization-Id');
+  if (organizationId) {
+    headers.set('X-Organization-Id', organizationId);
   }
 
   // Pass through Accept-Language

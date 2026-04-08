@@ -170,7 +170,7 @@ public class RoleGovernanceService {
     public Set<Role> getAssignableRolesForCurrentUser() {
         if (isSuperAdmin()) {
             // Super admin can assign all tenant-scoped roles;
-            // we don't filter further here — the caller should scope by mosque.
+            // we don't filter further here — the caller should scope by organization.
             return Collections.emptySet(); // caller handles super-admin specially
         }
 

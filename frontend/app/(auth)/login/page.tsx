@@ -7,6 +7,7 @@ import LanguageSelector from '@/components/LanguageSelector';
 import { authApi } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { buildTenantUrl } from '@/lib/auth/AuthContext';
 import { useAppName } from '@/lib/AppNameContext';
 
 export default function LoginPage() {
@@ -54,9 +55,13 @@ export default function LoginPage() {
         router.push('/set-password');
         return;
       }
-      
-      // Redirect to dashboard for all users
-      router.push('/dashboard');
+
+      // Navigate to the tenant subdomain (or /dashboard in single-origin mode)
+      if (response.organizationHandle) {
+        window.location.href = buildTenantUrl(response.organizationHandle, '/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       const code = err.code || 'login_failed';
       // Use translated message if available, otherwise fall back to server message
@@ -161,6 +166,19 @@ export default function LoginPage() {
               className="text-sm text-emerald-700 hover:text-emerald-800 hover:underline"
             >
               {t('login.forgot_password')}
+            </button>
+          </div>
+
+          {/* Register Link */}
+          <div className="mt-3 text-center">
+            <span className="text-sm text-gray-600">{t('login.no_account')}</span>
+            {' '}
+            <button
+              type="button"
+              onClick={() => router.push('/register')}
+              className="text-sm text-emerald-700 hover:text-emerald-800 hover:underline font-medium"
+            >
+              {t('login.register_link')}
             </button>
           </div>
         </div>

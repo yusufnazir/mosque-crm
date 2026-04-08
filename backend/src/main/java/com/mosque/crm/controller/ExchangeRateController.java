@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mosque.crm.dto.ExchangeRateCreateDTO;
 import com.mosque.crm.dto.ExchangeRateDTO;
 import com.mosque.crm.service.ExchangeRateService;
+import com.mosque.crm.subscription.PlanFeatureRequired;
 
 /**
- * REST controller for per-mosque exchange rate management.
+ * REST controller for per-organization exchange rate management.
+ * Read endpoints are open; write endpoints require the {@code finance.multi_currency} plan feature.
  */
 @RestController
 @RequestMapping("/exchange-rates")
@@ -44,6 +46,7 @@ public class ExchangeRateController {
     }
 
     @PostMapping
+    @PlanFeatureRequired("finance.multi_currency")
     public ResponseEntity<ExchangeRateDTO> createExchangeRate(@RequestBody ExchangeRateCreateDTO createDTO) {
         try {
             ExchangeRateDTO created = exchangeRateService.createExchangeRate(createDTO);
@@ -54,6 +57,7 @@ public class ExchangeRateController {
     }
 
     @PutMapping("/{id}")
+    @PlanFeatureRequired("finance.multi_currency")
     public ResponseEntity<ExchangeRateDTO> updateExchangeRate(@PathVariable Long id,
                                                                @RequestBody ExchangeRateCreateDTO updateDTO) {
         try {
@@ -64,6 +68,7 @@ public class ExchangeRateController {
     }
 
     @DeleteMapping("/{id}")
+    @PlanFeatureRequired("finance.multi_currency")
     public ResponseEntity<Void> deleteExchangeRate(@PathVariable Long id) {
         try {
             exchangeRateService.deleteExchangeRate(id);

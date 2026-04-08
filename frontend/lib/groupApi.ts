@@ -20,7 +20,7 @@ export interface GroupRoleDTO {
   sortOrder?: number;
   maxMembers?: number;
   isActive?: boolean;
-  mosqueId?: number;
+  organizationId?: number;
   createdAt?: string;
   translations?: GroupRoleTranslationDTO[];
 }
@@ -33,7 +33,7 @@ export interface GroupDTO {
   endDate?: string;
   isActive?: boolean;
   createdBy?: number;
-  mosqueId?: number;
+  organizationId?: number;
   createdAt?: string;
   translations?: GroupTranslationDTO[];
   memberCount?: number;
@@ -49,7 +49,7 @@ export interface GroupMemberDTO {
   groupRoleId?: number;
   roleName?: string;
   createdBy?: number;
-  mosqueId?: number;
+  organizationId?: number;
   createdAt?: string;
   personFirstName?: string;
   personLastName?: string;

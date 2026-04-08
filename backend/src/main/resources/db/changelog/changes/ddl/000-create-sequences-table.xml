@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="a0000001-0000-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="sequences_"/></not>
+        </preConditions>
+        <comment>Create sequences_ table for JPA TableGenerator ID generation</comment>
+        <createTable tableName="sequences_">
+            <column name="PK_NAME" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="PK_VALUE" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="a0000001-0000-0000-0000-000000000002-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM sequences_ WHERE PK_NAME = 'users_seq'</sqlCheck>
+        </preConditions>
+        <comment>Seed initial sequence values</comment>
+        <sql>
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('users_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('roles_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('persons_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('memberships_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('donations_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('gedcom_family_children_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('gedcom_events_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('gedcom_notes_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('user_member_link_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('user_preferences_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('password_reset_tokens_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('configurations_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('gedcom_person_links_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('contribution_types_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('contribution_type_translations_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('contribution_obligations_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('member_payments_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('currencies_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('organization_currencies_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('exchange_rates_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('member_contribution_exemptions_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('member_contribution_assignments_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('groups_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('group_members_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('group_roles_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('group_translations_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('role_templates_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('subscription_plans_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('plan_entitlements_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('organization_subscriptions_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('distribution_events_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('parcel_categories_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('non_member_recipients_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('member_distribution_registrations_seq', 1000);
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) VALUES ('parcel_distributions_seq', 1000);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
