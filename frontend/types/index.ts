@@ -59,6 +59,7 @@ export interface PersonSearchResult {
   email?: string;
   status?: string;
   phone?: string;
+  profileImageUrl?: string;
 }
 
 export interface RelationshipResponse {
