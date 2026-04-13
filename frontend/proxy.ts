@@ -41,8 +41,15 @@ function getSubdomain(hostname: string, baseDomain: string | null): string | nul
 }
 
 function buildUrl(subdomain: string, req: NextRequest, path: string, baseDomain: string): string {
-  const { protocol } = req.nextUrl;
-  const port = req.nextUrl.port ? `:${req.nextUrl.port}` : '';
+  // Use X-Forwarded-Proto when behind a reverse proxy (e.g. Nginx SSL termination)
+  const protocol = req.headers.get('x-forwarded-proto')
+    ? `${req.headers.get('x-forwarded-proto')}:`
+    : req.nextUrl.protocol;
+  // Derive port from the Host header — NOT from req.nextUrl.port which returns
+  // the internal Docker/Node port (e.g. 3000) instead of the external port.
+  const hostHeader = req.headers.get('host') || '';
+  const hostPort = hostHeader.includes(':') ? hostHeader.split(':').pop() : '';
+  const port = hostPort ? `:${hostPort}` : '';
   return `${protocol}//${subdomain}.${baseDomain}${port}${path}`;
 }
 
@@ -66,10 +73,16 @@ function withSameDomainCors(response: NextResponse, origin: string | null, baseD
   return response;
 }
 
+function getEffectiveProtocol(req: NextRequest): string {
+  const forwarded = req.headers.get('x-forwarded-proto');
+  return forwarded ? `${forwarded}:` : req.nextUrl.protocol;
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get('host') || request.nextUrl.hostname;
   const effectiveBaseDomain = getEffectiveBaseDomain(request);
+  const effectiveProtocol = getEffectiveProtocol(request);
 
   if (request.method === 'OPTIONS' && effectiveBaseDomain) {
     const origin = request.headers.get('origin');
@@ -115,7 +128,7 @@ export function proxy(request: NextRequest) {
         const redirectResponse = NextResponse.redirect(dest);
         withSameDomainCors(
           redirectResponse,
-          request.headers.get('origin') || `${request.nextUrl.protocol}//${hostname}`,
+          request.headers.get('origin') || `${effectiveProtocol}//${hostname}`,
           effectiveBaseDomain,
         );
         return redirectResponse;
@@ -127,7 +140,7 @@ export function proxy(request: NextRequest) {
       if (!token) {
         const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
         if (!isPublicPath) {
-          const realUrl = `${request.nextUrl.protocol}//${hostname}${pathname}${request.nextUrl.search}`;
+          const realUrl = `${effectiveProtocol}//${hostname}${pathname}${request.nextUrl.search}`;
           const loginUrl = buildUrl('auth', request, `/login?returnTo=${encodeURIComponent(realUrl)}`, effectiveBaseDomain);
           return NextResponse.redirect(loginUrl);
         }

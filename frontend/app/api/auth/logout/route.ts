@@ -52,11 +52,15 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  // Direct browser navigation — redirect to auth login after clearing cookies
-  // Use request.nextUrl.protocol (includes the colon, e.g. "http:") so the
-  // redirect URL is always valid regardless of x-forwarded-proto header.
-  const protocol = request.nextUrl.protocol; // 'http:' or 'https:'
-  const port = request.nextUrl.port ? `:${request.nextUrl.port}` : '';
+  // Direct browser navigation — redirect to auth login after clearing cookies.
+  // Use X-Forwarded-Proto for the real protocol (Nginx SSL termination).
+  // Derive port from Host header — NOT req.nextUrl.port which returns
+  // the internal Docker/Node port (e.g. 3000) instead of the external port.
+  const forwarded = request.headers.get('x-forwarded-proto');
+  const protocol = forwarded ? `${forwarded}:` : request.nextUrl.protocol;
+  const hostHeader = request.headers.get('host') || '';
+  const hostPort = hostHeader.includes(':') ? hostHeader.split(':').pop() : '';
+  const port = hostPort ? `:${hostPort}` : '';
   const baseDomain = getEffectiveBaseDomain(request);
 
   let redirectUrl: string;
