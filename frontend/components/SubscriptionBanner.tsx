@@ -22,8 +22,8 @@ export default function SubscriptionBanner() {
     return null;
   }
 
-  // Don't block the subscription page itself — user needs to see it to reactivate
-  if (pathname === '/subscription') {
+  // Don't block subscription management pages — user needs these to reactivate
+  if (pathname === '/subscription' || pathname.startsWith('/billing')) {
     return null;
   }
 

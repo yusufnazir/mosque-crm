@@ -99,6 +99,7 @@
     <include file="db/changelog/changes/ddl/117-create-membership-terms-versions-table.xml"/>
     <include file="db/changelog/changes/ddl/118-add-terms-columns-to-join-requests.xml"/>
     <include file="db/changelog/changes/ddl/119-add-dutch-columns-to-membership-terms-versions.xml"/>
+    <include file="db/changelog/changes/ddl/128-fix-gedcom-citations-event-column.xml"/>
 
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>

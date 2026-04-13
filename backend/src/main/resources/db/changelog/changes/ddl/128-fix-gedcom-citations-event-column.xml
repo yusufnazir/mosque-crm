@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="a7fd9096-6cf9-4f2c-95ed-0046748e79d1-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="gedcom_citations"/>
+            <not>
+                <columnExists tableName="gedcom_citations" columnName="event_id"/>
+            </not>
+            <columnExists tableName="gedcom_citations" columnName="gedcom_event_id"/>
+        </preConditions>
+        <comment>Backwards-compatibility: rename legacy gedcom_event_id to event_id on gedcom_citations.</comment>
+        <renameColumn tableName="gedcom_citations"
+                      oldColumnName="gedcom_event_id"
+                      newColumnName="event_id"
+                      columnDataType="BIGINT"/>
+    </changeSet>
+
+    <changeSet id="e20d61a2-1d7f-4f2d-909b-0f3879de3ebf-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="gedcom_citations"/>
+            <not>
+                <columnExists tableName="gedcom_citations" columnName="event_id"/>
+            </not>
+            <columnExists tableName="gedcom_citations" columnName="event"/>
+        </preConditions>
+        <comment>Backwards-compatibility: rename legacy event to event_id on gedcom_citations.</comment>
+        <renameColumn tableName="gedcom_citations"
+                      oldColumnName="event"
+                      newColumnName="event_id"
+                      columnDataType="BIGINT"/>
+    </changeSet>
+
+    <changeSet id="94c511ce-f492-42bc-a416-7625f3df80ca-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="gedcom_citations"/>
+            <not>
+                <columnExists tableName="gedcom_citations" columnName="event_id"/>
+            </not>
+            <not>
+                <columnExists tableName="gedcom_citations" columnName="gedcom_event_id"/>
+            </not>
+            <not>
+                <columnExists tableName="gedcom_citations" columnName="event"/>
+            </not>
+        </preConditions>
+        <comment>Safety net: add event_id to gedcom_citations when missing.</comment>
+        <addColumn tableName="gedcom_citations">
+            <column name="event_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -77,6 +77,30 @@
             WHERE (rar.role_id IS NOT NULL AND r1.id IS NULL)
                OR (rar.assignable_role_id IS NOT NULL AND r2.id IS NULL)
         </sql>
+        <sql>
+            DELETE rtp
+            FROM role_template_permissions rtp
+            LEFT JOIN role_templates rt ON rtp.template_id = rt.id
+            LEFT JOIN permissions p ON rtp.permission_id = p.id
+            WHERE (rtp.template_id IS NOT NULL AND rt.id IS NULL)
+               OR (rtp.permission_id IS NOT NULL AND p.id IS NULL)
+        </sql>
+        <sql>
+            DELETE rtap
+            FROM role_template_assignable_permissions rtap
+            LEFT JOIN role_templates rt ON rtap.template_id = rt.id
+            LEFT JOIN permissions p ON rtap.permission_id = p.id
+            WHERE (rtap.template_id IS NOT NULL AND rt.id IS NULL)
+               OR (rtap.permission_id IS NOT NULL AND p.id IS NULL)
+        </sql>
+        <sql>
+            DELETE rtar
+            FROM role_template_assignable_roles rtar
+            LEFT JOIN role_templates rt1 ON rtar.template_id = rt1.id
+            LEFT JOIN role_templates rt2 ON rtar.assignable_template_id = rt2.id
+            WHERE (rtar.template_id IS NOT NULL AND rt1.id IS NULL)
+               OR (rtar.assignable_template_id IS NOT NULL AND rt2.id IS NULL)
+        </sql>
 
         <!-- ===== PHASE 3: CREATE ALL FOREIGN KEYS ===== -->
 

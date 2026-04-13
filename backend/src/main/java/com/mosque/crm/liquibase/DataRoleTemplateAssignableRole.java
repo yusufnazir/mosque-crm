@@ -13,11 +13,19 @@ public class DataRoleTemplateAssignableRole extends CustomDataTaskChange {
 
 	@Override
 	public void handleUpdate() throws DatabaseException, SQLException {
+		Long templateIdValue = toLong(templateId);
+		Long assignableTemplateIdValue = toLong(assignableTemplateId);
+
+		// Skip invalid seed rows gracefully when referenced templates are absent.
+		if (!templateExists(templateIdValue) || !templateExists(assignableTemplateIdValue)) {
+			return;
+		}
+
 		String query = "select template_id from role_template_assignable_roles where template_id=? and assignable_template_id=?";
 		boolean exists = false;
 		try (PreparedStatement prepareStatement = connection.prepareStatement(query)) {
-			setData(prepareStatement, 1, toLong(templateId));
-			setData(prepareStatement, 2, toLong(assignableTemplateId));
+			setData(prepareStatement, 1, templateIdValue);
+			setData(prepareStatement, 2, assignableTemplateIdValue);
 			try (ResultSet resultSet = prepareStatement.executeQuery()) {
 				while (resultSet.next()) {
 					exists = true;
@@ -28,9 +36,22 @@ public class DataRoleTemplateAssignableRole extends CustomDataTaskChange {
 		if (!exists) {
 			String insert = "insert into role_template_assignable_roles(template_id, assignable_template_id) values(?,?)";
 			try (PreparedStatement prepareStatement = connection.prepareStatement(insert)) {
-				setData(prepareStatement, 1, toLong(templateId));
-				setData(prepareStatement, 2, toLong(assignableTemplateId));
+				setData(prepareStatement, 1, templateIdValue);
+				setData(prepareStatement, 2, assignableTemplateIdValue);
 				prepareStatement.executeUpdate();
+			}
+		}
+	}
+
+	private boolean templateExists(Long id) throws DatabaseException, SQLException {
+		if (id == null) {
+			return false;
+		}
+		String query = "select id from role_templates where id=?";
+		try (PreparedStatement prepareStatement = connection.prepareStatement(query)) {
+			setData(prepareStatement, 1, id);
+			try (ResultSet resultSet = prepareStatement.executeQuery()) {
+				return resultSet.next();
 			}
 		}
 	}

@@ -7,7 +7,7 @@
 						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
 	<!-- Admin user: admin / admin123 -->
-	<changeSet id="a2b3c4d5-0021-4e6f-8a9b-re-seed-admin01" author="mosque-crm">
+	<changeSet id="a2b3c4d5-0021-4e6f-8a9b-re-seed-admin-1" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataUser">
 			<param name="id"><![CDATA[1]]></param>
 			<param name="username"><![CDATA[admin]]></param>

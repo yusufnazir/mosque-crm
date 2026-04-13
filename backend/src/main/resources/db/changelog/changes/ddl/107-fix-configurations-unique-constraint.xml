@@ -7,6 +7,8 @@
 
     <changeSet id="b1000008-0107-0000-0000-000000000001" author="mosque-crm">
         <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configurations"/>
+            <columnExists tableName="configurations" columnName="organization_id"/>
             <not>
                 <indexExists indexName="uq_config_name_org" tableName="configurations"/>
             </not>
