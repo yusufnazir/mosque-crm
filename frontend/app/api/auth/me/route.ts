@@ -18,6 +18,7 @@ const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
 export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get('session_token')?.value;
+  const effectiveBaseDomain = cookieStore.get('app_base_domain')?.value?.trim() || BASE_DOMAIN;
 
   if (!token) {
     return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
@@ -34,11 +35,12 @@ export async function GET() {
       path: '/',
       maxAge: 0,
       expires: new Date(0),
-      ...(BASE_DOMAIN ? { domain: `.${BASE_DOMAIN}` } : {}),
+      ...(effectiveBaseDomain ? { domain: `.${effectiveBaseDomain}` } : {}),
     };
     const res = NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
     res.cookies.set('session_token', '', { ...clearOpts, httpOnly: true, sameSite: 'lax' as const });
     res.cookies.set('org_handle', '', { ...clearOpts, httpOnly: false, sameSite: 'lax' as const });
+    res.cookies.set('app_base_domain', '', { ...clearOpts, httpOnly: false, sameSite: 'lax' as const });
     return res;
   }
 

@@ -11,6 +11,7 @@ public class AuthResponse {
     private Long organizationId;
     private String organizationName;
     private String organizationHandle;
+    private String appBaseDomain;
     private boolean superAdmin;
     private List<String> permissions;
     private UserPreferencesDTO preferences;
@@ -155,5 +156,13 @@ public class AuthResponse {
 
     public void setOrganizationHandle(String organizationHandle) {
         this.organizationHandle = organizationHandle;
+    }
+
+    public String getAppBaseDomain() {
+        return appBaseDomain;
+    }
+
+    public void setAppBaseDomain(String appBaseDomain) {
+        this.appBaseDomain = appBaseDomain;
     }
 }

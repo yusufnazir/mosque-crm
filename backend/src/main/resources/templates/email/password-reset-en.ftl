@@ -14,6 +14,9 @@
     </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;color:transparent;">
+        Password reset request for ${appName}. This link expires in 30 minutes.
+    </div>
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f5; padding: 40px 0;">
         <tr>
             <td align="center">

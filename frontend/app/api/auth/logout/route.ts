@@ -12,21 +12,43 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
 
-function clearCookies(response: NextResponse) {
+function inferBaseDomainFromHost(hostname: string): string | undefined {
+  const host = hostname.split(':')[0].trim().toLowerCase();
+  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return undefined;
+  const parts = host.split('.').filter(Boolean);
+  if (parts.length < 3) return undefined;
+  return `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
+}
+
+function getEffectiveBaseDomain(request: NextRequest): string | undefined {
+  const cookieDomain = request.cookies.get('app_base_domain')?.value?.trim();
+  if (cookieDomain) {
+    return cookieDomain;
+  }
+  const hostHeader = request.headers.get('host') || request.nextUrl.hostname;
+  const inferred = inferBaseDomainFromHost(hostHeader);
+  if (inferred) {
+    return inferred;
+  }
+  return BASE_DOMAIN;
+}
+
+function clearCookies(response: NextResponse, baseDomain?: string) {
   const clearOpts = {
     path: '/',
     maxAge: 0,
     expires: new Date(0),
-    ...(BASE_DOMAIN ? { domain: `.${BASE_DOMAIN}` } : {}),
+    ...(baseDomain ? { domain: `.${baseDomain}` } : {}),
   };
 
   response.cookies.set('session_token', '', { ...clearOpts, httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const });
   response.cookies.set('org_handle', '', { ...clearOpts, httpOnly: false, sameSite: 'lax' as const });
+  response.cookies.set('app_base_domain', '', { ...clearOpts, httpOnly: false, sameSite: 'lax' as const });
   return response;
 }
 
-export async function POST() {
-  return clearCookies(NextResponse.json({ message: 'Logged out' }, { status: 200 }));
+export async function POST(request: NextRequest) {
+  return clearCookies(NextResponse.json({ message: 'Logged out' }, { status: 200 }), getEffectiveBaseDomain(request));
 }
 
 export async function GET(request: NextRequest) {
@@ -35,14 +57,15 @@ export async function GET(request: NextRequest) {
   // redirect URL is always valid regardless of x-forwarded-proto header.
   const protocol = request.nextUrl.protocol; // 'http:' or 'https:'
   const port = request.nextUrl.port ? `:${request.nextUrl.port}` : '';
+  const baseDomain = getEffectiveBaseDomain(request);
 
   let redirectUrl: string;
-  if (BASE_DOMAIN) {
-    redirectUrl = `${protocol}//auth.${BASE_DOMAIN}${port}/login`;
+  if (baseDomain) {
+    redirectUrl = `${protocol}//auth.${baseDomain}${port}/login`;
   } else {
     const host = request.headers.get('host') || 'localhost:3000';
     redirectUrl = `${protocol}//${host}/login`;
   }
 
-  return clearCookies(NextResponse.redirect(redirectUrl));
+  return clearCookies(NextResponse.redirect(redirectUrl), baseDomain);
 }

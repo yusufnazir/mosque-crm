@@ -258,6 +258,7 @@ public class ConfigurationController {
     }
 
     // Super admin subdomain configuration
+    public static final String KEY_APP_BASE_DOMAIN = "APP_BASE_DOMAIN";
     public static final String KEY_SUPERADMIN_SUBDOMAIN = "SUPERADMIN_SUBDOMAIN";
     public static final String DEFAULT_SUPERADMIN_SUBDOMAIN = "admin";
 

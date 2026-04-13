@@ -31,6 +31,41 @@ export interface CurrentUser {
   };
 }
 
+const RUNTIME_BASE_DOMAIN_KEY = 'appBaseDomain';
+
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift() || '');
+  return null;
+}
+
+function inferBaseDomainFromHostname(hostname: string): string | null {
+  const host = hostname.split(':')[0].trim().toLowerCase();
+  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return null;
+  const parts = host.split('.').filter(Boolean);
+  if (parts.length < 3) return null;
+  return `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
+}
+
+export function getConfiguredBaseDomain(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  // The current browser host is the most reliable runtime source.
+  const inferred = inferBaseDomainFromHostname(window.location.hostname);
+  if (inferred) return inferred;
+
+  const fromStorage = localStorage.getItem(RUNTIME_BASE_DOMAIN_KEY);
+  if (fromStorage && fromStorage.trim().length > 0) return fromStorage.trim();
+
+  const fromCookie = readCookie('app_base_domain');
+  if (fromCookie && fromCookie.trim().length > 0) return fromCookie.trim();
+
+  const envBaseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+  return envBaseDomain && envBaseDomain.trim().length > 0 ? envBaseDomain.trim() : null;
+}
+
 // ── Subdomain helpers ──────────────────────────────────────────────────────────
 
 /**
@@ -39,7 +74,7 @@ export interface CurrentUser {
  */
 export function buildTenantUrl(handle: string, path = '/'): string {
   if (typeof window === 'undefined') return path;
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+  const baseDomain = getConfiguredBaseDomain();
   if (!baseDomain) return path;
   const { protocol, port } = window.location;
   const portStr = port ? `:${port}` : '';
@@ -52,7 +87,7 @@ export function buildTenantUrl(handle: string, path = '/'): string {
  */
 export function buildAuthUrl(path = '/login'): string {
   if (typeof window === 'undefined') return path;
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+  const baseDomain = getConfiguredBaseDomain();
   if (!baseDomain) return path;
   const { protocol, port } = window.location;
   const portStr = port ? `:${port}` : '';

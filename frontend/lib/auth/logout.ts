@@ -1,11 +1,13 @@
 'use client';
 
+import { getConfiguredBaseDomain } from '@/lib/auth/AuthContext';
+
 function getLoginUrl(): string {
   if (typeof window === 'undefined') {
     return '/login';
   }
 
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+  const baseDomain = getConfiguredBaseDomain();
   const { protocol, hostname, port } = window.location;
   const portSuffix = port ? `:${port}` : '';
 

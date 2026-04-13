@@ -40,6 +40,8 @@ export default function SettingsPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [appNameInput, setAppNameInput] = useState(appName);
   const [appBaseUrlInput, setAppBaseUrlInput] = useState('');
+  const [appBaseDomainInput, setAppBaseDomainInput] = useState('');
+  const [appBaseDomainError, setAppBaseDomainError] = useState('');
   const [tenantEditable, setTenantEditable] = useState<TenantFieldConfig>({});
   const [tenantEditableDirty, setTenantEditableDirty] = useState(false);
   const [minioConfig, setMinioConfig] = useState<MinioConfig>({
@@ -59,6 +61,7 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchMailServerConfig();
     fetchAppBaseUrl();
+    fetchAppBaseDomain();
     fetchTenantFieldConfig();
     fetchMinioConfig();
     fetchBillingSchedulerConfig();
@@ -92,6 +95,18 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Failed to fetch app base URL:', error);
+    }
+  };
+
+  const fetchAppBaseDomain = async () => {
+    try {
+      const response = await fetch('/api/configurations/APP_BASE_DOMAIN');
+      if (response.ok) {
+        const data = await response.json();
+        setAppBaseDomainInput(data.value || '');
+      }
+    } catch (error) {
+      console.error('Failed to fetch app base domain:', error);
     }
   };
 
@@ -228,7 +243,7 @@ export default function SettingsPage() {
       if (response.ok) {
         // Keep middleware routing in sync without requiring a fresh login.
         if (typeof document !== 'undefined') {
-          const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+          const baseDomain = appBaseDomainInput.trim();
           const secure = typeof window !== 'undefined' && window.location.protocol === 'https:';
           const cookieParts = [
             `org_handle=${encodeURIComponent(superAdminSubdomain)}`,
@@ -249,7 +264,7 @@ export default function SettingsPage() {
 
         // Redirect to the updated super-admin host immediately in production.
         if (typeof window !== 'undefined') {
-          const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+          const baseDomain = appBaseDomainInput.trim();
           if (baseDomain) {
             const { protocol, port, pathname } = window.location;
             const portSuffix = port ? `:${port}` : '';
@@ -270,8 +285,15 @@ export default function SettingsPage() {
   };
 
   const handleSaveGeneral = async () => {
+    const normalizedBaseDomain = appBaseDomainInput.trim().toLowerCase();
+    if (normalizedBaseDomain && !/^[a-z0-9.-]+$/.test(normalizedBaseDomain)) {
+      setAppBaseDomainError('Only lowercase letters, digits, dots and hyphens are allowed.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
+    setAppBaseDomainError('');
 
     try {
       const response = await fetch('/api/configurations', {
@@ -287,6 +309,12 @@ export default function SettingsPage() {
         body: JSON.stringify({ name: 'APP_BASE_URL', value: appBaseUrlInput }),
       });
 
+      await fetch('/api/configurations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'APP_BASE_DOMAIN', value: normalizedBaseDomain }),
+      });
+
       // Save date format
       await fetch('/api/configurations', {
         method: 'POST',
@@ -297,6 +325,25 @@ export default function SettingsPage() {
       if (response.ok) {
         setAppName(appNameInput);
         setDateFormat(dateFormatInput);
+        if (typeof window !== 'undefined') {
+          if (normalizedBaseDomain) {
+            localStorage.setItem('appBaseDomain', normalizedBaseDomain);
+            const secure = window.location.protocol === 'https:';
+            const cookieParts = [
+              `app_base_domain=${encodeURIComponent(normalizedBaseDomain)}`,
+              'Path=/',
+              'Max-Age=86400',
+              'SameSite=Lax',
+              `Domain=.${normalizedBaseDomain}`,
+            ];
+            if (secure) {
+              cookieParts.push('Secure');
+            }
+            document.cookie = cookieParts.join('; ');
+          } else {
+            localStorage.removeItem('appBaseDomain');
+          }
+        }
         setMessage(t('settings.config_saved_success'));
       } else {
         setMessage(t('settings.config_saved_error'));
@@ -527,6 +574,26 @@ export default function SettingsPage() {
                 placeholder="http://localhost:3000"
               />
               <p className="mt-1 text-sm text-gray-500">{t('settings.app_base_url_description')}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.app_base_domain')}
+              </label>
+              <input
+                type="text"
+                value={appBaseDomainInput}
+                onChange={(e) => {
+                  setAppBaseDomainInput(e.target.value.toLowerCase());
+                  setAppBaseDomainError('');
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                placeholder="memflox.com"
+              />
+              {appBaseDomainError && (
+                <p className="mt-1 text-sm text-red-600">{appBaseDomainError}</p>
+              )}
+              <p className="mt-1 text-sm text-gray-500">{t('settings.app_base_domain_description')}</p>
             </div>
 
             <div>

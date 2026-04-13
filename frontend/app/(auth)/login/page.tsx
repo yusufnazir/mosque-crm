@@ -38,6 +38,9 @@ export default function LoginPage() {
       if (response.memberId) {
         localStorage.setItem('memberId', response.memberId.toString());
       }
+      if (response.appBaseDomain) {
+        localStorage.setItem('appBaseDomain', String(response.appBaseDomain));
+      }
       
       // Initialize language from backend preferences
       if (response.preferences?.language) {

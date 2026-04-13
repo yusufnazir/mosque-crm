@@ -146,6 +146,7 @@ public class AuthController {
 
         AuthResponse response = new AuthResponse(token, user.getUsername(), roleName, memberId, personId, preferencesDTO);
         response.setOrganizationId(effectiveOrganizationId);
+        response.setAppBaseDomain(resolveConfiguredBaseDomain());
         response.setSuperAdmin(isSuperAdmin);
         response.setPermissions(new java.util.ArrayList<>(permissions));
         response.setMustChangePassword(user.isMustChangePassword());
@@ -301,6 +302,7 @@ public class AuthController {
 
             AuthResponse authResponse = new AuthResponse(token, user.getUsername(), roleName, null, null, preferencesDTO);
             authResponse.setOrganizationId(user.getOrganizationId());
+            authResponse.setAppBaseDomain(resolveConfiguredBaseDomain());
             authResponse.setSuperAdmin(false);
             authResponse.setPermissions(new java.util.ArrayList<>(permissions));
             authResponse.setMustChangePassword(false);
@@ -318,5 +320,18 @@ public class AuthController {
             error.put("message", e.getMessage());
             return ResponseEntity.status(400).body(error);
         }
+    }
+
+    private String resolveConfiguredBaseDomain() {
+        String configuredDomain = configurationService.getValue(ConfigurationController.KEY_APP_BASE_DOMAIN)
+                .map(String::trim)
+                .orElse("");
+        if (!configuredDomain.isEmpty()) {
+            return configuredDomain;
+        }
+        // Do NOT fall back to extracting a domain from APP_BASE_URL — that config
+        // has a different purpose and may point to a stale/different environment.
+        // The frontend infers the correct domain from the browser Host header.
+        return null;
     }
 }

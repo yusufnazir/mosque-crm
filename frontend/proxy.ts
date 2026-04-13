@@ -14,18 +14,36 @@ const SUPERADMIN_SUBDOMAIN = process.env.NEXT_PUBLIC_SUPERADMIN_SUBDOMAIN || 'ad
 const RESERVED_SUBDOMAINS = new Set(['www', 'login', 'auth', 'app', 'api', 'mail']);
 const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/register-member', '/complete-registration'];
 
-function getSubdomain(hostname: string): string | null {
-  if (!BASE_DOMAIN) return null;
+function inferBaseDomainFromHost(hostname: string): string | null {
+  const host = hostname.split(':')[0].trim().toLowerCase();
+  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return null;
+  const parts = host.split('.').filter(Boolean);
+  if (parts.length < 3) return null;
+  return `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
+}
+
+function getEffectiveBaseDomain(request: NextRequest): string | null {
+  const hostHeader = request.headers.get('host') || request.nextUrl.hostname;
+  const inferred = inferBaseDomainFromHost(hostHeader);
+  if (inferred) return inferred;
+
+  const cookieDomain = request.cookies.get('app_base_domain')?.value?.trim();
+  if (cookieDomain) return cookieDomain;
+  return BASE_DOMAIN ?? null;
+}
+
+function getSubdomain(hostname: string, baseDomain: string | null): string | null {
+  if (!baseDomain) return null;
   const host = hostname.split(':')[0];
-  if (!host.endsWith(`.${BASE_DOMAIN}`)) return null;
-  const sub = host.slice(0, host.length - BASE_DOMAIN.length - 1);
+  if (!host.endsWith(`.${baseDomain}`)) return null;
+  const sub = host.slice(0, host.length - baseDomain.length - 1);
   return sub || null;
 }
 
-function buildUrl(subdomain: string, req: NextRequest, path: string): string {
+function buildUrl(subdomain: string, req: NextRequest, path: string, baseDomain: string): string {
   const { protocol } = req.nextUrl;
   const port = req.nextUrl.port ? `:${req.nextUrl.port}` : '';
-  return `${protocol}//${subdomain}.${BASE_DOMAIN}${port}${path}`;
+  return `${protocol}//${subdomain}.${baseDomain}${port}${path}`;
 }
 
 function isRscFetch(request: NextRequest): boolean {
@@ -37,10 +55,10 @@ function isRscFetch(request: NextRequest): boolean {
   );
 }
 
-function withSameDomainCors(response: NextResponse, origin: string | null): NextResponse {
-  if (!origin || !BASE_DOMAIN) return response;
+function withSameDomainCors(response: NextResponse, origin: string | null, baseDomain: string | null): NextResponse {
+  if (!origin || !baseDomain) return response;
   const originHost = origin.replace(/^https?:\/\//, '').split(':')[0];
-  if (originHost === BASE_DOMAIN || originHost.endsWith(`.${BASE_DOMAIN}`)) {
+  if (originHost === baseDomain || originHost.endsWith(`.${baseDomain}`)) {
     response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     response.headers.set('Vary', 'Origin');
@@ -51,12 +69,13 @@ function withSameDomainCors(response: NextResponse, origin: string | null): Next
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get('host') || request.nextUrl.hostname;
+  const effectiveBaseDomain = getEffectiveBaseDomain(request);
 
-  if (request.method === 'OPTIONS' && BASE_DOMAIN) {
+  if (request.method === 'OPTIONS' && effectiveBaseDomain) {
     const origin = request.headers.get('origin');
     if (origin) {
       const originHost = origin.replace(/^https?:\/\//, '').split(':')[0];
-      if (originHost === BASE_DOMAIN || originHost.endsWith(`.${BASE_DOMAIN}`)) {
+      if (originHost === effectiveBaseDomain || originHost.endsWith(`.${effectiveBaseDomain}`)) {
         const preflight = new NextResponse(null, { status: 204 });
         preflight.headers.set('Access-Control-Allow-Origin', origin);
         preflight.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -84,19 +103,20 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get('session_token')?.value;
   const orgHandle = request.cookies.get('org_handle')?.value;
 
-  if (BASE_DOMAIN) {
-    const subdomain = getSubdomain(hostname);
+  if (effectiveBaseDomain) {
+    const subdomain = getSubdomain(hostname, effectiveBaseDomain);
     const isAuthSubdomain = subdomain === 'auth';
     const isTenantSubdomain = subdomain !== null && !RESERVED_SUBDOMAINS.has(subdomain);
 
     if (isAuthSubdomain) {
       if (token && orgHandle) {
         const targetPath = pathname === '/' ? '/dashboard' : `${pathname}${request.nextUrl.search}`;
-        const dest = buildUrl(orgHandle, request, targetPath);
+        const dest = buildUrl(orgHandle, request, targetPath, effectiveBaseDomain);
         const redirectResponse = NextResponse.redirect(dest);
         withSameDomainCors(
           redirectResponse,
           request.headers.get('origin') || `${request.nextUrl.protocol}//${hostname}`,
+          effectiveBaseDomain,
         );
         return redirectResponse;
       }
@@ -108,14 +128,14 @@ export function proxy(request: NextRequest) {
         const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
         if (!isPublicPath) {
           const realUrl = `${request.nextUrl.protocol}//${hostname}${pathname}${request.nextUrl.search}`;
-          const loginUrl = buildUrl('auth', request, `/login?returnTo=${encodeURIComponent(realUrl)}`);
+          const loginUrl = buildUrl('auth', request, `/login?returnTo=${encodeURIComponent(realUrl)}`, effectiveBaseDomain);
           return NextResponse.redirect(loginUrl);
         }
         return NextResponse.next();
       }
 
       if (orgHandle && orgHandle !== subdomain) {
-        const dest = buildUrl(orgHandle, request, pathname + request.nextUrl.search);
+        const dest = buildUrl(orgHandle, request, pathname + request.nextUrl.search, effectiveBaseDomain);
         return NextResponse.redirect(dest);
       }
 
@@ -125,14 +145,14 @@ export function proxy(request: NextRequest) {
 
       const origin = request.headers.get('origin');
       if (isRscFetch(request) && origin) {
-        return withSameDomainCors(NextResponse.next(), origin);
+        return withSameDomainCors(NextResponse.next(), origin, effectiveBaseDomain);
       }
 
       return NextResponse.next();
     }
 
     if (subdomain === null) {
-      const dest = buildUrl('auth', request, '/login');
+      const dest = buildUrl('auth', request, '/login', effectiveBaseDomain);
       return NextResponse.redirect(dest);
     }
   }
