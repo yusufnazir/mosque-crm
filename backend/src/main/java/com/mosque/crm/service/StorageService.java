@@ -10,23 +10,80 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.InputStream;
 
 /**
  * Service for S3-compatible object storage (MinIO).
  * Handles bucket initialisation, upload, download and delete.
+ *
+ * Prefers database-stored configuration (via MinioStorageService / Settings UI)
+ * over application.properties defaults, so admins can change MinIO settings at runtime.
  */
 @Service
 public class StorageService {
 
     private static final Logger log = LoggerFactory.getLogger(StorageService.class);
 
-    private final S3Client s3Client;
+    private final S3Client propertiesS3Client;
     private final StorageProperties storageProperties;
+    private final MinioStorageService minioStorageService;
 
-    public StorageService(S3Client s3Client, StorageProperties storageProperties) {
-        this.s3Client = s3Client;
+    private volatile S3Client dbS3Client;
+    private volatile String lastDbEndpoint;
+    private volatile String lastDbAccessKey;
+
+    public StorageService(S3Client s3Client, StorageProperties storageProperties, MinioStorageService minioStorageService) {
+        this.propertiesS3Client = s3Client;
         this.storageProperties = storageProperties;
+        this.minioStorageService = minioStorageService;
+    }
+
+    /**
+     * Return the effective S3 client.
+     * If MINIO_ENDPOINT is configured in the database (Settings UI), build/cache a client from that.
+     * Otherwise fall back to the application.properties-based client.
+     */
+    private S3Client getS3Client() {
+        String dbEndpoint = minioStorageService.getEndpoint();
+        String dbAccessKey = minioStorageService.getAccessKey();
+
+        if (dbEndpoint != null && !dbEndpoint.isBlank()) {
+            // Rebuild cached client when config changes
+            if (dbS3Client == null || !dbEndpoint.equals(lastDbEndpoint) || !dbAccessKey.equals(lastDbAccessKey)) {
+                synchronized (this) {
+                    if (dbS3Client == null || !dbEndpoint.equals(lastDbEndpoint) || !dbAccessKey.equals(lastDbAccessKey)) {
+                        if (dbS3Client != null) {
+                            try { dbS3Client.close(); } catch (Exception ignored) {}
+                        }
+                        dbS3Client = minioStorageService.buildClient();
+                        lastDbEndpoint = dbEndpoint;
+                        lastDbAccessKey = dbAccessKey;
+                        log.info("S3 client rebuilt from database config (endpoint: {})", dbEndpoint);
+                    }
+                }
+            }
+            return dbS3Client;
+        }
+        return propertiesS3Client;
+    }
+
+    /**
+     * Return the effective bucket name (DB config first, then properties).
+     */
+    private String getBucket() {
+        String dbBucket = minioStorageService.getBucket();
+        if (dbBucket != null && !dbBucket.isBlank()) {
+            return dbBucket;
+        }
+        return storageProperties.getS3().getBucket();
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        if (dbS3Client != null) {
+            try { dbS3Client.close(); } catch (Exception ignored) {}
+        }
     }
 
     /**
@@ -34,13 +91,13 @@ public class StorageService {
      */
     @PostConstruct
     public void ensureBucketExists() {
-        String bucket = storageProperties.getS3().getBucket();
+        String bucket = getBucket();
         try {
-            s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build());
+            getS3Client().headBucket(HeadBucketRequest.builder().bucket(bucket).build());
             log.info("S3 bucket '{}' already exists", bucket);
         } catch (NoSuchBucketException e) {
             log.info("Creating S3 bucket '{}'", bucket);
-            s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+            getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
             log.info("S3 bucket '{}' created", bucket);
         } catch (Exception e) {
             log.warn("Could not verify S3 bucket '{}': {}. Storage features may be unavailable.", bucket, e.getMessage());
@@ -56,8 +113,8 @@ public class StorageService {
      * @param size        content length in bytes
      */
     public void upload(String key, InputStream inputStream, String contentType, long size) {
-        String bucket = storageProperties.getS3().getBucket();
-        s3Client.putObject(
+        String bucket = getBucket();
+        getS3Client().putObject(
                 PutObjectRequest.builder()
                         .bucket(bucket)
                         .key(key)
@@ -75,8 +132,8 @@ public class StorageService {
      * @return response stream (caller must close)
      */
     public ResponseInputStream<GetObjectResponse> download(String key) {
-        String bucket = storageProperties.getS3().getBucket();
-        return s3Client.getObject(
+        String bucket = getBucket();
+        return getS3Client().getObject(
                 GetObjectRequest.builder()
                         .bucket(bucket)
                         .key(key)
@@ -89,8 +146,8 @@ public class StorageService {
      * @param key the object key
      */
     public void delete(String key) {
-        String bucket = storageProperties.getS3().getBucket();
-        s3Client.deleteObject(
+        String bucket = getBucket();
+        getS3Client().deleteObject(
                 DeleteObjectRequest.builder()
                         .bucket(bucket)
                         .key(key)
