@@ -1,14 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { PageHeaderProvider } from '@/lib/page-header';
 import { SubscriptionProvider } from '@/lib/subscription/SubscriptionContext';
+import { buildAuthUrl, useAuth } from '@/lib/auth/AuthContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user && typeof window !== 'undefined') {
+      window.location.replace(buildAuthUrl('/login'));
+    }
+  }, [loading, user]);
+
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-cream">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-600" />
+      </div>
+    );
+  }
 
   return (
     <SubscriptionProvider>

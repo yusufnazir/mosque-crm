@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { organizationApi, Organization } from '@/lib/organizationApi';
 import ToastNotification from '@/components/ToastNotification';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function OrganizationsPage() {
   const { can } = useAuth();
@@ -13,6 +14,8 @@ export default function OrganizationsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingOrganization, setEditingOrganization] = useState<Organization | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const [form, setForm] = useState({
@@ -136,6 +139,22 @@ export default function OrganizationsPage() {
     }
   };
 
+  const handleDeleteOrganization = async () => {
+    if (!deleteTarget) return;
+    try {
+      setDeleting(true);
+      await organizationApi.remove(deleteTarget.id);
+      setToast({ message: t('organizations.deleted'), type: 'success' });
+      setDeleteTarget(null);
+      loadOrganizations();
+    } catch (error) {
+      console.error('Failed to delete organization:', error);
+      setToast({ message: t('organizations.delete_error'), type: 'error' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (!can('organization.manage')) {
     return (
       <div className="p-4 md:p-8">
@@ -153,6 +172,18 @@ export default function OrganizationsPage() {
           onClose={() => setToast(null)}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title={t('organizations.delete_title')}
+        message={deleteTarget ? t('organizations.delete_message').replace('{{name}}', deleteTarget.name) : ''}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        confirmDisabled={deleting}
+        onConfirm={handleDeleteOrganization}
+        onCancel={() => !deleting && setDeleteTarget(null)}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 md:mb-8">
@@ -239,12 +270,22 @@ export default function OrganizationsPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => openEditModal(organization)}
-                      className="text-emerald-700 hover:text-emerald-900 font-medium text-sm"
-                    >
-                      {t('common.edit')}
-                    </button>
+                    <div className="inline-flex items-center gap-4">
+                      <button
+                        onClick={() => openEditModal(organization)}
+                        className="text-emerald-700 hover:text-emerald-900 font-medium text-sm"
+                      >
+                        {t('common.edit')}
+                      </button>
+                      {can('superadmin.manage') && (
+                        <button
+                          onClick={() => setDeleteTarget(organization)}
+                          className="text-red-600 hover:text-red-800 font-medium text-sm"
+                        >
+                          {t('common.delete')}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

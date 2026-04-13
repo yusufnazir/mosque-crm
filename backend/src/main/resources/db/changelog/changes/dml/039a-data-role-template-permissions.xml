@@ -11,7 +11,7 @@
 		Defines which permissions each role template grants by default.
 
 		Template IDs (from 039-data-role-templates.xml):
-			1 = ADMIN, 2 = MEMBER, 3 = TREASURER, 4 = IMAM
+			1 = ADMIN, 2 = MEMBER
 
 		ADMIN gets: 1-11, 14-19, 21-22, 26-36, 37-53, 55-60
 		Excluded: 12-13 (settings.view/manage — super-admin only), 20 (superadmin.manage), 23 (organization.manage), 24-25 (privilege.view/manage — super-admin only), 54 (subscription.manage)

@@ -90,8 +90,9 @@ export function proxy(request: NextRequest) {
     const isTenantSubdomain = subdomain !== null && !RESERVED_SUBDOMAINS.has(subdomain);
 
     if (isAuthSubdomain) {
-      if (token && orgHandle && !isRscFetch(request)) {
-        const dest = buildUrl(orgHandle, request, '/dashboard');
+      if (token && orgHandle) {
+        const targetPath = pathname === '/' ? '/dashboard' : `${pathname}${request.nextUrl.search}`;
+        const dest = buildUrl(orgHandle, request, targetPath);
         const redirectResponse = NextResponse.redirect(dest);
         withSameDomainCors(
           redirectResponse,

@@ -23,6 +23,7 @@ export const organizationApi = {
   getById: (id: number) => ApiClient.get<Organization>(`/organizations/${id}`),
   create: (organization: Partial<Organization>) => ApiClient.post<Organization>('/organizations', organization),
   update: (id: number, organization: Partial<Organization>) => ApiClient.put<Organization>(`/organizations/${id}`, organization),
+  remove: (id: number) => ApiClient.delete(`/organizations/${id}`),
   checkHandle: (handle: string, excludeId?: number) =>
     ApiClient.get<{ available: boolean }>(`/organizations/check-handle?handle=${encodeURIComponent(handle)}${excludeId !== undefined ? `&excludeId=${excludeId}` : ''}`),
   getMyOrganization: () => ApiClient.get<Organization>('/organizations/my'),

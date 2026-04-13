@@ -15,4 +15,13 @@
 		</customChange>
 	</changeSet>
 
+	<!-- MEMBER Role -->
+	<changeSet id="9f1b0d8d-3d03-4bde-b59d-f5b89db9e111" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRole">
+			<param name="id"><![CDATA[2]]></param>
+			<param name="name"><![CDATA[MEMBER]]></param>
+			<param name="description"><![CDATA[Regular member with access to member self-service features]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

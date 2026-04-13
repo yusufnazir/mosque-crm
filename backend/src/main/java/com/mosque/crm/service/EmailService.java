@@ -299,7 +299,12 @@ public class EmailService {
             Map<String, Object> model = new HashMap<>();
             model.put("username", username);
             model.put("resetUrl", resetUrl);
-            model.put("appName", configurationService.getAppName());
+               // Ensure appName is never null - use fallback if retrieval returns null/empty
+               String appName = configurationService.getAppName();
+               if (appName == null || appName.isEmpty()) {
+                   appName = "MemberFlow";
+               }
+               model.put("appName", appName);
 
             // Process template
             return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);

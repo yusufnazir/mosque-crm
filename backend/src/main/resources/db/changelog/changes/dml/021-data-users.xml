@@ -10,8 +10,8 @@
 	<changeSet id="a2b3c4d5-0021-4e6f-8a9b-re-seed-admin-1" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataUser">
 			<param name="id"><![CDATA[1]]></param>
-			<param name="username"><![CDATA[admin]]></param>
-			<param name="password"><![CDATA[$2a$12$4Vhq8IF5w9GXLrCCOAabB.JqkFR7/DrdYoPnSmaBAMkgk2HftehNu]]></param>
+			<param name="username"><![CDATA[administrator]]></param>
+			<param name="password"><![CDATA[$2a$12$g2v9dqjEVx.pHcb1JAO.ZOGGPkl6JhjlxEhL610z1gWXbW2mB00oq]]></param>
 			<param name="email"><![CDATA[admin@mosque.local]]></param>
 			<param name="accountEnabled"><![CDATA[true]]></param>
 			<param name="accountLocked"><![CDATA[false]]></param>

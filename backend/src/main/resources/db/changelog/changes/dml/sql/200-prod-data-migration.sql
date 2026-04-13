@@ -28,7 +28,7 @@ INSERT IGNORE INTO `currencies` (`id`, `code`, `name`, `symbol`, `decimal_places
 -- =============================================================================
 
 -- Users (6 rows)
-REPLACE INTO `users` (`id`, `username`, `password`, `email`, `account_enabled`, `account_locked`, `credentials_expired`, `last_login_at`, `created_at`, `updated_at`, `organization_id`, `selected_organization_id`, `must_change_password`) VALUES (1,'admin','$2a$10$Vhp8.biuScz/pM/..uCAN.ZDCLXotjPcKpO03bDthOjA4YnUN61ZW','admin@mosque.local',1,0,0,NULL,NULL,'2026-02-26 12:58:30',NULL,1,0),(1001,'rafael.pawirokromo@telesur.sr','$2a$10$MUxw6GeI6w3sQs2xM9nI6OU8JV5dSZJZEorcFeWu4NYtiqt4xxKGq','rafael.pawirokromo@telesur.sr',1,0,0,NULL,'2026-02-24 03:42:03','2026-03-03 20:00:17',1,NULL,0),(1002,'a.moekalil@gmail.com','$2a$10$TRLaLaJvCqygxhYNBnnr1e8ejVNMhSvd7goQDfxHn4vy6ojifNZxK','a.moekalil@gmail.com',1,0,0,NULL,'2026-02-24 03:42:31','2026-02-24 03:42:31',1,NULL,1),(1003,'moentariandy@gmail.com','$2a$10$QbWWJC.jfa3xE4dcC5BbpeyCDMvirQRZo0JgYK3GtXjadofxdcczy','moentariandy@gmail.com',1,0,0,NULL,'2026-02-24 03:43:41','2026-02-25 03:52:06',1,NULL,0),(1005,'mohamedskasto@gmail.com','$2a$10$kIBL2lnZ5JpCWfsb2BXunOgODEghJnB1HR1EVxW6cFqQwdYmZhsI.','mohamedskasto@gmail.com',1,0,0,NULL,'2026-02-25 13:55:17','2026-02-25 13:57:04',1,NULL,0),(1006,'yusuf.nazir@gmail.com','$2a$10$pVNsEwKbA6kK/jeQl6TVgepb1fWr86R1rpM5aId6/2EM3xzHmifla','yusuf.nazir@gmail.com',1,0,0,NULL,'2026-03-01 12:36:07','2026-03-04 21:23:00',1,NULL,0);
+REPLACE INTO `users` (`id`, `username`, `password`, `email`, `account_enabled`, `account_locked`, `credentials_expired`, `last_login_at`, `created_at`, `updated_at`, `organization_id`, `selected_organization_id`, `must_change_password`) VALUES (1,'administrator','$2a$12$g2v9dqjEVx.pHcb1JAO.ZOGGPkl6JhjlxEhL610z1gWXbW2mB00oq','admin@mosque.local',1,0,0,NULL,NULL,'2026-02-26 12:58:30',NULL,1,0),(1001,'rafael.pawirokromo@telesur.sr','$2a$10$MUxw6GeI6w3sQs2xM9nI6OU8JV5dSZJZEorcFeWu4NYtiqt4xxKGq','rafael.pawirokromo@telesur.sr',1,0,0,NULL,'2026-02-24 03:42:03','2026-03-03 20:00:17',1,NULL,0),(1002,'a.moekalil@gmail.com','$2a$10$TRLaLaJvCqygxhYNBnnr1e8ejVNMhSvd7goQDfxHn4vy6ojifNZxK','a.moekalil@gmail.com',1,0,0,NULL,'2026-02-24 03:42:31','2026-02-24 03:42:31',1,NULL,1),(1003,'moentariandy@gmail.com','$2a$10$QbWWJC.jfa3xE4dcC5BbpeyCDMvirQRZo0JgYK3GtXjadofxdcczy','moentariandy@gmail.com',1,0,0,NULL,'2026-02-24 03:43:41','2026-02-25 03:52:06',1,NULL,0),(1005,'mohamedskasto@gmail.com','$2a$10$kIBL2lnZ5JpCWfsb2BXunOgODEghJnB1HR1EVxW6cFqQwdYmZhsI.','mohamedskasto@gmail.com',1,0,0,NULL,'2026-02-25 13:55:17','2026-02-25 13:57:04',1,NULL,0),(1006,'yusuf.nazir@gmail.com','$2a$10$pVNsEwKbA6kK/jeQl6TVgepb1fWr86R1rpM5aId6/2EM3xzHmifla','yusuf.nazir@gmail.com',1,0,0,NULL,'2026-03-01 12:36:07','2026-03-04 21:23:00',1,NULL,0);
 
 -- User roles (11 rows)
 INSERT IGNORE INTO `user_roles` (`user_id`, `role_id`, `organization_id`, `start_date`, `end_date`) VALUES
@@ -600,11 +600,11 @@ INSERT IGNORE INTO `groups` (`id`, `name`, `description`, `start_date`, `end_dat
 -- Group translations (2 rows)
 INSERT IGNORE INTO `group_translations` (`id`, `group_id`, `locale`, `name`, `description`) VALUES (1001,1001,'en','Board',NULL),(1002,1001,'nl','Bestuur',NULL);
 
--- Group roles (4 rows)
-INSERT IGNORE INTO `group_roles` (`id`, `group_id`, `name`, `sort_order`, `max_members`, `is_active`, `organization_id`, `created_at`) VALUES (1001,1001,'Chair',0,1,1,1,'2026-02-26 22:53:59'),(1002,1001,'Treasurer',2,1,1,1,'2026-02-26 22:59:29'),(1003,1001,'Vice-chairman',1,1,1,1,'2026-02-26 23:01:00'),(1004,1001,'Secretary',3,1,1,1,'2026-02-26 23:01:25');
+-- Group roles (3 rows)
+INSERT IGNORE INTO `group_roles` (`id`, `group_id`, `name`, `sort_order`, `max_members`, `is_active`, `organization_id`, `created_at`) VALUES (1001,1001,'Chair',0,1,1,1,'2026-02-26 22:53:59'),(1003,1001,'Vice-chairman',1,1,1,1,'2026-02-26 23:01:00'),(1004,1001,'Secretary',3,1,1,1,'2026-02-26 23:01:25');
 
--- Group role translations (8 rows)
-INSERT IGNORE INTO `group_role_translations` (`id`, `group_role_id`, `locale`, `name`) VALUES (1,1001,'en','Chair'),(2,1001,'nl','Voorzitter'),(5,1003,'en','Vice-chairman'),(6,1003,'nl','Ondervoorzitter'),(7,1002,'en','Treasurer'),(8,1002,'nl','Penningsmeester'),(9,1004,'en','Secretary'),(10,1004,'nl','Secretaris');
+-- Group role translations (6 rows)
+INSERT IGNORE INTO `group_role_translations` (`id`, `group_role_id`, `locale`, `name`) VALUES (1,1001,'en','Chair'),(2,1001,'nl','Voorzitter'),(5,1003,'en','Vice-chairman'),(6,1003,'nl','Ondervoorzitter'),(9,1004,'en','Secretary'),(10,1004,'nl','Secretaris');
 
 -- =============================================================================
 -- 10. DISTRIBUTION

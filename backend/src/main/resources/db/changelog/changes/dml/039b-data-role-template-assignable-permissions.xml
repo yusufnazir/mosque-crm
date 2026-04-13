@@ -11,7 +11,7 @@
 		Defines the assignable permission pool for each role template.
 		Initially mirrors the granted permissions (same as 039a).
 
-		Template IDs: 1=ADMIN, 2=MEMBER, 3=TREASURER, 4=IMAM
+		Template IDs: 1=ADMIN, 2=MEMBER
 	-->
 
 	<!-- ═══════════════════════════════════════════════════════════

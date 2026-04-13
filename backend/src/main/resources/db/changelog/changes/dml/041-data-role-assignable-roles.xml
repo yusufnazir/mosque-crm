@@ -11,13 +11,11 @@
 		Defines which template roles each template role is allowed to assign.
 
 		Template IDs (from 039-data-role-templates.xml):
-			1 = ADMIN, 2 = MEMBER, 3 = TREASURER, 4 = IMAM
+			1 = ADMIN, 2 = MEMBER
 
 		Policy:
-			ADMIN     → can assign MEMBER, TREASURER, IMAM
-			MEMBER    → (none)
-			TREASURER → (none)
-			IMAM      → (none)
+			ADMIN  → can assign MEMBER
+			MEMBER → (none)
 
 		SUPER_ADMIN bypasses governance entirely (handled in code).
 		Tenant-level role_assignable_roles entries are created during provisioning
@@ -28,20 +26,6 @@
 	<changeSet id="d1e2f3a4-0041-4aaa-b001-tplassrole-01" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRoleTemplateAssignableRole">
 			<param name="templateId"><![CDATA[1]]></param><param name="assignableTemplateId"><![CDATA[2]]></param>
-		</customChange>
-	</changeSet>
-
-	<!-- ADMIN can assign TREASURER -->
-	<changeSet id="d1e2f3a4-0041-4aaa-b001-tplassrole-02" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRoleTemplateAssignableRole">
-			<param name="templateId"><![CDATA[1]]></param><param name="assignableTemplateId"><![CDATA[3]]></param>
-		</customChange>
-	</changeSet>
-
-	<!-- ADMIN can assign IMAM -->
-	<changeSet id="d1e2f3a4-0041-4aaa-b001-tplassrole-03" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRoleTemplateAssignableRole">
-			<param name="templateId"><![CDATA[1]]></param><param name="assignableTemplateId"><![CDATA[4]]></param>
 		</customChange>
 	</changeSet>
 

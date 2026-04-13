@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +25,7 @@ import com.mosque.crm.entity.Organization;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.repository.OrganizationRepository;
 import com.mosque.crm.service.AuthorizationService;
+import com.mosque.crm.service.OrganizationDeletionService;
 import com.mosque.crm.service.RoleTemplateService;
 
 @RestController
@@ -35,13 +37,16 @@ public class OrganizationController {
     private final OrganizationRepository organizationRepository;
     private final RoleTemplateService roleTemplateService;
     private final AuthorizationService authorizationService;
+    private final OrganizationDeletionService organizationDeletionService;
 
     public OrganizationController(OrganizationRepository organizationRepository,
                             RoleTemplateService roleTemplateService,
-                            AuthorizationService authorizationService) {
+                            AuthorizationService authorizationService,
+                            OrganizationDeletionService organizationDeletionService) {
         this.organizationRepository = organizationRepository;
         this.roleTemplateService = roleTemplateService;
         this.authorizationService = authorizationService;
+        this.organizationDeletionService = organizationDeletionService;
     }
 
     @GetMapping
@@ -143,6 +148,16 @@ public class OrganizationController {
         Organization saved = organizationRepository.save(organization);
         log.info("Updated organization: {} (id={})", saved.getName(), saved.getId());
         return ResponseEntity.ok(toDTO(saved));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("@auth.hasPermission('superadmin.manage')")
+    public ResponseEntity<Void> deleteOrganization(@PathVariable Long id) {
+        boolean deleted = organizationDeletionService.deleteOrganizationCascade(id);
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/check-handle")

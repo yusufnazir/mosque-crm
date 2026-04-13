@@ -226,7 +226,39 @@ export default function SettingsPage() {
       });
       const data = await response.json();
       if (response.ok) {
+        // Keep middleware routing in sync without requiring a fresh login.
+        if (typeof document !== 'undefined') {
+          const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+          const secure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          const cookieParts = [
+            `org_handle=${encodeURIComponent(superAdminSubdomain)}`,
+            'Path=/',
+            'Max-Age=86400',
+            'SameSite=Lax',
+          ];
+          if (secure) {
+            cookieParts.push('Secure');
+          }
+          if (baseDomain) {
+            cookieParts.push(`Domain=.${baseDomain}`);
+          }
+          document.cookie = cookieParts.join('; ');
+        }
+
         setMessage(t('settings.config_saved_success'));
+
+        // Redirect to the updated super-admin host immediately in production.
+        if (typeof window !== 'undefined') {
+          const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN;
+          if (baseDomain) {
+            const { protocol, port, pathname } = window.location;
+            const portSuffix = port ? `:${port}` : '';
+            const nextUrl = `${protocol}//${superAdminSubdomain}.${baseDomain}${portSuffix}${pathname}`;
+            if (window.location.host !== `${superAdminSubdomain}.${baseDomain}${portSuffix}`) {
+              window.location.assign(nextUrl);
+            }
+          }
+        }
       } else {
         setMessage(data.message || t('settings.config_saved_error'));
       }
