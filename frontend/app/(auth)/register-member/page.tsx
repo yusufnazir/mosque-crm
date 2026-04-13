@@ -249,7 +249,7 @@ function RegisterMemberContent() {
                 </label>
                 <DateInput
                   name="dateOfBirth"
-                  value={form.dateOfBirth}
+                  value={form.dateOfBirth ?? ''}
                   onChange={(iso) => setForm(prev => ({ ...prev, dateOfBirth: iso }))}
                   required
                 />
