@@ -83,7 +83,7 @@ export const joinRequestApi = {
 
   /** Admin — delete a join request. */
   remove: (id: number) =>
-    ApiClient.delete<void>(`/join-requests/${id}`),
+    ApiClient.delete(`/join-requests/${id}`),
 
   /** Admin — send a membership invitation email to a prospective member. */
   invite: (email: string, locale = 'en') =>
