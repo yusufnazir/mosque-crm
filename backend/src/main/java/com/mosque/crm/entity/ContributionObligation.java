@@ -41,7 +41,7 @@ public class ContributionObligation implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "contribution_obligations_seq", table = "sequences_",
-            pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE",
+            pkColumnName = "PK_NAME", pkColumnValue = "contribution_obligations_seq", valueColumnName = "PK_VALUE",
             initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "contribution_obligations_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)

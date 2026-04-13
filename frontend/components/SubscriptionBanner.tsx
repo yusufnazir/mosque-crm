@@ -2,6 +2,7 @@
 
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
+import { logoutClient } from '@/lib/auth/logout';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -99,7 +100,7 @@ export default function SubscriptionBanner() {
             {t('subscription_enforcement.view_subscription')}
           </Link>
           <button
-            onClick={() => { window.location.href = '/api/auth/logout'; }}
+            onClick={() => { void logoutClient(); }}
             className="text-sm text-stone-500 hover:text-stone-700 transition-colors"
           >
             {t('subscription_enforcement.logout')}

@@ -2,7 +2,6 @@ package com.mosque.crm.service;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -114,7 +113,8 @@ public class MembershipCreationService {
             String roleName = dto.getRole() != null ? dto.getRole() : "MEMBER";
             Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
-            user.setRoles(Collections.singleton(role));
+            user.getRoles().clear();
+            user.getRoles().add(role);
             userRepository.save(user);
 
             // Create or update UserMemberLink
@@ -273,9 +273,8 @@ public class MembershipCreationService {
             String roleName = dto.getRole() != null ? dto.getRole() : "MEMBER";
             Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
-            Set<Role> roles = new HashSet<>();
-            roles.add(role);
-            user.setRoles(roles);
+            user.getRoles().clear();
+            user.getRoles().add(role);
             userRepository.save(user);
 
             // Create or update UserMemberLink

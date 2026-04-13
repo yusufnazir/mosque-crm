@@ -26,7 +26,7 @@ public class GroupTranslation {
 
     @Id
     @TableGenerator(name = "group_trans_seq", table = "sequences_",
-            pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE",
+            pkColumnName = "PK_NAME", pkColumnValue = "group_trans_seq", valueColumnName = "PK_VALUE",
             initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "group_trans_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)

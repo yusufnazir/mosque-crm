@@ -544,4 +544,41 @@
 		</customChange>
 	</changeSet>
 
+        <!-- ════════════ JOIN REQUESTS ════════════ -->
+        <changeSet id="e5f6a7b8-0063-4jr-eeee-joinreqview063" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[63]]></param>
+                        <param name="code"><![CDATA[join_request.view]]></param>
+                        <param name="description"><![CDATA[View membership join requests]]></param>
+                        <param name="category"><![CDATA[join_request]]></param>
+                </customChange>
+        </changeSet>
+        <changeSet id="f6a7b8c9-0064-4jr-ffff-joinreqmgmt064" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[64]]></param>
+                        <param name="code"><![CDATA[join_request.manage]]></param>
+                        <param name="description"><![CDATA[Approve and reject membership join requests]]></param>
+                        <param name="category"><![CDATA[join_request]]></param>
+                </customChange>
+        </changeSet>
+
+        <!-- ════════════ MESSAGING ════════════ -->
+        <changeSet id="a7b8c9d0-0065-4msg-aaaa-messagingview065" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[65]]></param>
+                        <param name="code"><![CDATA[messaging.view]]></param>
+                        <param name="description"><![CDATA[View inbox and messages]]></param>
+                        <param name="category"><![CDATA[messaging]]></param>
+                </customChange>
+        </changeSet>
+        <changeSet id="b8c9d0e1-0066-4msg-bbbb-messagingmgmt066" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[66]]></param>
+                        <param name="code"><![CDATA[messaging.manage]]></param>
+                        <param name="description"><![CDATA[Send messages and manage inbox]]></param>
+                        <param name="category"><![CDATA[messaging]]></param>
+                </customChange>
+        </changeSet>
+
+
 </databaseChangeLog>

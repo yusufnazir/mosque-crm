@@ -19,6 +19,7 @@ import com.mosque.crm.repository.TenantSettingFieldRepository;
 public class TenantSettingService {
 
     private static final Logger log = LoggerFactory.getLogger(TenantSettingService.class);
+    private static final String TERMS_ENABLED_KEY = "TERMS_ENABLED";
 
     private final TenantSettingFieldRepository tenantSettingFieldRepository;
     private final ConfigurationService configurationService;
@@ -65,9 +66,22 @@ public class TenantSettingService {
     public List<TenantSettingFieldDTO> getTenantEditableFieldsWithValues() {
         Long organizationId = TenantContext.getCurrentOrganizationId();
         List<TenantSettingField> fields = tenantSettingFieldRepository.findByTenantEditableTrueOrderByDisplayOrderAsc();
-        return fields.stream()
+        List<TenantSettingFieldDTO> result = fields.stream()
                 .map(f -> toDTO(f, configurationService.getValueTenantAware(f.getFieldKey(), organizationId).orElse(null)))
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
+
+        // Synthetic field so tenant settings can carry terms toggle state without requiring a new table row.
+        result.add(new TenantSettingFieldDTO(
+            -1L,
+            TERMS_ENABLED_KEY,
+            "Enable Terms & Conditions",
+            "membership",
+            true,
+            Integer.MAX_VALUE,
+            configurationService.getValueTenantAware(TERMS_ENABLED_KEY, organizationId).orElse("false")
+        ));
+
+        return result;
     }
 
     /**
@@ -88,13 +102,39 @@ public class TenantSettingService {
                 .collect(Collectors.toSet());
 
         for (Map.Entry<String, String> entry : fieldValues.entrySet()) {
-            if (editableKeys.contains(entry.getKey())) {
+            if (editableKeys.contains(entry.getKey()) || TERMS_ENABLED_KEY.equals(entry.getKey())) {
                 configurationService.setTenantValue(entry.getKey(), entry.getValue(), organizationId);
             } else {
                 log.warn("Tenant attempted to update non-editable field: {}", entry.getKey());
             }
         }
         log.info("Updated {} tenant settings for organization_id={}", fieldValues.size(), organizationId);
+    }
+
+    /**
+     * Read tenant-scoped toggle for membership terms requirement.
+     */
+    public boolean getTermsEnabledForCurrentTenant() {
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId == null) {
+            return false;
+        }
+        return "true".equalsIgnoreCase(
+                configurationService.getValueTenantAware(TERMS_ENABLED_KEY, organizationId).orElse("false"));
+    }
+
+    /**
+     * Persist tenant-scoped toggle for membership terms requirement.
+     */
+    @Transactional
+    public void setTermsEnabledForCurrentTenant(boolean enabled) {
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId == null) {
+            log.warn("setTermsEnabledForCurrentTenant called without tenant context");
+            return;
+        }
+        configurationService.setTenantValue(TERMS_ENABLED_KEY, String.valueOf(enabled), organizationId);
+        log.info("Updated TERMS_ENABLED={} for organization_id={}", enabled, organizationId);
     }
 
     private TenantSettingFieldDTO toDTO(TenantSettingField field, String currentValue) {

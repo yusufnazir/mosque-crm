@@ -9,10 +9,12 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { portalApi } from '@/lib/api';
 import { Member } from '@/types';
-import { formatDate, getStatusColor, getLocalizedStatus } from '@/lib/utils';
+import { getStatusColor, getLocalizedStatus } from '@/lib/utils';
+import { useDateFormat } from '@/lib/DateFormatContext';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Member | null>(null);
+  const { formatDate } = useDateFormat();
   const [loading, setLoading] = useState(true);
   const [partner, setPartner] = useState<Member | null>(null);
   const [father, setFather] = useState<Member | null>(null);

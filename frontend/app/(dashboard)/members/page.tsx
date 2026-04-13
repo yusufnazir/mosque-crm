@@ -8,6 +8,8 @@ import Button from '@/components/Button';
 import { PersonSearchResult } from '@/types';
 import { getInitials, getStatusColor, getLocalizedStatus } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { joinRequestApi } from '@/lib/joinRequestApi';
+import ToastNotification from '@/components/ToastNotification';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -41,6 +43,12 @@ export default function MembersPage() {
 
   // Search debounce
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Invite modal
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteSending, setInviteSending] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   useEffect(() => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => {
@@ -86,6 +94,21 @@ export default function MembersPage() {
     setPage(0);
   }, []);
 
+  const handleSendInvite = async () => {
+    if (!inviteEmail.trim()) return;
+    setInviteSending(true);
+    try {
+      await joinRequestApi.invite(inviteEmail.trim());
+      setToast({ message: t('members.invite_success'), type: 'success' });
+      setShowInviteModal(false);
+      setInviteEmail('');
+    } catch {
+      setToast({ message: t('members.invite_error'), type: 'error' });
+    } finally {
+      setInviteSending(false);
+    }
+  };
+
   // Page navigation
   const goToPage = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {
@@ -130,13 +153,70 @@ export default function MembersPage() {
 
   return (
     <div className="p-4 md:p-8">
+      {toast && (
+        <ToastNotification
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-1 md:mb-2">{t('members.title')}</h1>
           <p className="text-gray-600 text-sm md:text-base">{t('members.subtitle')}</p>
         </div>
-        <Button onClick={() => router.push('/members/add')}>{t('members.add_new_member')}</Button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setInviteEmail(''); setShowInviteModal(true); }}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition text-sm font-medium"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            {t('members.invite')}
+          </button>
+          <Button onClick={() => router.push('/members/add')}>{t('members.add_new_member')}</Button>
+        </div>
       </div>
+
+      {/* Invite Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <h2 className="text-xl font-bold text-charcoal mb-2">{t('members.invite_title')}</h2>
+            <p className="text-sm text-gray-500 mb-5">{t('members.invite_description')}</p>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('members.invite_email_label')}
+            </label>
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder={t('members.invite_email_placeholder')}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition mb-5"
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSendInvite(); }}
+              autoFocus
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowInviteModal(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm"
+                disabled={inviteSending}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleSendInvite}
+                disabled={inviteSending || !inviteEmail.trim()}
+                className="px-5 py-2 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {inviteSending ? t('members.invite_sending') : t('members.invite_send')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

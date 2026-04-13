@@ -188,7 +188,8 @@ public class RoleManagementController {
             permissionRepository.findByCode(code).ifPresent(newPermissions::add);
         }
 
-        role.setPermissions(newPermissions);
+        role.getPermissions().clear();
+        role.getPermissions().addAll(newPermissions);
         roleRepository.save(role);
 
         if (shouldSyncTemplateRole(role)) {
@@ -254,8 +255,10 @@ public class RoleManagementController {
                 .filter(p -> newAssignableCodes.contains(p.getCode()))
                 .collect(Collectors.toSet());
 
-        role.setAssignablePermissions(newAssignable);
-        role.setPermissions(prunedGranted);
+        role.getAssignablePermissions().clear();
+        role.getAssignablePermissions().addAll(newAssignable);
+        role.getPermissions().clear();
+        role.getPermissions().addAll(prunedGranted);
         roleRepository.save(role);
 
         if (shouldSyncTemplateRole(role)) {
@@ -328,13 +331,15 @@ public class RoleManagementController {
             if ("SUPER_ADMIN".equals(role.getName())) {
                 continue;
             }
-            role.setAssignablePermissions(new HashSet<>(newPool));
+            role.getAssignablePermissions().clear();
+            role.getAssignablePermissions().addAll(new HashSet<>(newPool));
 
             // Prune granted permissions that are no longer in the pool
             Set<Permission> prunedGranted = role.getPermissions().stream()
                     .filter(p -> newPoolCodes.contains(p.getCode()))
                     .collect(Collectors.toSet());
-            role.setPermissions(prunedGranted);
+            role.getPermissions().clear();
+            role.getPermissions().addAll(prunedGranted);
         }
         roleRepository.saveAll(roles);
 

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { ApiClient } from '@/lib/api';
 import { UserDTO, CreateUserRequest, UpdateUserRequest, userApi } from '@/lib/userApi';
 import ToastNotification from '@/components/ToastNotification';
+import { useDateFormat } from '@/lib/DateFormatContext';
 
 interface RoleDTO {
   id: number;
@@ -16,6 +17,7 @@ interface RoleDTO {
 
 export default function UsersPage() {
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
 
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [roles, setRoles] = useState<RoleDTO[]>([]);
@@ -171,11 +173,6 @@ export default function UsersPage() {
       console.error('Failed to delete user:', err);
       setToast({ message: err.message || t('users.delete_error'), type: 'error' });
     }
-  };
-
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString();
   };
 
   return (

@@ -24,7 +24,8 @@ import { currencyApi, OrganizationCurrencyDTO } from '@/lib/currencyApi';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import PaymentReceiptModal from '@/components/PaymentReceiptModal';
 import { Member, RelationshipResponse } from '@/types';
-import { formatDate, getStatusColor, getLocalizedStatus } from '@/lib/utils';
+import { getStatusColor, getLocalizedStatus } from '@/lib/utils';
+import { useDateFormat } from '@/lib/DateFormatContext';
 import FamilyManagementModal from '@/components/FamilyManagementModal';
 import FamilyTree from '@/components/family-tree';
 import ComprehensiveFamilyTree from '@/components/comprehensive-family-tree';
@@ -44,6 +45,7 @@ export default function MemberDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
   const memberId = params.id as string;
 
   const [member, setMember] = useState<Member | null>(null);

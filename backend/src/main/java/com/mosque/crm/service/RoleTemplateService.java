@@ -71,7 +71,8 @@ public class RoleTemplateService {
                     assignableRoles.add(target);
                 }
             }
-            tenantRole.setAssignableRoles(assignableRoles);
+            tenantRole.getAssignableRoles().clear();
+            tenantRole.getAssignableRoles().addAll(assignableRoles);
             roleRepository.save(tenantRole);
         }
 
@@ -95,8 +96,10 @@ public class RoleTemplateService {
             tenantRole.setDescription(template.getDescription());
             Set<Permission> newAssignable = new HashSet<>(template.getAssignablePermissions());
             Set<Permission> newGranted = pruneByPool(new HashSet<>(template.getPermissions()), newAssignable);
-            tenantRole.setAssignablePermissions(newAssignable);
-            tenantRole.setPermissions(newGranted);
+            tenantRole.getAssignablePermissions().clear();
+            tenantRole.getAssignablePermissions().addAll(newAssignable);
+            tenantRole.getPermissions().clear();
+            tenantRole.getPermissions().addAll(newGranted);
 
             // Sync assignable roles from template relationships
             if (tenantRole.getOrganizationId() != null) {
@@ -108,7 +111,8 @@ public class RoleTemplateService {
                         assignableRoles.add(target);
                     }
                 }
-                tenantRole.setAssignableRoles(assignableRoles);
+                tenantRole.getAssignableRoles().clear();
+                tenantRole.getAssignableRoles().addAll(assignableRoles);
             }
 
             roleRepository.save(tenantRole);
@@ -158,8 +162,10 @@ public class RoleTemplateService {
         Set<Permission> assignable = new HashSet<>(template.getAssignablePermissions());
         Set<Permission> granted = pruneByPool(new HashSet<>(template.getPermissions()), assignable);
 
-        tenantRole.setAssignablePermissions(assignable);
-        tenantRole.setPermissions(granted);
+        tenantRole.getAssignablePermissions().clear();
+        tenantRole.getAssignablePermissions().addAll(assignable);
+        tenantRole.getPermissions().clear();
+        tenantRole.getPermissions().addAll(granted);
 
         roleRepository.save(tenantRole);
     }

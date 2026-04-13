@@ -42,7 +42,7 @@ public class MemberContributionAssignment implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "member_contribution_assignments_seq", table = "sequences_",
-            pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE",
+            pkColumnName = "PK_NAME", pkColumnValue = "member_contribution_assignments_seq", valueColumnName = "PK_VALUE",
             initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "member_contribution_assignments_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)

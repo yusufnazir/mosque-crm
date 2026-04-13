@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+	<!--
+		Seed default global configuration values (organization_id IS NULL).
+		These act as application-wide defaults and can be overridden per-organization
+		via the ConfigurationService tenant-aware logic.
+	-->
+
+	<changeSet id="f1a2b3c4-0061-4cfg-0001-date-format-default" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataConfiguration">
+			<param name="name"><![CDATA[DATE_FORMAT]]></param>
+			<param name="value"><![CDATA[dd MMM yyyy]]></param>
+		</customChange>
+	</changeSet>
+
+</databaseChangeLog>

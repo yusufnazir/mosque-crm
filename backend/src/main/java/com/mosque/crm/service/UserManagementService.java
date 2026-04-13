@@ -260,7 +260,8 @@ public class UserManagementService {
                     throw new IllegalArgumentException("You are not allowed to remove role: " + role.getName());
                 }
             }
-            user.setRoles(newRoles);
+            user.getRoles().clear();
+            user.getRoles().addAll(newRoles);
             // Evict permission cache for this user since roles changed
             authorizationService.evictCache(id);
         }

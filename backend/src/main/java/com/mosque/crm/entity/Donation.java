@@ -37,7 +37,7 @@ import jakarta.persistence.TableGenerator;
 public class Donation implements OrganizationAware {
 
     @Id
-    @TableGenerator(name = "donations_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
+    @TableGenerator(name = "donations_seq", table = "sequences_", pkColumnName = "PK_NAME", pkColumnValue = "donations_seq", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "donations_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;

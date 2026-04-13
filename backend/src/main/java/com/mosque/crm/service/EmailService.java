@@ -324,4 +324,198 @@ public class EmailService {
                 """, username, appName, resetUrl, appName);
         }
     }
+
+    // ────────────────────────────────────────────────────────────────
+    // Join-request email methods
+    // ────────────────────────────────────────────────────────────────
+
+    /**
+     * Notify a registrant that their application was received and is under review.
+     */
+    public void sendJoinRequestReceivedEmail(String toEmail, String firstName, String orgName, String appName, String locale) {
+        sendTemplatedEmail(toEmail, appName + " - Membership Application Received",
+                buildJoinRequestReceivedBody(firstName, orgName, appName, locale));
+    }
+
+    /**
+     * Notify an admin that a new join request has been submitted.
+     */
+    public void sendJoinRequestAdminNotification(String toEmail, String requesterName, String requesterEmail,
+            String orgName, String appName, String adminUrl, String locale) {
+        sendTemplatedEmail(toEmail, appName + " - New Membership Application",
+                buildJoinRequestAdminNotifyBody(requesterName, requesterEmail, orgName, appName, adminUrl, locale));
+    }
+
+    /**
+     * Notify the registrant that their request was approved and send the completion link.
+     */
+    public void sendJoinRequestApprovedEmail(String toEmail, String firstName, String orgName, String appName,
+            String completionUrl, String locale) {
+        sendTemplatedEmail(toEmail, appName + " - Membership Application Approved",
+                buildJoinRequestApprovedBody(firstName, orgName, appName, completionUrl, locale));
+    }
+
+    /**
+     * Notify the registrant that their request was rejected.
+     */
+    public void sendJoinRequestRejectedEmail(String toEmail, String firstName, String orgName, String appName,
+            String rejectionReason, String locale) {
+        sendTemplatedEmail(toEmail, appName + " - Membership Application Rejected",
+                buildJoinRequestRejectedBody(firstName, orgName, appName, rejectionReason, locale));
+    }
+
+    // ── shared low-level sender (reuses same pattern as existing methods) ──
+
+    private void sendTemplatedEmail(String toEmail, String subject, String body) {
+        if (toEmail == null || toEmail.isEmpty()) {
+            log.warn("sendTemplatedEmail: no email address provided.");
+            return;
+        }
+        String host = configurationService.getMailServerHost();
+        String mailUsername = configurationService.getMailServerUsername();
+        String mailPassword = configurationService.getMailServerPassword();
+        String projectUuid = configurationService.getMailServerProjectUuid();
+
+        if (host == null || host.isEmpty()) {
+            log.info("=== EMAIL (Fallback - Mail server not configured) ===");
+            log.info("To: {}", toEmail);
+            log.info("Subject: {}", subject);
+            log.info("Body:\n{}", body);
+            log.info("=====================================================");
+            return;
+        }
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("to", Arrays.asList(toEmail));
+        payload.put("subject", subject);
+        payload.put("text", body);
+        payload.put("projectId", projectUuid);
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            if (mailUsername != null && !mailUsername.isEmpty() &&
+                    mailPassword != null && !mailPassword.isEmpty()) {
+                String auth = mailUsername + ":" + mailPassword;
+                byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+                headers.set("Authorization", "Basic " + new String(encodedAuth));
+            }
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+            String mailEndpoint = host + "/rest/v1/api/register-mail";
+            ResponseEntity<String> response = restTemplate.postForEntity(mailEndpoint, request, String.class);
+            HttpStatus status = (HttpStatus) response.getStatusCode();
+            if (!status.is2xxSuccessful()) {
+                log.error("Failed to send email to {}. Status: {}", toEmail, status);
+            } else {
+                log.info("Email sent successfully to: {}", toEmail);
+            }
+        } catch (Exception e) {
+            log.error("Error sending email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    // ── FTL body builders for join-request emails ──
+
+    private String buildJoinRequestReceivedBody(String firstName, String orgName, String appName, String locale) {
+        try {
+            String templateName = "nl".equalsIgnoreCase(locale)
+                    ? "email/join-request-received-nl.ftl"
+                    : "email/join-request-received-en.ftl";
+            Template template = freemarkerConfig.getTemplate(templateName);
+            Map<String, Object> model = new HashMap<>();
+            model.put("firstName", firstName);
+            model.put("orgName", orgName);
+            model.put("appName", appName);
+            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        } catch (Exception e) {
+            log.error("Error processing join-request-received template", e);
+            return String.format("Dear %s, your membership application for %s has been received.", firstName, orgName);
+        }
+    }
+
+    private String buildJoinRequestAdminNotifyBody(String requesterName, String requesterEmail,
+            String orgName, String appName, String adminUrl, String locale) {
+        try {
+            String templateName = "nl".equalsIgnoreCase(locale)
+                    ? "email/join-request-admin-notify-nl.ftl"
+                    : "email/join-request-admin-notify-en.ftl";
+            Template template = freemarkerConfig.getTemplate(templateName);
+            Map<String, Object> model = new HashMap<>();
+            model.put("requesterName", requesterName);
+            model.put("requesterEmail", requesterEmail);
+            model.put("orgName", orgName);
+            model.put("appName", appName);
+            model.put("adminUrl", adminUrl);
+            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        } catch (Exception e) {
+            log.error("Error processing join-request-admin-notify template", e);
+            return String.format("New membership application from %s (%s) for %s. Review at: %s",
+                    requesterName, requesterEmail, orgName, adminUrl);
+        }
+    }
+
+    private String buildJoinRequestApprovedBody(String firstName, String orgName, String appName,
+            String completionUrl, String locale) {
+        try {
+            String templateName = "nl".equalsIgnoreCase(locale)
+                    ? "email/join-request-approved-nl.ftl"
+                    : "email/join-request-approved-en.ftl";
+            Template template = freemarkerConfig.getTemplate(templateName);
+            Map<String, Object> model = new HashMap<>();
+            model.put("firstName", firstName);
+            model.put("orgName", orgName);
+            model.put("appName", appName);
+            model.put("completionUrl", completionUrl);
+            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        } catch (Exception e) {
+            log.error("Error processing join-request-approved template", e);
+            return String.format("Dear %s, your application for %s has been approved. Activate your account: %s",
+                    firstName, orgName, completionUrl);
+        }
+    }
+
+    private String buildJoinRequestRejectedBody(String firstName, String orgName, String appName,
+            String rejectionReason, String locale) {
+        try {
+            String templateName = "nl".equalsIgnoreCase(locale)
+                    ? "email/join-request-rejected-nl.ftl"
+                    : "email/join-request-rejected-en.ftl";
+            Template template = freemarkerConfig.getTemplate(templateName);
+            Map<String, Object> model = new HashMap<>();
+            model.put("firstName", firstName);
+            model.put("orgName", orgName);
+            model.put("appName", appName);
+            model.put("rejectionReason", rejectionReason != null ? rejectionReason : "");
+            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        } catch (Exception e) {
+            log.error("Error processing join-request-rejected template", e);
+            return String.format("Dear %s, your membership application for %s could not be approved.", firstName, orgName);
+        }
+    }
+
+    /**
+     * Send a membership invitation to a prospective member with the registration link.
+     */
+    public void sendMemberInviteEmail(String toEmail, String orgName, String appName, String registrationUrl, String locale) {
+        sendTemplatedEmail(toEmail, appName + " - Invitation to Join " + orgName,
+                buildMemberInviteBody(orgName, appName, registrationUrl, locale));
+    }
+
+    private String buildMemberInviteBody(String orgName, String appName, String registrationUrl, String locale) {
+        try {
+            String templateName = "nl".equalsIgnoreCase(locale)
+                    ? "email/member-invite-nl.ftl"
+                    : "email/member-invite-en.ftl";
+            Template template = freemarkerConfig.getTemplate(templateName);
+            Map<String, Object> model = new HashMap<>();
+            model.put("orgName", orgName);
+            model.put("appName", appName);
+            model.put("registrationUrl", registrationUrl);
+            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        } catch (Exception e) {
+            log.error("Error processing member-invite template", e);
+            return String.format("You have been invited to register as a member of %s. Register at: %s", orgName, registrationUrl);
+        }
+    }
 }
+

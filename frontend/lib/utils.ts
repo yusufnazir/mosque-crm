@@ -1,23 +1,38 @@
-export const formatDate = (dateString?: string | null): string => {
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+/** Apply a date format pattern to a date object. Supported tokens: yyyy yy MMMM MMM MM M dd d */
+export const applyDateFormat = (date: Date, format: string): string => {
+  const d = date.getDate();
+  const m = date.getMonth();
+  const y = date.getFullYear();
+  return format.replace(/yyyy|yy|MMMM|MMM|MM|M|dd|d/g, (token) => {
+    switch (token) {
+      case 'yyyy': return String(y);
+      case 'yy':   return String(y).slice(-2);
+      case 'MMMM': return MONTH_LONG[m];
+      case 'MMM':  return MONTH_SHORT[m];
+      case 'MM':   return String(m + 1).padStart(2, '0');
+      case 'M':    return String(m + 1);
+      case 'dd':   return String(d).padStart(2, '0');
+      case 'd':    return String(d);
+      default:     return token;
+    }
+  });
+};
+
+export const formatDate = (dateString?: string | null, format = 'dd MMM yyyy'): string => {
   if (!dateString) return 'N/A';
   try {
-    // Parse the date string and ensure it's treated as local date
-    // If dateString is in YYYY-MM-DD format, treat it as local date to avoid timezone conversion
     let date: Date;
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      // If it's in YYYY-MM-DD format, create date object without timezone conversion
       const [year, month, day] = dateString.split('-').map(Number);
-      date = new Date(year, month - 1, day); // month is 0-indexed in Date constructor
+      date = new Date(year, month - 1, day);
     } else {
       date = new Date(dateString);
     }
-    
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  } catch (error) {
+    return applyDateFormat(date, format);
+  } catch {
     return 'Invalid date';
   }
 };

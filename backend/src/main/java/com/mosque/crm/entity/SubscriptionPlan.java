@@ -25,7 +25,7 @@ public class SubscriptionPlan {
 
     @Id
     @TableGenerator(name = "subscription_plans_seq", table = "sequences_",
-            pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE",
+            pkColumnName = "PK_NAME", pkColumnValue = "subscription_plans_seq", valueColumnName = "PK_VALUE",
             initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "subscription_plans_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)

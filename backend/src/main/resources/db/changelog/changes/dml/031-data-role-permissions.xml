@@ -342,4 +342,53 @@
 		</customChange>
 	</changeSet>
 
+        <!-- ════════════════════════════════════════════════════════════
+             JOIN REQUEST PERMISSIONS — join_request.view (63), join_request.manage (64)
+             ADMIN gets both
+             ════════════════════════════════════════════════════════════ -->
+
+        <!-- ADMIN (role_id=1) → join_request.view (63) -->
+        <changeSet id="b8c9d0e1-jr-role-0001-admin-view-063" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[63]]></param>
+                </customChange>
+        </changeSet>
+        <!-- ADMIN (role_id=1) → join_request.manage (64) -->
+        <changeSet id="c9d0e1f2-jr-role-0002-admin-manage-064" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[64]]></param>
+                </customChange>
+        </changeSet>
+
+        <!-- ════════════════════════════════════════════════════════════
+             MESSAGING PERMISSIONS — messaging.view (65), messaging.manage (66)
+             ADMIN and MEMBER both get view and manage
+             ════════════════════════════════════════════════════════════ -->
+
+        <!-- ADMIN (role_id=1) → messaging.view (65) -->
+        <changeSet id="d0e1f2a3-msg-role-0001-admin-view-065" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[65]]></param>
+                </customChange>
+        </changeSet>
+        <!-- ADMIN (role_id=1) → messaging.manage (66) -->
+        <changeSet id="e1f2a3b4-msg-role-0002-admin-manage-066" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[66]]></param>
+                </customChange>
+        </changeSet>
+        <!-- MEMBER (role_id=2) → messaging.view (65) -->
+        <changeSet id="f2a3b4c5-msg-role-0003-member-view-065" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[65]]></param>
+                </customChange>
+        </changeSet>
+        <!-- MEMBER (role_id=2) → messaging.manage (66) -->
+        <changeSet id="a3b4c5d6-msg-role-0004-member-manage-066" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[66]]></param>
+                </customChange>
+        </changeSet>
+
+
 </databaseChangeLog>

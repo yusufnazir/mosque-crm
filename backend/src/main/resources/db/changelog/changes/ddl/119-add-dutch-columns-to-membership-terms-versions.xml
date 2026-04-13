@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="d4ab257f-ca15-4dbc-834a-cfcf42ee9e0f-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="membership_terms_versions" columnName="content_nl"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="membership_terms_versions">
+            <column name="title_nl" type="VARCHAR(255)"/>
+            <column name="content_nl" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

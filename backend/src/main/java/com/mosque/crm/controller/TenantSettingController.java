@@ -61,4 +61,23 @@ public class TenantSettingController {
         tenantSettingService.updateTenantSettings(fieldValues);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * Tenant admin: read whether membership terms are enabled for registration.
+     */
+    @GetMapping("/terms-enabled")
+    public ResponseEntity<Map<String, Boolean>> getTermsEnabled() {
+        return ResponseEntity.ok(Map.of("enabled", tenantSettingService.getTermsEnabledForCurrentTenant()));
+    }
+
+    /**
+     * Tenant admin: update whether membership terms are enabled for registration.
+     * Body: { "enabled": true|false }
+     */
+    @PutMapping("/terms-enabled")
+    public ResponseEntity<Map<String, Boolean>> updateTermsEnabled(@RequestBody Map<String, Boolean> body) {
+        boolean enabled = Boolean.TRUE.equals(body.get("enabled"));
+        tenantSettingService.setTermsEnabledForCurrentTenant(enabled);
+        return ResponseEntity.ok(Map.of("enabled", enabled));
+    }
 }

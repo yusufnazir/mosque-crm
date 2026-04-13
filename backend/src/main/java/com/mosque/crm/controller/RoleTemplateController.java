@@ -127,7 +127,8 @@ public class RoleTemplateController {
             permissionRepository.findByCode(code).ifPresent(newPermissions::add);
         }
 
-        template.setPermissions(newPermissions);
+        template.getPermissions().clear();
+        template.getPermissions().addAll(newPermissions);
         templateRepository.save(template);
 
         roleTemplateService.syncTemplateToAllTenants(template.getName());
@@ -158,8 +159,10 @@ public class RoleTemplateController {
                 .filter(p -> newAssignableCodes.contains(p.getCode()))
                 .collect(Collectors.toSet());
 
-        template.setAssignablePermissions(newAssignable);
-        template.setPermissions(prunedGranted);
+        template.getAssignablePermissions().clear();
+        template.getAssignablePermissions().addAll(newAssignable);
+        template.getPermissions().clear();
+        template.getPermissions().addAll(prunedGranted);
         templateRepository.save(template);
 
         roleTemplateService.syncTemplateToAllTenants(template.getName());

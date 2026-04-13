@@ -9,18 +9,14 @@ import Button from '@/components/Button';
 import { groupApi, GroupMemberDTO, GroupDTO, GroupTranslationDTO, GroupRoleDTO, GroupRoleTranslationDTO } from '@/lib/groupApi';
 import MemberSearchModal, { MemberSearchResult } from '@/components/MemberSearchModal';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { useDateFormat } from '@/lib/DateFormatContext';
 
 export default function GroupDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { t, language: locale } = useTranslation();
+  const { formatDate } = useDateFormat();
   const groupId = Number(params.id);
-
-  /** Format a date string safely (avoids UTC timezone shift for date-only strings) */
-  const formatDate = (d: string) => {
-    const s = d.length === 10 ? d + 'T00:00:00' : d;
-    return new Date(s).toLocaleDateString();
-  };
 
   // --- Translation helpers ---
   const getGroupName = useCallback((g: GroupDTO | null) => {

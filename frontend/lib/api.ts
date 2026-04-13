@@ -162,15 +162,7 @@ export class ApiClient {
       method: 'DELETE',
       headers: this.getHeaders(),
     });
-    if (!response.ok) {
-      let message = `HTTP error! status: ${response.status}`;
-      try {
-        const body = await response.json();
-        if (body.error) message = body.error;
-        else if (body.message) message = body.message;
-      } catch { /* ignore parse errors */ }
-      throw new Error(message);
-    }
+    await this.handleResponse<void>(response);
   }
 
   static async patch<T>(endpoint: string, data?: any): Promise<T> {

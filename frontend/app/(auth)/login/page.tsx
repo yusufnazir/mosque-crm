@@ -47,19 +47,23 @@ export default function LoginPage() {
       // Sync language preference from backend (DB is source of truth after login)
       await syncLanguageWithBackend();
       
-      // Refresh AuthContext so /api/me is fetched with the new session cookie
-      await refreshAuth();
-      
       // Check if user must set their password on first login
       if (response.mustChangePassword) {
+        // Refresh AuthContext before same-origin navigation
+        await refreshAuth();
         router.push('/set-password');
         return;
       }
 
       // Navigate to the tenant subdomain (or /dashboard in single-origin mode)
       if (response.organizationHandle) {
+        // Hard navigation to a different subdomain — skip refreshAuth() to avoid
+        // React re-renders that race with the navigation and cause CORS errors.
+        // AuthContext will re-hydrate on the tenant subdomain automatically.
         window.location.href = buildTenantUrl(response.organizationHandle, '/dashboard');
       } else {
+        // Single-origin mode — refresh AuthContext before client-side navigation
+        await refreshAuth();
         router.push('/dashboard');
       }
     } catch (err: any) {

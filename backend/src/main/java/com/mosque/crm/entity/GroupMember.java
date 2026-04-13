@@ -28,7 +28,7 @@ import jakarta.persistence.TableGenerator;
 public class GroupMember implements OrganizationAware {
 
     @Id
-    @TableGenerator(name = "group_members_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
+    @TableGenerator(name = "group_members_seq", table = "sequences_", pkColumnName = "PK_NAME", pkColumnValue = "group_members_seq", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "group_members_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;

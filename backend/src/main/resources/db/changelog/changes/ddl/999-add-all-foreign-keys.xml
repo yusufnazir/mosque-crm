@@ -6,13 +6,14 @@
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
     <!-- ======================================================================
-         CHANGESET 1: DROP ALL FOREIGN KEYS
-         Uses a MariaDB stored procedure to iterate INFORMATION_SCHEMA and
-         drop every FK in the current schema. runAlways ensures idempotent
-         re-creation each startup.
+         CHANGESET 1: DROP + HEAL + CREATE ALL FOREIGN KEYS
+         Single changeset that drops everything, cleans orphans, and recreates.
+         Bump the version suffix when FK definitions change.
          ====================================================================== -->
-    <changeSet id="b1000099-9990-0000-0000-000000000001-1" author="mosque-crm" runAlways="false">
-        <comment>Drop all foreign keys so they can be recreated cleanly</comment>
+    <changeSet id="b1000099-9990-0000-0000-000000000001-4" author="mosque-crm" runAlways="false">
+        <comment>Drop all foreign keys, heal orphan rows, then recreate all foreign keys</comment>
+
+        <!-- ===== PHASE 1: DROP ALL FOREIGN KEYS ===== -->
         <sql>DROP PROCEDURE IF EXISTS drop_all_foreign_keys</sql>
         <createProcedure>
             CREATE PROCEDURE drop_all_foreign_keys()
@@ -40,49 +41,44 @@
         </createProcedure>
         <sql>CALL drop_all_foreign_keys()</sql>
         <sql>DROP PROCEDURE IF EXISTS drop_all_foreign_keys</sql>
-    </changeSet>
 
-    <!-- ======================================================================
-         CHANGESET 2: DROP ALL idx_fk_* INDEXES
-         Removes generated FK indexes so they can be recreated cleanly.
-         ====================================================================== -->
-    <changeSet id="b1000099-9990-0000-0000-000000000002-1" author="mosque-crm" runAlways="false">
-        <comment>Drop all idx_fk_* indexes so they can be recreated cleanly</comment>
-        <sql>DROP PROCEDURE IF EXISTS drop_all_fk_indexes</sql>
-        <createProcedure>
-            CREATE PROCEDURE drop_all_fk_indexes()
-            BEGIN
-                DECLARE done INT DEFAULT 0;
-                DECLARE idx_name VARCHAR(255);
-                DECLARE tbl_name VARCHAR(255);
-                DECLARE cur CURSOR FOR
-                    SELECT DISTINCT s.INDEX_NAME, s.TABLE_NAME
-                    FROM INFORMATION_SCHEMA.STATISTICS s
-                    WHERE s.TABLE_SCHEMA = DATABASE()
-                      AND s.INDEX_NAME LIKE 'idx_fk_%';
-                DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
-                OPEN cur;
-                read_loop: LOOP
-                    FETCH cur INTO idx_name, tbl_name;
-                    IF done THEN LEAVE read_loop; END IF;
-                    SET @sql = CONCAT('DROP INDEX `', idx_name, '` ON `', tbl_name, '`');
-                    PREPARE stmt FROM @sql;
-                    EXECUTE stmt;
-                    DEALLOCATE PREPARE stmt;
-                END LOOP;
-                CLOSE cur;
-            END
-        </createProcedure>
-        <sql>CALL drop_all_fk_indexes()</sql>
-        <sql>DROP PROCEDURE IF EXISTS drop_all_fk_indexes</sql>
-    </changeSet>
+        <!-- ===== PHASE 2: HEAL ORPHAN ROWS ===== -->
+        <sql>
+            DELETE ur
+            FROM user_roles ur
+            LEFT JOIN users u ON ur.user_id = u.id
+            LEFT JOIN roles r ON ur.role_id = r.id
+            LEFT JOIN organizations o ON ur.organization_id = o.id
+            WHERE (ur.user_id IS NOT NULL AND u.id IS NULL)
+               OR (ur.role_id IS NOT NULL AND r.id IS NULL)
+               OR (ur.organization_id IS NOT NULL AND o.id IS NULL)
+        </sql>
+        <sql>
+            DELETE rp
+            FROM role_permissions rp
+            LEFT JOIN roles r ON rp.role_id = r.id
+            LEFT JOIN permissions p ON rp.permission_id = p.id
+            WHERE (rp.role_id IS NOT NULL AND r.id IS NULL)
+               OR (rp.permission_id IS NOT NULL AND p.id IS NULL)
+        </sql>
+        <sql>
+            DELETE rap
+            FROM role_assignable_permissions rap
+            LEFT JOIN roles r ON rap.role_id = r.id
+            LEFT JOIN permissions p ON rap.permission_id = p.id
+            WHERE (rap.role_id IS NOT NULL AND r.id IS NULL)
+               OR (rap.permission_id IS NOT NULL AND p.id IS NULL)
+        </sql>
+        <sql>
+            DELETE rar
+            FROM role_assignable_roles rar
+            LEFT JOIN roles r1 ON rar.role_id = r1.id
+            LEFT JOIN roles r2 ON rar.assignable_role_id = r2.id
+            WHERE (rar.role_id IS NOT NULL AND r1.id IS NULL)
+               OR (rar.assignable_role_id IS NOT NULL AND r2.id IS NULL)
+        </sql>
 
-    <!-- ======================================================================
-         CHANGESET 3: CREATE ALL FOREIGN KEYS
-         Organized by domain. 64 foreign key constraints total.
-         ====================================================================== -->
-    <changeSet id="b1000099-9990-0000-0000-000000000003-1" author="mosque-crm" runAlways="false">
-        <comment>Create all foreign keys</comment>
+        <!-- ===== PHASE 3: CREATE ALL FOREIGN KEYS ===== -->
 
         <!-- ======================== SECURITY ======================== -->
 
@@ -431,6 +427,18 @@
             baseTableName="configurations" baseColumnNames="organization_id"
             referencedTableName="organizations" referencedColumnNames="id"/>
 
+        <!-- membership_terms_versions → organizations -->
+        <addForeignKeyConstraint constraintName="fk_membership_terms_versions_org"
+            baseTableName="membership_terms_versions" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <!-- join_requests → membership_terms_versions -->
+        <addForeignKeyConstraint constraintName="fk_join_requests_terms_version"
+            baseTableName="join_requests" baseColumnNames="terms_version_id"
+            referencedTableName="membership_terms_versions" referencedColumnNames="id"
+            onDelete="SET NULL"/>
+
         <!-- ======================== SUBSCRIPTION ======================== -->
 
         <!-- plan_entitlements → subscription_plans -->
@@ -446,14 +454,87 @@
             baseTableName="organization_subscriptions" baseColumnNames="plan_id"
             referencedTableName="subscription_plans" referencedColumnNames="id"/>
 
+        <!-- ======================== DOCUMENTS ======================== -->
+
+        <!-- payment_documents → organizations -->
+        <addForeignKeyConstraint constraintName="fk_paydoc_org"
+            baseTableName="payment_documents" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- ======================== BILLING ======================== -->
+
+        <!-- subscription_invoices → organizations, organization_subscriptions -->
+        <addForeignKeyConstraint constraintName="fk_subinvoice_org"
+            baseTableName="subscription_invoices" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_subinvoice_sub"
+            baseTableName="subscription_invoices" baseColumnNames="subscription_id"
+            referencedTableName="organization_subscriptions" referencedColumnNames="id"/>
+
+        <!-- subscription_payments → organizations, subscription_invoices -->
+        <addForeignKeyConstraint constraintName="fk_subpayment_org"
+            baseTableName="subscription_payments" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_subpayment_invoice"
+            baseTableName="subscription_payments" baseColumnNames="invoice_id"
+            referencedTableName="subscription_invoices" referencedColumnNames="id"/>
+
+        <!-- ======================== JOIN REQUESTS ======================== -->
+
+        <!-- join_requests → organizations -->
+        <addForeignKeyConstraint constraintName="fk_joinreq_org"
+            baseTableName="join_requests" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- ======================== MESSAGES ======================== -->
+
+        <!-- messages → organizations -->
+        <addForeignKeyConstraint constraintName="fk_messages_org"
+            baseTableName="messages" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
     </changeSet>
 
     <!-- ======================================================================
-         CHANGESET 4: CREATE ALL FK INDEXES
-         One index per foreign-key column for query performance.
+         CHANGESET 2: DROP + CREATE ALL FK INDEXES
+         Single changeset that drops all idx_fk_* indexes and recreates them.
+         Bump the version suffix when index definitions change.
          ====================================================================== -->
-    <changeSet id="b1000099-9990-0000-0000-000000000004-1" author="mosque-crm" runAlways="false">
-        <comment>Create indexes on all foreign key columns</comment>
+    <changeSet id="b1000099-9990-0000-0000-000000000002-6" author="mosque-crm" runAlways="false">
+        <comment>Drop all FK indexes then recreate them</comment>
+
+        <!-- ===== PHASE 1: DROP ALL MANAGED INDEXES ===== -->
+        <sql>SET FOREIGN_KEY_CHECKS = 0</sql>
+        <sql>DROP PROCEDURE IF EXISTS drop_all_fk_indexes</sql>
+        <createProcedure>
+            CREATE PROCEDURE drop_all_fk_indexes()
+            BEGIN
+                DECLARE done INT DEFAULT 0;
+                DECLARE idx_name VARCHAR(255);
+                DECLARE tbl_name VARCHAR(255);
+                DECLARE cur CURSOR FOR
+                    SELECT DISTINCT s.INDEX_NAME, s.TABLE_NAME
+                    FROM INFORMATION_SCHEMA.STATISTICS s
+                    WHERE s.TABLE_SCHEMA = DATABASE()
+                      AND (s.INDEX_NAME LIKE 'idx_fk_%' OR s.INDEX_NAME LIKE 'idx_joinreq_%' OR s.INDEX_NAME LIKE 'idx_subinvoice_%');
+                DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+                OPEN cur;
+                read_loop: LOOP
+                    FETCH cur INTO idx_name, tbl_name;
+                    IF done THEN LEAVE read_loop; END IF;
+                    SET @sql = CONCAT('DROP INDEX `', idx_name, '` ON `', tbl_name, '`');
+                    PREPARE stmt FROM @sql;
+                    EXECUTE stmt;
+                    DEALLOCATE PREPARE stmt;
+                END LOOP;
+                CLOSE cur;
+            END
+        </createProcedure>
+        <sql>CALL drop_all_fk_indexes()</sql>
+        <sql>DROP PROCEDURE IF EXISTS drop_all_fk_indexes</sql>
+        <sql>SET FOREIGN_KEY_CHECKS = 1</sql>
+
+        <!-- ===== PHASE 2: CREATE ALL FK INDEXES ===== -->
 
         <!-- ======================== SECURITY ======================== -->
         <createIndex indexName="idx_fk_users_org" tableName="users"><column name="organization_id"/></createIndex>
@@ -551,68 +632,30 @@
 
         <!-- ======================== SETTINGS ======================== -->
         <createIndex indexName="idx_fk_configurations_org" tableName="configurations"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_membership_terms_versions_org" tableName="membership_terms_versions"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_join_requests_terms_version" tableName="join_requests"><column name="terms_version_id"/></createIndex>
 
         <!-- ======================== SUBSCRIPTION ======================== -->
         <createIndex indexName="idx_fk_planentitle_plan" tableName="plan_entitlements"><column name="plan_id"/></createIndex>
         <createIndex indexName="idx_fk_orgsub_org" tableName="organization_subscriptions"><column name="organization_id"/></createIndex>
         <createIndex indexName="idx_fk_orgsub_plan" tableName="organization_subscriptions"><column name="plan_id"/></createIndex>
 
-    </changeSet>
-
-    <!-- ======================================================================
-         CHANGESET 5: DOCUMENT MANAGEMENT FOREIGN KEYS
-         ====================================================================== -->
-    <changeSet id="b1000099-9990-0000-0000-000000000005-1" author="mosque-crm" runAlways="false">
-        <comment>Create foreign keys for payment_documents</comment>
-        <addForeignKeyConstraint constraintName="fk_paydoc_org"
-            baseTableName="payment_documents" baseColumnNames="organization_id"
-            referencedTableName="organizations" referencedColumnNames="id"/>
-    </changeSet>
-
-    <!-- ======================================================================
-         CHANGESET 6: DOCUMENT MANAGEMENT FK INDEXES
-         ====================================================================== -->
-    <changeSet id="b1000099-9990-0000-0000-000000000006-1" author="mosque-crm" runAlways="false">
-        <comment>Create indexes for payment_documents foreign keys</comment>
+        <!-- ======================== DOCUMENTS ======================== -->
         <createIndex indexName="idx_fk_paydoc_group" tableName="payment_documents"><column name="payment_group_id"/></createIndex>
         <createIndex indexName="idx_fk_paydoc_org" tableName="payment_documents"><column name="organization_id"/></createIndex>
-    </changeSet>
 
-    <!-- ======================================================================
-         CHANGESET 7: BILLING FOREIGN KEYS
-         subscription_invoices and subscription_payments
-         ====================================================================== -->
-    <changeSet id="b1000099-9990-0000-0000-000000000007-1" author="mosque-crm" runAlways="false">
-        <comment>Create foreign keys for subscription billing tables</comment>
-
-        <!-- subscription_invoices → organizations, organization_subscriptions -->
-        <addForeignKeyConstraint constraintName="fk_subinvoice_org"
-            baseTableName="subscription_invoices" baseColumnNames="organization_id"
-            referencedTableName="organizations" referencedColumnNames="id"/>
-        <addForeignKeyConstraint constraintName="fk_subinvoice_sub"
-            baseTableName="subscription_invoices" baseColumnNames="subscription_id"
-            referencedTableName="organization_subscriptions" referencedColumnNames="id"/>
-
-        <!-- subscription_payments → organizations, subscription_invoices -->
-        <addForeignKeyConstraint constraintName="fk_subpayment_org"
-            baseTableName="subscription_payments" baseColumnNames="organization_id"
-            referencedTableName="organizations" referencedColumnNames="id"/>
-        <addForeignKeyConstraint constraintName="fk_subpayment_invoice"
-            baseTableName="subscription_payments" baseColumnNames="invoice_id"
-            referencedTableName="subscription_invoices" referencedColumnNames="id"/>
-    </changeSet>
-
-    <!-- ======================================================================
-         CHANGESET 8: BILLING FK INDEXES
-         ====================================================================== -->
-    <changeSet id="b1000099-9990-0000-0000-000000000008-1" author="mosque-crm" runAlways="false">
-        <comment>Create indexes for billing foreign keys</comment>
-
+        <!-- ======================== BILLING ======================== -->
         <createIndex indexName="idx_fk_subinvoice_org" tableName="subscription_invoices"><column name="organization_id"/></createIndex>
         <createIndex indexName="idx_fk_subinvoice_sub" tableName="subscription_invoices"><column name="subscription_id"/></createIndex>
         <createIndex indexName="idx_fk_subinvoice_status" tableName="subscription_invoices"><column name="status"/></createIndex>
         <createIndex indexName="idx_fk_subpayment_org" tableName="subscription_payments"><column name="organization_id"/></createIndex>
         <createIndex indexName="idx_fk_subpayment_invoice" tableName="subscription_payments"><column name="invoice_id"/></createIndex>
+
+        <!-- ======================== JOIN REQUESTS ======================== -->
+        <createIndex indexName="idx_fk_joinreq_org" tableName="join_requests"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_joinreq_token" tableName="join_requests"><column name="approval_token"/></createIndex>
+        <createIndex indexName="idx_joinreq_status" tableName="join_requests"><column name="status"/></createIndex>
+
     </changeSet>
 
 </databaseChangeLog>

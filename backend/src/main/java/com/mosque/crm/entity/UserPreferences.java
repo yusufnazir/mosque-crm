@@ -20,7 +20,7 @@ import jakarta.persistence.TableGenerator;
 public class UserPreferences {
 
     @Id
-    @TableGenerator(name = "user_preferences_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
+    @TableGenerator(name = "user_preferences_seq", table = "sequences_", pkColumnName = "PK_NAME", pkColumnValue = "user_preferences_seq", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "user_preferences_seq", strategy = GenerationType.TABLE)
     private Long id;
 

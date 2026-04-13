@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000005-0115-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="country_translations"/></not>
+        </preConditions>
+        <comment>Create country_translations table for i18n country names</comment>
+        <createTable tableName="country_translations">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="country_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locale" type="VARCHAR(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="country_translations"
+                             columnNames="country_id, locale"
+                             constraintName="uk_country_trans_country_locale"/>
+    </changeSet>
+
+</databaseChangeLog>

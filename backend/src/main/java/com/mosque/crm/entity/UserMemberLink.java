@@ -27,7 +27,7 @@ import com.mosque.crm.multitenancy.OrganizationEntityListener;
 public class UserMemberLink implements OrganizationAware {
 
     @Id
-    @TableGenerator(name = "user_member_link_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
+    @TableGenerator(name = "user_member_link_seq", table = "sequences_", pkColumnName = "PK_NAME", pkColumnValue = "user_member_link_seq", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "user_member_link_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", nullable = false)
     private Long id;

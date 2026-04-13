@@ -1,0 +1,2500 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <!-- ISO 3166-1 countries with EN/NL translations (sourced from umpirsky/country-list) -->
+    <changeSet id="d1000001-0042-4c01-b001-000000000001" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[1]]></param>
+            <param name="isoCode"><![CDATA[AF]]></param>
+            <param name="sortOrder"><![CDATA[1]]></param>
+            <param name="nameEn"><![CDATA[Afghanistan]]></param>
+            <param name="nameNl"><![CDATA[Afghanistan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000002" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[2]]></param>
+            <param name="isoCode"><![CDATA[AX]]></param>
+            <param name="sortOrder"><![CDATA[2]]></param>
+            <param name="nameEn"><![CDATA[Åland Islands]]></param>
+            <param name="nameNl"><![CDATA[Åland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000003" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[3]]></param>
+            <param name="isoCode"><![CDATA[AL]]></param>
+            <param name="sortOrder"><![CDATA[3]]></param>
+            <param name="nameEn"><![CDATA[Albania]]></param>
+            <param name="nameNl"><![CDATA[Albanië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000004" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[4]]></param>
+            <param name="isoCode"><![CDATA[DZ]]></param>
+            <param name="sortOrder"><![CDATA[4]]></param>
+            <param name="nameEn"><![CDATA[Algeria]]></param>
+            <param name="nameNl"><![CDATA[Algerije]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000005" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[5]]></param>
+            <param name="isoCode"><![CDATA[AS]]></param>
+            <param name="sortOrder"><![CDATA[5]]></param>
+            <param name="nameEn"><![CDATA[American Samoa]]></param>
+            <param name="nameNl"><![CDATA[Amerikaans-Samoa]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000006" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[6]]></param>
+            <param name="isoCode"><![CDATA[AD]]></param>
+            <param name="sortOrder"><![CDATA[6]]></param>
+            <param name="nameEn"><![CDATA[Andorra]]></param>
+            <param name="nameNl"><![CDATA[Andorra]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000007" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[7]]></param>
+            <param name="isoCode"><![CDATA[AO]]></param>
+            <param name="sortOrder"><![CDATA[7]]></param>
+            <param name="nameEn"><![CDATA[Angola]]></param>
+            <param name="nameNl"><![CDATA[Angola]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000008" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[8]]></param>
+            <param name="isoCode"><![CDATA[AI]]></param>
+            <param name="sortOrder"><![CDATA[8]]></param>
+            <param name="nameEn"><![CDATA[Anguilla]]></param>
+            <param name="nameNl"><![CDATA[Anguilla]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000009" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[9]]></param>
+            <param name="isoCode"><![CDATA[AQ]]></param>
+            <param name="sortOrder"><![CDATA[9]]></param>
+            <param name="nameEn"><![CDATA[Antarctica]]></param>
+            <param name="nameNl"><![CDATA[Antarctica]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000010" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[10]]></param>
+            <param name="isoCode"><![CDATA[AG]]></param>
+            <param name="sortOrder"><![CDATA[10]]></param>
+            <param name="nameEn"><![CDATA[Antigua & Barbuda]]></param>
+            <param name="nameNl"><![CDATA[Antigua en Barbuda]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000011" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[11]]></param>
+            <param name="isoCode"><![CDATA[AR]]></param>
+            <param name="sortOrder"><![CDATA[11]]></param>
+            <param name="nameEn"><![CDATA[Argentina]]></param>
+            <param name="nameNl"><![CDATA[Argentinië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000012" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[12]]></param>
+            <param name="isoCode"><![CDATA[AM]]></param>
+            <param name="sortOrder"><![CDATA[12]]></param>
+            <param name="nameEn"><![CDATA[Armenia]]></param>
+            <param name="nameNl"><![CDATA[Armenië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000013" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[13]]></param>
+            <param name="isoCode"><![CDATA[AW]]></param>
+            <param name="sortOrder"><![CDATA[13]]></param>
+            <param name="nameEn"><![CDATA[Aruba]]></param>
+            <param name="nameNl"><![CDATA[Aruba]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000014" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[14]]></param>
+            <param name="isoCode"><![CDATA[AU]]></param>
+            <param name="sortOrder"><![CDATA[14]]></param>
+            <param name="nameEn"><![CDATA[Australia]]></param>
+            <param name="nameNl"><![CDATA[Australië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000015" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[15]]></param>
+            <param name="isoCode"><![CDATA[AT]]></param>
+            <param name="sortOrder"><![CDATA[15]]></param>
+            <param name="nameEn"><![CDATA[Austria]]></param>
+            <param name="nameNl"><![CDATA[Oostenrijk]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000016" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[16]]></param>
+            <param name="isoCode"><![CDATA[AZ]]></param>
+            <param name="sortOrder"><![CDATA[16]]></param>
+            <param name="nameEn"><![CDATA[Azerbaijan]]></param>
+            <param name="nameNl"><![CDATA[Azerbeidzjan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000017" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[17]]></param>
+            <param name="isoCode"><![CDATA[BS]]></param>
+            <param name="sortOrder"><![CDATA[17]]></param>
+            <param name="nameEn"><![CDATA[Bahamas]]></param>
+            <param name="nameNl"><![CDATA[Bahama’s]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000018" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[18]]></param>
+            <param name="isoCode"><![CDATA[BH]]></param>
+            <param name="sortOrder"><![CDATA[18]]></param>
+            <param name="nameEn"><![CDATA[Bahrain]]></param>
+            <param name="nameNl"><![CDATA[Bahrein]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000019" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[19]]></param>
+            <param name="isoCode"><![CDATA[BD]]></param>
+            <param name="sortOrder"><![CDATA[19]]></param>
+            <param name="nameEn"><![CDATA[Bangladesh]]></param>
+            <param name="nameNl"><![CDATA[Bangladesh]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000020" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[20]]></param>
+            <param name="isoCode"><![CDATA[BB]]></param>
+            <param name="sortOrder"><![CDATA[20]]></param>
+            <param name="nameEn"><![CDATA[Barbados]]></param>
+            <param name="nameNl"><![CDATA[Barbados]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000021" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[21]]></param>
+            <param name="isoCode"><![CDATA[BY]]></param>
+            <param name="sortOrder"><![CDATA[21]]></param>
+            <param name="nameEn"><![CDATA[Belarus]]></param>
+            <param name="nameNl"><![CDATA[Belarus]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000022" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[22]]></param>
+            <param name="isoCode"><![CDATA[BE]]></param>
+            <param name="sortOrder"><![CDATA[22]]></param>
+            <param name="nameEn"><![CDATA[Belgium]]></param>
+            <param name="nameNl"><![CDATA[België]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000023" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[23]]></param>
+            <param name="isoCode"><![CDATA[BZ]]></param>
+            <param name="sortOrder"><![CDATA[23]]></param>
+            <param name="nameEn"><![CDATA[Belize]]></param>
+            <param name="nameNl"><![CDATA[Belize]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000024" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[24]]></param>
+            <param name="isoCode"><![CDATA[BJ]]></param>
+            <param name="sortOrder"><![CDATA[24]]></param>
+            <param name="nameEn"><![CDATA[Benin]]></param>
+            <param name="nameNl"><![CDATA[Benin]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000025" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[25]]></param>
+            <param name="isoCode"><![CDATA[BM]]></param>
+            <param name="sortOrder"><![CDATA[25]]></param>
+            <param name="nameEn"><![CDATA[Bermuda]]></param>
+            <param name="nameNl"><![CDATA[Bermuda]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000026" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[26]]></param>
+            <param name="isoCode"><![CDATA[BT]]></param>
+            <param name="sortOrder"><![CDATA[26]]></param>
+            <param name="nameEn"><![CDATA[Bhutan]]></param>
+            <param name="nameNl"><![CDATA[Bhutan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000027" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[27]]></param>
+            <param name="isoCode"><![CDATA[BO]]></param>
+            <param name="sortOrder"><![CDATA[27]]></param>
+            <param name="nameEn"><![CDATA[Bolivia]]></param>
+            <param name="nameNl"><![CDATA[Bolivia]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000028" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[28]]></param>
+            <param name="isoCode"><![CDATA[BA]]></param>
+            <param name="sortOrder"><![CDATA[28]]></param>
+            <param name="nameEn"><![CDATA[Bosnia & Herzegovina]]></param>
+            <param name="nameNl"><![CDATA[Bosnië en Herzegovina]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000029" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[29]]></param>
+            <param name="isoCode"><![CDATA[BW]]></param>
+            <param name="sortOrder"><![CDATA[29]]></param>
+            <param name="nameEn"><![CDATA[Botswana]]></param>
+            <param name="nameNl"><![CDATA[Botswana]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000030" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[30]]></param>
+            <param name="isoCode"><![CDATA[BV]]></param>
+            <param name="sortOrder"><![CDATA[30]]></param>
+            <param name="nameEn"><![CDATA[Bouvet Island]]></param>
+            <param name="nameNl"><![CDATA[Bouveteiland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000031" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[31]]></param>
+            <param name="isoCode"><![CDATA[BR]]></param>
+            <param name="sortOrder"><![CDATA[31]]></param>
+            <param name="nameEn"><![CDATA[Brazil]]></param>
+            <param name="nameNl"><![CDATA[Brazilië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000032" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[32]]></param>
+            <param name="isoCode"><![CDATA[IO]]></param>
+            <param name="sortOrder"><![CDATA[32]]></param>
+            <param name="nameEn"><![CDATA[British Indian Ocean Territory]]></param>
+            <param name="nameNl"><![CDATA[Brits Indische Oceaanterritorium]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000033" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[33]]></param>
+            <param name="isoCode"><![CDATA[VG]]></param>
+            <param name="sortOrder"><![CDATA[33]]></param>
+            <param name="nameEn"><![CDATA[British Virgin Islands]]></param>
+            <param name="nameNl"><![CDATA[Britse Maagdeneilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000034" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[34]]></param>
+            <param name="isoCode"><![CDATA[BN]]></param>
+            <param name="sortOrder"><![CDATA[34]]></param>
+            <param name="nameEn"><![CDATA[Brunei]]></param>
+            <param name="nameNl"><![CDATA[Brunei]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000035" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[35]]></param>
+            <param name="isoCode"><![CDATA[BG]]></param>
+            <param name="sortOrder"><![CDATA[35]]></param>
+            <param name="nameEn"><![CDATA[Bulgaria]]></param>
+            <param name="nameNl"><![CDATA[Bulgarije]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000036" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[36]]></param>
+            <param name="isoCode"><![CDATA[BF]]></param>
+            <param name="sortOrder"><![CDATA[36]]></param>
+            <param name="nameEn"><![CDATA[Burkina Faso]]></param>
+            <param name="nameNl"><![CDATA[Burkina Faso]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000037" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[37]]></param>
+            <param name="isoCode"><![CDATA[BI]]></param>
+            <param name="sortOrder"><![CDATA[37]]></param>
+            <param name="nameEn"><![CDATA[Burundi]]></param>
+            <param name="nameNl"><![CDATA[Burundi]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000038" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[38]]></param>
+            <param name="isoCode"><![CDATA[KH]]></param>
+            <param name="sortOrder"><![CDATA[38]]></param>
+            <param name="nameEn"><![CDATA[Cambodia]]></param>
+            <param name="nameNl"><![CDATA[Cambodja]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000039" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[39]]></param>
+            <param name="isoCode"><![CDATA[CM]]></param>
+            <param name="sortOrder"><![CDATA[39]]></param>
+            <param name="nameEn"><![CDATA[Cameroon]]></param>
+            <param name="nameNl"><![CDATA[Kameroen]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000040" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[40]]></param>
+            <param name="isoCode"><![CDATA[CA]]></param>
+            <param name="sortOrder"><![CDATA[40]]></param>
+            <param name="nameEn"><![CDATA[Canada]]></param>
+            <param name="nameNl"><![CDATA[Canada]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000041" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[41]]></param>
+            <param name="isoCode"><![CDATA[CV]]></param>
+            <param name="sortOrder"><![CDATA[41]]></param>
+            <param name="nameEn"><![CDATA[Cape Verde]]></param>
+            <param name="nameNl"><![CDATA[Kaapverdië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000042" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[42]]></param>
+            <param name="isoCode"><![CDATA[BQ]]></param>
+            <param name="sortOrder"><![CDATA[42]]></param>
+            <param name="nameEn"><![CDATA[Caribbean Netherlands]]></param>
+            <param name="nameNl"><![CDATA[Caribisch Nederland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000043" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[43]]></param>
+            <param name="isoCode"><![CDATA[KY]]></param>
+            <param name="sortOrder"><![CDATA[43]]></param>
+            <param name="nameEn"><![CDATA[Cayman Islands]]></param>
+            <param name="nameNl"><![CDATA[Kaaimaneilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000044" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[44]]></param>
+            <param name="isoCode"><![CDATA[CF]]></param>
+            <param name="sortOrder"><![CDATA[44]]></param>
+            <param name="nameEn"><![CDATA[Central African Republic]]></param>
+            <param name="nameNl"><![CDATA[Centraal-Afrikaanse Republiek]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000045" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[45]]></param>
+            <param name="isoCode"><![CDATA[TD]]></param>
+            <param name="sortOrder"><![CDATA[45]]></param>
+            <param name="nameEn"><![CDATA[Chad]]></param>
+            <param name="nameNl"><![CDATA[Tsjaad]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000046" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[46]]></param>
+            <param name="isoCode"><![CDATA[CL]]></param>
+            <param name="sortOrder"><![CDATA[46]]></param>
+            <param name="nameEn"><![CDATA[Chile]]></param>
+            <param name="nameNl"><![CDATA[Chili]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000047" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[47]]></param>
+            <param name="isoCode"><![CDATA[CN]]></param>
+            <param name="sortOrder"><![CDATA[47]]></param>
+            <param name="nameEn"><![CDATA[China]]></param>
+            <param name="nameNl"><![CDATA[China]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000048" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[48]]></param>
+            <param name="isoCode"><![CDATA[CX]]></param>
+            <param name="sortOrder"><![CDATA[48]]></param>
+            <param name="nameEn"><![CDATA[Christmas Island]]></param>
+            <param name="nameNl"><![CDATA[Christmaseiland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000049" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[49]]></param>
+            <param name="isoCode"><![CDATA[CC]]></param>
+            <param name="sortOrder"><![CDATA[49]]></param>
+            <param name="nameEn"><![CDATA[Cocos (Keeling) Islands]]></param>
+            <param name="nameNl"><![CDATA[Cocoseilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000050" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[50]]></param>
+            <param name="isoCode"><![CDATA[CO]]></param>
+            <param name="sortOrder"><![CDATA[50]]></param>
+            <param name="nameEn"><![CDATA[Colombia]]></param>
+            <param name="nameNl"><![CDATA[Colombia]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000051" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[51]]></param>
+            <param name="isoCode"><![CDATA[KM]]></param>
+            <param name="sortOrder"><![CDATA[51]]></param>
+            <param name="nameEn"><![CDATA[Comoros]]></param>
+            <param name="nameNl"><![CDATA[Comoren]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000052" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[52]]></param>
+            <param name="isoCode"><![CDATA[CG]]></param>
+            <param name="sortOrder"><![CDATA[52]]></param>
+            <param name="nameEn"><![CDATA[Congo - Brazzaville]]></param>
+            <param name="nameNl"><![CDATA[Congo-Brazzaville]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000053" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[53]]></param>
+            <param name="isoCode"><![CDATA[CD]]></param>
+            <param name="sortOrder"><![CDATA[53]]></param>
+            <param name="nameEn"><![CDATA[Congo - Kinshasa]]></param>
+            <param name="nameNl"><![CDATA[Congo-Kinshasa]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000054" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[54]]></param>
+            <param name="isoCode"><![CDATA[CK]]></param>
+            <param name="sortOrder"><![CDATA[54]]></param>
+            <param name="nameEn"><![CDATA[Cook Islands]]></param>
+            <param name="nameNl"><![CDATA[Cookeilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000055" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[55]]></param>
+            <param name="isoCode"><![CDATA[CR]]></param>
+            <param name="sortOrder"><![CDATA[55]]></param>
+            <param name="nameEn"><![CDATA[Costa Rica]]></param>
+            <param name="nameNl"><![CDATA[Costa Rica]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000056" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[56]]></param>
+            <param name="isoCode"><![CDATA[CI]]></param>
+            <param name="sortOrder"><![CDATA[56]]></param>
+            <param name="nameEn"><![CDATA[Côte d’Ivoire]]></param>
+            <param name="nameNl"><![CDATA[Ivoorkust]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000057" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[57]]></param>
+            <param name="isoCode"><![CDATA[HR]]></param>
+            <param name="sortOrder"><![CDATA[57]]></param>
+            <param name="nameEn"><![CDATA[Croatia]]></param>
+            <param name="nameNl"><![CDATA[Kroatië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000058" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[58]]></param>
+            <param name="isoCode"><![CDATA[CU]]></param>
+            <param name="sortOrder"><![CDATA[58]]></param>
+            <param name="nameEn"><![CDATA[Cuba]]></param>
+            <param name="nameNl"><![CDATA[Cuba]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000059" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[59]]></param>
+            <param name="isoCode"><![CDATA[CW]]></param>
+            <param name="sortOrder"><![CDATA[59]]></param>
+            <param name="nameEn"><![CDATA[Curaçao]]></param>
+            <param name="nameNl"><![CDATA[Curaçao]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000060" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[60]]></param>
+            <param name="isoCode"><![CDATA[CY]]></param>
+            <param name="sortOrder"><![CDATA[60]]></param>
+            <param name="nameEn"><![CDATA[Cyprus]]></param>
+            <param name="nameNl"><![CDATA[Cyprus]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000061" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[61]]></param>
+            <param name="isoCode"><![CDATA[CZ]]></param>
+            <param name="sortOrder"><![CDATA[61]]></param>
+            <param name="nameEn"><![CDATA[Czechia]]></param>
+            <param name="nameNl"><![CDATA[Tsjechië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000062" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[62]]></param>
+            <param name="isoCode"><![CDATA[DK]]></param>
+            <param name="sortOrder"><![CDATA[62]]></param>
+            <param name="nameEn"><![CDATA[Denmark]]></param>
+            <param name="nameNl"><![CDATA[Denemarken]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000063" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[63]]></param>
+            <param name="isoCode"><![CDATA[DJ]]></param>
+            <param name="sortOrder"><![CDATA[63]]></param>
+            <param name="nameEn"><![CDATA[Djibouti]]></param>
+            <param name="nameNl"><![CDATA[Djibouti]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000064" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[64]]></param>
+            <param name="isoCode"><![CDATA[DM]]></param>
+            <param name="sortOrder"><![CDATA[64]]></param>
+            <param name="nameEn"><![CDATA[Dominica]]></param>
+            <param name="nameNl"><![CDATA[Dominica]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000065" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[65]]></param>
+            <param name="isoCode"><![CDATA[DO]]></param>
+            <param name="sortOrder"><![CDATA[65]]></param>
+            <param name="nameEn"><![CDATA[Dominican Republic]]></param>
+            <param name="nameNl"><![CDATA[Dominicaanse Republiek]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000066" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[66]]></param>
+            <param name="isoCode"><![CDATA[EC]]></param>
+            <param name="sortOrder"><![CDATA[66]]></param>
+            <param name="nameEn"><![CDATA[Ecuador]]></param>
+            <param name="nameNl"><![CDATA[Ecuador]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000067" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[67]]></param>
+            <param name="isoCode"><![CDATA[EG]]></param>
+            <param name="sortOrder"><![CDATA[67]]></param>
+            <param name="nameEn"><![CDATA[Egypt]]></param>
+            <param name="nameNl"><![CDATA[Egypte]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000068" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[68]]></param>
+            <param name="isoCode"><![CDATA[SV]]></param>
+            <param name="sortOrder"><![CDATA[68]]></param>
+            <param name="nameEn"><![CDATA[El Salvador]]></param>
+            <param name="nameNl"><![CDATA[El Salvador]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000069" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[69]]></param>
+            <param name="isoCode"><![CDATA[GQ]]></param>
+            <param name="sortOrder"><![CDATA[69]]></param>
+            <param name="nameEn"><![CDATA[Equatorial Guinea]]></param>
+            <param name="nameNl"><![CDATA[Equatoriaal-Guinea]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000070" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[70]]></param>
+            <param name="isoCode"><![CDATA[ER]]></param>
+            <param name="sortOrder"><![CDATA[70]]></param>
+            <param name="nameEn"><![CDATA[Eritrea]]></param>
+            <param name="nameNl"><![CDATA[Eritrea]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000071" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[71]]></param>
+            <param name="isoCode"><![CDATA[EE]]></param>
+            <param name="sortOrder"><![CDATA[71]]></param>
+            <param name="nameEn"><![CDATA[Estonia]]></param>
+            <param name="nameNl"><![CDATA[Estland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000072" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[72]]></param>
+            <param name="isoCode"><![CDATA[SZ]]></param>
+            <param name="sortOrder"><![CDATA[72]]></param>
+            <param name="nameEn"><![CDATA[Eswatini]]></param>
+            <param name="nameNl"><![CDATA[eSwatini]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000073" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[73]]></param>
+            <param name="isoCode"><![CDATA[ET]]></param>
+            <param name="sortOrder"><![CDATA[73]]></param>
+            <param name="nameEn"><![CDATA[Ethiopia]]></param>
+            <param name="nameNl"><![CDATA[Ethiopië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000074" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[74]]></param>
+            <param name="isoCode"><![CDATA[FK]]></param>
+            <param name="sortOrder"><![CDATA[74]]></param>
+            <param name="nameEn"><![CDATA[Falkland Islands]]></param>
+            <param name="nameNl"><![CDATA[Falklandeilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000075" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[75]]></param>
+            <param name="isoCode"><![CDATA[FO]]></param>
+            <param name="sortOrder"><![CDATA[75]]></param>
+            <param name="nameEn"><![CDATA[Faroe Islands]]></param>
+            <param name="nameNl"><![CDATA[Faeröer]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000076" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[76]]></param>
+            <param name="isoCode"><![CDATA[FJ]]></param>
+            <param name="sortOrder"><![CDATA[76]]></param>
+            <param name="nameEn"><![CDATA[Fiji]]></param>
+            <param name="nameNl"><![CDATA[Fiji]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000077" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[77]]></param>
+            <param name="isoCode"><![CDATA[FI]]></param>
+            <param name="sortOrder"><![CDATA[77]]></param>
+            <param name="nameEn"><![CDATA[Finland]]></param>
+            <param name="nameNl"><![CDATA[Finland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000078" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[78]]></param>
+            <param name="isoCode"><![CDATA[FR]]></param>
+            <param name="sortOrder"><![CDATA[78]]></param>
+            <param name="nameEn"><![CDATA[France]]></param>
+            <param name="nameNl"><![CDATA[Frankrijk]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000079" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[79]]></param>
+            <param name="isoCode"><![CDATA[GF]]></param>
+            <param name="sortOrder"><![CDATA[79]]></param>
+            <param name="nameEn"><![CDATA[French Guiana]]></param>
+            <param name="nameNl"><![CDATA[Frans-Guyana]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000080" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[80]]></param>
+            <param name="isoCode"><![CDATA[PF]]></param>
+            <param name="sortOrder"><![CDATA[80]]></param>
+            <param name="nameEn"><![CDATA[French Polynesia]]></param>
+            <param name="nameNl"><![CDATA[Frans-Polynesië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000081" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[81]]></param>
+            <param name="isoCode"><![CDATA[TF]]></param>
+            <param name="sortOrder"><![CDATA[81]]></param>
+            <param name="nameEn"><![CDATA[French Southern Territories]]></param>
+            <param name="nameNl"><![CDATA[Franse Gebieden in de zuidelijke Indische Oceaan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000082" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[82]]></param>
+            <param name="isoCode"><![CDATA[GA]]></param>
+            <param name="sortOrder"><![CDATA[82]]></param>
+            <param name="nameEn"><![CDATA[Gabon]]></param>
+            <param name="nameNl"><![CDATA[Gabon]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000083" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[83]]></param>
+            <param name="isoCode"><![CDATA[GM]]></param>
+            <param name="sortOrder"><![CDATA[83]]></param>
+            <param name="nameEn"><![CDATA[Gambia]]></param>
+            <param name="nameNl"><![CDATA[Gambia]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000084" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[84]]></param>
+            <param name="isoCode"><![CDATA[GE]]></param>
+            <param name="sortOrder"><![CDATA[84]]></param>
+            <param name="nameEn"><![CDATA[Georgia]]></param>
+            <param name="nameNl"><![CDATA[Georgië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000085" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[85]]></param>
+            <param name="isoCode"><![CDATA[DE]]></param>
+            <param name="sortOrder"><![CDATA[85]]></param>
+            <param name="nameEn"><![CDATA[Germany]]></param>
+            <param name="nameNl"><![CDATA[Duitsland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000086" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[86]]></param>
+            <param name="isoCode"><![CDATA[GH]]></param>
+            <param name="sortOrder"><![CDATA[86]]></param>
+            <param name="nameEn"><![CDATA[Ghana]]></param>
+            <param name="nameNl"><![CDATA[Ghana]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000087" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[87]]></param>
+            <param name="isoCode"><![CDATA[GI]]></param>
+            <param name="sortOrder"><![CDATA[87]]></param>
+            <param name="nameEn"><![CDATA[Gibraltar]]></param>
+            <param name="nameNl"><![CDATA[Gibraltar]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000088" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[88]]></param>
+            <param name="isoCode"><![CDATA[GR]]></param>
+            <param name="sortOrder"><![CDATA[88]]></param>
+            <param name="nameEn"><![CDATA[Greece]]></param>
+            <param name="nameNl"><![CDATA[Griekenland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000089" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[89]]></param>
+            <param name="isoCode"><![CDATA[GL]]></param>
+            <param name="sortOrder"><![CDATA[89]]></param>
+            <param name="nameEn"><![CDATA[Greenland]]></param>
+            <param name="nameNl"><![CDATA[Groenland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000090" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[90]]></param>
+            <param name="isoCode"><![CDATA[GD]]></param>
+            <param name="sortOrder"><![CDATA[90]]></param>
+            <param name="nameEn"><![CDATA[Grenada]]></param>
+            <param name="nameNl"><![CDATA[Grenada]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000091" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[91]]></param>
+            <param name="isoCode"><![CDATA[GP]]></param>
+            <param name="sortOrder"><![CDATA[91]]></param>
+            <param name="nameEn"><![CDATA[Guadeloupe]]></param>
+            <param name="nameNl"><![CDATA[Guadeloupe]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000092" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[92]]></param>
+            <param name="isoCode"><![CDATA[GU]]></param>
+            <param name="sortOrder"><![CDATA[92]]></param>
+            <param name="nameEn"><![CDATA[Guam]]></param>
+            <param name="nameNl"><![CDATA[Guam]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000093" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[93]]></param>
+            <param name="isoCode"><![CDATA[GT]]></param>
+            <param name="sortOrder"><![CDATA[93]]></param>
+            <param name="nameEn"><![CDATA[Guatemala]]></param>
+            <param name="nameNl"><![CDATA[Guatemala]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000094" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[94]]></param>
+            <param name="isoCode"><![CDATA[GG]]></param>
+            <param name="sortOrder"><![CDATA[94]]></param>
+            <param name="nameEn"><![CDATA[Guernsey]]></param>
+            <param name="nameNl"><![CDATA[Guernsey]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000095" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[95]]></param>
+            <param name="isoCode"><![CDATA[GN]]></param>
+            <param name="sortOrder"><![CDATA[95]]></param>
+            <param name="nameEn"><![CDATA[Guinea]]></param>
+            <param name="nameNl"><![CDATA[Guinee]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000096" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[96]]></param>
+            <param name="isoCode"><![CDATA[GW]]></param>
+            <param name="sortOrder"><![CDATA[96]]></param>
+            <param name="nameEn"><![CDATA[Guinea-Bissau]]></param>
+            <param name="nameNl"><![CDATA[Guinee-Bissau]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000097" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[97]]></param>
+            <param name="isoCode"><![CDATA[GY]]></param>
+            <param name="sortOrder"><![CDATA[97]]></param>
+            <param name="nameEn"><![CDATA[Guyana]]></param>
+            <param name="nameNl"><![CDATA[Guyana]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000098" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[98]]></param>
+            <param name="isoCode"><![CDATA[HT]]></param>
+            <param name="sortOrder"><![CDATA[98]]></param>
+            <param name="nameEn"><![CDATA[Haiti]]></param>
+            <param name="nameNl"><![CDATA[Haïti]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000099" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[99]]></param>
+            <param name="isoCode"><![CDATA[HM]]></param>
+            <param name="sortOrder"><![CDATA[99]]></param>
+            <param name="nameEn"><![CDATA[Heard & McDonald Islands]]></param>
+            <param name="nameNl"><![CDATA[Heard en McDonaldeilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000100" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[100]]></param>
+            <param name="isoCode"><![CDATA[HN]]></param>
+            <param name="sortOrder"><![CDATA[100]]></param>
+            <param name="nameEn"><![CDATA[Honduras]]></param>
+            <param name="nameNl"><![CDATA[Honduras]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000101" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[101]]></param>
+            <param name="isoCode"><![CDATA[HK]]></param>
+            <param name="sortOrder"><![CDATA[101]]></param>
+            <param name="nameEn"><![CDATA[Hong Kong SAR China]]></param>
+            <param name="nameNl"><![CDATA[Hongkong SAR van China]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000102" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[102]]></param>
+            <param name="isoCode"><![CDATA[HU]]></param>
+            <param name="sortOrder"><![CDATA[102]]></param>
+            <param name="nameEn"><![CDATA[Hungary]]></param>
+            <param name="nameNl"><![CDATA[Hongarije]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000103" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[103]]></param>
+            <param name="isoCode"><![CDATA[IS]]></param>
+            <param name="sortOrder"><![CDATA[103]]></param>
+            <param name="nameEn"><![CDATA[Iceland]]></param>
+            <param name="nameNl"><![CDATA[IJsland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000104" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[104]]></param>
+            <param name="isoCode"><![CDATA[IN]]></param>
+            <param name="sortOrder"><![CDATA[104]]></param>
+            <param name="nameEn"><![CDATA[India]]></param>
+            <param name="nameNl"><![CDATA[India]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000105" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[105]]></param>
+            <param name="isoCode"><![CDATA[ID]]></param>
+            <param name="sortOrder"><![CDATA[105]]></param>
+            <param name="nameEn"><![CDATA[Indonesia]]></param>
+            <param name="nameNl"><![CDATA[Indonesië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000106" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[106]]></param>
+            <param name="isoCode"><![CDATA[IR]]></param>
+            <param name="sortOrder"><![CDATA[106]]></param>
+            <param name="nameEn"><![CDATA[Iran]]></param>
+            <param name="nameNl"><![CDATA[Iran]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000107" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[107]]></param>
+            <param name="isoCode"><![CDATA[IQ]]></param>
+            <param name="sortOrder"><![CDATA[107]]></param>
+            <param name="nameEn"><![CDATA[Iraq]]></param>
+            <param name="nameNl"><![CDATA[Irak]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000108" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[108]]></param>
+            <param name="isoCode"><![CDATA[IE]]></param>
+            <param name="sortOrder"><![CDATA[108]]></param>
+            <param name="nameEn"><![CDATA[Ireland]]></param>
+            <param name="nameNl"><![CDATA[Ierland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000109" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[109]]></param>
+            <param name="isoCode"><![CDATA[IM]]></param>
+            <param name="sortOrder"><![CDATA[109]]></param>
+            <param name="nameEn"><![CDATA[Isle of Man]]></param>
+            <param name="nameNl"><![CDATA[Isle of Man]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000110" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[110]]></param>
+            <param name="isoCode"><![CDATA[IL]]></param>
+            <param name="sortOrder"><![CDATA[110]]></param>
+            <param name="nameEn"><![CDATA[Israel]]></param>
+            <param name="nameNl"><![CDATA[Israël]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000111" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[111]]></param>
+            <param name="isoCode"><![CDATA[IT]]></param>
+            <param name="sortOrder"><![CDATA[111]]></param>
+            <param name="nameEn"><![CDATA[Italy]]></param>
+            <param name="nameNl"><![CDATA[Italië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000112" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[112]]></param>
+            <param name="isoCode"><![CDATA[JM]]></param>
+            <param name="sortOrder"><![CDATA[112]]></param>
+            <param name="nameEn"><![CDATA[Jamaica]]></param>
+            <param name="nameNl"><![CDATA[Jamaica]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000113" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[113]]></param>
+            <param name="isoCode"><![CDATA[JP]]></param>
+            <param name="sortOrder"><![CDATA[113]]></param>
+            <param name="nameEn"><![CDATA[Japan]]></param>
+            <param name="nameNl"><![CDATA[Japan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000114" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[114]]></param>
+            <param name="isoCode"><![CDATA[JE]]></param>
+            <param name="sortOrder"><![CDATA[114]]></param>
+            <param name="nameEn"><![CDATA[Jersey]]></param>
+            <param name="nameNl"><![CDATA[Jersey]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000115" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[115]]></param>
+            <param name="isoCode"><![CDATA[JO]]></param>
+            <param name="sortOrder"><![CDATA[115]]></param>
+            <param name="nameEn"><![CDATA[Jordan]]></param>
+            <param name="nameNl"><![CDATA[Jordanië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000116" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[116]]></param>
+            <param name="isoCode"><![CDATA[KZ]]></param>
+            <param name="sortOrder"><![CDATA[116]]></param>
+            <param name="nameEn"><![CDATA[Kazakhstan]]></param>
+            <param name="nameNl"><![CDATA[Kazachstan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000117" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[117]]></param>
+            <param name="isoCode"><![CDATA[KE]]></param>
+            <param name="sortOrder"><![CDATA[117]]></param>
+            <param name="nameEn"><![CDATA[Kenya]]></param>
+            <param name="nameNl"><![CDATA[Kenia]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000118" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[118]]></param>
+            <param name="isoCode"><![CDATA[KI]]></param>
+            <param name="sortOrder"><![CDATA[118]]></param>
+            <param name="nameEn"><![CDATA[Kiribati]]></param>
+            <param name="nameNl"><![CDATA[Kiribati]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000119" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[119]]></param>
+            <param name="isoCode"><![CDATA[KW]]></param>
+            <param name="sortOrder"><![CDATA[119]]></param>
+            <param name="nameEn"><![CDATA[Kuwait]]></param>
+            <param name="nameNl"><![CDATA[Koeweit]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000120" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[120]]></param>
+            <param name="isoCode"><![CDATA[KG]]></param>
+            <param name="sortOrder"><![CDATA[120]]></param>
+            <param name="nameEn"><![CDATA[Kyrgyzstan]]></param>
+            <param name="nameNl"><![CDATA[Kirgizië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000121" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[121]]></param>
+            <param name="isoCode"><![CDATA[LA]]></param>
+            <param name="sortOrder"><![CDATA[121]]></param>
+            <param name="nameEn"><![CDATA[Laos]]></param>
+            <param name="nameNl"><![CDATA[Laos]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000122" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[122]]></param>
+            <param name="isoCode"><![CDATA[LV]]></param>
+            <param name="sortOrder"><![CDATA[122]]></param>
+            <param name="nameEn"><![CDATA[Latvia]]></param>
+            <param name="nameNl"><![CDATA[Letland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000123" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[123]]></param>
+            <param name="isoCode"><![CDATA[LB]]></param>
+            <param name="sortOrder"><![CDATA[123]]></param>
+            <param name="nameEn"><![CDATA[Lebanon]]></param>
+            <param name="nameNl"><![CDATA[Libanon]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000124" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[124]]></param>
+            <param name="isoCode"><![CDATA[LS]]></param>
+            <param name="sortOrder"><![CDATA[124]]></param>
+            <param name="nameEn"><![CDATA[Lesotho]]></param>
+            <param name="nameNl"><![CDATA[Lesotho]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000125" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[125]]></param>
+            <param name="isoCode"><![CDATA[LR]]></param>
+            <param name="sortOrder"><![CDATA[125]]></param>
+            <param name="nameEn"><![CDATA[Liberia]]></param>
+            <param name="nameNl"><![CDATA[Liberia]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000126" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[126]]></param>
+            <param name="isoCode"><![CDATA[LY]]></param>
+            <param name="sortOrder"><![CDATA[126]]></param>
+            <param name="nameEn"><![CDATA[Libya]]></param>
+            <param name="nameNl"><![CDATA[Libië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000127" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[127]]></param>
+            <param name="isoCode"><![CDATA[LI]]></param>
+            <param name="sortOrder"><![CDATA[127]]></param>
+            <param name="nameEn"><![CDATA[Liechtenstein]]></param>
+            <param name="nameNl"><![CDATA[Liechtenstein]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000128" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[128]]></param>
+            <param name="isoCode"><![CDATA[LT]]></param>
+            <param name="sortOrder"><![CDATA[128]]></param>
+            <param name="nameEn"><![CDATA[Lithuania]]></param>
+            <param name="nameNl"><![CDATA[Litouwen]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000129" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[129]]></param>
+            <param name="isoCode"><![CDATA[LU]]></param>
+            <param name="sortOrder"><![CDATA[129]]></param>
+            <param name="nameEn"><![CDATA[Luxembourg]]></param>
+            <param name="nameNl"><![CDATA[Luxemburg]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000130" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[130]]></param>
+            <param name="isoCode"><![CDATA[MO]]></param>
+            <param name="sortOrder"><![CDATA[130]]></param>
+            <param name="nameEn"><![CDATA[Macao SAR China]]></param>
+            <param name="nameNl"><![CDATA[Macau SAR van China]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000131" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[131]]></param>
+            <param name="isoCode"><![CDATA[MG]]></param>
+            <param name="sortOrder"><![CDATA[131]]></param>
+            <param name="nameEn"><![CDATA[Madagascar]]></param>
+            <param name="nameNl"><![CDATA[Madagaskar]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000132" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[132]]></param>
+            <param name="isoCode"><![CDATA[MW]]></param>
+            <param name="sortOrder"><![CDATA[132]]></param>
+            <param name="nameEn"><![CDATA[Malawi]]></param>
+            <param name="nameNl"><![CDATA[Malawi]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000133" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[133]]></param>
+            <param name="isoCode"><![CDATA[MY]]></param>
+            <param name="sortOrder"><![CDATA[133]]></param>
+            <param name="nameEn"><![CDATA[Malaysia]]></param>
+            <param name="nameNl"><![CDATA[Maleisië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000134" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[134]]></param>
+            <param name="isoCode"><![CDATA[MV]]></param>
+            <param name="sortOrder"><![CDATA[134]]></param>
+            <param name="nameEn"><![CDATA[Maldives]]></param>
+            <param name="nameNl"><![CDATA[Maldiven]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000135" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[135]]></param>
+            <param name="isoCode"><![CDATA[ML]]></param>
+            <param name="sortOrder"><![CDATA[135]]></param>
+            <param name="nameEn"><![CDATA[Mali]]></param>
+            <param name="nameNl"><![CDATA[Mali]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000136" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[136]]></param>
+            <param name="isoCode"><![CDATA[MT]]></param>
+            <param name="sortOrder"><![CDATA[136]]></param>
+            <param name="nameEn"><![CDATA[Malta]]></param>
+            <param name="nameNl"><![CDATA[Malta]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000137" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[137]]></param>
+            <param name="isoCode"><![CDATA[MH]]></param>
+            <param name="sortOrder"><![CDATA[137]]></param>
+            <param name="nameEn"><![CDATA[Marshall Islands]]></param>
+            <param name="nameNl"><![CDATA[Marshalleilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000138" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[138]]></param>
+            <param name="isoCode"><![CDATA[MQ]]></param>
+            <param name="sortOrder"><![CDATA[138]]></param>
+            <param name="nameEn"><![CDATA[Martinique]]></param>
+            <param name="nameNl"><![CDATA[Martinique]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000139" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[139]]></param>
+            <param name="isoCode"><![CDATA[MR]]></param>
+            <param name="sortOrder"><![CDATA[139]]></param>
+            <param name="nameEn"><![CDATA[Mauritania]]></param>
+            <param name="nameNl"><![CDATA[Mauritanië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000140" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[140]]></param>
+            <param name="isoCode"><![CDATA[MU]]></param>
+            <param name="sortOrder"><![CDATA[140]]></param>
+            <param name="nameEn"><![CDATA[Mauritius]]></param>
+            <param name="nameNl"><![CDATA[Mauritius]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000141" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[141]]></param>
+            <param name="isoCode"><![CDATA[YT]]></param>
+            <param name="sortOrder"><![CDATA[141]]></param>
+            <param name="nameEn"><![CDATA[Mayotte]]></param>
+            <param name="nameNl"><![CDATA[Mayotte]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000142" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[142]]></param>
+            <param name="isoCode"><![CDATA[MX]]></param>
+            <param name="sortOrder"><![CDATA[142]]></param>
+            <param name="nameEn"><![CDATA[Mexico]]></param>
+            <param name="nameNl"><![CDATA[Mexico]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000143" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[143]]></param>
+            <param name="isoCode"><![CDATA[FM]]></param>
+            <param name="sortOrder"><![CDATA[143]]></param>
+            <param name="nameEn"><![CDATA[Micronesia]]></param>
+            <param name="nameNl"><![CDATA[Micronesia]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000144" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[144]]></param>
+            <param name="isoCode"><![CDATA[MD]]></param>
+            <param name="sortOrder"><![CDATA[144]]></param>
+            <param name="nameEn"><![CDATA[Moldova]]></param>
+            <param name="nameNl"><![CDATA[Moldavië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000145" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[145]]></param>
+            <param name="isoCode"><![CDATA[MC]]></param>
+            <param name="sortOrder"><![CDATA[145]]></param>
+            <param name="nameEn"><![CDATA[Monaco]]></param>
+            <param name="nameNl"><![CDATA[Monaco]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000146" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[146]]></param>
+            <param name="isoCode"><![CDATA[MN]]></param>
+            <param name="sortOrder"><![CDATA[146]]></param>
+            <param name="nameEn"><![CDATA[Mongolia]]></param>
+            <param name="nameNl"><![CDATA[Mongolië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000147" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[147]]></param>
+            <param name="isoCode"><![CDATA[ME]]></param>
+            <param name="sortOrder"><![CDATA[147]]></param>
+            <param name="nameEn"><![CDATA[Montenegro]]></param>
+            <param name="nameNl"><![CDATA[Montenegro]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000148" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[148]]></param>
+            <param name="isoCode"><![CDATA[MS]]></param>
+            <param name="sortOrder"><![CDATA[148]]></param>
+            <param name="nameEn"><![CDATA[Montserrat]]></param>
+            <param name="nameNl"><![CDATA[Montserrat]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000149" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[149]]></param>
+            <param name="isoCode"><![CDATA[MA]]></param>
+            <param name="sortOrder"><![CDATA[149]]></param>
+            <param name="nameEn"><![CDATA[Morocco]]></param>
+            <param name="nameNl"><![CDATA[Marokko]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000150" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[150]]></param>
+            <param name="isoCode"><![CDATA[MZ]]></param>
+            <param name="sortOrder"><![CDATA[150]]></param>
+            <param name="nameEn"><![CDATA[Mozambique]]></param>
+            <param name="nameNl"><![CDATA[Mozambique]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000151" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[151]]></param>
+            <param name="isoCode"><![CDATA[MM]]></param>
+            <param name="sortOrder"><![CDATA[151]]></param>
+            <param name="nameEn"><![CDATA[Myanmar (Burma)]]></param>
+            <param name="nameNl"><![CDATA[Myanmar (Birma)]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000152" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[152]]></param>
+            <param name="isoCode"><![CDATA[NA]]></param>
+            <param name="sortOrder"><![CDATA[152]]></param>
+            <param name="nameEn"><![CDATA[Namibia]]></param>
+            <param name="nameNl"><![CDATA[Namibië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000153" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[153]]></param>
+            <param name="isoCode"><![CDATA[NR]]></param>
+            <param name="sortOrder"><![CDATA[153]]></param>
+            <param name="nameEn"><![CDATA[Nauru]]></param>
+            <param name="nameNl"><![CDATA[Nauru]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000154" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[154]]></param>
+            <param name="isoCode"><![CDATA[NP]]></param>
+            <param name="sortOrder"><![CDATA[154]]></param>
+            <param name="nameEn"><![CDATA[Nepal]]></param>
+            <param name="nameNl"><![CDATA[Nepal]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000155" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[155]]></param>
+            <param name="isoCode"><![CDATA[NL]]></param>
+            <param name="sortOrder"><![CDATA[155]]></param>
+            <param name="nameEn"><![CDATA[Netherlands]]></param>
+            <param name="nameNl"><![CDATA[Nederland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000156" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[156]]></param>
+            <param name="isoCode"><![CDATA[NC]]></param>
+            <param name="sortOrder"><![CDATA[156]]></param>
+            <param name="nameEn"><![CDATA[New Caledonia]]></param>
+            <param name="nameNl"><![CDATA[Nieuw-Caledonië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000157" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[157]]></param>
+            <param name="isoCode"><![CDATA[NZ]]></param>
+            <param name="sortOrder"><![CDATA[157]]></param>
+            <param name="nameEn"><![CDATA[New Zealand]]></param>
+            <param name="nameNl"><![CDATA[Nieuw-Zeeland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000158" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[158]]></param>
+            <param name="isoCode"><![CDATA[NI]]></param>
+            <param name="sortOrder"><![CDATA[158]]></param>
+            <param name="nameEn"><![CDATA[Nicaragua]]></param>
+            <param name="nameNl"><![CDATA[Nicaragua]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000159" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[159]]></param>
+            <param name="isoCode"><![CDATA[NE]]></param>
+            <param name="sortOrder"><![CDATA[159]]></param>
+            <param name="nameEn"><![CDATA[Niger]]></param>
+            <param name="nameNl"><![CDATA[Niger]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000160" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[160]]></param>
+            <param name="isoCode"><![CDATA[NG]]></param>
+            <param name="sortOrder"><![CDATA[160]]></param>
+            <param name="nameEn"><![CDATA[Nigeria]]></param>
+            <param name="nameNl"><![CDATA[Nigeria]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000161" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[161]]></param>
+            <param name="isoCode"><![CDATA[NU]]></param>
+            <param name="sortOrder"><![CDATA[161]]></param>
+            <param name="nameEn"><![CDATA[Niue]]></param>
+            <param name="nameNl"><![CDATA[Niue]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000162" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[162]]></param>
+            <param name="isoCode"><![CDATA[NF]]></param>
+            <param name="sortOrder"><![CDATA[162]]></param>
+            <param name="nameEn"><![CDATA[Norfolk Island]]></param>
+            <param name="nameNl"><![CDATA[Norfolk]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000163" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[163]]></param>
+            <param name="isoCode"><![CDATA[KP]]></param>
+            <param name="sortOrder"><![CDATA[163]]></param>
+            <param name="nameEn"><![CDATA[North Korea]]></param>
+            <param name="nameNl"><![CDATA[Noord-Korea]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000164" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[164]]></param>
+            <param name="isoCode"><![CDATA[MK]]></param>
+            <param name="sortOrder"><![CDATA[164]]></param>
+            <param name="nameEn"><![CDATA[North Macedonia]]></param>
+            <param name="nameNl"><![CDATA[Noord-Macedonië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000165" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[165]]></param>
+            <param name="isoCode"><![CDATA[MP]]></param>
+            <param name="sortOrder"><![CDATA[165]]></param>
+            <param name="nameEn"><![CDATA[Northern Mariana Islands]]></param>
+            <param name="nameNl"><![CDATA[Noordelijke Marianen]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000166" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[166]]></param>
+            <param name="isoCode"><![CDATA[NO]]></param>
+            <param name="sortOrder"><![CDATA[166]]></param>
+            <param name="nameEn"><![CDATA[Norway]]></param>
+            <param name="nameNl"><![CDATA[Noorwegen]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000167" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[167]]></param>
+            <param name="isoCode"><![CDATA[OM]]></param>
+            <param name="sortOrder"><![CDATA[167]]></param>
+            <param name="nameEn"><![CDATA[Oman]]></param>
+            <param name="nameNl"><![CDATA[Oman]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000168" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[168]]></param>
+            <param name="isoCode"><![CDATA[PK]]></param>
+            <param name="sortOrder"><![CDATA[168]]></param>
+            <param name="nameEn"><![CDATA[Pakistan]]></param>
+            <param name="nameNl"><![CDATA[Pakistan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000169" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[169]]></param>
+            <param name="isoCode"><![CDATA[PW]]></param>
+            <param name="sortOrder"><![CDATA[169]]></param>
+            <param name="nameEn"><![CDATA[Palau]]></param>
+            <param name="nameNl"><![CDATA[Palau]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000170" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[170]]></param>
+            <param name="isoCode"><![CDATA[PS]]></param>
+            <param name="sortOrder"><![CDATA[170]]></param>
+            <param name="nameEn"><![CDATA[Palestinian Territories]]></param>
+            <param name="nameNl"><![CDATA[Palestijnse gebieden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000171" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[171]]></param>
+            <param name="isoCode"><![CDATA[PA]]></param>
+            <param name="sortOrder"><![CDATA[171]]></param>
+            <param name="nameEn"><![CDATA[Panama]]></param>
+            <param name="nameNl"><![CDATA[Panama]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000172" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[172]]></param>
+            <param name="isoCode"><![CDATA[PG]]></param>
+            <param name="sortOrder"><![CDATA[172]]></param>
+            <param name="nameEn"><![CDATA[Papua New Guinea]]></param>
+            <param name="nameNl"><![CDATA[Papoea-Nieuw-Guinea]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000173" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[173]]></param>
+            <param name="isoCode"><![CDATA[PY]]></param>
+            <param name="sortOrder"><![CDATA[173]]></param>
+            <param name="nameEn"><![CDATA[Paraguay]]></param>
+            <param name="nameNl"><![CDATA[Paraguay]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000174" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[174]]></param>
+            <param name="isoCode"><![CDATA[PE]]></param>
+            <param name="sortOrder"><![CDATA[174]]></param>
+            <param name="nameEn"><![CDATA[Peru]]></param>
+            <param name="nameNl"><![CDATA[Peru]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000175" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[175]]></param>
+            <param name="isoCode"><![CDATA[PH]]></param>
+            <param name="sortOrder"><![CDATA[175]]></param>
+            <param name="nameEn"><![CDATA[Philippines]]></param>
+            <param name="nameNl"><![CDATA[Filipijnen]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000176" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[176]]></param>
+            <param name="isoCode"><![CDATA[PN]]></param>
+            <param name="sortOrder"><![CDATA[176]]></param>
+            <param name="nameEn"><![CDATA[Pitcairn Islands]]></param>
+            <param name="nameNl"><![CDATA[Pitcairneilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000177" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[177]]></param>
+            <param name="isoCode"><![CDATA[PL]]></param>
+            <param name="sortOrder"><![CDATA[177]]></param>
+            <param name="nameEn"><![CDATA[Poland]]></param>
+            <param name="nameNl"><![CDATA[Polen]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000178" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[178]]></param>
+            <param name="isoCode"><![CDATA[PT]]></param>
+            <param name="sortOrder"><![CDATA[178]]></param>
+            <param name="nameEn"><![CDATA[Portugal]]></param>
+            <param name="nameNl"><![CDATA[Portugal]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000179" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[179]]></param>
+            <param name="isoCode"><![CDATA[PR]]></param>
+            <param name="sortOrder"><![CDATA[179]]></param>
+            <param name="nameEn"><![CDATA[Puerto Rico]]></param>
+            <param name="nameNl"><![CDATA[Puerto Rico]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000180" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[180]]></param>
+            <param name="isoCode"><![CDATA[QA]]></param>
+            <param name="sortOrder"><![CDATA[180]]></param>
+            <param name="nameEn"><![CDATA[Qatar]]></param>
+            <param name="nameNl"><![CDATA[Qatar]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000181" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[181]]></param>
+            <param name="isoCode"><![CDATA[RE]]></param>
+            <param name="sortOrder"><![CDATA[181]]></param>
+            <param name="nameEn"><![CDATA[Réunion]]></param>
+            <param name="nameNl"><![CDATA[Réunion]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000182" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[182]]></param>
+            <param name="isoCode"><![CDATA[RO]]></param>
+            <param name="sortOrder"><![CDATA[182]]></param>
+            <param name="nameEn"><![CDATA[Romania]]></param>
+            <param name="nameNl"><![CDATA[Roemenië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000183" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[183]]></param>
+            <param name="isoCode"><![CDATA[RU]]></param>
+            <param name="sortOrder"><![CDATA[183]]></param>
+            <param name="nameEn"><![CDATA[Russia]]></param>
+            <param name="nameNl"><![CDATA[Rusland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000184" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[184]]></param>
+            <param name="isoCode"><![CDATA[RW]]></param>
+            <param name="sortOrder"><![CDATA[184]]></param>
+            <param name="nameEn"><![CDATA[Rwanda]]></param>
+            <param name="nameNl"><![CDATA[Rwanda]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000185" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[185]]></param>
+            <param name="isoCode"><![CDATA[WS]]></param>
+            <param name="sortOrder"><![CDATA[185]]></param>
+            <param name="nameEn"><![CDATA[Samoa]]></param>
+            <param name="nameNl"><![CDATA[Samoa]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000186" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[186]]></param>
+            <param name="isoCode"><![CDATA[SM]]></param>
+            <param name="sortOrder"><![CDATA[186]]></param>
+            <param name="nameEn"><![CDATA[San Marino]]></param>
+            <param name="nameNl"><![CDATA[San Marino]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000187" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[187]]></param>
+            <param name="isoCode"><![CDATA[ST]]></param>
+            <param name="sortOrder"><![CDATA[187]]></param>
+            <param name="nameEn"><![CDATA[São Tomé & Príncipe]]></param>
+            <param name="nameNl"><![CDATA[Sao Tomé en Principe]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000188" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[188]]></param>
+            <param name="isoCode"><![CDATA[SA]]></param>
+            <param name="sortOrder"><![CDATA[188]]></param>
+            <param name="nameEn"><![CDATA[Saudi Arabia]]></param>
+            <param name="nameNl"><![CDATA[Saoedi-Arabië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000189" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[189]]></param>
+            <param name="isoCode"><![CDATA[SN]]></param>
+            <param name="sortOrder"><![CDATA[189]]></param>
+            <param name="nameEn"><![CDATA[Senegal]]></param>
+            <param name="nameNl"><![CDATA[Senegal]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000190" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[190]]></param>
+            <param name="isoCode"><![CDATA[RS]]></param>
+            <param name="sortOrder"><![CDATA[190]]></param>
+            <param name="nameEn"><![CDATA[Serbia]]></param>
+            <param name="nameNl"><![CDATA[Servië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000191" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[191]]></param>
+            <param name="isoCode"><![CDATA[SC]]></param>
+            <param name="sortOrder"><![CDATA[191]]></param>
+            <param name="nameEn"><![CDATA[Seychelles]]></param>
+            <param name="nameNl"><![CDATA[Seychellen]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000192" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[192]]></param>
+            <param name="isoCode"><![CDATA[SL]]></param>
+            <param name="sortOrder"><![CDATA[192]]></param>
+            <param name="nameEn"><![CDATA[Sierra Leone]]></param>
+            <param name="nameNl"><![CDATA[Sierra Leone]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000193" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[193]]></param>
+            <param name="isoCode"><![CDATA[SG]]></param>
+            <param name="sortOrder"><![CDATA[193]]></param>
+            <param name="nameEn"><![CDATA[Singapore]]></param>
+            <param name="nameNl"><![CDATA[Singapore]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000194" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[194]]></param>
+            <param name="isoCode"><![CDATA[SX]]></param>
+            <param name="sortOrder"><![CDATA[194]]></param>
+            <param name="nameEn"><![CDATA[Sint Maarten]]></param>
+            <param name="nameNl"><![CDATA[Sint-Maarten]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000195" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[195]]></param>
+            <param name="isoCode"><![CDATA[SK]]></param>
+            <param name="sortOrder"><![CDATA[195]]></param>
+            <param name="nameEn"><![CDATA[Slovakia]]></param>
+            <param name="nameNl"><![CDATA[Slowakije]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000196" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[196]]></param>
+            <param name="isoCode"><![CDATA[SI]]></param>
+            <param name="sortOrder"><![CDATA[196]]></param>
+            <param name="nameEn"><![CDATA[Slovenia]]></param>
+            <param name="nameNl"><![CDATA[Slovenië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000197" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[197]]></param>
+            <param name="isoCode"><![CDATA[SB]]></param>
+            <param name="sortOrder"><![CDATA[197]]></param>
+            <param name="nameEn"><![CDATA[Solomon Islands]]></param>
+            <param name="nameNl"><![CDATA[Salomonseilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000198" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[198]]></param>
+            <param name="isoCode"><![CDATA[SO]]></param>
+            <param name="sortOrder"><![CDATA[198]]></param>
+            <param name="nameEn"><![CDATA[Somalia]]></param>
+            <param name="nameNl"><![CDATA[Somalië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000199" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[199]]></param>
+            <param name="isoCode"><![CDATA[ZA]]></param>
+            <param name="sortOrder"><![CDATA[199]]></param>
+            <param name="nameEn"><![CDATA[South Africa]]></param>
+            <param name="nameNl"><![CDATA[Zuid-Afrika]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000200" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[200]]></param>
+            <param name="isoCode"><![CDATA[GS]]></param>
+            <param name="sortOrder"><![CDATA[200]]></param>
+            <param name="nameEn"><![CDATA[South Georgia & South Sandwich Islands]]></param>
+            <param name="nameNl"><![CDATA[Zuid-Georgia en Zuidelijke Sandwicheilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000201" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[201]]></param>
+            <param name="isoCode"><![CDATA[KR]]></param>
+            <param name="sortOrder"><![CDATA[201]]></param>
+            <param name="nameEn"><![CDATA[South Korea]]></param>
+            <param name="nameNl"><![CDATA[Zuid-Korea]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000202" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[202]]></param>
+            <param name="isoCode"><![CDATA[SS]]></param>
+            <param name="sortOrder"><![CDATA[202]]></param>
+            <param name="nameEn"><![CDATA[South Sudan]]></param>
+            <param name="nameNl"><![CDATA[Zuid-Soedan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000203" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[203]]></param>
+            <param name="isoCode"><![CDATA[ES]]></param>
+            <param name="sortOrder"><![CDATA[203]]></param>
+            <param name="nameEn"><![CDATA[Spain]]></param>
+            <param name="nameNl"><![CDATA[Spanje]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000204" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[204]]></param>
+            <param name="isoCode"><![CDATA[LK]]></param>
+            <param name="sortOrder"><![CDATA[204]]></param>
+            <param name="nameEn"><![CDATA[Sri Lanka]]></param>
+            <param name="nameNl"><![CDATA[Sri Lanka]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000205" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[205]]></param>
+            <param name="isoCode"><![CDATA[BL]]></param>
+            <param name="sortOrder"><![CDATA[205]]></param>
+            <param name="nameEn"><![CDATA[St. Barthélemy]]></param>
+            <param name="nameNl"><![CDATA[Saint-Barthélemy]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000206" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[206]]></param>
+            <param name="isoCode"><![CDATA[SH]]></param>
+            <param name="sortOrder"><![CDATA[206]]></param>
+            <param name="nameEn"><![CDATA[St. Helena]]></param>
+            <param name="nameNl"><![CDATA[Sint-Helena]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000207" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[207]]></param>
+            <param name="isoCode"><![CDATA[KN]]></param>
+            <param name="sortOrder"><![CDATA[207]]></param>
+            <param name="nameEn"><![CDATA[St. Kitts & Nevis]]></param>
+            <param name="nameNl"><![CDATA[Saint Kitts en Nevis]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000208" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[208]]></param>
+            <param name="isoCode"><![CDATA[LC]]></param>
+            <param name="sortOrder"><![CDATA[208]]></param>
+            <param name="nameEn"><![CDATA[St. Lucia]]></param>
+            <param name="nameNl"><![CDATA[Saint Lucia]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000209" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[209]]></param>
+            <param name="isoCode"><![CDATA[MF]]></param>
+            <param name="sortOrder"><![CDATA[209]]></param>
+            <param name="nameEn"><![CDATA[St. Martin]]></param>
+            <param name="nameNl"><![CDATA[Saint-Martin]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000210" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[210]]></param>
+            <param name="isoCode"><![CDATA[PM]]></param>
+            <param name="sortOrder"><![CDATA[210]]></param>
+            <param name="nameEn"><![CDATA[St. Pierre & Miquelon]]></param>
+            <param name="nameNl"><![CDATA[Saint-Pierre en Miquelon]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000211" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[211]]></param>
+            <param name="isoCode"><![CDATA[VC]]></param>
+            <param name="sortOrder"><![CDATA[211]]></param>
+            <param name="nameEn"><![CDATA[St. Vincent & Grenadines]]></param>
+            <param name="nameNl"><![CDATA[Saint Vincent en de Grenadines]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000212" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[212]]></param>
+            <param name="isoCode"><![CDATA[SD]]></param>
+            <param name="sortOrder"><![CDATA[212]]></param>
+            <param name="nameEn"><![CDATA[Sudan]]></param>
+            <param name="nameNl"><![CDATA[Soedan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000213" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[213]]></param>
+            <param name="isoCode"><![CDATA[SR]]></param>
+            <param name="sortOrder"><![CDATA[213]]></param>
+            <param name="nameEn"><![CDATA[Suriname]]></param>
+            <param name="nameNl"><![CDATA[Suriname]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000214" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[214]]></param>
+            <param name="isoCode"><![CDATA[SJ]]></param>
+            <param name="sortOrder"><![CDATA[214]]></param>
+            <param name="nameEn"><![CDATA[Svalbard & Jan Mayen]]></param>
+            <param name="nameNl"><![CDATA[Spitsbergen en Jan Mayen]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000215" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[215]]></param>
+            <param name="isoCode"><![CDATA[SE]]></param>
+            <param name="sortOrder"><![CDATA[215]]></param>
+            <param name="nameEn"><![CDATA[Sweden]]></param>
+            <param name="nameNl"><![CDATA[Zweden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000216" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[216]]></param>
+            <param name="isoCode"><![CDATA[CH]]></param>
+            <param name="sortOrder"><![CDATA[216]]></param>
+            <param name="nameEn"><![CDATA[Switzerland]]></param>
+            <param name="nameNl"><![CDATA[Zwitserland]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000217" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[217]]></param>
+            <param name="isoCode"><![CDATA[SY]]></param>
+            <param name="sortOrder"><![CDATA[217]]></param>
+            <param name="nameEn"><![CDATA[Syria]]></param>
+            <param name="nameNl"><![CDATA[Syrië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000218" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[218]]></param>
+            <param name="isoCode"><![CDATA[TW]]></param>
+            <param name="sortOrder"><![CDATA[218]]></param>
+            <param name="nameEn"><![CDATA[Taiwan]]></param>
+            <param name="nameNl"><![CDATA[Taiwan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000219" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[219]]></param>
+            <param name="isoCode"><![CDATA[TJ]]></param>
+            <param name="sortOrder"><![CDATA[219]]></param>
+            <param name="nameEn"><![CDATA[Tajikistan]]></param>
+            <param name="nameNl"><![CDATA[Tadzjikistan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000220" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[220]]></param>
+            <param name="isoCode"><![CDATA[TZ]]></param>
+            <param name="sortOrder"><![CDATA[220]]></param>
+            <param name="nameEn"><![CDATA[Tanzania]]></param>
+            <param name="nameNl"><![CDATA[Tanzania]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000221" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[221]]></param>
+            <param name="isoCode"><![CDATA[TH]]></param>
+            <param name="sortOrder"><![CDATA[221]]></param>
+            <param name="nameEn"><![CDATA[Thailand]]></param>
+            <param name="nameNl"><![CDATA[Thailand]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000222" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[222]]></param>
+            <param name="isoCode"><![CDATA[TL]]></param>
+            <param name="sortOrder"><![CDATA[222]]></param>
+            <param name="nameEn"><![CDATA[Timor-Leste]]></param>
+            <param name="nameNl"><![CDATA[Oost-Timor]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000223" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[223]]></param>
+            <param name="isoCode"><![CDATA[TG]]></param>
+            <param name="sortOrder"><![CDATA[223]]></param>
+            <param name="nameEn"><![CDATA[Togo]]></param>
+            <param name="nameNl"><![CDATA[Togo]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000224" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[224]]></param>
+            <param name="isoCode"><![CDATA[TK]]></param>
+            <param name="sortOrder"><![CDATA[224]]></param>
+            <param name="nameEn"><![CDATA[Tokelau]]></param>
+            <param name="nameNl"><![CDATA[Tokelau]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000225" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[225]]></param>
+            <param name="isoCode"><![CDATA[TO]]></param>
+            <param name="sortOrder"><![CDATA[225]]></param>
+            <param name="nameEn"><![CDATA[Tonga]]></param>
+            <param name="nameNl"><![CDATA[Tonga]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000226" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[226]]></param>
+            <param name="isoCode"><![CDATA[TT]]></param>
+            <param name="sortOrder"><![CDATA[226]]></param>
+            <param name="nameEn"><![CDATA[Trinidad & Tobago]]></param>
+            <param name="nameNl"><![CDATA[Trinidad en Tobago]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000227" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[227]]></param>
+            <param name="isoCode"><![CDATA[TN]]></param>
+            <param name="sortOrder"><![CDATA[227]]></param>
+            <param name="nameEn"><![CDATA[Tunisia]]></param>
+            <param name="nameNl"><![CDATA[Tunesië]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000228" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[228]]></param>
+            <param name="isoCode"><![CDATA[TR]]></param>
+            <param name="sortOrder"><![CDATA[228]]></param>
+            <param name="nameEn"><![CDATA[Turkey]]></param>
+            <param name="nameNl"><![CDATA[Turkije]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000229" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[229]]></param>
+            <param name="isoCode"><![CDATA[TM]]></param>
+            <param name="sortOrder"><![CDATA[229]]></param>
+            <param name="nameEn"><![CDATA[Turkmenistan]]></param>
+            <param name="nameNl"><![CDATA[Turkmenistan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000230" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[230]]></param>
+            <param name="isoCode"><![CDATA[TC]]></param>
+            <param name="sortOrder"><![CDATA[230]]></param>
+            <param name="nameEn"><![CDATA[Turks & Caicos Islands]]></param>
+            <param name="nameNl"><![CDATA[Turks- en Caicoseilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000231" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[231]]></param>
+            <param name="isoCode"><![CDATA[TV]]></param>
+            <param name="sortOrder"><![CDATA[231]]></param>
+            <param name="nameEn"><![CDATA[Tuvalu]]></param>
+            <param name="nameNl"><![CDATA[Tuvalu]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000232" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[232]]></param>
+            <param name="isoCode"><![CDATA[UM]]></param>
+            <param name="sortOrder"><![CDATA[232]]></param>
+            <param name="nameEn"><![CDATA[U.S. Outlying Islands]]></param>
+            <param name="nameNl"><![CDATA[Kleine afgelegen eilanden van de Verenigde Staten]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000233" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[233]]></param>
+            <param name="isoCode"><![CDATA[VI]]></param>
+            <param name="sortOrder"><![CDATA[233]]></param>
+            <param name="nameEn"><![CDATA[U.S. Virgin Islands]]></param>
+            <param name="nameNl"><![CDATA[Amerikaanse Maagdeneilanden]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000234" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[234]]></param>
+            <param name="isoCode"><![CDATA[UG]]></param>
+            <param name="sortOrder"><![CDATA[234]]></param>
+            <param name="nameEn"><![CDATA[Uganda]]></param>
+            <param name="nameNl"><![CDATA[Oeganda]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000235" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[235]]></param>
+            <param name="isoCode"><![CDATA[UA]]></param>
+            <param name="sortOrder"><![CDATA[235]]></param>
+            <param name="nameEn"><![CDATA[Ukraine]]></param>
+            <param name="nameNl"><![CDATA[Oekraïne]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000236" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[236]]></param>
+            <param name="isoCode"><![CDATA[AE]]></param>
+            <param name="sortOrder"><![CDATA[236]]></param>
+            <param name="nameEn"><![CDATA[United Arab Emirates]]></param>
+            <param name="nameNl"><![CDATA[Verenigde Arabische Emiraten]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000237" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[237]]></param>
+            <param name="isoCode"><![CDATA[GB]]></param>
+            <param name="sortOrder"><![CDATA[237]]></param>
+            <param name="nameEn"><![CDATA[United Kingdom]]></param>
+            <param name="nameNl"><![CDATA[Verenigd Koninkrijk]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000238" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[238]]></param>
+            <param name="isoCode"><![CDATA[US]]></param>
+            <param name="sortOrder"><![CDATA[238]]></param>
+            <param name="nameEn"><![CDATA[United States]]></param>
+            <param name="nameNl"><![CDATA[Verenigde Staten]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000239" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[239]]></param>
+            <param name="isoCode"><![CDATA[UY]]></param>
+            <param name="sortOrder"><![CDATA[239]]></param>
+            <param name="nameEn"><![CDATA[Uruguay]]></param>
+            <param name="nameNl"><![CDATA[Uruguay]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000240" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[240]]></param>
+            <param name="isoCode"><![CDATA[UZ]]></param>
+            <param name="sortOrder"><![CDATA[240]]></param>
+            <param name="nameEn"><![CDATA[Uzbekistan]]></param>
+            <param name="nameNl"><![CDATA[Oezbekistan]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000241" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[241]]></param>
+            <param name="isoCode"><![CDATA[VU]]></param>
+            <param name="sortOrder"><![CDATA[241]]></param>
+            <param name="nameEn"><![CDATA[Vanuatu]]></param>
+            <param name="nameNl"><![CDATA[Vanuatu]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000242" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[242]]></param>
+            <param name="isoCode"><![CDATA[VA]]></param>
+            <param name="sortOrder"><![CDATA[242]]></param>
+            <param name="nameEn"><![CDATA[Vatican City]]></param>
+            <param name="nameNl"><![CDATA[Vaticaanstad]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000243" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[243]]></param>
+            <param name="isoCode"><![CDATA[VE]]></param>
+            <param name="sortOrder"><![CDATA[243]]></param>
+            <param name="nameEn"><![CDATA[Venezuela]]></param>
+            <param name="nameNl"><![CDATA[Venezuela]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000244" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[244]]></param>
+            <param name="isoCode"><![CDATA[VN]]></param>
+            <param name="sortOrder"><![CDATA[244]]></param>
+            <param name="nameEn"><![CDATA[Vietnam]]></param>
+            <param name="nameNl"><![CDATA[Vietnam]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000245" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[245]]></param>
+            <param name="isoCode"><![CDATA[WF]]></param>
+            <param name="sortOrder"><![CDATA[245]]></param>
+            <param name="nameEn"><![CDATA[Wallis & Futuna]]></param>
+            <param name="nameNl"><![CDATA[Wallis en Futuna]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000246" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[246]]></param>
+            <param name="isoCode"><![CDATA[EH]]></param>
+            <param name="sortOrder"><![CDATA[246]]></param>
+            <param name="nameEn"><![CDATA[Western Sahara]]></param>
+            <param name="nameNl"><![CDATA[Westelijke Sahara]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000247" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[247]]></param>
+            <param name="isoCode"><![CDATA[YE]]></param>
+            <param name="sortOrder"><![CDATA[247]]></param>
+            <param name="nameEn"><![CDATA[Yemen]]></param>
+            <param name="nameNl"><![CDATA[Jemen]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000248" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[248]]></param>
+            <param name="isoCode"><![CDATA[ZM]]></param>
+            <param name="sortOrder"><![CDATA[248]]></param>
+            <param name="nameEn"><![CDATA[Zambia]]></param>
+            <param name="nameNl"><![CDATA[Zambia]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="d1000001-0042-4c01-b001-000000000249" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCountry">
+            <param name="id"><![CDATA[249]]></param>
+            <param name="isoCode"><![CDATA[ZW]]></param>
+            <param name="sortOrder"><![CDATA[249]]></param>
+            <param name="nameEn"><![CDATA[Zimbabwe]]></param>
+            <param name="nameNl"><![CDATA[Zimbabwe]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

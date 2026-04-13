@@ -29,7 +29,7 @@ public class RoleTemplate {
 
     @Id
     @TableGenerator(name = "role_templates_seq", table = "sequences_",
-            pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE",
+            pkColumnName = "PK_NAME", pkColumnValue = "role_templates_seq", valueColumnName = "PK_VALUE",
             initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "role_templates_seq", strategy = GenerationType.TABLE)
     private Long id;

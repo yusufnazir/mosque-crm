@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAppName } from '@/lib/AppNameContext';
+import { buildTenantUrl } from '@/lib/auth/AuthContext';
 import LanguageSelector from '@/components/LanguageSelector';
 
 export default function SetPasswordPage() {
@@ -47,7 +48,19 @@ export default function SetPasswordPage() {
       });
 
       if (response.ok) {
-        router.push('/dashboard');
+        // Use hard navigation to avoid RSC cross-subdomain CORS errors.
+        // org_handle is a readable (non-httpOnly) cookie set at login.
+        const orgHandle = document.cookie
+          .split(';')
+          .map((c) => c.trim())
+          .find((c) => c.startsWith('org_handle='))
+          ?.split('=')[1];
+        const tenantUrl = orgHandle ? buildTenantUrl(decodeURIComponent(orgHandle), '/dashboard') : '/dashboard';
+        if (tenantUrl !== '/dashboard') {
+          window.location.href = tenantUrl;
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         const data = await response.json();
         setError(data.message || t('setPassword.error'));

@@ -15,7 +15,7 @@ import { memberPaymentApi, MemberPayment } from '@/lib/contributionApi';
 import { isPlanRestriction } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { formatDate } from '@/lib/utils';
+import { useDateFormat } from '@/lib/DateFormatContext';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -23,6 +23,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 export default function ReportsPage() {
   const { t, language } = useTranslation();
   const { can, user, activeOrganizationName } = useAuth();
+  const { formatDate } = useDateFormat();
 
   // Report selection
   const [selectedReport, setSelectedReport] = useState<string>('payment-summary');

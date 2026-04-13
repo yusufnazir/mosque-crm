@@ -311,6 +311,28 @@
 		</customChange>
 	</changeSet>
 
+	<!-- join_request and messaging permissions (63-66) for ADMIN template -->
+	<changeSet id="f2b30002-0039-4bbb-c002-tplassn-adm-63" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplateAssignablePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[63]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="f2b30002-0039-4bbb-c002-tplassn-adm-64" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplateAssignablePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[64]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="f2b30002-0039-4bbb-c002-tplassn-adm-65" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplateAssignablePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[65]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="f2b30002-0039-4bbb-c002-tplassn-adm-66" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplateAssignablePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[66]]></param>
+		</customChange>
+	</changeSet>
+
 	<!-- ═══════════════════════════════════════════════════════════
 	     MEMBER (template_id=2) — assignable pool = granted permissions
 	     ═══════════════════════════════════════════════════════════ -->

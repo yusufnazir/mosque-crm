@@ -48,7 +48,7 @@ import jakarta.validation.constraints.NotBlank;
 public class Person implements OrganizationAware {
 
     @Id
-    @TableGenerator(name = "persons_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
+    @TableGenerator(name = "persons_seq", table = "sequences_", pkColumnName = "PK_NAME", pkColumnValue = "persons_seq", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "persons_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;

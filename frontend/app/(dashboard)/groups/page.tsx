@@ -8,16 +8,12 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Button from '@/components/Button';
 import { groupApi, GroupDTO, GroupTranslationDTO } from '@/lib/groupApi';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
-
-/** Format a date string safely (avoids UTC timezone shift for date-only strings) */
-const formatDate = (d: string) => {
-  const s = d.length === 10 ? d + 'T00:00:00' : d;
-  return new Date(s).toLocaleDateString();
-};
+import { useDateFormat } from '@/lib/DateFormatContext';
 
 export default function GroupsPage() {
   const router = useRouter();
   const { t, language: locale } = useTranslation();
+  const { formatDate } = useDateFormat();
   const [groups, setGroups] = useState<GroupDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);

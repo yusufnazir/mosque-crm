@@ -4,6 +4,7 @@ import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { AuthProvider } from "@/lib/auth/AuthContext";
 import { AppNameProvider } from "@/lib/AppNameContext";
+import { DateFormatProvider } from "@/lib/DateFormatContext";
 import PWARegister from "@/components/PWARegister";
 
 const geistSans = Geist({
@@ -50,10 +51,12 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <AppNameProvider>
+            <DateFormatProvider>
             <AuthProvider>
               <PWARegister />
               {children}
             </AuthProvider>
+            </DateFormatProvider>
           </AppNameProvider>
         </LanguageProvider>
       </body>

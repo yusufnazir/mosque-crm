@@ -5,14 +5,13 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import ChangePasswordModal from './ChangePasswordModal';
-import LanguageSelector from './LanguageSelector';
-import { authApi } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth, OrganizationOption } from '@/lib/auth/AuthContext';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import { useAppName } from '@/lib/AppNameContext';
 import { organizationApi, Organization } from '@/lib/organizationApi';
+import { messageApi } from '@/lib/messageApi';
+import { joinRequestApi } from '@/lib/joinRequestApi';
 
 interface NavItem {
   name: string;
@@ -51,6 +50,16 @@ const allNavItems: NavItem[] = [
       </svg>
     ) 
   },
+  {
+    name: 'Member Requests',
+    href: '/member-requests',
+    permission: 'join_request.view',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    )
+  },
   // { 
   //   name: 'Family Tree', 
   //   href: '/family-tree', 
@@ -74,7 +83,7 @@ const allNavItems: NavItem[] = [
 
   { 
     name: 'Contributions', 
-    href: '/contributions', 
+    href: '/contributions/types', 
     permission: 'contribution.view',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,6 +143,16 @@ const allNavItems: NavItem[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
     ) 
+  },
+  {
+    name: 'Inbox',
+    href: '/inbox',
+    permission: 'messaging.view',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+      </svg>
+    )
   },
   { 
     name: 'Users', 
@@ -219,6 +238,20 @@ const allNavItems: NavItem[] = [
   },
 ];
 
+interface NavGroup {
+  labelKey: string | undefined;
+  hrefs: string[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  { labelKey: undefined, hrefs: ['/dashboard'] },
+  { labelKey: 'sidebar.group_members', hrefs: ['/members', '/member-requests', '/groups'] },
+  { labelKey: 'sidebar.group_finance', hrefs: ['/contributions/types', '/currencies'] },
+  { labelKey: 'sidebar.group_operations', hrefs: ['/reports', '/distribution', '/import'] },
+  { labelKey: 'sidebar.group_personal', hrefs: ['/profile', '/inbox'] },
+  { labelKey: 'sidebar.group_administration', hrefs: ['/users', '/roles', '/privileges', '/role-templates', '/organizations', '/billing', '/settings', '/tenant-settings'] },
+];
+
 interface SidebarProps {
   onNavigate?: () => void;
 }
@@ -226,14 +259,15 @@ interface SidebarProps {
 export default function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const { t } = useTranslation();
-  const { can, canAny, user, isSuperAdmin, selectedOrganization, selectOrganization, activeOrganizationName } = useAuth();
+  const { can, canAny, user, isSuperAdmin, selectedOrganization, selectOrganization } = useAuth();
   const { hasFeature } = useSubscription();
   const { appName } = useAppName();
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [organizationList, setOrganizationList] = useState<Organization[]>([]);
   const [isOrganizationSelectorOpen, setIsOrganizationSelectorOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const organizationSelectorRef = useRef<HTMLDivElement>(null);
+  const [inboxUnread, setInboxUnread] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState(0);
 
   // Load organization list for super admin
   useEffect(() => {
@@ -253,9 +287,50 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Poll unread inbox count every 60 seconds + refresh on inbox:read event
+  useEffect(() => {
+    if (!user) return;
+    const fetchUnread = () => {
+      messageApi.getUnreadCount().then((r) => setInboxUnread(r?.count ?? 0)).catch(() => {});
+    };
+    fetchUnread();
+    const timer = setInterval(fetchUnread, 60_000);
+    window.addEventListener('inbox:read', fetchUnread);
+    return () => { clearInterval(timer); window.removeEventListener('inbox:read', fetchUnread); };
+  }, [user]);
+
+  // Poll pending member request count every 60 seconds + refresh on requests:updated event
+  useEffect(() => {
+    if (!user) return;
+    const fetchPending = () => {
+      joinRequestApi.getPendingCount().then((r) => setPendingRequests(r?.count ?? 0)).catch(() => {});
+    };
+    fetchPending();
+    const timer = setInterval(fetchPending, 60_000);
+    window.addEventListener('requests:updated', fetchPending);
+    return () => { clearInterval(timer); window.removeEventListener('requests:updated', fetchPending); };
+  }, [user]);
+
+  // Restore collapsed/expanded group state from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('sidebarGroups');
+      if (stored) setExpandedGroups(JSON.parse(stored));
+    } catch {}
+  }, []);
+
+  const toggleGroup = (labelKey: string) => {
+    setExpandedGroups(prev => {
+      const currentlyExpanded = prev[labelKey] !== false;
+      const updated = { ...prev, [labelKey]: !currentlyExpanded };
+      try { localStorage.setItem('sidebarGroups', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
   // Filter nav items by permission and subscription entitlement.
   // Super admins see all items.
-  const navItems = allNavItems.filter((item) => {
+  const filteredItems = allNavItems.filter((item) => {
     if (!item.permission) return true;
     if (isSuperAdmin) return true;
     if (!can(item.permission)) return false;
@@ -263,29 +338,15 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     return true;
   });
 
+  const navGroups = NAV_GROUPS.map(group => ({
+    ...group,
+    items: group.hrefs
+      .map(href => filteredItems.find(item => item.href === href))
+      .filter((item): item is NavItem => item !== undefined),
+  })).filter(group => group.items.length > 0);
+
   // Determine panel label based on permissions rather than role string
   const isAdminPanel = canAny('member.create', 'member.edit', 'settings.manage', 'user.manage');
-
-  const handleLogout = async () => {
-    // Clear local state first
-    localStorage.removeItem('personId');
-    localStorage.removeItem('memberId');
-    localStorage.removeItem('selectedOrganization');
-    localStorage.removeItem('selectedOrganizationId');
-    localStorage.removeItem('lang');
-    // Navigate directly to the logout endpoint — the server clears the httpOnly
-    // cookie and redirects to /login. Direct navigation is more reliable than
-    // fetch() for cookie deletion on mobile browsers.
-    window.location.href = '/api/auth/logout';
-  };
-
-  const handleChangePassword = () => {
-    setShowChangePasswordModal(true);
-  };
-
-  const handlePasswordChangeSubmit = async (oldPassword: string, newPassword: string) => {
-    await authApi.changePassword({ oldPassword, newPassword });
-  };
 
   return (
     <div className="h-full w-64 bg-emerald-800 text-white flex flex-col">
@@ -383,111 +444,67 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 min-h-0 p-4 space-y-2 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          const translationKey = item.name.toLowerCase().replace(/ /g, '_');
+      <nav className="flex-1 min-h-0 p-4 overflow-y-auto">
+        {navGroups.map((group, groupIndex) => {
+          const isExpanded = group.labelKey === undefined || expandedGroups[group.labelKey] !== false;
           return (
-            <React.Fragment key={item.href}>
-              {item.divider && (
-                <hr className="my-3 border-emerald-700 opacity-60" />
+            <div key={group.labelKey ?? `group-${groupIndex}`} className="mb-1">
+              {group.labelKey && (
+                <button
+                  onClick={() => toggleGroup(group.labelKey!)}
+                  className="w-full flex items-center justify-between py-1.5 mt-2 text-xs font-semibold text-emerald-400 uppercase tracking-wider hover:text-emerald-200 transition-colors"
+                >
+                  <span>{t(group.labelKey)}</span>
+                  <svg
+                    className={`w-3 h-3 transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
               )}
-              <Link
-                href={item.href}
-                onClick={onNavigate}
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-lg transition-all
-                  ${
-                    isActive
-                      ? 'bg-emerald-700 text-white shadow-md'
-                      : 'text-emerald-100 hover:bg-emerald-700/50'
-                  }
-                `}
-              >
-                <span>{item.icon}</span>
-                <span className="font-medium">{t(`sidebar.${translationKey}`)}</span>
-              </Link>
-            </React.Fragment>
+              {isExpanded && (
+                <div className="space-y-1 mt-1">
+                  {group.items.map((item) => {
+                    const baseHref = '/' + item.href.split('/').filter(Boolean)[0];
+                    const isActive = pathname === item.href || pathname.startsWith(baseHref + '/');
+                    const translationKey = item.name.toLowerCase().replace(/ /g, '_');
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onNavigate}
+                        className={`
+                          flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all
+                          ${
+                            isActive
+                              ? 'bg-emerald-700 text-white shadow-md'
+                              : 'text-emerald-100 hover:bg-emerald-700/50'
+                          }
+                        `}
+                      >
+                        <span>{item.icon}</span>
+                        <span className="font-medium text-sm flex-1">{t(`sidebar.${translationKey}`)}</span>
+                        {item.href === '/inbox' && inboxUnread > 0 && (
+                          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-semibold text-white">
+                            {inboxUnread > 9 ? '9+' : inboxUnread}
+                          </span>
+                        )}
+                        {item.href === '/member-requests' && pendingRequests > 0 && (
+                          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-semibold text-white">
+                            {pendingRequests > 9 ? '9+' : pendingRequests}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>
 
-      {/* Language Selector */}
-      <div className="px-4 pb-4">
-        <LanguageSelector />
-      </div>
-
-      {/* User Section */}
-      <div className="p-4 border-t border-emerald-700">
-        <div className="relative">
-          <button
-            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-emerald-700/50 transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="font-medium">{t('user_menu.title')}</span>
-            </div>
-            <svg 
-              className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {/* Dropdown Menu */}
-          {isUserMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-emerald-700 rounded-lg shadow-lg overflow-hidden">
-              <Link
-                href="/account"
-                onClick={() => setIsUserMenuOpen(false)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-emerald-100 hover:bg-emerald-600 transition-all text-left"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className="font-medium">{t('sidebar.account')}</span>
-              </Link>
-              <button
-                onClick={() => {
-                  setIsUserMenuOpen(false);
-                  handleChangePassword();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-emerald-100 hover:bg-emerald-600 transition-all text-left"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
-                <span className="font-medium">{t('common.change_password')}</span>
-              </button>
-              <button
-                onClick={() => {
-                  setIsUserMenuOpen(false);
-                  handleLogout();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-emerald-100 hover:bg-emerald-600 transition-all text-left"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span className="font-medium">{t('common.logout')}</span>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Change Password Modal */}
-      <ChangePasswordModal
-        isOpen={showChangePasswordModal}
-        onClose={() => setShowChangePasswordModal(false)}
-        onSubmit={handlePasswordChangeSubmit}
-      />
     </div>
   );
 }

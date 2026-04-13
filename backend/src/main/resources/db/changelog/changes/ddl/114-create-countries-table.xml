@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000005-0114-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="countries"/></not>
+        </preConditions>
+        <comment>Create countries reference table (ISO 3166-1 alpha-2)</comment>
+        <createTable tableName="countries">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="iso_code" type="VARCHAR(2)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="sort_order" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="countries"
+                             columnNames="iso_code"
+                             constraintName="uk_countries_iso_code"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -366,4 +366,26 @@
 		</customChange>
 	</changeSet>
 
+	<!-- join_request (63-64) and messaging (65-66) for ADMIN template -->
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-63" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[63]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-64" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[64]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-65" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[65]]></param>
+		</customChange>
+	</changeSet>
+	<changeSet id="e1a20001-0039-4aaa-b001-tplperm-adm-66" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRoleTemplatePermission">
+			<param name="templateId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[66]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

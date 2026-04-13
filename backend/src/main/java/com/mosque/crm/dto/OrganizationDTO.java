@@ -15,6 +15,7 @@ public class OrganizationDTO {
     private String email;
     private String website;
     private Boolean active;
+    private String handle;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -22,7 +23,7 @@ public class OrganizationDTO {
 
     public OrganizationDTO(Long id, String name, String shortName, String address, String city,
                      String country, String postalCode, String phone, String email,
-                     String website, Boolean active, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                     String website, Boolean active, String handle, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.shortName = shortName;
@@ -34,6 +35,7 @@ public class OrganizationDTO {
         this.email = email;
         this.website = website;
         this.active = active;
+        this.handle = handle;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -71,6 +73,9 @@ public class OrganizationDTO {
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    public String getHandle() { return handle; }
+    public void setHandle(String handle) { this.handle = handle; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

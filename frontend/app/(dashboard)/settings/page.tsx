@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAppName } from '@/lib/AppNameContext';
+import { useDateFormat, DATE_FORMAT_PRESETS, DEFAULT_DATE_FORMAT } from '@/lib/DateFormatContext';
 
 interface MailServerConfig {
   host: string;
@@ -26,6 +27,7 @@ interface MinioConfig {
 export default function SettingsPage() {
   const { t } = useTranslation();
   const { appName, setAppName, refreshAppName } = useAppName();
+  const { setDateFormat } = useDateFormat();
   const [activeTab, setActiveTab] = useState<'general' | 'mail' | 'document' | 'billing'>('general');
   const [config, setConfig] = useState<MailServerConfig>({
     host: '',
@@ -52,6 +54,7 @@ export default function SettingsPage() {
   const [runningBillingJob, setRunningBillingJob] = useState(false);
   const [superAdminSubdomain, setSuperAdminSubdomain] = useState('admin');
   const [superAdminSubdomainError, setSuperAdminSubdomainError] = useState('');
+  const [dateFormatInput, setDateFormatInput] = useState(DEFAULT_DATE_FORMAT);
 
   useEffect(() => {
     fetchMailServerConfig();
@@ -60,6 +63,7 @@ export default function SettingsPage() {
     fetchMinioConfig();
     fetchBillingSchedulerConfig();
     fetchSuperAdminSubdomain();
+    fetchDateFormat();
   }, []);
 
   useEffect(() => {
@@ -194,6 +198,18 @@ export default function SettingsPage() {
     }
   };
 
+  const fetchDateFormat = async () => {
+    try {
+      const response = await fetch('/api/configurations/DATE_FORMAT');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.value) setDateFormatInput(data.value);
+      }
+    } catch (error) {
+      console.error('Failed to fetch date format:', error);
+    }
+  };
+
   const handleSaveSuperAdminSubdomain = async () => {
     setSuperAdminSubdomainError('');
     if (!/^[a-z0-9-]+$/.test(superAdminSubdomain)) {
@@ -239,8 +255,16 @@ export default function SettingsPage() {
         body: JSON.stringify({ name: 'APP_BASE_URL', value: appBaseUrlInput }),
       });
 
+      // Save date format
+      await fetch('/api/configurations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'DATE_FORMAT', value: dateFormatInput }),
+      });
+
       if (response.ok) {
         setAppName(appNameInput);
+        setDateFormat(dateFormatInput);
         setMessage(t('settings.config_saved_success'));
       } else {
         setMessage(t('settings.config_saved_error'));
@@ -471,6 +495,27 @@ export default function SettingsPage() {
                 placeholder="http://localhost:3000"
               />
               <p className="mt-1 text-sm text-gray-500">{t('settings.app_base_url_description')}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.date_format')}
+              </label>
+              <div className="flex gap-3">
+                <select
+                  value={DATE_FORMAT_PRESETS.some(p => p.value === dateFormatInput) ? dateFormatInput : '__custom__'}
+                  onChange={(e) => { if (e.target.value !== '__custom__') setDateFormatInput(e.target.value); }}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                >
+                  {DATE_FORMAT_PRESETS.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label} ({p.value})</option>
+                  ))}
+                  {!DATE_FORMAT_PRESETS.some(p => p.value === dateFormatInput) && (
+                    <option value="__custom__">{dateFormatInput} (custom)</option>
+                  )}
+                </select>
+              </div>
+              <p className="mt-1 text-sm text-gray-500">{t('settings.date_format_description')}</p>
             </div>
 
             <div>

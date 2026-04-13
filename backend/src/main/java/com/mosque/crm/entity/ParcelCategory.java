@@ -28,7 +28,7 @@ import jakarta.persistence.TableGenerator;
 public class ParcelCategory implements OrganizationAware {
 
     @Id
-    @TableGenerator(name = "parcel_categories_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
+    @TableGenerator(name = "parcel_categories_seq", table = "sequences_", pkColumnName = "PK_NAME", pkColumnValue = "parcel_categories_seq", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "parcel_categories_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;

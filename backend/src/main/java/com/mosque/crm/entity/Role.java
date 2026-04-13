@@ -22,7 +22,7 @@ import jakarta.persistence.TableGenerator;
 public class Role {
 
     @Id
-    @TableGenerator(name = "roles_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
+    @TableGenerator(name = "roles_seq", table = "sequences_", pkColumnName = "PK_NAME", pkColumnValue = "roles_seq", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "roles_seq", strategy = GenerationType.TABLE)
     private Long id;
 

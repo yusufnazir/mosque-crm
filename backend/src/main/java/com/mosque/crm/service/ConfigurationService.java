@@ -143,4 +143,12 @@ public class ConfigurationService {
     public String getAppBaseUrl() {
         return getValue("APP_BASE_URL").orElse("http://localhost:3000");
     }
+
+    public String getFrontendBaseDomain() {
+        return getValue("APP_FRONTEND_BASE_DOMAIN").orElse("lvh.me:3002");
+    }
+
+    public String getFrontendProtocol() {
+        return getValue("APP_FRONTEND_PROTOCOL").orElse("http");
+    }
 }

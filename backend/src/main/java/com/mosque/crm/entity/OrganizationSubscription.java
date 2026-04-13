@@ -33,7 +33,7 @@ public class OrganizationSubscription implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "organization_subscriptions_seq", table = "sequences_",
-            pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE",
+            pkColumnName = "PK_NAME", pkColumnValue = "organization_subscriptions_seq", valueColumnName = "PK_VALUE",
             initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "organization_subscriptions_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)

@@ -16,6 +16,7 @@ import {
   SubscriptionInvoiceDTO,
   RecordSubscriptionPaymentRequest,
 } from '@/lib/api';
+import { useDateFormat } from '@/lib/DateFormatContext';
 
 // ─── Shared helpers ──────────────────────────────────────────────────────────
 
@@ -54,11 +55,6 @@ function invoiceStatusBadge(status: string) {
   return s
     ? <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${s.cls}`}>{s.label}</span>
     : <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">{status}</span>;
-}
-
-function formatDate(d: string | null | undefined) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function formatAmount(amount: number, currency: string) {
@@ -566,20 +562,22 @@ function SubscriptionSection() {
                         : `$${subscription.plan.monthlyPrice}/mo`}
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">{t('subscription.billing_enabled')}</p>
-                  {subscription.billingEnabled === false ? (
-                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-                      {t('subscription.no_billing')}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                      {t('subscription.billing_enabled')}
-                    </span>
-                  )}
-                </div>
+                {isSuperAdmin && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-500 mb-1">{t('subscription.billing_enabled')}</p>
+                    {subscription.billingEnabled === false ? (
+                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                        {t('subscription.no_billing')}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        {t('subscription.billing_enabled')}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div className="bg-gray-50 rounded-lg p-3">
                   <p className="text-xs text-gray-500 mb-1">{t('subscription.starts_at')}</p>
                   <p className="font-semibold text-gray-800">{new Date(subscription.startsAt).toLocaleDateString()}</p>
@@ -911,6 +909,7 @@ function SubscriptionSection() {
 function InvoicesSection() {
   const { t } = useTranslation();
   const { isSuperAdmin, can } = useAuth();
+  const { formatDate } = useDateFormat();
 
   const [invoices, setInvoices] = useState<SubscriptionInvoiceDTO[]>([]);
   const [loading, setLoading] = useState(true);

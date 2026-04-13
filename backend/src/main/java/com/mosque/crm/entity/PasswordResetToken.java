@@ -19,7 +19,7 @@ import jakarta.persistence.TableGenerator;
 public class PasswordResetToken {
 
     @Id
-    @TableGenerator(name = "password_reset_tokens_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
+    @TableGenerator(name = "password_reset_tokens_seq", table = "sequences_", pkColumnName = "PK_NAME", pkColumnValue = "password_reset_tokens_seq", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "password_reset_tokens_seq", strategy = GenerationType.TABLE)
     private Long id;
 

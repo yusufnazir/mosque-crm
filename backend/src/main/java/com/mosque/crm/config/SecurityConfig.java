@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -42,6 +43,16 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints (login, password reset)
                 .requestMatchers("/auth/**").permitAll()
+                // WebSocket endpoint (STOMP-level auth via StompAuthChannelInterceptor)
+                .requestMatchers("/ws/**").permitAll()
+                // Public membership terms for signup pages
+                .requestMatchers(HttpMethod.GET, "/membership-terms/public/*/current").permitAll()
+                // Public membership application and registration completion
+                .requestMatchers("/join-requests/apply", "/join-requests/validate-token", "/join-requests/complete-registration").permitAll()
+                // Public country reference list for registration form
+                .requestMatchers("/countries/**").permitAll()
+                // Read-only display configurations (APP_NAME, DATE_FORMAT) needed on the login page
+                .requestMatchers(HttpMethod.GET, "/configurations/{key}").permitAll()
                 // Current-user context endpoint (any authenticated user)
                 .requestMatchers("/me/**").authenticated()
                 // All other endpoints require authentication;

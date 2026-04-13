@@ -6,7 +6,8 @@ import ChangePasswordModal from '@/components/ChangePasswordModal';
 import { authApi, portalApi, profileImageApi } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { Member } from '@/types';
-import { formatDate, getStatusColor } from '@/lib/utils';
+import { getStatusColor } from '@/lib/utils';
+import { useDateFormat } from '@/lib/DateFormatContext';
 
 interface UserProfile {
   id: number;
@@ -18,6 +19,7 @@ interface UserProfile {
 
 export default function AccountPage() {
   const { t } = useTranslation();
+  const { formatDate } = useDateFormat();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [memberProfile, setMemberProfile] = useState<Member | null>(null);
   const [email, setEmail] = useState('');

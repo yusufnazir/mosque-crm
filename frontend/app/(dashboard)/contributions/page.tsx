@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter, useParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import Card from '@/components/Card';
 import {
@@ -27,6 +28,7 @@ import {
   paymentDocumentApi,
 } from '@/lib/contributionApi';
 import { currencyApi, OrganizationCurrencyDTO } from '@/lib/currencyApi';
+import { useDateFormat } from '@/lib/DateFormatContext';
 import { memberApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth/AuthContext';
 import ToastNotification from '@/components/ToastNotification';
@@ -38,7 +40,11 @@ type Tab = 'types' | 'obligations' | 'payments' | 'exemptions' | 'assignments';
 export default function ContributionsPage() {
   const { t, language: locale } = useTranslation();
   const { can, isSuperAdmin, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<Tab>('types');
+  const { formatDate } = useDateFormat();
+  const router = useRouter();
+  const params = useParams();
+  const validTabs: Tab[] = ['types', 'obligations', 'payments', 'exemptions', 'assignments'];
+  const activeTab: Tab = validTabs.includes(params.tab as Tab) ? (params.tab as Tab) : 'types';
 
   const canViewTypes = isSuperAdmin || can('contribution.view_types') || can('contribution.manage_types') || can('contribution.manage');
   const canManageTypes = isSuperAdmin || can('contribution.manage_types') || can('contribution.manage');
@@ -492,15 +498,6 @@ export default function ContributionsPage() {
     }).format(amount);
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '-';
-    // Handle ISO format (2026-02-28T10:30:00Z) or date-only format (2026-02-28)
-    const datePart = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
-    const [year, month, day] = datePart.split('-').map(Number);
-    if (!year || !month || !day) return '-';
-    return new Date(year, month - 1, day).toLocaleDateString(locale === 'nl' ? 'nl-NL' : 'en-US');
-  };
-
   // Local date helper — avoids timezone issues with toISOString() returning UTC date
   const localToday = () => {
     const now = new Date();
@@ -517,11 +514,15 @@ export default function ContributionsPage() {
   ];
 
   useEffect(() => {
+    if (!params.tab) {
+      router.replace('/contributions/types');
+      return;
+    }
     if (tabs.length === 0) return;
     if (!tabs.some(tab => tab.key === activeTab)) {
-      setActiveTab(tabs[0].key);
+      router.replace(`/contributions/${tabs[0].key}`);
     }
-  }, [activeTab, tabs]);
+  }, [activeTab, tabs, router, params.tab]);
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -577,7 +578,9 @@ export default function ContributionsPage() {
           {tabs.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => {
+                router.push(`/contributions/${tab.key}`);
+              }}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? 'border-emerald-600 text-emerald-700'

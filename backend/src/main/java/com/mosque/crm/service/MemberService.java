@@ -188,7 +188,8 @@ public class MemberService {
                         }
                         roleSet.add(role);
                     }
-                    user.setRoles(roleSet);
+                    user.getRoles().clear();
+                    user.getRoles().addAll(roleSet);
                     userRepository.save(user);
 
                     // Create or update UserMemberLink (robust pattern)

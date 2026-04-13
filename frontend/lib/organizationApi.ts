@@ -11,6 +11,7 @@ export interface Organization {
   phone?: string;
   email?: string;
   website?: string;
+  handle?: string;
   active: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -22,4 +23,8 @@ export const organizationApi = {
   getById: (id: number) => ApiClient.get<Organization>(`/organizations/${id}`),
   create: (organization: Partial<Organization>) => ApiClient.post<Organization>('/organizations', organization),
   update: (id: number, organization: Partial<Organization>) => ApiClient.put<Organization>(`/organizations/${id}`, organization),
+  checkHandle: (handle: string, excludeId?: number) =>
+    ApiClient.get<{ available: boolean }>(`/organizations/check-handle?handle=${encodeURIComponent(handle)}${excludeId !== undefined ? `&excludeId=${excludeId}` : ''}`),
+  getMyOrganization: () => ApiClient.get<Organization>('/organizations/my'),
+  updateMyHandle: (handle: string) => ApiClient.put<Organization>('/organizations/my/handle', { handle }),
 };

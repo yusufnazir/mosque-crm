@@ -38,7 +38,7 @@ import jakarta.persistence.TableGenerator;
 public class GedcomPersonLink implements OrganizationAware {
 
     @Id
-    @TableGenerator(name = "gedcom_person_links_seq", table = "sequences_", pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
+    @TableGenerator(name = "gedcom_person_links_seq", table = "sequences_", pkColumnName = "PK_NAME", pkColumnValue = "gedcom_person_links_seq", valueColumnName = "PK_VALUE", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "gedcom_person_links_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;

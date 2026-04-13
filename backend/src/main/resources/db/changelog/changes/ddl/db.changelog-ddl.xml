@@ -86,6 +86,20 @@
     <include file="db/changelog/changes/ddl/110-add-payment-group-id-column.xml"/>
     <include file="db/changelog/changes/ddl/111-create-payment-documents-table.xml"/>
 
+    <!-- ======================== MEMBER JOIN REQUESTS ======================== -->
+    <include file="db/changelog/changes/ddl/112-create-join-requests.xml"/>
+
+    <!-- ======================== MESSAGING ======================== -->
+    <include file="db/changelog/changes/ddl/113-create-messages.xml"/>
+
+    <!-- ======================== REFERENCE DATA ======================== -->
+    <include file="db/changelog/changes/ddl/114-create-countries-table.xml"/>
+    <include file="db/changelog/changes/ddl/115-create-country-translations-table.xml"/>
+    <include file="db/changelog/changes/ddl/116-add-unique-join-request-email-per-tenant.xml"/>
+    <include file="db/changelog/changes/ddl/117-create-membership-terms-versions-table.xml"/>
+    <include file="db/changelog/changes/ddl/118-add-terms-columns-to-join-requests.xml"/>
+    <include file="db/changelog/changes/ddl/119-add-dutch-columns-to-membership-terms-versions.xml"/>
+
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>
 

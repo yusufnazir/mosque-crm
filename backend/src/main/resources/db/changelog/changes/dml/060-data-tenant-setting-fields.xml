@@ -150,4 +150,49 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ═══════════ GENERAL SETTINGS (continued) ═══════════ -->
+	<changeSet id="c5d6e7f8-0060-4tsf-cc15-tsf-seed-015" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataTenantSettingField">
+			<param name="id"><![CDATA[15]]></param>
+			<param name="fieldKey"><![CDATA[DATE_FORMAT]]></param>
+			<param name="label"><![CDATA[Date Format]]></param>
+			<param name="category"><![CDATA[general]]></param>
+			<param name="tenantEditable"><![CDATA[true]]></param>
+			<param name="displayOrder"><![CDATA[3]]></param>
+		</customChange>
+	</changeSet>
+
+	<changeSet id="d6e7f8g9-0060-4tsf-dd16-tsf-seed-016" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataTenantSettingField">
+			<param name="id"><![CDATA[16]]></param>
+			<param name="fieldKey"><![CDATA[BANK_ACCOUNT_NAME]]></param>
+			<param name="label"><![CDATA[Bank Account Name]]></param>
+			<param name="category"><![CDATA[general]]></param>
+			<param name="tenantEditable"><![CDATA[true]]></param>
+			<param name="displayOrder"><![CDATA[4]]></param>
+		</customChange>
+	</changeSet>
+
+	<changeSet id="e7f8g9h0-0060-4tsf-ee17-tsf-seed-017" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataTenantSettingField">
+			<param name="id"><![CDATA[17]]></param>
+			<param name="fieldKey"><![CDATA[BANK_ACCOUNT_1]]></param>
+			<param name="label"><![CDATA[Primary Bank Account]]></param>
+			<param name="category"><![CDATA[general]]></param>
+			<param name="tenantEditable"><![CDATA[true]]></param>
+			<param name="displayOrder"><![CDATA[5]]></param>
+		</customChange>
+	</changeSet>
+
+	<changeSet id="f8g9h0i1-0060-4tsf-ff18-tsf-seed-018" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataTenantSettingField">
+			<param name="id"><![CDATA[18]]></param>
+			<param name="fieldKey"><![CDATA[BANK_ACCOUNT_2]]></param>
+			<param name="label"><![CDATA[Secondary Bank Account]]></param>
+			<param name="category"><![CDATA[general]]></param>
+			<param name="tenantEditable"><![CDATA[true]]></param>
+			<param name="displayOrder"><![CDATA[6]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000005-0116-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN" onError="MARK_RAN">
+            <not>
+                <indexExists indexName="uk_join_requests_org_email" tableName="join_requests"/>
+            </not>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM (
+                    SELECT organization_id, LOWER(email), COUNT(*) AS c
+                    FROM join_requests
+                    WHERE email IS NOT NULL
+                    GROUP BY organization_id, LOWER(email)
+                    HAVING COUNT(*) > 1
+                ) d
+            </sqlCheck>
+        </preConditions>
+        <comment>Enforce one registration request per email per tenant</comment>
+        <createIndex tableName="join_requests" indexName="uk_join_requests_org_email" unique="true">
+            <column name="organization_id"/>
+            <column name="email"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

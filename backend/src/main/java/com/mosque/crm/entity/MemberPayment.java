@@ -38,7 +38,7 @@ public class MemberPayment implements OrganizationAware {
 
     @Id
     @TableGenerator(name = "member_payments_seq", table = "sequences_",
-            pkColumnName = "PK_NAME", valueColumnName = "PK_VALUE",
+            pkColumnName = "PK_NAME", pkColumnValue = "member_payments_seq", valueColumnName = "PK_VALUE",
             initialValue = 1000, allocationSize = 1)
     @GeneratedValue(generator = "member_payments_seq", strategy = GenerationType.TABLE)
     @Column(name = "id", updatable = false, nullable = false)

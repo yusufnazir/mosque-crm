@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/Button';
 import LanguageSelector from '@/components/LanguageSelector';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
-import { useAuth } from '@/lib/auth/AuthContext';
+import { useAuth, buildTenantUrl } from '@/lib/auth/AuthContext';
 import { useAppName } from '@/lib/AppNameContext';
 
 /** Convert a display name to a URL-safe slug */
@@ -91,7 +91,13 @@ export default function RegisterPage() {
 
       // Registration successful — JWT cookie is set by BFF
       await refreshAuth();
-      router.push('/dashboard');
+      // Use hard navigation to avoid RSC cross-subdomain CORS errors
+      const tenantUrl = buildTenantUrl(handle, '/dashboard');
+      if (tenantUrl !== '/dashboard') {
+        window.location.href = tenantUrl;
+      } else {
+        router.push('/dashboard');
+      }
     } catch {
       setError(t('register.errors.registration_failed'));
     } finally {

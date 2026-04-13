@@ -33,8 +33,14 @@
     <!-- Role template assignable roles (governance/delegation) -->
     <include file="db/changelog/changes/dml/041-data-role-assignable-roles.xml"/>
 
+    <!-- Countries reference data with EN/NL translations -->
+    <include file="db/changelog/changes/dml/042-data-countries.xml"/>
+
     <!-- Tenant Setting Fields seed data -->
     <include file="db/changelog/changes/dml/060-data-tenant-setting-fields.xml"/>
+
+    <!-- Default global configuration values -->
+    <include file="db/changelog/changes/dml/061-data-configurations.xml"/>
 
     <!-- Production Data Migration (runs after all seed data) -->
     <include file="db/changelog/changes/dml/200-prod-data-migration.xml"/>
