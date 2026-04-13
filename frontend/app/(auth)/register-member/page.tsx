@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
+import DateInput from '@/components/DateInput';
 import TermsContentRenderer from '@/components/TermsContentRenderer';
 import { joinRequestApi, JoinRequestCreateDTO } from '@/lib/joinRequestApi';
 import { membershipTermsApi, MembershipTermsVersionDTO } from '@/lib/membershipTermsApi';
@@ -246,13 +247,11 @@ function RegisterMemberContent() {
                 <label className="block text-sm font-medium text-charcoal mb-1">
                   {t('register_member.date_of_birth')} <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   name="dateOfBirth"
                   value={form.dateOfBirth}
-                  onChange={handleChange}
+                  onChange={(iso) => setForm(prev => ({ ...prev, dateOfBirth: iso }))}
                   required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 />
               </div>
               <div>
