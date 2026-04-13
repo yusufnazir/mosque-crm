@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html style="color-scheme: light;">
 <head>
     <meta charset="UTF-8">
