@@ -33,6 +33,7 @@ const SEGMENT_TO_KEY: Record<string, string> = {
   persons: 'sidebar.members',
   'member-requests': 'sidebar.member_requests',
   inbox: 'sidebar.inbox',
+  distribution: 'sidebar.events',
 };
 
 /** Sub-path labels for deeper routes */

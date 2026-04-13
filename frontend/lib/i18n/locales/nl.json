@@ -1143,8 +1143,8 @@
     "user_limit_reached": "U heeft het maximale aantal beheerders ({{limit}}) bereikt dat is toegestaan in uw huidige abonnement."
   },
   "distribution": {
-    "title": "Eid ul-Adha Verdeling",
-    "subtitle": "Beheer de verdeling van vleespakketten voor Eid ul-Adha",
+    "title": "Evenementen",
+    "subtitle": "Maak en beheer evenementen voor uw organisatie",
     "events": "Evenementen",
     "create_event": "Nieuw Evenement",
     "edit_event": "Evenement Bewerken",
@@ -1179,8 +1179,8 @@
     "status_closed": "Gesloten",
     "activate_event": "Activeren",
     "close_event": "Sluiten",
-    "no_events": "Geen verdelingsgebeurtenissen gevonden",
-    "no_events_description": "Maak uw eerste Eid ul-Adha verdelingsgebeurtenis om te beginnen.",
+    "no_events": "Geen evenementen gevonden",
+    "no_events_description": "Maak uw eerste evenement aan om te beginnen.",
     "create_event_success": "Verdelingsevenement aangemaakt",
     "create_event_error": "Verdelingsevenement aanmaken mislukt",
     "update_event_success": "Verdelingsevenement bijgewerkt",

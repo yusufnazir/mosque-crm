@@ -1147,8 +1147,8 @@
     "user_limit_reached": "You have reached the maximum number of admin users ({{limit}}) allowed on your current plan."
   },
   "distribution": {
-    "title": "Eid ul-Adha Distribution",
-    "subtitle": "Manage meat parcel distribution for Eid ul-Adha",
+    "title": "Events",
+    "subtitle": "Create and manage events for your organization",
     "events": "Events",
     "create_event": "New Event",
     "edit_event": "Edit Event",
@@ -1183,8 +1183,8 @@
     "status_closed": "Closed",
     "activate_event": "Activate",
     "close_event": "Close",
-    "no_events": "No distribution events found",
-    "no_events_description": "Create your first Eid ul-Adha distribution event to get started.",
+    "no_events": "No events found",
+    "no_events_description": "Create your first event to get started.",
     "create_event_success": "Distribution event created successfully",
     "create_event_error": "Failed to create distribution event",
     "update_event_success": "Distribution event updated successfully",
