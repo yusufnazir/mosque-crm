@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mosque.crm.dto.PermissionDTO;
 import com.mosque.crm.dto.RoleCreateRequest;
+import com.mosque.crm.subscription.FeatureKeys;
+import com.mosque.crm.subscription.PlanFeatureRequired;
 import com.mosque.crm.dto.RoleDTO;
 import com.mosque.crm.dto.RolePermissionUpdateRequest;
 import com.mosque.crm.entity.Permission;
@@ -130,6 +132,7 @@ public class RoleManagementController {
      * Only the "superadmin" category is hidden from non-super-admins.
      */
     @GetMapping("/permissions")
+    @PlanFeatureRequired(FeatureKeys.ROLES_PERMISSIONS)
     @PreAuthorize("@auth.hasAnyPermission('user.manage', 'role.view', 'privilege.view')")
     public ResponseEntity<List<PermissionDTO>> getAllPermissions() {
         List<Permission> permissions = permissionRepository.findAll();
@@ -147,6 +150,7 @@ public class RoleManagementController {
      * Only permissions that are in the role's assignable pool are allowed.
      */
     @PutMapping("/{id}/permissions")
+    @PlanFeatureRequired(FeatureKeys.ROLES_PERMISSIONS)
     @PreAuthorize("@auth.hasAnyPermission('role.manage', 'privilege.manage')")
     public ResponseEntity<RoleDTO> updateRolePermissions(
             @PathVariable Long id,
@@ -211,6 +215,7 @@ public class RoleManagementController {
      * When a permission is removed from the pool, it is also removed from the granted set.
      */
     @PutMapping("/{id}/assignable-permissions")
+    @PlanFeatureRequired(FeatureKeys.ROLES_PERMISSIONS)
     @PreAuthorize("@auth.hasPermission('privilege.manage')")
     public ResponseEntity<RoleDTO> updateRoleAssignablePermissions(
             @PathVariable Long id,
@@ -282,6 +287,7 @@ public class RoleManagementController {
      * The pool is derived from the union of all non-SUPER_ADMIN roles' assignable permissions.
      */
     @GetMapping("/pool")
+    @PlanFeatureRequired(FeatureKeys.ROLES_PERMISSIONS)
     @PreAuthorize("@auth.hasPermission('privilege.view')")
     public ResponseEntity<List<String>> getPermissionPool() {
         List<Role> roles = getManageableRolesForPool();
@@ -304,6 +310,7 @@ public class RoleManagementController {
      * When a permission is removed from the pool, it is also removed from each role's granted permissions.
      */
     @PutMapping("/pool")
+    @PlanFeatureRequired(FeatureKeys.ROLES_PERMISSIONS)
     @PreAuthorize("@auth.hasPermission('privilege.manage')")
     public ResponseEntity<List<String>> updatePermissionPool(
             @Valid @RequestBody RolePermissionUpdateRequest request) {
@@ -365,6 +372,7 @@ public class RoleManagementController {
      * Its granted permissions start empty.
      */
     @PostMapping
+    @PlanFeatureRequired(FeatureKeys.ROLES_PERMISSIONS)
     @PreAuthorize("@auth.hasPermission('role.manage')")
     public ResponseEntity<?> createRole(@Valid @RequestBody RoleCreateRequest request) {
         String name = request.getName().trim().toUpperCase().replace(' ', '_');
@@ -406,6 +414,7 @@ public class RoleManagementController {
      * Update a role's name and/or description.
      */
     @PutMapping("/{id}")
+    @PlanFeatureRequired(FeatureKeys.ROLES_PERMISSIONS)
     @PreAuthorize("@auth.hasPermission('role.manage')")
     public ResponseEntity<?> updateRole(
             @PathVariable Long id,
@@ -464,6 +473,7 @@ public class RoleManagementController {
      * SUPER_ADMIN role cannot be deleted.
      */
     @DeleteMapping("/{id}")
+    @PlanFeatureRequired(FeatureKeys.ROLES_PERMISSIONS)
     @PreAuthorize("@auth.hasPermission('role.manage')")
     public ResponseEntity<?> deleteRole(@PathVariable Long id) {
         Role role = roleRepository.findById(id).orElse(null);

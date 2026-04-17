@@ -7,10 +7,13 @@ import { isPlanRestriction } from '@/lib/api';
 import { familyApi } from '@/lib/familyApi';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useSubscription } from '@/lib/subscription/SubscriptionContext';
+import RecentCommunicationsCard from '@/components/RecentCommunicationsCard';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
   const { can } = useAuth();
+  const { hasFeature } = useSubscription();
   const [stats, setStats] = useState({
     totalFamilies: 0,
     activeMembers: 0,
@@ -109,6 +112,13 @@ export default function DashboardPage() {
 
       {/* Dashboard Charts */}
       <DashboardCharts />
+
+      {/* Recent Communications Card — only visible when feature is enabled and user has permission */}
+      {hasFeature('communication.tools') && can('communication.view') && (
+        <div className="mt-6">
+          <RecentCommunicationsCard />
+        </div>
+      )}
 
       {/* Quick Actions - Only show if user has any permissions */}
       {(can('member.create') || can('member.view')) && (

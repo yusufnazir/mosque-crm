@@ -37,8 +37,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [blocked, setBlocked] = useState(false);
 
   const fetchSubscription = useCallback(async () => {
-    // Super admins and unauthenticated users skip subscription checks
-    if (!user || isSuperAdmin) {
+    // Unauthenticated users skip subscription checks
+    if (!user) {
       setSubscription(null);
       setLoading(false);
       return;
@@ -67,6 +67,25 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     window.addEventListener(SUBSCRIPTION_INACTIVE_EVENT, handler);
     return () => window.removeEventListener(SUBSCRIPTION_INACTIVE_EVENT, handler);
   }, []);
+
+  // Re-fetch subscription when tab becomes visible (catches plan changes made elsewhere)
+  useEffect(() => {
+    if (!user) return;
+    const handler = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSubscription();
+      }
+    };
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, [user, fetchSubscription]);
+
+  // Periodic refresh every 5 minutes to stay in sync with backend plan changes
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(() => fetchSubscription(), 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [user, fetchSubscription]);
 
   const status: SubscriptionStatus = useMemo(() => {
     if (loading) return 'loading';
@@ -108,7 +127,6 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   const getLimit = useCallback(
     (featureKey: string): number | null | undefined => {
-      if (isSuperAdmin) return null; // unlimited
       if (!subscription) return null;
       const entitlement = entitlementMap.get(featureKey);
       if (!entitlement) return undefined;

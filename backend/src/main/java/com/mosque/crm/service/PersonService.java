@@ -22,6 +22,7 @@ import com.mosque.crm.dto.PageResponse;
 import com.mosque.crm.dto.PersonCreateDTO;
 import com.mosque.crm.dto.PersonDTO;
 import com.mosque.crm.dto.PersonUpdateDTO;
+import com.mosque.crm.dto.MemberFilterCriteria;
 import com.mosque.crm.entity.GedcomPersonLink;
 import com.mosque.crm.entity.Membership;
 import com.mosque.crm.entity.Person;
@@ -32,6 +33,7 @@ import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.GedcomPersonLinkRepository;
 import com.mosque.crm.repository.MembershipRepository;
 import com.mosque.crm.repository.PersonRepository;
+import com.mosque.crm.repository.PersonSpecifications;
 import com.mosque.crm.subscription.FeatureKeys;
 import com.mosque.crm.subscription.PlanLimitExceededException;
 
@@ -139,13 +141,42 @@ public class PersonService {
      */
     @Transactional(readOnly = true)
     public PageResponse<PersonDTO> getPersonsPaged(int page, int size, String search, String sortBy, String direction) {
+        return getPersonsPaged(page, size, search, sortBy, direction, null);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<PersonDTO> getPersonsPaged(int page, int size, String search, String sortBy, String direction, MemberFilterCriteria criteria) {
         // Build sort
         Sort sort = buildSort(sortBy, direction);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Step 1: Get paged IDs with search filter
+        // Step 1: Get paged persons — use Specification when filter criteria is present
         String searchTerm = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
-        Page<Person> pagedResult = personRepository.findPagedWithSearch(searchTerm, pageable);
+        Page<Person> pagedResult;
+
+        boolean hasCriteria = criteria != null && !criteria.isEmpty();
+        if (hasCriteria || searchTerm != null) {
+            org.springframework.data.jpa.domain.Specification<Person> spec =
+                    org.springframework.data.jpa.domain.Specification.where(null);
+            // Text search predicate
+            if (searchTerm != null) {
+                final String term = searchTerm;
+                spec = spec.and((root, q, cb) -> {
+                    String pattern = "%" + term.toLowerCase() + "%";
+                    return cb.or(
+                            cb.like(cb.lower(root.get("firstName")), pattern),
+                            cb.like(cb.lower(root.get("lastName")), pattern),
+                            cb.like(cb.lower(root.get("email")), pattern));
+                });
+            }
+            // Structured filter
+            if (hasCriteria) {
+                spec = spec.and(PersonSpecifications.fromCriteria(criteria));
+            }
+            pagedResult = personRepository.findAll(spec, pageable);
+        } else {
+            pagedResult = personRepository.findPagedWithSearch(null, pageable);
+        }
 
         if (pagedResult.isEmpty()) {
             return new PageResponse<>(List.of(), page, size, pagedResult.getTotalElements());

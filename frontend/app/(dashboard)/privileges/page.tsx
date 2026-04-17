@@ -32,14 +32,16 @@ export default function PrivilegesPage() {
         ApiClient.get<PermissionDTO[]>('/admin/roles/permissions'),
         ApiClient.get<string[]>('/admin/roles/pool'),
       ]);
-      setPermissions(permsData);
+      const perms = Array.isArray(permsData) ? permsData : [];
+      const pool = Array.isArray(poolData) ? poolData : [];
+      setPermissions(perms);
 
-      const pool = new Set(poolData);
-      setPoolCodes(pool);
-      setOriginalPoolCodes(new Set(pool));
+      const poolSet = new Set(pool);
+      setPoolCodes(poolSet);
+      setOriginalPoolCodes(new Set(poolSet));
 
       // Expand all categories by default
-      const cats = new Set(permsData.map((p) => p.category));
+      const cats = new Set(perms.map((p) => p.category));
       setExpandedCategories(cats);
     } catch (error) {
       console.error('Failed to fetch privileges data:', error);

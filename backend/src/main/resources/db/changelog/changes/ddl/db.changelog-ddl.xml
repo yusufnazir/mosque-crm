@@ -61,16 +61,28 @@
     <include file="db/changelog/changes/ddl/073-create-group-role-translations-table.xml"/>
     <include file="db/changelog/changes/ddl/074-create-group-members-table.xml"/>
 
-    <!-- ======================== DISTRIBUTION ======================== -->
+    <!-- ======================== DISTRIBUTION (legacy tables - kept for manual cleanup) ======================== -->
     <include file="db/changelog/changes/ddl/080-create-distribution-events-table.xml"/>
     <include file="db/changelog/changes/ddl/081-create-parcel-categories-table.xml"/>
     <include file="db/changelog/changes/ddl/082-create-non-member-recipients-table.xml"/>
     <include file="db/changelog/changes/ddl/083-create-member-distribution-registrations-table.xml"/>
     <include file="db/changelog/changes/ddl/084-create-parcel-distributions-table.xml"/>
 
+    <!-- ======================== EVENTS ======================== -->
+    <include file="db/changelog/changes/ddl/085-create-org-events-table.xml"/>
+    <include file="db/changelog/changes/ddl/086-create-org-event-categories-table.xml"/>
+    <include file="db/changelog/changes/ddl/087-create-org-event-recipients-table.xml"/>
+    <include file="db/changelog/changes/ddl/088-create-org-event-registrations-table.xml"/>
+    <include file="db/changelog/changes/ddl/089-create-org-event-distributions-table.xml"/>
+
     <!-- ======================== SETTINGS ======================== -->
     <include file="db/changelog/changes/ddl/090-create-configurations-table.xml"/>
     <include file="db/changelog/changes/ddl/091-create-tenant-setting-fields-table.xml"/>
+
+    <!-- ======================== COMMUNICATIONS ======================== -->
+    <include file="db/changelog/changes/ddl/092-create-communication-messages-table.xml"/>
+    <include file="db/changelog/changes/ddl/093-create-communication-templates-table.xml"/>
+    <include file="db/changelog/changes/ddl/094-create-saved-member-filters-table.xml"/>
 
     <!-- ======================== SUBSCRIPTION ======================== -->
     <include file="db/changelog/changes/ddl/100-create-subscription-plans-table.xml"/>
@@ -100,6 +112,29 @@
     <include file="db/changelog/changes/ddl/118-add-terms-columns-to-join-requests.xml"/>
     <include file="db/changelog/changes/ddl/119-add-dutch-columns-to-membership-terms-versions.xml"/>
     <include file="db/changelog/changes/ddl/128-fix-gedcom-citations-event-column.xml"/>
+
+    <!-- ======================== GENERAL EVENTS ======================== -->
+    <include file="db/changelog/changes/ddl/130-create-org-general-events-table.xml"/>
+    <include file="db/changelog/changes/ddl/131-create-org-general-event-registrations-table.xml"/>
+    <include file="db/changelog/changes/ddl/132-create-org-general-event-volunteers-table.xml"/>
+    <include file="db/changelog/changes/ddl/133-add-end-date-to-general-events.xml"/>
+
+    <!-- ======================== FEATURE CATALOGUE ======================== -->
+    <include file="db/changelog/changes/ddl/134-create-feature-definitions-table.xml"/>
+    <include file="db/changelog/changes/ddl/134-create-org-general-event-sessions-table.xml"/>
+    <include file="db/changelog/changes/ddl/135-create-org-general-event-attendance-table.xml"/>
+    <include file="db/changelog/changes/ddl/136-create-org-general-event-documents-table.xml"/>
+    <include file="db/changelog/changes/ddl/137-widen-time-columns.xml"/>
+
+    <!-- ======================== DOCUMENT MANAGEMENT ======================== -->
+    <include file="db/changelog/changes/ddl/150-create-org-document-folders-table.xml"/>
+    <include file="db/changelog/changes/ddl/151-create-org-documents-table.xml"/>
+    <include file="db/changelog/changes/ddl/152-create-org-document-shares-table.xml"/>
+    <include file="db/changelog/changes/ddl/153-create-org-document-versions-table.xml"/>
+    <include file="db/changelog/changes/ddl/154-create-org-document-comments-table.xml"/>
+    <include file="db/changelog/changes/ddl/155-create-org-document-links-table.xml"/>
+    <include file="db/changelog/changes/ddl/156-create-org-document-quotas-table.xml"/>
+    <include file="db/changelog/changes/ddl/157-create-org-document-audit-events-table.xml"/>
 
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>

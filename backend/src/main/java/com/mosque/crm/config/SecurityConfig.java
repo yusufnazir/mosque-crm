@@ -53,6 +53,8 @@ public class SecurityConfig {
                 .requestMatchers("/countries/**").permitAll()
                 // Read-only display configurations (APP_NAME, DATE_FORMAT) needed on the login page
                 .requestMatchers(HttpMethod.GET, "/configurations/{key}").permitAll()
+                // Public subscription plan catalog (used by marketing site)
+                .requestMatchers(HttpMethod.GET, "/subscription/plans", "/subscription/plans/*", "/subscription/features").permitAll()
                 // Current-user context endpoint (any authenticated user)
                 .requestMatchers("/me/**").authenticated()
                 // All other endpoints require authentication;

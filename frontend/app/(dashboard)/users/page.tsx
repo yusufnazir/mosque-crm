@@ -7,6 +7,7 @@ import { ApiClient } from '@/lib/api';
 import { UserDTO, CreateUserRequest, UpdateUserRequest, userApi } from '@/lib/userApi';
 import ToastNotification from '@/components/ToastNotification';
 import { useDateFormat } from '@/lib/DateFormatContext';
+import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 
 interface RoleDTO {
   id: number;
@@ -15,9 +16,27 @@ interface RoleDTO {
   permissionCodes: string[];
 }
 
+function PlanUsageBar({ used, limit, label }: { used: number; limit: number; label: string }) {
+  const pct = Math.min((used / limit) * 100, 100);
+  const color = pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-emerald-500';
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-gray-500">{label}:</span>
+      <span className={`font-semibold ${pct >= 100 ? 'text-red-600' : pct >= 80 ? 'text-amber-600' : 'text-gray-700'}`}>
+        {used} / {limit}
+      </span>
+      <div className="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export default function UsersPage() {
   const { t } = useTranslation();
   const { formatDate } = useDateFormat();
+  const { getLimit } = useSubscription();
+  const adminUsersLimit = getLimit('admin.users.max');
 
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [roles, setRoles] = useState<RoleDTO[]>([]);
@@ -189,6 +208,11 @@ export default function UsersPage() {
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-charcoal">{t('users.title')}</h1>
         <p className="text-gray-600 mt-2">{t('users.subtitle')}</p>
+        {adminUsersLimit != null && adminUsersLimit > 0 && (
+          <div className="mt-2">
+            <PlanUsageBar used={users.length} limit={adminUsersLimit} label={t('users.plan_limit_label')} />
+          </div>
+        )}
       </div>
 
       {/* Toolbar */}
@@ -217,7 +241,9 @@ export default function UsersPage() {
         </div>
         <button
           onClick={openCreateModal}
-          className="bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-800 transition-colors flex items-center gap-2"
+          disabled={adminUsersLimit != null && adminUsersLimit > 0 && users.length >= adminUsersLimit}
+          title={adminUsersLimit != null && adminUsersLimit > 0 && users.length >= adminUsersLimit ? t('plan.user_limit_reached', { limit: String(adminUsersLimit) }) : undefined}
+          className="bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-800 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

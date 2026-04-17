@@ -1,10 +1,11 @@
 package com.mosque.crm.service;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -12,22 +13,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mosque.crm.dto.ChangeSubscriptionPlanResultDTO;
+import com.mosque.crm.dto.CreateSubscriptionPlanRequest;
+import com.mosque.crm.dto.FeatureDefinitionDTO;
+import com.mosque.crm.dto.OrganizationSubscriptionDTO;
+import com.mosque.crm.dto.PlanEntitlementDTO;
+import com.mosque.crm.dto.SubscriptionPlanDTO;
+import com.mosque.crm.dto.UpdateSubscriptionPlanRequest;
+import com.mosque.crm.entity.FeatureDefinition;
 import com.mosque.crm.entity.OrganizationSubscription;
 import com.mosque.crm.entity.PlanEntitlement;
 import com.mosque.crm.entity.SubscriptionPlan;
 import com.mosque.crm.enums.OrganizationSubscriptionStatus;
 import com.mosque.crm.enums.PlanBillingCycle;
 import com.mosque.crm.multitenancy.TenantContext;
+import com.mosque.crm.repository.FeatureDefinitionRepository;
 import com.mosque.crm.repository.OrganizationSubscriptionRepository;
 import com.mosque.crm.repository.PlanEntitlementRepository;
 import com.mosque.crm.repository.SubscriptionPlanRepository;
 import com.mosque.crm.subscription.PlanEntitlementException;
-import com.mosque.crm.dto.OrganizationSubscriptionDTO;
-import com.mosque.crm.dto.PlanEntitlementDTO;
-import com.mosque.crm.dto.SubscriptionPlanDTO;
-import com.mosque.crm.dto.CreateSubscriptionPlanRequest;
-import com.mosque.crm.dto.ChangeSubscriptionPlanResultDTO;
-import com.mosque.crm.dto.UpdateSubscriptionPlanRequest;
 
 @Service
 public class OrganizationSubscriptionService {
@@ -37,13 +41,17 @@ public class OrganizationSubscriptionService {
     private final OrganizationSubscriptionRepository organizationSubscriptionRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final PlanEntitlementRepository planEntitlementRepository;
+    private final FeatureDefinitionRepository featureDefinitionRepository;
 
-    public OrganizationSubscriptionService(OrganizationSubscriptionRepository organizationSubscriptionRepository,
+    public OrganizationSubscriptionService(
+            OrganizationSubscriptionRepository organizationSubscriptionRepository,
             SubscriptionPlanRepository subscriptionPlanRepository,
-            PlanEntitlementRepository planEntitlementRepository) {
+            PlanEntitlementRepository planEntitlementRepository,
+            FeatureDefinitionRepository featureDefinitionRepository) {
         this.organizationSubscriptionRepository = organizationSubscriptionRepository;
         this.subscriptionPlanRepository = subscriptionPlanRepository;
         this.planEntitlementRepository = planEntitlementRepository;
+        this.featureDefinitionRepository = featureDefinitionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -192,15 +200,26 @@ public class OrganizationSubscriptionService {
                 .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + subscriptionId));
         subscription.setBillingEnabled(billingEnabled != null ? billingEnabled : true);
         OrganizationSubscription saved = organizationSubscriptionRepository.save(subscription);
-        log.info("Updated subscription id={} billingEnabled={}", saved.getId(), billingEnabled);
         return saved;
     }
 
-    // -------------------------------------------------------------------------
-    // DTO mapping helpers
-    // -------------------------------------------------------------------------
+    /** Returns all feature definitions ordered by sort_order (for the feature catalogue endpoint). */
+    @Transactional(readOnly = true)
+    public List<FeatureDefinitionDTO> getFeatureDefinitions() {
+        return featureDefinitionRepository.findAllByOrderBySortOrderAsc().stream()
+                .map(fd -> new FeatureDefinitionDTO(fd.getFeatureKey(), fd.getDisplayLabel(),
+                        fd.getSortOrder(), fd.getFeatureType()))
+                .collect(Collectors.toList());
+    }
 
     public SubscriptionPlanDTO toPlanDTO(SubscriptionPlan plan) {
+        Map<String, FeatureDefinition> defMap = featureDefinitionRepository.findAllByOrderBySortOrderAsc()
+                .stream()
+                .collect(Collectors.toMap(FeatureDefinition::getFeatureKey, fd -> fd));
+        return buildPlanDTO(plan, defMap);
+    }
+
+    private SubscriptionPlanDTO buildPlanDTO(SubscriptionPlan plan, Map<String, FeatureDefinition> defMap) {
         SubscriptionPlanDTO dto = new SubscriptionPlanDTO();
         dto.setId(plan.getId());
         dto.setCode(plan.getCode());
@@ -213,10 +232,32 @@ public class OrganizationSubscriptionService {
         dto.setUpdatedAt(plan.getUpdatedAt());
         if (plan.getEntitlements() != null) {
             dto.setEntitlements(plan.getEntitlements().stream()
-                    .map(e -> new PlanEntitlementDTO(e.getFeatureKey(), e.getEnabled(), e.getLimitValue()))
+                    .map(e -> {
+                        FeatureDefinition fd = defMap.get(e.getFeatureKey());
+                        String label = fd != null ? fd.getDisplayLabel() : null;
+                        Integer order = fd != null ? fd.getSortOrder() : null;
+                        return new PlanEntitlementDTO(e.getFeatureKey(), e.getEnabled(),
+                                e.getLimitValue(), label, order);
+                    })
+                    .sorted((a, b) -> {
+                        int oa = a.getSortOrder() != null ? a.getSortOrder() : Integer.MAX_VALUE;
+                        int ob = b.getSortOrder() != null ? b.getSortOrder() : Integer.MAX_VALUE;
+                        return Integer.compare(oa, ob);
+                    })
                     .collect(Collectors.toList()));
         }
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public List<SubscriptionPlanDTO> getActivePlansAsDTO() {
+        List<SubscriptionPlan> plans = subscriptionPlanRepository.findByIsActiveTrue();
+        Map<String, FeatureDefinition> defMap = featureDefinitionRepository.findAllByOrderBySortOrderAsc()
+                .stream()
+                .collect(Collectors.toMap(FeatureDefinition::getFeatureKey, fd -> fd));
+        return plans.stream()
+                .map(p -> buildPlanDTO(p, defMap))
+                .collect(Collectors.toList());
     }
 
     public OrganizationSubscriptionDTO toSubscriptionDTO(OrganizationSubscription sub) {
@@ -244,13 +285,6 @@ public class OrganizationSubscriptionService {
             dto.setPlan(toPlanDTO(sub.getPlan()));
         }
         return dto;
-    }
-
-    @Transactional(readOnly = true)
-    public List<SubscriptionPlanDTO> getActivePlansAsDTO() {
-        return subscriptionPlanRepository.findByIsActiveTrue().stream()
-                .map(this::toPlanDTO)
-                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

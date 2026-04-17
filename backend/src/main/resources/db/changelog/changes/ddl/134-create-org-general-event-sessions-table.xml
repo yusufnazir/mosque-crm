@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000007-0134-0000-0000-000000000001-2" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="org_general_event_sessions"/></not>
+        </preConditions>
+        <comment>Create org_general_event_sessions table for multi-day/multi-session event support</comment>
+        <createTable tableName="org_general_event_sessions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="general_event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="session_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="session_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time" type="VARCHAR(20)"/>
+            <column name="end_time" type="VARCHAR(20)"/>
+            <column name="location" type="VARCHAR(500)"/>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="capacity" type="INT"/>
+            <column name="session_order" type="INT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

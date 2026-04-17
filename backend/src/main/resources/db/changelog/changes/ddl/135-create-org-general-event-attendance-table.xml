@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000007-0135-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="org_general_event_attendance"/></not>
+        </preConditions>
+        <comment>Create org_general_event_attendance table for per-session attendance tracking</comment>
+        <createTable tableName="org_general_event_attendance">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="general_event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="session_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <!-- nullable: null means walk-in -->
+            <column name="registration_id" type="BIGINT"/>
+            <!-- nullable: null for anonymous walk-ins -->
+            <column name="person_id" type="BIGINT"/>
+            <column name="walk_in_name" type="VARCHAR(255)"/>
+            <column name="status" type="VARCHAR(20)" defaultValue="ABSENT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="checked_in_at" type="TIMESTAMP"/>
+            <column name="checked_in_by_user_id" type="BIGINT"/>
+            <column name="notes" type="VARCHAR(500)"/>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

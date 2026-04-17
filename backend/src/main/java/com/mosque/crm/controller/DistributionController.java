@@ -32,7 +32,7 @@ import com.mosque.crm.service.DistributionService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/distribution")
+@RequestMapping("/events")
 @CrossOrigin(origins = "*")
 public class DistributionController {
 

@@ -22,7 +22,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
 @Entity
-@Table(name = "parcel_categories")
+@Table(name = "org_event_categories")
 @Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
 @EntityListeners(OrganizationEntityListener.class)
 public class ParcelCategory implements OrganizationAware {
@@ -34,7 +34,7 @@ public class ParcelCategory implements OrganizationAware {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "distribution_event_id", nullable = false)
+    @JoinColumn(name = "event_id", nullable = false)
     private DistributionEvent distributionEvent;
 
     @Column(name = "name", nullable = false, length = 255)

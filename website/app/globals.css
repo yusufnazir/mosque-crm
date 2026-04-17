@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #183E58;
+  --color-primary-light: #3C74C5;
+  --color-primary-dark: #0F2A3E;
+  --color-emerald-deep: #047857;
+  --color-emerald-light: #059669;
+  --color-emerald-subtle: #d1fae5;
+  --color-gold: #3BA172;
+  --color-gold-light: #6DC49E;
+  --color-cream: #FAFAF9;
+  --color-charcoal: #1C1917;
+  --color-charcoal-light: #44403C;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Geometric pattern overlay for hero */
+.geometric-pattern {
+  background-image:
+    linear-gradient(30deg, rgba(4, 120, 87, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(4, 120, 87, 0.03) 87.5%),
+    linear-gradient(150deg, rgba(4, 120, 87, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(4, 120, 87, 0.03) 87.5%),
+    linear-gradient(30deg, rgba(4, 120, 87, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(4, 120, 87, 0.03) 87.5%),
+    linear-gradient(150deg, rgba(4, 120, 87, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(4, 120, 87, 0.03) 87.5%);
+  background-size: 80px 140px;
+  background-position: 0 0, 0 0, 40px 70px, 40px 70px;
+}
+
+/* Fade-in animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.7s ease-out forwards;
+}
+
+.animation-delay-200 { animation-delay: 0.2s; }
+.animation-delay-400 { animation-delay: 0.4s; }
+.animation-delay-600 { animation-delay: 0.6s; }

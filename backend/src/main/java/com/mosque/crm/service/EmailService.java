@@ -1,4 +1,4 @@
-package com.mosque.crm.service;
+﻿package com.mosque.crm.service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -330,9 +330,9 @@ public class EmailService {
         }
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Join-request email methods
-    // ────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Notify a registrant that their application was received and is under review.
@@ -369,7 +369,7 @@ public class EmailService {
                 buildJoinRequestRejectedBody(firstName, orgName, appName, rejectionReason, locale));
     }
 
-    // ── shared low-level sender (reuses same pattern as existing methods) ──
+    // â”€â”€ shared low-level sender (reuses same pattern as existing methods) â”€â”€
 
     private void sendTemplatedEmail(String toEmail, String subject, String body) {
         if (toEmail == null || toEmail.isEmpty()) {
@@ -419,7 +419,7 @@ public class EmailService {
         }
     }
 
-    // ── FTL body builders for join-request emails ──
+    // â”€â”€ FTL body builders for join-request emails â”€â”€
 
     private String buildJoinRequestReceivedBody(String firstName, String orgName, String appName, String locale) {
         try {
@@ -522,5 +522,69 @@ public class EmailService {
             return String.format("You have been invited to register as a member of %s. Register at: %s", orgName, registrationUrl);
         }
     }
-}
 
+    /**
+     * Send a bulk email to a list of recipients (used by the communications module).
+     *
+     * @param recipients list of recipient email addresses
+     * @param subject    email subject
+     * @param bodyHtml   HTML body (may contain {{organizationName}} placeholders already resolved)
+     * @return number of successfully dispatched emails (0 or recipients.size())
+     */
+    public int sendBulkEmail(java.util.List<String> recipients, String subject, String bodyHtml) {
+        if (recipients == null || recipients.isEmpty()) {
+            log.warn("sendBulkEmail called with empty recipient list");
+            return 0;
+        }
+
+        String host = configurationService.getMailServerHost();
+        String mailUsername = configurationService.getMailServerUsername();
+        String mailPassword = configurationService.getMailServerPassword();
+        String projectUuid = configurationService.getMailServerProjectUuid();
+
+        if (host == null || host.isEmpty()) {
+            log.error("Mail server not configured. Cannot send bulk email.");
+            log.info("=== BULK EMAIL (Fallback - Mail server not configured) ===");
+            log.info("Subject: {}", subject);
+            log.info("Recipients: {}", recipients);
+            log.info("==========================================================");
+            return 0;
+        }
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("to", recipients);
+        payload.put("subject", subject);
+        payload.put("text", bodyHtml);
+        payload.put("projectId", projectUuid);
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            if (mailUsername != null && !mailUsername.isEmpty() &&
+                mailPassword != null && !mailPassword.isEmpty()) {
+                String auth = mailUsername + ":" + mailPassword;
+                byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+                headers.set("Authorization", "Basic " + new String(encodedAuth));
+            }
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+            String mailEndpoint = host + "/rest/v1/api/register-mail";
+
+            log.info("Sending bulk email to {} recipients. Subject: {}", recipients.size(), subject);
+            ResponseEntity<String> response = restTemplate.postForEntity(mailEndpoint, request, String.class);
+
+            HttpStatus status = (HttpStatus) response.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                log.info("Bulk email sent successfully to {} recipients", recipients.size());
+                return recipients.size();
+            } else {
+                log.error("Failed to send bulk email. Status: {}, Response: {}", status, response.getBody());
+                return 0;
+            }
+        } catch (Exception e) {
+            log.error("Error sending bulk email: {}", e.getMessage());
+            return 0;
+        }
+    }
+}

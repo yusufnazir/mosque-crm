@@ -156,4 +156,15 @@ public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Lo
            "AND mp.isReversal = false " +
            "ORDER BY mp.person.lastName, mp.person.firstName")
     List<MemberPayment> findPaymentsForReport(@Param("year") int year);
+
+    /**
+     * Fetch ALL payments (including reversals) with person, type, and currency eagerly loaded.
+     * Used for the data export module.
+     */
+    @Query("SELECT mp FROM MemberPayment mp " +
+           "JOIN FETCH mp.person " +
+           "JOIN FETCH mp.contributionType " +
+           "LEFT JOIN FETCH mp.currency " +
+           "ORDER BY mp.person.lastName, mp.person.firstName, mp.paymentDate")
+    List<MemberPayment> findAllForExport();
 }

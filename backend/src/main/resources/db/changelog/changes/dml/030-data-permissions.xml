@@ -473,38 +473,38 @@
 		</customChange>
 	</changeSet>
 
-	<!-- ═══════════ EID UL-ADHA DISTRIBUTION ═══════════ -->
-	<changeSet id="a1b2c3d4-0055-4dst-aaaa-distribution055" author="mosque-crm">
+	<!-- ═══════════ EVENTS ═══════════ -->
+	<changeSet id="a1b2c3d4-0055-4evt-aaaa-eventview0055" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataPermission">
 			<param name="id"><![CDATA[55]]></param>
-			<param name="code"><![CDATA[distribution.view]]></param>
-			<param name="description"><![CDATA[View distribution events, categories, registrations, and reports]]></param>
-			<param name="category"><![CDATA[distribution]]></param>
+			<param name="code"><![CDATA[event.view]]></param>
+			<param name="description"><![CDATA[View events, categories, registrations, and reports]]></param>
+			<param name="category"><![CDATA[event]]></param>
 		</customChange>
 	</changeSet>
-	<changeSet id="b2c3d4e5-0056-4dst-bbbb-distribution056" author="mosque-crm">
+	<changeSet id="b2c3d4e5-0056-4evt-bbbb-eventmgmt0056" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataPermission">
 			<param name="id"><![CDATA[56]]></param>
-			<param name="code"><![CDATA[distribution.manage]]></param>
-			<param name="description"><![CDATA[Create and manage distribution events, categories, and registrations]]></param>
-			<param name="category"><![CDATA[distribution]]></param>
+			<param name="code"><![CDATA[event.manage]]></param>
+			<param name="description"><![CDATA[Create and manage events, categories, and registrations]]></param>
+			<param name="category"><![CDATA[event]]></param>
 		</customChange>
 	</changeSet>
-	<changeSet id="c3d4e5f6-0057-4dst-cccc-distribution057" author="mosque-crm">
+	<changeSet id="c3d4e5f6-0057-4evt-cccc-eventdist0057" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataPermission">
 			<param name="id"><![CDATA[57]]></param>
-			<param name="code"><![CDATA[distribution.distribute]]></param>
+			<param name="code"><![CDATA[event.distribute]]></param>
 			<param name="description"><![CDATA[Distribute parcels to members and non-members]]></param>
-			<param name="category"><![CDATA[distribution]]></param>
+			<param name="category"><![CDATA[event]]></param>
 		</customChange>
 	</changeSet>
 
-	<changeSet id="d4e5f6a7-0058-4dst-dddd-distribution058" author="mosque-crm">
+	<changeSet id="d4e5f6a7-0058-4evt-dddd-eventdelete058" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataPermission">
 			<param name="id"><![CDATA[58]]></param>
-			<param name="code"><![CDATA[distribution.delete]]></param>
-			<param name="description"><![CDATA[Delete distribution events and related data]]></param>
-			<param name="category"><![CDATA[distribution]]></param>
+			<param name="code"><![CDATA[event.delete]]></param>
+			<param name="description"><![CDATA[Delete events and related data]]></param>
+			<param name="category"><![CDATA[event]]></param>
 		</customChange>
 	</changeSet>
 
@@ -580,5 +580,93 @@
                 </customChange>
         </changeSet>
 
+        <!-- ══════════════ COMMUNICATIONS ══════════════ -->
+        <changeSet id="c9d0e1f2-0067-4com-cccc-communicationview067" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[67]]></param>
+                        <param name="code"><![CDATA[communication.view]]></param>
+                        <param name="description"><![CDATA[View sent communications and email history]]></param>
+                        <param name="category"><![CDATA[communication]]></param>
+                </customChange>
+        </changeSet>
+        <changeSet id="d0e1f2a3-0068-4com-dddd-communicationmgmt068" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[68]]></param>
+                        <param name="code"><![CDATA[communication.manage]]></param>
+                        <param name="description"><![CDATA[Compose and send bulk email communications to members]]></param>
+                        <param name="category"><![CDATA[communication]]></param>
+                </customChange>
+        </changeSet>
+
+        <!-- ══════════════ SAVED MEMBER FILTERS ══════════════ -->
+        <changeSet id="e1f2a3b4-0069-4mbr-eeee-savedfilterv069" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[69]]></param>
+                        <param name="code"><![CDATA[member.saved_filters.view]]></param>
+                        <param name="description"><![CDATA[View saved member filter presets]]></param>
+                        <param name="category"><![CDATA[member]]></param>
+                </customChange>
+        </changeSet>
+        <changeSet id="f2a3b4c5-0070-4mbr-ffff-savedfilterm070" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[70]]></param>
+                        <param name="code"><![CDATA[member.saved_filters.manage]]></param>
+                        <param name="description"><![CDATA[Create, update and delete saved member filter presets]]></param>
+                        <param name="category"><![CDATA[member]]></param>
+                </customChange>
+        </changeSet>
+
+        <!-- ══════════════ DOCUMENT MANAGEMENT ══════════════ -->
+        <changeSet id="a1b2c3d4-0071-4doc-aaaa-documentview071" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[71]]></param>
+                        <param name="code"><![CDATA[document.view]]></param>
+                        <param name="description"><![CDATA[View documents and folders]]></param>
+                        <param name="category"><![CDATA[document]]></param>
+                </customChange>
+        </changeSet>
+        <changeSet id="b2c3d4e5-0072-4doc-bbbb-documentmana072" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[72]]></param>
+                        <param name="code"><![CDATA[document.manage]]></param>
+                        <param name="description"><![CDATA[Manage documents and folders (edit, delete, move)]]></param>
+                        <param name="category"><![CDATA[document]]></param>
+                </customChange>
+        </changeSet>
+        <changeSet id="c3d4e5f6-0073-4doc-cccc-documentshare073" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[73]]></param>
+                        <param name="code"><![CDATA[document.share]]></param>
+                        <param name="description"><![CDATA[Share documents with other users or roles]]></param>
+                        <param name="category"><![CDATA[document]]></param>
+                </customChange>
+        </changeSet>
+        <changeSet id="d4e5f6a7-0074-4doc-dddd-documentuploa074" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[74]]></param>
+                        <param name="code"><![CDATA[document.upload]]></param>
+                        <param name="description"><![CDATA[Upload new files and create rich-text documents]]></param>
+                        <param name="category"><![CDATA[document]]></param>
+                </customChange>
+        </changeSet>
+
+        <!-- ══════════════ DATA EXPORT ══════════════ -->
+        <changeSet id="a1b2c3d4-0075-4exp-aaaa-exportview0075" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[75]]></param>
+                        <param name="code"><![CDATA[export.view]]></param>
+                        <param name="description"><![CDATA[View the data export page]]></param>
+                        <param name="category"><![CDATA[export]]></param>
+                </customChange>
+        </changeSet>
+        <changeSet id="b2c3d4e5-0076-4exp-bbbb-exportexec0076" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[76]]></param>
+                        <param name="code"><![CDATA[export.execute]]></param>
+                        <param name="description"><![CDATA[Download data exports (members, payments, full backup)]]></param>
+                        <param name="category"><![CDATA[export]]></param>
+                </customChange>
+        </changeSet>
 
 </databaseChangeLog>
+

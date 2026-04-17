@@ -2,36 +2,36 @@ import { ApiClient } from './api';
 
 export const distributionApi = {
   // Distribution Events
-  listEvents: (): Promise<DistributionEvent[]> => ApiClient.get('/distribution/events'),
-  getEvent: (id: number): Promise<DistributionEvent> => ApiClient.get(`/distribution/events/${id}`),
-  createEvent: (data: DistributionEventCreate): Promise<DistributionEvent> => ApiClient.post('/distribution/events', data),
-  updateEvent: (id: number, data: DistributionEventCreate): Promise<DistributionEvent> => ApiClient.put(`/distribution/events/${id}`, data),
-  updateEventStatus: (id: number, status: string): Promise<DistributionEvent> => ApiClient.put(`/distribution/events/${id}/status`, { status }),
-  deleteEvent: (id: number): Promise<void> => ApiClient.delete(`/distribution/events/${id}`),
-  getEventSummary: (eventId: number): Promise<DistributionSummary> => ApiClient.get(`/distribution/events/${eventId}/summary`),
+  listEvents: (): Promise<DistributionEvent[]> => ApiClient.get('/events/events'),
+  getEvent: (id: number): Promise<DistributionEvent> => ApiClient.get(`/events/events/${id}`),
+  createEvent: (data: DistributionEventCreate): Promise<DistributionEvent> => ApiClient.post('/events/events', data),
+  updateEvent: (id: number, data: DistributionEventCreate): Promise<DistributionEvent> => ApiClient.put(`/events/events/${id}`, data),
+  updateEventStatus: (id: number, status: string): Promise<DistributionEvent> => ApiClient.put(`/events/events/${id}/status`, { status }),
+  deleteEvent: (id: number): Promise<void> => ApiClient.delete(`/events/events/${id}`),
+  getEventSummary: (eventId: number): Promise<DistributionSummary> => ApiClient.get(`/events/events/${eventId}/summary`),
 
   // Parcel Categories
-  listCategories: (eventId: number): Promise<ParcelCategory[]> => ApiClient.get(`/distribution/categories?eventId=${eventId}`),
-  getCategory: (id: number): Promise<ParcelCategory> => ApiClient.get(`/distribution/categories/${id}`),
-  createCategory: (data: ParcelCategoryCreate): Promise<ParcelCategory> => ApiClient.post('/distribution/categories', data),
-  updateCategory: (id: number, data: ParcelCategoryCreate): Promise<ParcelCategory> => ApiClient.put(`/distribution/categories/${id}`, data),
+  listCategories: (eventId: number): Promise<ParcelCategory[]> => ApiClient.get(`/events/categories?eventId=${eventId}`),
+  getCategory: (id: number): Promise<ParcelCategory> => ApiClient.get(`/events/categories/${id}`),
+  createCategory: (data: ParcelCategoryCreate): Promise<ParcelCategory> => ApiClient.post('/events/categories', data),
+  updateCategory: (id: number, data: ParcelCategoryCreate): Promise<ParcelCategory> => ApiClient.put(`/events/categories/${id}`, data),
 
   // Non-Member Recipients
-  listNonMembers: (eventId: number): Promise<NonMemberRecipient[]> => ApiClient.get(`/distribution/non-members?eventId=${eventId}`),
-  getNonMember: (id: number): Promise<NonMemberRecipient> => ApiClient.get(`/distribution/non-members/${id}`),
-  createNonMember: (data: NonMemberRecipientCreate): Promise<NonMemberRecipient> => ApiClient.post('/distribution/non-members', data),
+  listNonMembers: (eventId: number): Promise<NonMemberRecipient[]> => ApiClient.get(`/events/non-members?eventId=${eventId}`),
+  getNonMember: (id: number): Promise<NonMemberRecipient> => ApiClient.get(`/events/non-members/${id}`),
+  createNonMember: (data: NonMemberRecipientCreate): Promise<NonMemberRecipient> => ApiClient.post('/events/non-members', data),
   findNonMemberByNumber: (eventId: number, number: string): Promise<NonMemberRecipient> =>
-    ApiClient.get(`/distribution/non-members/search?eventId=${eventId}&number=${encodeURIComponent(number)}`),
+    ApiClient.get(`/events/non-members/search?eventId=${eventId}&number=${encodeURIComponent(number)}`),
 
   // Member Registrations
-  listMemberRegistrations: (eventId: number): Promise<MemberRegistration[]> => ApiClient.get(`/distribution/member-registrations?eventId=${eventId}`),
-  getMemberRegistration: (id: number): Promise<MemberRegistration> => ApiClient.get(`/distribution/member-registrations/${id}`),
-  createMemberRegistration: (data: MemberRegistrationCreate): Promise<MemberRegistration> => ApiClient.post('/distribution/member-registrations', data),
+  listMemberRegistrations: (eventId: number): Promise<MemberRegistration[]> => ApiClient.get(`/events/member-registrations?eventId=${eventId}`),
+  getMemberRegistration: (id: number): Promise<MemberRegistration> => ApiClient.get(`/events/member-registrations/${id}`),
+  createMemberRegistration: (data: MemberRegistrationCreate): Promise<MemberRegistration> => ApiClient.post('/events/member-registrations', data),
 
   // Parcel Distribution
-  listDistributions: (eventId: number): Promise<ParcelDistribution[]> => ApiClient.get(`/distribution/distributions?eventId=${eventId}`),
-  getDistribution: (id: number): Promise<ParcelDistribution> => ApiClient.get(`/distribution/distributions/${id}`),
-  distribute: (data: ParcelDistributionCreate): Promise<ParcelDistribution> => ApiClient.post('/distribution/distribute', data),
+  listDistributions: (eventId: number): Promise<ParcelDistribution[]> => ApiClient.get(`/events/distributions?eventId=${eventId}`),
+  getDistribution: (id: number): Promise<ParcelDistribution> => ApiClient.get(`/events/distributions/${id}`),
+  distribute: (data: ParcelDistributionCreate): Promise<ParcelDistribution> => ApiClient.post('/events/distribute', data),
 };
 
 // Types

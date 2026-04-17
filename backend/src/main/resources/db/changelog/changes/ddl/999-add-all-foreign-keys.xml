@@ -682,4 +682,361 @@
 
     </changeSet>
 
+    <!-- ======================================================================
+         CHANGESET 3: EVENTS — FK constraints and indexes
+         ====================================================================== -->
+    <changeSet id="b1000099-9990-0000-0000-000000000003-1" author="mosque-crm" runAlways="false">
+        <comment>Add FK constraints and indexes for org_events tables</comment>
+
+        <!-- org_events → organizations -->
+        <addForeignKeyConstraint constraintName="fk_orgevents_org"
+            baseTableName="org_events" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- org_event_categories → org_events, organizations -->
+        <addForeignKeyConstraint constraintName="fk_orgeventcat_event"
+            baseTableName="org_event_categories" baseColumnNames="event_id"
+            referencedTableName="org_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_orgeventcat_org"
+            baseTableName="org_event_categories" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- org_event_recipients → org_events, organizations -->
+        <addForeignKeyConstraint constraintName="fk_orgeventrecip_event"
+            baseTableName="org_event_recipients" baseColumnNames="event_id"
+            referencedTableName="org_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_orgeventrecip_org"
+            baseTableName="org_event_recipients" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- org_event_registrations → org_events, persons, organizations -->
+        <addForeignKeyConstraint constraintName="fk_orgeventreg_event"
+            baseTableName="org_event_registrations" baseColumnNames="event_id"
+            referencedTableName="org_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_orgeventreg_person"
+            baseTableName="org_event_registrations" baseColumnNames="person_id"
+            referencedTableName="persons" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_orgeventreg_org"
+            baseTableName="org_event_registrations" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- org_event_distributions → org_events, org_event_categories, organizations -->
+        <addForeignKeyConstraint constraintName="fk_orgeventdist_event"
+            baseTableName="org_event_distributions" baseColumnNames="event_id"
+            referencedTableName="org_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_orgeventdist_category"
+            baseTableName="org_event_distributions" baseColumnNames="category_id"
+            referencedTableName="org_event_categories" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_orgeventdist_org"
+            baseTableName="org_event_distributions" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- indexes -->
+        <createIndex indexName="idx_fk_orgevents_org" tableName="org_events"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventcat_event" tableName="org_event_categories"><column name="event_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventcat_org" tableName="org_event_categories"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventrecip_event" tableName="org_event_recipients"><column name="event_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventrecip_org" tableName="org_event_recipients"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventreg_event" tableName="org_event_registrations"><column name="event_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventreg_person" tableName="org_event_registrations"><column name="person_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventreg_org" tableName="org_event_registrations"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventdist_event" tableName="org_event_distributions"><column name="event_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventdist_category" tableName="org_event_distributions"><column name="category_id"/></createIndex>
+        <createIndex indexName="idx_fk_orgeventdist_org" tableName="org_event_distributions"><column name="organization_id"/></createIndex>
+
+    </changeSet>
+
+    <changeSet id="b1000099-9990-0000-0000-000000000004-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_general_events"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for org_general_events, org_general_event_registrations, org_general_event_volunteers</comment>
+
+        <!-- org_general_events -->
+        <addForeignKeyConstraint constraintName="fk_genevents_org"
+            baseTableName="org_general_events" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- org_general_event_registrations -->
+        <addForeignKeyConstraint constraintName="fk_genevtreg_event"
+            baseTableName="org_general_event_registrations" baseColumnNames="general_event_id"
+            referencedTableName="org_general_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_genevtreg_person"
+            baseTableName="org_general_event_registrations" baseColumnNames="person_id"
+            referencedTableName="persons" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_genevtreg_org"
+            baseTableName="org_general_event_registrations" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- org_general_event_volunteers -->
+        <addForeignKeyConstraint constraintName="fk_genvolunteer_event"
+            baseTableName="org_general_event_volunteers" baseColumnNames="general_event_id"
+            referencedTableName="org_general_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_genvolunteer_person"
+            baseTableName="org_general_event_volunteers" baseColumnNames="person_id"
+            referencedTableName="persons" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_genvolunteer_org"
+            baseTableName="org_general_event_volunteers" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- indexes -->
+        <createIndex indexName="idx_fk_genevents_org" tableName="org_general_events"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtreg_event" tableName="org_general_event_registrations"><column name="general_event_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtreg_person" tableName="org_general_event_registrations"><column name="person_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtreg_org" tableName="org_general_event_registrations"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_genvolunteer_event" tableName="org_general_event_volunteers"><column name="general_event_id"/></createIndex>
+        <createIndex indexName="idx_fk_genvolunteer_person" tableName="org_general_event_volunteers"><column name="person_id"/></createIndex>
+        <createIndex indexName="idx_fk_genvolunteer_org" tableName="org_general_event_volunteers"><column name="organization_id"/></createIndex>
+
+    </changeSet>
+
+    <changeSet id="b1000099-9990-0000-0000-000000000005-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_general_event_sessions"/>
+            <tableExists tableName="org_general_event_attendance"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for org_general_event_sessions and org_general_event_attendance</comment>
+
+        <!-- org_general_event_sessions -->
+        <addForeignKeyConstraint constraintName="fk_genevtsession_event"
+            baseTableName="org_general_event_sessions" baseColumnNames="general_event_id"
+            referencedTableName="org_general_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_genevtsession_org"
+            baseTableName="org_general_event_sessions" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- org_general_event_attendance -->
+        <addForeignKeyConstraint constraintName="fk_genevtatt_event"
+            baseTableName="org_general_event_attendance" baseColumnNames="general_event_id"
+            referencedTableName="org_general_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_genevtatt_session"
+            baseTableName="org_general_event_attendance" baseColumnNames="session_id"
+            referencedTableName="org_general_event_sessions" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_genevtatt_registration"
+            baseTableName="org_general_event_attendance" baseColumnNames="registration_id"
+            referencedTableName="org_general_event_registrations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_genevtatt_person"
+            baseTableName="org_general_event_attendance" baseColumnNames="person_id"
+            referencedTableName="persons" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_genevtatt_org"
+            baseTableName="org_general_event_attendance" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- indexes -->
+        <createIndex indexName="idx_fk_genevtsession_event" tableName="org_general_event_sessions"><column name="general_event_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtsession_org" tableName="org_general_event_sessions"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtatt_event" tableName="org_general_event_attendance"><column name="general_event_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtatt_session" tableName="org_general_event_attendance"><column name="session_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtatt_registration" tableName="org_general_event_attendance"><column name="registration_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtatt_person" tableName="org_general_event_attendance"><column name="person_id"/></createIndex>
+
+    </changeSet>
+
+    <changeSet id="b1000099-9990-0000-0000-000000000006-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_general_event_documents"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for org_general_event_documents</comment>
+
+        <!-- org_general_event_documents.general_event_id → org_general_events.id -->
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_documents" baseColumnNames="general_event_id"
+            referencedTableName="org_general_events" referencedColumnNames="id"
+            constraintName="fk_genevtdoc_event"/>
+
+        <!-- org_general_event_documents.session_id → org_general_event_sessions.id -->
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_documents" baseColumnNames="session_id"
+            referencedTableName="org_general_event_sessions" referencedColumnNames="id"
+            constraintName="fk_genevtdoc_session"/>
+
+        <!-- org_general_event_documents.organization_id → organizations.id -->
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_documents" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            constraintName="fk_genevtdoc_org"/>
+
+        <!-- indexes -->
+        <createIndex indexName="idx_fk_genevtdoc_event" tableName="org_general_event_documents"><column name="general_event_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtdoc_session" tableName="org_general_event_documents"><column name="session_id"/></createIndex>
+
+    </changeSet>
+
+    <changeSet id="b1000099-9990-0000-0000-000000000007-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="communication_messages"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for communication_messages</comment>
+
+        <!-- communication_messages.organization_id → organizations.id -->
+        <addForeignKeyConstraint
+            baseTableName="communication_messages" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            constraintName="fk_commsg_org"/>
+
+        <!-- communication_messages.template_id → communication_templates.id -->
+        <addForeignKeyConstraint
+            baseTableName="communication_messages" baseColumnNames="template_id"
+            referencedTableName="communication_templates" referencedColumnNames="id"
+            constraintName="fk_commsg_template"/>
+
+        <!-- communication_messages.created_by → users.id -->
+        <addForeignKeyConstraint
+            baseTableName="communication_messages" baseColumnNames="created_by"
+            referencedTableName="users" referencedColumnNames="id"
+            constraintName="fk_commsg_user"/>
+
+        <!-- indexes -->
+        <createIndex indexName="idx_fk_commsg_org" tableName="communication_messages"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_commsg_template" tableName="communication_messages"><column name="template_id"/></createIndex>
+
+    </changeSet>
+
+    <changeSet id="b1000099-9990-0000-0000-000000000008-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="communication_templates"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for communication_templates</comment>
+
+        <!-- communication_templates.organization_id → organizations.id -->
+        <addForeignKeyConstraint
+            baseTableName="communication_templates" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            constraintName="fk_comtmpl_org"/>
+
+        <!-- communication_templates.created_by → users.id -->
+        <addForeignKeyConstraint
+            baseTableName="communication_templates" baseColumnNames="created_by"
+            referencedTableName="users" referencedColumnNames="id"
+            constraintName="fk_comtmpl_user"/>
+
+        <!-- indexes -->
+        <createIndex indexName="idx_fk_comtmpl_org" tableName="communication_templates"><column name="organization_id"/></createIndex>
+
+    </changeSet>
+
+    <changeSet id="c2000099-9990-0000-0000-000000000009-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="saved_member_filters"/>
+        </preConditions>
+        <comment>Foreign keys for saved_member_filters</comment>
+
+        <!-- saved_member_filters.organization_id → organizations.id -->
+        <addForeignKeyConstraint
+            baseTableName="saved_member_filters" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            constraintName="fk_saved_filter_org"/>
+
+        <!-- saved_member_filters.created_by_user_id → users.id -->
+        <addForeignKeyConstraint
+            baseTableName="saved_member_filters" baseColumnNames="created_by_user_id"
+            referencedTableName="users" referencedColumnNames="id"
+            constraintName="fk_saved_filter_user"/>
+
+    </changeSet>
+
+    <changeSet id="d3000099-9990-0150-0000-000000000001" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_document_folders"/>
+            <tableExists tableName="org_documents"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for document management tables</comment>
+
+        <!-- org_document_folders -->
+        <addForeignKeyConstraint constraintName="fk_docfolder_org"
+            baseTableName="org_document_folders" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_docfolder_parent"
+            baseTableName="org_document_folders" baseColumnNames="parent_folder_id"
+            referencedTableName="org_document_folders" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_docfolder_owner"
+            baseTableName="org_document_folders" baseColumnNames="owner_user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- org_documents -->
+        <addForeignKeyConstraint constraintName="fk_document_org"
+            baseTableName="org_documents" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_document_folder"
+            baseTableName="org_documents" baseColumnNames="folder_id"
+            referencedTableName="org_document_folders" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_document_owner"
+            baseTableName="org_documents" baseColumnNames="owner_user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- org_document_shares -->
+        <addForeignKeyConstraint constraintName="fk_docshare_document"
+            baseTableName="org_document_shares" baseColumnNames="document_id"
+            referencedTableName="org_documents" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_docshare_user"
+            baseTableName="org_document_shares" baseColumnNames="target_user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_docshare_sharedby"
+            baseTableName="org_document_shares" baseColumnNames="shared_by_user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- org_document_versions -->
+        <addForeignKeyConstraint constraintName="fk_docver_document"
+            baseTableName="org_document_versions" baseColumnNames="document_id"
+            referencedTableName="org_documents" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_docver_org"
+            baseTableName="org_document_versions" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_docver_changedby"
+            baseTableName="org_document_versions" baseColumnNames="changed_by_user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- org_document_comments -->
+        <addForeignKeyConstraint constraintName="fk_doccomment_document"
+            baseTableName="org_document_comments" baseColumnNames="document_id"
+            referencedTableName="org_documents" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_doccomment_org"
+            baseTableName="org_document_comments" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_doccomment_author"
+            baseTableName="org_document_comments" baseColumnNames="author_user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_doccomment_parent"
+            baseTableName="org_document_comments" baseColumnNames="parent_comment_id"
+            referencedTableName="org_document_comments" referencedColumnNames="id"/>
+
+        <!-- org_document_links -->
+        <addForeignKeyConstraint constraintName="fk_doclink_document"
+            baseTableName="org_document_links" baseColumnNames="document_id"
+            referencedTableName="org_documents" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_doclink_org"
+            baseTableName="org_document_links" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_doclink_linkedby"
+            baseTableName="org_document_links" baseColumnNames="linked_by_user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- org_document_quotas -->
+        <addForeignKeyConstraint constraintName="fk_docquota_org"
+            baseTableName="org_document_quotas" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <!-- org_document_audit_events -->
+        <addForeignKeyConstraint constraintName="fk_docaudit_document"
+            baseTableName="org_document_audit_events" baseColumnNames="document_id"
+            referencedTableName="org_documents" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_docaudit_org"
+            baseTableName="org_document_audit_events" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_docaudit_user"
+            baseTableName="org_document_audit_events" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- indexes -->
+        <createIndex indexName="idx_fk_docfolder_org" tableName="org_document_folders"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_document_org" tableName="org_documents"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_document_folder" tableName="org_documents"><column name="folder_id"/></createIndex>
+        <createIndex indexName="idx_fk_docshare_document" tableName="org_document_shares"><column name="document_id"/></createIndex>
+        <createIndex indexName="idx_fk_docver_document" tableName="org_document_versions"><column name="document_id"/></createIndex>
+        <createIndex indexName="idx_fk_doccomment_document" tableName="org_document_comments"><column name="document_id"/></createIndex>
+        <createIndex indexName="idx_fk_doclink_entity" tableName="org_document_links"><column name="entity_type"/><column name="entity_id"/></createIndex>
+        <createIndex indexName="idx_fk_docaudit_document" tableName="org_document_audit_events"><column name="document_id"/></createIndex>
+
+    </changeSet>
+
 </databaseChangeLog>

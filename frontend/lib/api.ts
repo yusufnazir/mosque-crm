@@ -19,6 +19,53 @@ export function isPlanRestriction(value: unknown): value is PlanRestriction {
 }
 
 /**
+ * Extracts a PlanRestriction from a thrown Error whose message may be a raw
+ * JSON string returned by the backend when the GlobalExceptionHandler fires
+ * before the structured format is recognised (e.g. `{"error":"Plan limit…"}`
+ * or the fully structured `{"code":"PLAN_LIMIT_EXCEEDED",…}`).
+ *
+ * Returns a PlanRestriction if detected, otherwise null.
+ */
+export function parsePlanRestrictionFromError(err: unknown): PlanRestriction | null {
+  if (!err || !(err instanceof Error)) return null;
+  try {
+    const body = JSON.parse(err.message);
+    // Structured format from GlobalExceptionHandler
+    if (body.code === 'PLAN_LIMIT_EXCEEDED' || body.code === 'PLAN_ENTITLEMENT_REQUIRED') {
+      return {
+        __planRestriction: true,
+        code: body.code,
+        featureKey: body.featureKey,
+        message: body.message || err.message,
+        ...(body.limit !== undefined ? { limit: Number(body.limit) } : {}),
+        ...(body.current !== undefined ? { current: Number(body.current) } : {}),
+      };
+    }
+    // Fallback: {"error":"Plan limit exceeded for 'key': limit=N, current=M"}
+    const raw: string = body.error || body.message || '';
+    if (raw.toLowerCase().includes('plan limit exceeded') || raw.toLowerCase().includes('plan_limit_exceeded')) {
+      return {
+        __planRestriction: true,
+        code: 'PLAN_LIMIT_EXCEEDED',
+        message: raw,
+      };
+    }
+  } catch { /* not JSON */ }
+  // Plain text fallback
+  if (
+    err.message.toLowerCase().includes('plan limit exceeded') ||
+    err.message.toLowerCase().includes('plan_limit_exceeded')
+  ) {
+    return {
+      __planRestriction: true,
+      code: 'PLAN_LIMIT_EXCEEDED',
+      message: err.message,
+    };
+  }
+  return null;
+}
+
+/**
  * Returned when the backend responds with 402 because the tenant's
  * subscription is inactive (canceled, expired, or missing).
  * The SubscriptionContext listens for this via a custom event.
@@ -175,6 +222,22 @@ export class ApiClient {
   }
 
   /**
+   * POST arbitrary FormData (multipart/form-data).
+   * Do NOT set Content-Type — the browser will generate the boundary automatically.
+   */
+  static async postMultipart<T>(endpoint: string, formData: FormData): Promise<T> {
+    const organizationId = typeof window !== 'undefined' ? localStorage.getItem('selectedOrganizationId') : null;
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        ...(organizationId ? { 'X-Organization-Id': organizationId } : {}),
+      },
+      body: formData,
+    });
+    return this.handleResponse<T>(response);
+  }
+
+  /**
    * Upload a file via multipart/form-data.
    * Do NOT set Content-Type — the browser will generate the boundary automatically.
    */
@@ -259,18 +322,49 @@ export interface AgeGenderBucket {
   count: number;
 }
 
+export interface MemberFilterCriteria {
+  statuses?: string[];
+  gender?: string;
+  minAge?: number;
+  maxAge?: number;
+  hasEmail?: boolean;
+  hasPhone?: boolean;
+  groupIds?: number[];
+  joinedFrom?: string; // ISO date YYYY-MM-DD
+  joinedTo?: string;   // ISO date YYYY-MM-DD
+}
+
 export const memberApi = {
   getAll: (queryParams?: string) => {
     const url = queryParams ? `/persons?${queryParams}` : '/persons';
     return ApiClient.get(url);
   },
-  getPaged: (params: { page?: number; size?: number; search?: string; sortBy?: string; direction?: string }) => {
+  getPaged: (params: {
+    page?: number;
+    size?: number;
+    search?: string;
+    sortBy?: string;
+    direction?: string;
+    filters?: MemberFilterCriteria;
+  }) => {
     const searchParams = new URLSearchParams();
     if (params.page !== undefined) searchParams.set('page', String(params.page));
     if (params.size !== undefined) searchParams.set('size', String(params.size));
     if (params.search) searchParams.set('search', params.search);
     if (params.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params.direction) searchParams.set('direction', params.direction);
+    const f = params.filters;
+    if (f) {
+      if (f.statuses?.length) f.statuses.forEach(s => searchParams.append('statuses', s));
+      if (f.gender) searchParams.set('gender', f.gender);
+      if (f.minAge !== undefined) searchParams.set('minAge', String(f.minAge));
+      if (f.maxAge !== undefined) searchParams.set('maxAge', String(f.maxAge));
+      if (f.hasEmail !== undefined) searchParams.set('hasEmail', String(f.hasEmail));
+      if (f.hasPhone !== undefined) searchParams.set('hasPhone', String(f.hasPhone));
+      if (f.groupIds?.length) f.groupIds.forEach(g => searchParams.append('groupIds', String(g)));
+      if (f.joinedFrom) searchParams.set('joinedFrom', f.joinedFrom);
+      if (f.joinedTo) searchParams.set('joinedTo', f.joinedTo);
+    }
     return ApiClient.get<PageResponse<PersonSearchResult>>(`/persons/page?${searchParams.toString()}`);
   },
   getStats: () => ApiClient.get<{ total: number; active: number }>('/persons/stats'),
@@ -398,11 +492,20 @@ export const reportApi = {
 };
 
 // ── Subscription / Plan types ──────────────────────────────────────────────
+export interface FeatureDefinitionDTO {
+  featureKey: string;
+  displayLabel: string;
+  sortOrder: number;
+  featureType: 'ALWAYS_ON' | 'BOOLEAN' | 'LIMIT' | 'PRO_ONLY';
+}
+
 export interface PlanEntitlementDTO {
   id?: number;
   featureKey: string;
   enabled: boolean;
   limitValue: number | null;
+  displayLabel?: string;
+  sortOrder?: number;
 }
 
 export interface SubscriptionPlanDTO {
@@ -571,5 +674,7 @@ export const subscriptionApi = {
     ApiClient.post(`/admin/subscription/invoices/${invoiceId}/payment`, data),
   deleteInvoice: (invoiceId: number): Promise<void> =>
     ApiClient.delete(`/admin/subscription/invoices/${invoiceId}`),
+  getFeatureDefinitions: (): Promise<FeatureDefinitionDTO[]> =>
+    ApiClient.get('/subscription/features'),
 };
 

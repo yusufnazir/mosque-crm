@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000007-0133-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_general_events"/>
+            <not><columnExists tableName="org_general_events" columnName="end_date"/></not>
+        </preConditions>
+        <comment>Add end_date column to org_general_events for multi-day event support</comment>
+        <addColumn tableName="org_general_events">
+            <column name="end_date" type="DATE" afterColumn="start_date"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

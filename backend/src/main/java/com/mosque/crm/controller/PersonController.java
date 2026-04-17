@@ -20,6 +20,7 @@ import com.mosque.crm.dto.PersonDTO;
 import com.mosque.crm.dto.PersonDeceasedDTO;
 import com.mosque.crm.dto.PersonUpdateDTO;
 import com.mosque.crm.dto.PageResponse;
+import com.mosque.crm.dto.MemberFilterCriteria;
 import com.mosque.crm.service.PersonService;
 
 @RestController
@@ -47,7 +48,9 @@ public class PersonController {
     }
 
     /**
-     * Get persons with server-side pagination, search, and sorting
+     * Get persons with server-side pagination, search, and optional structured filters.
+     * Filter params (statuses, gender, minAge, maxAge, hasEmail, hasPhone, groupIds, joinedFrom, joinedTo)
+     * are available on all plans; only Save/Load of filters is gated by member.saved_filters.
      */
     @GetMapping("/page")
     public ResponseEntity<PageResponse<PersonDTO>> getPersonsPaged(
@@ -55,11 +58,33 @@ public class PersonController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String search,
             @RequestParam(required = false, defaultValue = "firstName") String sortBy,
-            @RequestParam(required = false, defaultValue = "asc") String direction) {
+            @RequestParam(required = false, defaultValue = "asc") String direction,
+            @RequestParam(required = false) List<String> statuses,
+            @RequestParam(required = false) String gender,
+            @RequestParam(required = false) Integer minAge,
+            @RequestParam(required = false) Integer maxAge,
+            @RequestParam(required = false) Boolean hasEmail,
+            @RequestParam(required = false) Boolean hasPhone,
+            @RequestParam(required = false) List<Long> groupIds,
+            @RequestParam(required = false) String joinedFrom,
+            @RequestParam(required = false) String joinedTo) {
         // Cap size to prevent abuse
         if (size > 100) size = 100;
         if (size < 1) size = 20;
-        PageResponse<PersonDTO> result = personService.getPersonsPaged(page, size, search, sortBy, direction);
+
+        MemberFilterCriteria criteria = new MemberFilterCriteria();
+        criteria.setStatuses(statuses);
+        criteria.setGender(gender);
+        criteria.setMinAge(minAge);
+        criteria.setMaxAge(maxAge);
+        criteria.setHasEmail(hasEmail);
+        criteria.setHasPhone(hasPhone);
+        criteria.setGroupIds(groupIds);
+        criteria.setJoinedFrom(joinedFrom);
+        criteria.setJoinedTo(joinedTo);
+
+        PageResponse<PersonDTO> result = personService.getPersonsPaged(page, size, search, sortBy, direction,
+                criteria.isEmpty() ? null : criteria);
         return ResponseEntity.ok(result);
     }
 

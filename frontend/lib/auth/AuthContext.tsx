@@ -199,14 +199,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
+  const isSuperAdmin = user?.superAdmin === true;
+
   const can = useCallback(
-    (permission: string): boolean => permissionSet.has(permission),
-    [permissionSet],
+    (permission: string): boolean => isSuperAdmin || permissionSet.has(permission),
+    [isSuperAdmin, permissionSet],
   );
 
   const canAny = useCallback(
-    (...permissions: string[]): boolean => permissions.some((p) => permissionSet.has(p)),
-    [permissionSet],
+    (...permissions: string[]): boolean => isSuperAdmin || permissions.some((p) => permissionSet.has(p)),
+    [isSuperAdmin, permissionSet],
   );
 
   const clearAuth = useCallback(() => {
@@ -241,8 +243,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       .catch((err) => console.error('Failed to persist organization selection:', err));
   }, []);
-
-  const isSuperAdmin = user?.superAdmin === true;
 
   // Determine the active organization name for display
   const activeOrganizationName = isSuperAdmin

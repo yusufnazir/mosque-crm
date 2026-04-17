@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        Feature definitions table.
+        Stores the canonical display label, sort order, and type for every
+        plan feature key.  This is the single source of truth for how features
+        are labelled and ordered in both the admin billing UI and the public
+        pricing page.
+
+        feature_type values:
+          ALWAYS_ON  – available on every plan (no plan_entitlements row needed)
+          BOOLEAN    – enabled/disabled per plan
+          LIMIT      – numeric limit per plan
+          PRO_ONLY   – shown as a row but only ticked on the Pro plan (e.g. Priority support)
+    -->
+    <changeSet id="a1b2c3d4-e5f6-7890-abcd-ef1234567890" author="mosque-crm">
+        <createTable tableName="feature_definitions">
+            <column name="feature_key" type="VARCHAR(100)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="display_label" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feature_type" type="VARCHAR(20)" defaultValue="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

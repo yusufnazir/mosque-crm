@@ -32,12 +32,17 @@ import com.mosque.crm.enums.OrganizationEventType;
 import com.mosque.crm.enums.RecipientStatus;
 import com.mosque.crm.enums.RecipientType;
 import com.mosque.crm.enums.RegistrationStatus;
+import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.DistributionEventRepository;
+import com.mosque.crm.repository.GeneralEventRepository;
 import com.mosque.crm.repository.MemberDistributionRegistrationRepository;
 import com.mosque.crm.repository.NonMemberRecipientRepository;
 import com.mosque.crm.repository.ParcelCategoryRepository;
 import com.mosque.crm.repository.ParcelDistributionRepository;
 import com.mosque.crm.repository.PersonRepository;
+import com.mosque.crm.subscription.FeatureKeys;
+import com.mosque.crm.service.OrganizationSubscriptionService;
+import com.mosque.crm.subscription.PlanLimitExceededException;
 
 @Service
 public class DistributionService {
@@ -45,25 +50,31 @@ public class DistributionService {
     private static final Logger log = LoggerFactory.getLogger(DistributionService.class);
 
     private final DistributionEventRepository distributionEventRepository;
+    private final GeneralEventRepository generalEventRepository;
     private final ParcelCategoryRepository parcelCategoryRepository;
     private final NonMemberRecipientRepository nonMemberRecipientRepository;
     private final MemberDistributionRegistrationRepository memberRegistrationRepository;
     private final ParcelDistributionRepository parcelDistributionRepository;
     private final PersonRepository personRepository;
+    private final OrganizationSubscriptionService organizationSubscriptionService;
 
     public DistributionService(
             DistributionEventRepository distributionEventRepository,
+            GeneralEventRepository generalEventRepository,
             ParcelCategoryRepository parcelCategoryRepository,
             NonMemberRecipientRepository nonMemberRecipientRepository,
             MemberDistributionRegistrationRepository memberRegistrationRepository,
             ParcelDistributionRepository parcelDistributionRepository,
-            PersonRepository personRepository) {
+            PersonRepository personRepository,
+            OrganizationSubscriptionService organizationSubscriptionService) {
         this.distributionEventRepository = distributionEventRepository;
+        this.generalEventRepository = generalEventRepository;
         this.parcelCategoryRepository = parcelCategoryRepository;
         this.nonMemberRecipientRepository = nonMemberRecipientRepository;
         this.memberRegistrationRepository = memberRegistrationRepository;
         this.parcelDistributionRepository = parcelDistributionRepository;
         this.personRepository = personRepository;
+        this.organizationSubscriptionService = organizationSubscriptionService;
     }
 
     // ========================
@@ -72,6 +83,23 @@ public class DistributionService {
 
     @Transactional
     public DistributionEventDTO createEvent(DistributionEventCreateDTO dto) {
+        // Enforce events.max plan limit
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId != null) {
+            try {
+                Integer eventLimit = organizationSubscriptionService.getFeatureLimit(organizationId, FeatureKeys.EVENTS_MAX);
+                if (eventLimit != null) {
+                    long currentCount = distributionEventRepository.count() + generalEventRepository.count();
+                    if (currentCount >= eventLimit) {
+                        throw new PlanLimitExceededException(FeatureKeys.EVENTS_MAX, eventLimit, (int) currentCount);
+                    }
+                }
+            } catch (PlanLimitExceededException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                // No active subscription — allow creation (graceful degradation)
+            }
+        }
         DistributionEvent event = new DistributionEvent();
         event.setYear(dto.getYear());
         event.setName(dto.getName());

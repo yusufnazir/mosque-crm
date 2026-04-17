@@ -25,6 +25,7 @@ import com.mosque.crm.dto.CreateSubscriptionRequest;
 import com.mosque.crm.dto.CreateSubscriptionPlanRequest;
 import com.mosque.crm.dto.ChangeSubscriptionPlanRequest;
 import com.mosque.crm.dto.ChangeSubscriptionPlanResultDTO;
+import com.mosque.crm.dto.FeatureDefinitionDTO;
 import com.mosque.crm.dto.OrganizationSubscriptionDTO;
 import com.mosque.crm.dto.RecordSubscriptionPaymentRequest;
 import com.mosque.crm.dto.SubscriptionInvoiceDTO;
@@ -113,6 +114,16 @@ public class SubscriptionController {
     public ResponseEntity<List<SubscriptionPlanDTO>> getAvailablePlans() {
         List<SubscriptionPlanDTO> plans = organizationSubscriptionService.getActivePlansAsDTO();
         return ResponseEntity.ok(plans);
+    }
+
+    /**
+     * Returns the full feature catalogue ordered by sort_order.
+     * Used by the admin billing UI and the public pricing page to derive
+     * display labels and table ordering without any hardcoded frontend maps.
+     */
+    @GetMapping("/subscription/features")
+    public ResponseEntity<List<FeatureDefinitionDTO>> getFeatureCatalogue() {
+        return ResponseEntity.ok(organizationSubscriptionService.getFeatureDefinitions());
     }
 
     /**

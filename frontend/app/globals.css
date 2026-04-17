@@ -1,35 +1,84 @@
 @import "tailwindcss";
 
-:root {
-  --background: #FAFAF9;
-  --foreground: #1C1917;
-  --emerald: #047857;
-  --gold: #D4AF37;
-  --cream: #FAFAF9;
-  --charcoal: #1C1917;
-  --emerald-light: #059669;
-  --emerald-dark: #065f46;
+@theme {
+  /* ─── Brand palette (change these to retheme the entire app) ─── */
+  --color-primary: #183E58;
+  --color-primary-900: #081825;
+  --color-primary-800: #0F2A3E;
+  --color-primary-700: #163550;
+  --color-primary-600: #183E58;
+  --color-primary-500: #1e4d70;
+  --color-primary-400: #3C74C5;
+  --color-primary-300: #6a9dd4;
+  --color-primary-200: #a5c0db;
+  --color-primary-100: #dceaf5;
+  --color-primary-50:  #f0f5fb;
+
+  --color-primary-light: #3C74C5;
+  --color-primary-dark:  #0F2A3E;
+
+  /* ─── Emerald aliases → primary (all emerald-* classes cascade from primary) ─── */
+  --color-emerald-950: var(--color-primary-900);
+  --color-emerald-900: var(--color-primary-900);
+  --color-emerald-800: var(--color-primary-800);
+  --color-emerald-700: var(--color-primary-700);
+  --color-emerald-600: var(--color-primary-600);
+  --color-emerald-500: var(--color-primary-500);
+  --color-emerald-400: var(--color-primary-400);
+  --color-emerald-300: var(--color-primary-300);
+  --color-emerald-200: var(--color-primary-200);
+  --color-emerald-100: var(--color-primary-100);
+  --color-emerald-50:  var(--color-primary-50);
+
+  /* ─── Semantic / accent colors ─── */
+  --color-gold:         #D4AF37;
+  --color-gold-light:   #e6cc7a;
+  --color-cream:        #FAFAF9;
+  --color-charcoal:     #1C1917;
+  --color-charcoal-light: #44403C;
+
+  --font-sans:    'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-emerald-600: var(--emerald);
-  --color-emerald-700: var(--emerald-light);
-  --color-emerald-800: var(--emerald-dark);
-  --color-gold: var(--gold);
-  --color-cream: var(--cream);
-  --color-charcoal: var(--charcoal);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  background: #FAFAF9;
+  color: #1C1917;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  transition: colors 200ms ease-in-out;
+/* Geometric pattern overlay */
+.geometric-pattern {
+  background-image:
+    linear-gradient(30deg, rgba(24, 62, 88, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(24, 62, 88, 0.03) 87.5%),
+    linear-gradient(150deg, rgba(24, 62, 88, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(24, 62, 88, 0.03) 87.5%),
+    linear-gradient(30deg, rgba(24, 62, 88, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(24, 62, 88, 0.03) 87.5%),
+    linear-gradient(150deg, rgba(24, 62, 88, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(24, 62, 88, 0.03) 87.5%);
+  background-size: 80px 140px;
+  background-position: 0 0, 0 0, 40px 70px, 40px 70px;
 }
+
+/* Fade-in animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.7s ease-out forwards;
+}
+
+.animation-delay-200 { animation-delay: 0.2s; }
+.animation-delay-400 { animation-delay: 0.4s; }
+.animation-delay-600 { animation-delay: 0.6s; }

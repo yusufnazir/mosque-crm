@@ -7,6 +7,7 @@ import Button from '@/components/Button';
 import { memberApi, ApiClient } from '@/lib/api';
 import { Member } from '@/types';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 
 interface MemberFormData {
   firstName: string;
@@ -31,6 +32,9 @@ interface MemberFormData {
 export default function AddMemberPage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { getLimit } = useSubscription();
+  const membersLimit = getLimit('members.max');
+  const [currentMemberCount, setCurrentMemberCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [headMembers, setHeadMembers] = useState<Member[]>([]);
@@ -56,6 +60,7 @@ export default function AddMemberPage() {
   useEffect(() => {
     fetchHeadMembers();
     fetchAvailableRoles();
+    memberApi.getStats().then(stats => setCurrentMemberCount(stats.total)).catch(() => {});
   }, []);
 
   const fetchAvailableRoles = async () => {
@@ -130,6 +135,8 @@ export default function AddMemberPage() {
     }
   };
 
+  const atLimit = membersLimit != null && membersLimit > 0 && currentMemberCount != null && currentMemberCount >= membersLimit;
+
   return (
     <div className="p-4 md:p-8">
       <div className="mb-8">
@@ -149,6 +156,16 @@ export default function AddMemberPage() {
       </div>
 
       <form onSubmit={handleSubmit}>
+        {atLimit && (
+          <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
+            <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-amber-800">{t('plan.member_limit_reached', { limit: String(membersLimit) })}</p>
+              <p className="text-sm text-amber-700 mt-0.5">{t('plan.upgrade_prompt')}</p>
+            </div>
+            <a href="/billing" className="shrink-0 text-sm font-medium text-amber-700 underline hover:text-amber-900">{t('plan.upgrade_button')} →</a>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Personal Information */}
           <div className="lg:col-span-2">
@@ -424,7 +441,7 @@ export default function AddMemberPage() {
             </Card>
 
             <div className="mt-6 space-y-3">
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading || atLimit}>
                 {loading ? t('member_add.creating') : t('member_add.create')}
               </Button>
               <Button

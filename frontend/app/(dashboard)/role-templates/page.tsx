@@ -47,12 +47,14 @@ export default function RoleTemplatesPage() {
         ApiClient.get<PermissionDTO[]>('/admin/roles/permissions'),
       ]);
 
-      setTemplates(templateData);
-      setPermissions(permissionData);
+      const templates = Array.isArray(templateData) ? templateData : [];
+      const permissions = Array.isArray(permissionData) ? permissionData : [];
+      setTemplates(templates);
+      setPermissions(permissions);
 
-      if (templateData.length > 0) {
-        const currentId = selectedTemplateId ?? templateData[0].id;
-        const selected = templateData.find((t) => t.id === currentId) ?? templateData[0];
+      if (templates.length > 0) {
+        const currentId = selectedTemplateId ?? templates[0].id;
+        const selected = templates.find((t) => t.id === currentId) ?? templates[0];
         setSelectedTemplateId(selected.id);
         setEditPermissions(new Set(selected.permissionCodes));
         setEditAssignablePermissions(new Set(selected.assignablePermissionCodes));

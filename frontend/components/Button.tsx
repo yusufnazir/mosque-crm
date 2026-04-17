@@ -16,10 +16,10 @@ export default function Button({
   const baseStyles = 'font-medium rounded-lg transition-all focus:outline-none focus:ring-2';
 
   const variants = {
-    primary: 'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500',
+    primary: 'bg-primary-600 text-white hover:bg-primary-800 focus:ring-primary-400',
     secondary: 'bg-gold text-charcoal hover:bg-gold/90 focus:ring-gold',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    ghost: 'bg-transparent text-emerald-600 hover:bg-emerald-50 focus:ring-emerald-500',
+    ghost: 'bg-transparent text-primary-600 hover:bg-primary-50 focus:ring-primary-400',
   };
 
   const sizes = {

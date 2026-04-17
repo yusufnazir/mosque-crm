@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mosque.crm.dto.report.ContributionTotalReportDTO;
 import com.mosque.crm.dto.report.PaymentSummaryReportDTO;
 import com.mosque.crm.service.ReportService;
+import com.mosque.crm.subscription.PlanFeatureRequired;
 
+@PlanFeatureRequired("reports.advanced")
 @RestController
 @RequestMapping("/reports")
 public class ReportController {

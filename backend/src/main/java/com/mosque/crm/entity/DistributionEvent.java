@@ -29,7 +29,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
 @Entity
-@Table(name = "distribution_events")
+@Table(name = "org_events")
 @Filter(name = "organizationFilter", condition = "organization_id = :organizationId")
 @EntityListeners(OrganizationEntityListener.class)
 public class DistributionEvent implements OrganizationAware {

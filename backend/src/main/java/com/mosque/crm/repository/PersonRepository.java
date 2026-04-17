@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,7 @@ import com.mosque.crm.entity.Person;
 import com.mosque.crm.enums.PersonStatus;
 
 @Repository
-public interface PersonRepository extends JpaRepository<Person, Long> {
+public interface PersonRepository extends JpaRepository<Person, Long>, JpaSpecificationExecutor<Person> {
 
 	Optional<Person> findByEmail(String email);
 
@@ -27,13 +28,13 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
 
 	/**
 	 * Returns a list of age bucket label and count of persons in each bucket.
-	 * Buckets: 0-12, 13-18, 19-35, 36-60, 60+
+	 * Buckets: 0-12, 13-17, 18-35, 36-59, 60+
 	 */
 	@Query("SELECT " + "CASE " + " WHEN p.dateOfBirth IS NULL THEN 'Unknown' "
 			+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 0 AND 12 THEN '0-12' "
-			+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 13 AND 18 THEN '13-18' "
-			+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 19 AND 35 THEN '19-35' "
-			+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 36 AND 60 THEN '36-60' "
+			+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 13 AND 17 THEN '13-17' "
+			+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 18 AND 35 THEN '18-35' "
+			+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 36 AND 59 THEN '36-59' "
 			+ " ELSE '60+' END, " + "COUNT(p) " + "FROM Person p " + "GROUP BY 1")
 	List<Object[]> countByAgeBucket();
 
@@ -61,15 +62,15 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
 
 	/**
 	 * Returns a list of age bucket, gender, and count of persons in each bucket by gender.
-	 * Buckets: 0-12, 13-18, 19-35, 36-60, 60+
+	 * Buckets: 0-12, 13-17, 18-35, 36-59, 60+
 	 */
 	@Query("SELECT "
 		+ "CASE "
 		+ " WHEN p.dateOfBirth IS NULL THEN 'Unknown' "
 		+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 0 AND 12 THEN '0-12' "
-		+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 13 AND 18 THEN '13-18' "
-		+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 19 AND 35 THEN '19-35' "
-		+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 36 AND 60 THEN '36-60' "
+		+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 13 AND 17 THEN '13-17' "
+		+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 18 AND 35 THEN '18-35' "
+		+ " WHEN TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURRENT_DATE) BETWEEN 36 AND 59 THEN '36-59' "
 		+ " ELSE '60+' END, "
 		+ "p.gender, "
 		+ "COUNT(p) "

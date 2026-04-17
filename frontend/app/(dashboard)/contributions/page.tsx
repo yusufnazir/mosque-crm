@@ -31,6 +31,7 @@ import { currencyApi, OrganizationCurrencyDTO } from '@/lib/currencyApi';
 import { useDateFormat } from '@/lib/DateFormatContext';
 import { memberApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import PaymentReceiptModal from '@/components/PaymentReceiptModal';
@@ -40,6 +41,7 @@ type Tab = 'types' | 'obligations' | 'payments' | 'exemptions' | 'assignments';
 export default function ContributionsPage() {
   const { t, language: locale } = useTranslation();
   const { can, isSuperAdmin, user } = useAuth();
+  const { hasFeature } = useSubscription();
   const { formatDate } = useDateFormat();
   const router = useRouter();
   const params = useParams();
@@ -51,6 +53,7 @@ export default function ContributionsPage() {
   const canViewObligations = isSuperAdmin || can('contribution.view_obligations') || can('contribution.manage_obligations') || can('contribution.manage');
   const canManageObligations = isSuperAdmin || can('contribution.manage_obligations') || can('contribution.manage');
   const canViewPayments =
+    hasFeature('payment.tracking') && (
     isSuperAdmin ||
     can('contribution.view') ||
     can('contribution.view_payments') ||
@@ -60,7 +63,7 @@ export default function ContributionsPage() {
     can('contribution.reverse') ||
     can('contribution.edit_reversal') ||
     can('contribution.delete_reversal') ||
-    can('contribution.manage');
+    can('contribution.manage'));
   const canViewExemptions = isSuperAdmin || can('contribution.view_exemptions') || can('contribution.create_exemption') || can('contribution.edit_exemption') || can('contribution.delete_exemption') || can('contribution.manage');
   const canCreateExemption = isSuperAdmin || can('contribution.create_exemption') || can('contribution.manage');
   const canEditExemption = isSuperAdmin || can('contribution.edit_exemption') || can('contribution.manage');

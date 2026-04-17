@@ -3,13 +3,15 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
-import { memberApi, PageResponse } from '@/lib/api';
+import { memberApi, PageResponse, MemberFilterCriteria } from '@/lib/api';
+import FilterPanel from '@/components/FilterPanel';
 import Button from '@/components/Button';
 import { PersonSearchResult } from '@/types';
 import { getInitials, getStatusColor, getLocalizedStatus } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { joinRequestApi } from '@/lib/joinRequestApi';
 import ToastNotification from '@/components/ToastNotification';
+import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -24,9 +26,27 @@ const capitalizeName = (name: string | undefined): string => {
     .join(' ');
 };
 
+function PlanUsageBar({ used, limit, label }: { used: number; limit: number; label: string }) {
+  const pct = Math.min((used / limit) * 100, 100);
+  const color = pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-emerald-500';
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-gray-500">{label}:</span>
+      <span className={`font-semibold ${pct >= 100 ? 'text-red-600' : pct >= 80 ? 'text-amber-600' : 'text-gray-700'}`}>
+        {used} / {limit}
+      </span>
+      <div className="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export default function MembersPage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { getLimit } = useSubscription();
+  const membersLimit = getLimit('members.max');
 
   // Pagination state
   const [members, setMembers] = useState<PersonSearchResult[]>([]);
@@ -35,6 +55,10 @@ export default function MembersPage() {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+
+  // Filter panel
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterCriteria, setFilterCriteria] = useState<MemberFilterCriteria>({});
 
   // Search & sort
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,6 +94,7 @@ export default function MembersPage() {
         search: debouncedSearch || undefined,
         sortBy: sortConfig.key,
         direction: sortConfig.direction,
+        filters: filterCriteria,
       }) as PageResponse<PersonSearchResult>;
       setMembers(Array.isArray(data?.content) ? data.content : []);
       setTotalElements(data?.totalElements ?? 0);
@@ -79,7 +104,7 @@ export default function MembersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, debouncedSearch, sortConfig]);
+  }, [page, pageSize, debouncedSearch, sortConfig, filterCriteria]);
 
   useEffect(() => {
     fetchMembers();
@@ -165,6 +190,11 @@ export default function MembersPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-1 md:mb-2">{t('members.title')}</h1>
           <p className="text-gray-600 text-sm md:text-base">{t('members.subtitle')}</p>
+          {membersLimit != null && membersLimit > 0 && (
+            <div className="mt-2">
+              <PlanUsageBar used={totalElements} limit={membersLimit} label={t('members.plan_limit_label')} />
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -176,7 +206,11 @@ export default function MembersPage() {
             </svg>
             {t('members.invite')}
           </button>
-          <Button onClick={() => router.push('/members/add')}>{t('members.add_new_member')}</Button>
+          <Button
+            onClick={() => router.push('/members/add')}
+            disabled={membersLimit != null && membersLimit > 0 && totalElements >= membersLimit}
+            title={membersLimit != null && membersLimit > 0 && totalElements >= membersLimit ? t('plan.member_limit_reached', { limit: String(membersLimit) }) : undefined}
+          >{t('members.add_new_member')}</Button>
         </div>
       </div>
 
@@ -230,9 +264,29 @@ export default function MembersPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
               />
+              <button
+                onClick={() => setShowFilters(p => !p)}
+                className={`flex items-center gap-1 px-3 py-2 border rounded-lg text-sm transition ${
+                  showFilters ? 'border-emerald-600 text-emerald-700 bg-emerald-50' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                </svg>
+                {t('members.filter_panel')}
+              </button>
             </div>
           </div>
         </CardHeader>
+        {showFilters && (
+          <div className="px-4 pt-3 pb-0">
+            <FilterPanel
+              criteria={filterCriteria}
+              onChange={c => { setFilterCriteria(c); setPage(0); }}
+              onClear={() => { setFilterCriteria({}); setPage(0); }}
+            />
+          </div>
+        )}
         <CardContent className="p-0 relative">
           {/* Loading overlay for page transitions */}
           {loading && members.length > 0 && (

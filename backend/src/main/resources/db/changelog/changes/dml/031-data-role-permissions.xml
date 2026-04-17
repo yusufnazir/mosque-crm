@@ -293,10 +293,10 @@
 	</changeSet>
 
 	<!-- ═══════════════════════════════════════════════════════════
-	     DISTRIBUTION PERMISSIONS
+	     EVENT PERMISSIONS
 	     ═══════════════════════════════════════════════════════════ -->
 
-	<!-- ADMIN (role_id=1) → distribution.view (55), distribution.manage (56), distribution.distribute (57), distribution.delete (58) -->
+	<!-- ADMIN (role_id=1) → event.view (55), event.manage (56), event.distribute (57), event.delete (58) -->
 	<changeSet id="a1b2c3d4-dist-role-0001-admin-view-055" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
 			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[55]]></param>
@@ -387,6 +387,109 @@
         <changeSet id="a3b4c5d6-msg-role-0004-member-manage-066" author="mosque-crm">
                 <customChange class="com.mosque.crm.liquibase.DataRolePermission">
                         <param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[66]]></param>
+                </customChange>
+        </changeSet>
+
+        <!-- ════════════════════════════════════════════════════════
+             COMMUNICATION PERMISSIONS — communication.view (67), communication.manage (68)
+             ADMIN gets view and manage
+             ════════════════════════════════════════════════════════ -->
+
+        <!-- ADMIN (role_id=1) → communication.view (67) -->
+        <changeSet id="b4c5d6e7-com-role-0001-admin-view-067" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[67]]></param>
+                </customChange>
+        </changeSet>
+        <!-- ADMIN (role_id=1) → communication.manage (68) -->
+        <changeSet id="c5d6e7f8-com-role-0002-admin-manage-068" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[68]]></param>
+                </customChange>
+        </changeSet>
+
+        <!-- ════════════════════════════════════════════════════════
+             SAVED MEMBER FILTER PERMISSIONS — member.saved_filters.view (69), member.saved_filters.manage (70)
+             ADMIN gets view and manage
+             ════════════════════════════════════════════════════════ -->
+
+        <!-- ADMIN (role_id=1) → member.saved_filters.view (69) -->
+        <changeSet id="d6e7f8a9-sfl-role-0001-admin-view-069" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[69]]></param>
+                </customChange>
+        </changeSet>
+        <!-- ADMIN (role_id=1) → member.saved_filters.manage (70) -->
+        <changeSet id="e7f8a9b0-sfl-role-0002-admin-manage-070" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[70]]></param>
+                </customChange>
+        </changeSet>
+
+        <!-- ════════════════════════════════════════════════════════
+             DOCUMENT MANAGEMENT PERMISSIONS — document.view (71), document.manage (72),
+             document.share (73), document.upload (74)
+             ADMIN gets all four; MEMBER gets view, share, upload (not manage)
+             ════════════════════════════════════════════════════════ -->
+
+        <!-- ADMIN (role_id=1) → document.view (71) -->
+        <changeSet id="f8a9b0c1-doc-role-0001-admin-view-071" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[71]]></param>
+                </customChange>
+        </changeSet>
+        <!-- ADMIN (role_id=1) → document.manage (72) -->
+        <changeSet id="a9b0c1d2-doc-role-0002-admin-manage-072" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[72]]></param>
+                </customChange>
+        </changeSet>
+        <!-- ADMIN (role_id=1) → document.share (73) -->
+        <changeSet id="b0c1d2e3-doc-role-0003-admin-share-073" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[73]]></param>
+                </customChange>
+        </changeSet>
+        <!-- ADMIN (role_id=1) → document.upload (74) -->
+        <changeSet id="c1d2e3f4-doc-role-0004-admin-upload-074" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[74]]></param>
+                </customChange>
+        </changeSet>
+        <!-- MEMBER (role_id=2) → document.view (71) -->
+        <changeSet id="d2e3f4a5-doc-role-0005-member-view-071" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[71]]></param>
+                </customChange>
+        </changeSet>
+        <!-- MEMBER (role_id=2) → document.share (73) -->
+        <changeSet id="e3f4a5b6-doc-role-0006-member-share-073" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[73]]></param>
+                </customChange>
+        </changeSet>
+        <!-- MEMBER (role_id=2) → document.upload (74) -->
+        <changeSet id="f4a5b6c7-doc-role-0007-member-upload-074" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[74]]></param>
+                </customChange>
+        </changeSet>
+
+        <!-- ════════════════════════════════════════════════════════
+             DATA EXPORT PERMISSIONS — export.view (75), export.execute (76)
+             ADMIN gets both; MEMBER gets neither (export is admin-only)
+             ════════════════════════════════════════════════════════ -->
+
+        <!-- ADMIN (role_id=1) → export.view (75) -->
+        <changeSet id="a1b2c3d4-exp-role-0001-admin-view-075" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[75]]></param>
+                </customChange>
+        </changeSet>
+        <!-- ADMIN (role_id=1) → export.execute (76) -->
+        <changeSet id="b2c3d4e5-exp-role-0002-admin-exec-076" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataRolePermission">
+                        <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[76]]></param>
                 </customChange>
         </changeSet>
 

@@ -24,6 +24,7 @@
     <!-- Subscription Plans and Entitlements -->
     <include file="db/changelog/changes/dml/037-data-subscription-plans.xml"/>
     <include file="db/changelog/changes/dml/038-data-plan-entitlements.xml"/>
+    <include file="db/changelog/changes/dml/040-data-feature-definitions.xml"/>
 
     <!-- Role Templates master data -->
     <include file="db/changelog/changes/dml/039-data-role-templates.xml"/>

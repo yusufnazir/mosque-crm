@@ -133,7 +133,7 @@ export default function DashboardCharts() {
   // Prepare buckets and genders
   const ageBuckets = React.useMemo(() => {
     // Use all buckets in order of appearance in data, or fallback to standard order
-    const standard = ['0-12', '13-18', '19-35', '36-60', '60+', 'Unknown'];
+    const standard = ['0-12', '13-17', '18-35', '36-59', '60+', 'Unknown'];
     const found = Array.from(new Set(ageGenderData.map((d) => d.bucket)));
     return standard.filter((b) => found.includes(b)).concat(found.filter((b) => !standard.includes(b)));
   }, [ageGenderData]);

@@ -60,23 +60,47 @@ const allNavItems: NavItem[] = [
       </svg>
     )
   },
-  // { 
-  //   name: 'Family Tree', 
-  //   href: '/family-tree', 
-  //   permission: 'family.view',
-  //   icon: (
-  //     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  //       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-  //     </svg>
-  //   ) 
-  // },
+  { 
+    name: 'Family Tree', 
+    href: '/family-tree', 
+    permission: 'family.view',
+    entitlement: 'family.tree',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ) 
+  },
   { 
     name: 'Groups',
     href: '/groups',
     permission: 'group.view',
+    entitlement: 'member.grouping',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M12 12a4 4 0 100-8 4 4 0 000 8zm-6 8h6v-1a6 6 0 00-6-6v7zM7 12a4 4 0 110-8 4 4 0 010 8z" />
+      </svg>
+    )
+  },
+  {
+    name: 'Communications',
+    href: '/communications',
+    permission: 'communication.view',
+    entitlement: 'communication.tools',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    )
+  },
+  {
+    name: 'Documents',
+    href: '/documents',
+    permission: 'document.view',
+    entitlement: 'document.management',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
       </svg>
     )
   },
@@ -115,8 +139,9 @@ const allNavItems: NavItem[] = [
   },
   { 
     name: 'Events', 
-    href: '/distribution', 
-    permission: 'distribution.view',
+    href: '/events', 
+    permission: 'event.view',
+    entitlement: 'events.max',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -134,10 +159,22 @@ const allNavItems: NavItem[] = [
       </svg>
     ) 
   },
+  {
+    name: 'Export',
+    href: '/export',
+    permission: 'export.view',
+    entitlement: 'data.export',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 11l3 3m0 0l3-3m-3 3V8" />
+      </svg>
+    )
+  },
   { 
     name: 'My Profile', 
     href: '/profile', 
     permission: 'profile.view',
+    entitlement: 'member.portal',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -169,6 +206,7 @@ const allNavItems: NavItem[] = [
     name: 'Roles', 
     href: '/roles', 
     permission: 'role.view',
+    entitlement: 'roles.permissions',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -179,6 +217,7 @@ const allNavItems: NavItem[] = [
     name: 'Privileges', 
     href: '/privileges', 
     permission: 'privilege.view',
+    entitlement: 'roles.permissions',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -247,7 +286,7 @@ const NAV_GROUPS: NavGroup[] = [
   { labelKey: undefined, hrefs: ['/dashboard'] },
   { labelKey: 'sidebar.group_members', hrefs: ['/members', '/member-requests', '/groups'] },
   { labelKey: 'sidebar.group_finance', hrefs: ['/contributions/types', '/currencies'] },
-  { labelKey: 'sidebar.group_operations', hrefs: ['/reports', '/distribution', '/import'] },
+  { labelKey: 'sidebar.group_operations', hrefs: ['/reports', '/events', '/import', '/export', '/communications', '/documents'] },
   { labelKey: 'sidebar.group_personal', hrefs: ['/profile', '/inbox'] },
   { labelKey: 'sidebar.group_administration', hrefs: ['/users', '/roles', '/privileges', '/role-templates', '/organizations', '/billing', '/settings', '/tenant-settings'] },
 ];
@@ -349,20 +388,23 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   const isAdminPanel = canAny('member.create', 'member.edit', 'settings.manage', 'user.manage');
 
   return (
-    <div className="h-full w-64 bg-emerald-800 text-white flex flex-col">
+    <div className="h-full w-64 bg-primary-800 text-white flex flex-col">
       {/* Logo + Mobile close */}
-      <div className="p-6 border-b border-emerald-700">
+      <div className="p-6 border-b border-primary-700">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gold">{appName}</h1>
-            <p className="text-emerald-200 text-sm mt-1">
+            <div className="flex items-center gap-2 mb-1">
+              <img src="/memberflow-icon.svg" alt="" className="w-8 h-8 flex-shrink-0" />
+              <h1 className="text-xl font-display font-bold text-white leading-tight">{appName}</h1>
+            </div>
+            <p className="text-primary-200 text-sm pl-10">
               {isAdminPanel ? t('common.admin_panel') : t('common.member_portal')}
             </p>
           </div>
           {/* Close button on mobile */}
           <button
             onClick={onNavigate}
-            className="lg:hidden text-emerald-200 hover:text-white p-1"
+            className="lg:hidden text-primary-200 hover:text-white p-1"
             aria-label="Close menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -377,10 +419,10 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
               <div ref={organizationSelectorRef} className="relative">
                 <button
                   onClick={() => setIsOrganizationSelectorOpen(!isOrganizationSelectorOpen)}
-                  className="w-full flex items-center justify-between gap-1 px-2 py-1.5 bg-emerald-700/50 hover:bg-emerald-700 rounded text-xs text-emerald-200 transition-all cursor-pointer"
+                  className="w-full flex items-center justify-between gap-1 px-2 py-1.5 bg-primary-700/50 hover:bg-primary-700 rounded text-xs text-primary-200 transition-all cursor-pointer"
                 >
                   <span className="flex items-center gap-1 truncate">
-                    <svg className="w-3 h-3 text-gold flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                     <span className="truncate">
@@ -394,12 +436,12 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
 
                 {/* Dropdown */}
                 {isOrganizationSelectorOpen && (
-                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-emerald-700 rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-primary-700 rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
                     {/* All Organizations option */}
                     <button
                       onClick={() => { selectOrganization(null); setIsOrganizationSelectorOpen(false); }}
                       className={`w-full text-left px-3 py-2 text-xs transition-all flex items-center gap-2 ${
-                        !selectedOrganization ? 'bg-emerald-600 text-white' : 'text-emerald-200 hover:bg-emerald-600'
+                        !selectedOrganization ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-primary-600'
                       }`}
                     >
                       <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -407,20 +449,20 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                       </svg>
                       {t('sidebar.all_organizations')}
                     </button>
-                    <hr className="border-emerald-600" />
+                    <hr className="border-primary-600" />
                     {organizationList.map((organization) => (
                       <button
                         key={organization.id}
                         onClick={() => { selectOrganization({ id: organization.id, name: organization.name, shortName: organization.shortName }); setIsOrganizationSelectorOpen(false); }}
                         className={`w-full text-left px-3 py-2 text-xs transition-all truncate ${
-                          selectedOrganization?.id === organization.id ? 'bg-emerald-600 text-white' : 'text-emerald-200 hover:bg-emerald-600'
+                          selectedOrganization?.id === organization.id ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-primary-600'
                         }`}
                       >
                         {organization.name}
                       </button>
                     ))}
                     {organizationList.length === 0 && (
-                      <div className="px-3 py-2 text-xs text-emerald-400 italic">
+                      <div className="px-3 py-2 text-xs text-primary-300 italic">
                         {t('sidebar.no_organizations_found')}
                       </div>
                     )}
@@ -428,7 +470,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 )}
               </div>
             ) : (
-              <div className="px-2 py-1.5 bg-emerald-700/50 rounded text-xs text-emerald-200 truncate">
+              <div className="px-2 py-1.5 bg-primary-700/50 rounded text-xs text-primary-200 truncate">
                 <span className="flex items-center gap-1">
                   <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -452,7 +494,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
               {group.labelKey && (
                 <button
                   onClick={() => toggleGroup(group.labelKey!)}
-                  className="w-full flex items-center justify-between py-1.5 mt-2 text-xs font-semibold text-emerald-400 uppercase tracking-wider hover:text-emerald-200 transition-colors"
+                  className="w-full flex items-center justify-between py-1.5 mt-2 text-xs font-semibold text-primary-400 uppercase tracking-wider hover:text-primary-200 transition-colors"
                 >
                   <span>{t(group.labelKey)}</span>
                   <svg
@@ -478,8 +520,8 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                           flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all
                           ${
                             isActive
-                              ? 'bg-emerald-700 text-white shadow-md'
-                              : 'text-emerald-100 hover:bg-emerald-700/50'
+                              ? 'bg-primary-600 text-white shadow-md'
+                              : 'text-primary-100 hover:bg-primary-700/50'
                           }
                         `}
                       >

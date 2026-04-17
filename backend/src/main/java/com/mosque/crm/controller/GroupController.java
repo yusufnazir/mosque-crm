@@ -16,7 +16,9 @@ import com.mosque.crm.dto.GroupDTO;
 import com.mosque.crm.dto.GroupMemberDTO;
 import com.mosque.crm.dto.GroupRoleDTO;
 import com.mosque.crm.service.GroupService;
+import com.mosque.crm.subscription.PlanFeatureRequired;
 
+@PlanFeatureRequired("member.grouping")
 @RestController
 @RequestMapping("/groups")
 public class GroupController {

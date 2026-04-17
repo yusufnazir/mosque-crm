@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -12,6 +12,7 @@ import {
   OrganizationSubscriptionDTO,
   SubscriptionPlanDTO,
   PlanEntitlementDTO,
+  FeatureDefinitionDTO,
   CreateSubscriptionPlanEntitlementInput,
   SubscriptionInvoiceDTO,
   RecordSubscriptionPaymentRequest,
@@ -19,20 +20,6 @@ import {
 import { useDateFormat } from '@/lib/DateFormatContext';
 
 // ─── Shared helpers ──────────────────────────────────────────────────────────
-
-const FEATURE_LABELS: Record<string, string> = {
-  'admin.users.max': 'Admin Users Limit',
-  'members.max': 'Member Limit',
-  'member.portal': 'Member Portal',
-  'reports.advanced': 'Advanced Reports',
-  'import.excel': 'Excel Import',
-  'finance.multi_currency': 'Multi-Currency Finance',
-  'family.tree': 'Family Tree',
-};
-const PLAN_FEATURE_KEYS = Object.keys(FEATURE_LABELS);
-function featureLabel(key: string): string {
-  return FEATURE_LABELS[key] ?? key;
-}
 
 function subscriptionStatusBadge(status: string) {
   const map: Record<string, string> = {
@@ -78,7 +65,7 @@ function EntitlementsTable({ entitlements }: { entitlements: PlanEntitlementDTO[
         <tbody>
           {entitlements.map((e) => (
             <tr key={e.featureKey} className="border-b hover:bg-gray-50 transition">
-              <td className="py-3 px-4 font-medium text-gray-800">{featureLabel(e.featureKey)}</td>
+              <td className="py-3 px-4 font-medium text-gray-800">{e.displayLabel ?? e.featureKey}</td>
               <td className="py-3 px-4">
                 {e.enabled ? (
                   <span className="inline-flex items-center gap-1 text-emerald-700">
@@ -119,6 +106,7 @@ function SubscriptionSection() {
 
   const [subscription, setSubscription] = useState<OrganizationSubscriptionDTO | null>(null);
   const [plans, setPlans] = useState<SubscriptionPlanDTO[]>([]);
+  const [featureDefs, setFeatureDefs] = useState<FeatureDefinitionDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -136,15 +124,7 @@ function SubscriptionSection() {
   const [planYearlyPriceInput, setPlanYearlyPriceInput] = useState('150');
   const [planAdminLimitInput, setPlanAdminLimitInput] = useState('2');
   const [planMemberLimitInput, setPlanMemberLimitInput] = useState('');
-  const [planFeatureToggles, setPlanFeatureToggles] = useState<Record<string, boolean>>({
-    'admin.users.max': true,
-    'members.max': true,
-    'member.portal': false,
-    'reports.advanced': false,
-    'import.excel': true,
-    'finance.multi_currency': false,
-    'family.tree': true,
-  });
+  const [planFeatureToggles, setPlanFeatureToggles] = useState<Record<string, boolean>>({});
   const [editingPlanCode, setEditingPlanCode] = useState<string | null>(null);
   const [updatingPlan, setUpdatingPlan] = useState(false);
   const [deletePlanDialog, setDeletePlanDialog] = useState<{ open: boolean; code: string; name: string } | null>(null);
@@ -165,12 +145,14 @@ function SubscriptionSection() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [sub, availablePlans] = await Promise.all([
+      const [sub, availablePlans, defs] = await Promise.all([
         subscriptionApi.getCurrent().catch(() => null),
         subscriptionApi.getPlans().catch(() => []),
+        subscriptionApi.getFeatureDefinitions().catch(() => []),
       ]);
       setSubscription(sub);
       setPlans(availablePlans as SubscriptionPlanDTO[]);
+      setFeatureDefs(defs as FeatureDefinitionDTO[]);
     } catch {
       setToast({ message: t('subscription.load_error'), type: 'error' });
     } finally {
@@ -180,6 +162,25 @@ function SubscriptionSection() {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData(); }, []);
+
+  // Resolve display label from the feature catalogue loaded from DB.
+  const featureLabel = useCallback((key: string): string =>
+    featureDefs.find((d) => d.featureKey === key)?.displayLabel ?? key,
+    [featureDefs]);
+
+  // Single source of truth: derive ordered feature keys from the DB catalogue.
+  // LIMIT and BOOLEAN features drive the plan comparison table and creation form.
+  // Keys present in plans but not yet in the catalogue are appended at the end.
+  const allFeatureKeys = useMemo(() => {
+    const dbKeys = new Set(plans.flatMap((p) => p.entitlements.map((e) => e.featureKey)));
+    const ordered = featureDefs
+      .filter((d) => d.featureType === 'LIMIT' || d.featureType === 'BOOLEAN')
+      .map((d) => d.featureKey);
+    return [
+      ...ordered,
+      ...Array.from(dbKeys).filter((k) => !ordered.includes(k)),
+    ];
+  }, [plans, featureDefs]);
 
   const handleAssign = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,7 +210,7 @@ function SubscriptionSection() {
     e.preventDefault();
     setCreatingPlan(true);
     try {
-      const entitlements: CreateSubscriptionPlanEntitlementInput[] = PLAN_FEATURE_KEYS.map((featureKey) => {
+      const entitlements: CreateSubscriptionPlanEntitlementInput[] = allFeatureKeys.map((featureKey) => {
         const enabled = Boolean(planFeatureToggles[featureKey]);
         const entry: CreateSubscriptionPlanEntitlementInput = { featureKey, enabled };
         if (featureKey === 'admin.users.max') {
@@ -252,7 +253,7 @@ function SubscriptionSection() {
     setPlanMonthlyPriceInput(String(plan.monthlyPrice));
     setPlanYearlyPriceInput(String(plan.yearlyPrice));
     const toggles: Record<string, boolean> = {};
-    PLAN_FEATURE_KEYS.forEach((key) => { toggles[key] = false; });
+    allFeatureKeys.forEach((key) => { toggles[key] = false; });
     plan.entitlements.forEach((e) => {
       toggles[e.featureKey] = e.enabled;
       if (e.featureKey === 'admin.users.max' && e.limitValue != null) setPlanAdminLimitInput(String(e.limitValue));
@@ -273,7 +274,7 @@ function SubscriptionSection() {
     if (!editingPlanCode) return;
     setUpdatingPlan(true);
     try {
-      const entitlements: CreateSubscriptionPlanEntitlementInput[] = PLAN_FEATURE_KEYS.map((featureKey) => {
+      const entitlements: CreateSubscriptionPlanEntitlementInput[] = allFeatureKeys.map((featureKey) => {
         const enabled = Boolean(planFeatureToggles[featureKey]);
         const entry: CreateSubscriptionPlanEntitlementInput = { featureKey, enabled };
         if (featureKey === 'admin.users.max') {
@@ -337,12 +338,7 @@ function SubscriptionSection() {
 
   const activePlans = plans.filter((plan) => plan.isActive).slice().sort((a, b) => a.monthlyPrice - b.monthlyPrice);
 
-  const comparisonFeatureKeys = Array.from(
-    new Set([
-      ...PLAN_FEATURE_KEYS,
-      ...activePlans.flatMap((plan) => plan.entitlements.map((e) => e.featureKey)),
-    ])
-  );
+  const comparisonFeatureKeys = allFeatureKeys;
 
   const getPlanEntitlement = (plan: SubscriptionPlanDTO, featureKey: string): PlanEntitlementDTO | null =>
     plan.entitlements.find((e) => e.featureKey === featureKey) ?? null;
@@ -831,7 +827,7 @@ function SubscriptionSection() {
                 <div>
                   <p className="text-sm font-medium text-gray-700 mb-2">Feature Entitlements</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {PLAN_FEATURE_KEYS.map((featureKey) => (
+                    {allFeatureKeys.map((featureKey) => (
                       <label key={featureKey} className="flex items-center gap-2 text-sm text-gray-700">
                         <input type="checkbox" checked={Boolean(planFeatureToggles[featureKey])} onChange={(e) => setPlanFeatureToggles((prev) => ({ ...prev, [featureKey]: e.target.checked }))} className="accent-emerald-700" />
                         <span>{featureLabel(featureKey)}</span>
@@ -882,7 +878,20 @@ function SubscriptionSection() {
                       <span className="text-gray-700">${plan.yearlyPrice}<span className="text-gray-400">/yr</span></span>
                     </div>
                     <ul className="space-y-1">
-                      {plan.entitlements.map((e) => (
+                      {[
+                        // ALWAYS_ON features first — true for every plan
+                        ...featureDefs
+                          .filter((d) => d.featureType === 'ALWAYS_ON')
+                          .map((d) => ({
+                            featureKey: d.featureKey,
+                            enabled: true,
+                            limitValue: null as number | null,
+                            displayLabel: d.displayLabel,
+                            sortOrder: d.sortOrder,
+                          })),
+                        // Then the plan's own entitlements (already sorted by sortOrder from backend)
+                        ...plan.entitlements,
+                      ].map((e) => (
                         <li key={e.featureKey} className="flex items-center gap-2 text-xs text-gray-600">
                           {e.enabled ? (
                             <svg className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>

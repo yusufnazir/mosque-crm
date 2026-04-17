@@ -25,6 +25,8 @@ import com.mosque.crm.dto.MemberPaymentCreateDTO;
 import com.mosque.crm.dto.MemberPaymentDTO;
 import com.mosque.crm.service.MemberPaymentService;
 import com.mosque.crm.service.AuthorizationService;
+import com.mosque.crm.subscription.FeatureKeys;
+import com.mosque.crm.subscription.PlanFeatureRequired;
 
 import jakarta.validation.Valid;
 
@@ -36,6 +38,7 @@ import jakarta.validation.Valid;
  * Sorting: pass sort=field,direction (e.g. sort=person.firstName,asc&sort=periodFrom,asc).
  * Year filter: pass year=2026 to filter by period year.
  */
+@PlanFeatureRequired(FeatureKeys.PAYMENT_TRACKING)
 @RestController
 @RequestMapping("/contributions/payments")
 @CrossOrigin(origins = "*")

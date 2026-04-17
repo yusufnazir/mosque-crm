@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000007-0131-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="org_general_event_registrations"/></not>
+        </preConditions>
+        <comment>Create org_general_event_registrations table</comment>
+        <createTable tableName="org_general_event_registrations">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="general_event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="person_id" type="BIGINT"/>
+            <column name="registrant_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="phone_number" type="VARCHAR(20)"/>
+            <column name="party_size" type="INT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rsvp_status" type="VARCHAR(20)" defaultValue="CONFIRMED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="check_in_status" type="VARCHAR(20)" defaultValue="NOT_CHECKED_IN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="checked_in_at" type="TIMESTAMP"/>
+            <column name="special_requests" type="VARCHAR(500)"/>
+            <column name="amount_paid" type="DECIMAL(10,2)"/>
+            <column name="registered_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source" type="VARCHAR(30)"/>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

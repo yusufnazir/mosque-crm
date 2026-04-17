@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        Canonical feature definitions — single source of truth for display labels,
+        sort order, and feature types used by both the admin billing UI and the
+        public pricing / comparison table.
+
+        ALWAYS_ON  – free on every plan (no plan_entitlements row)
+        BOOLEAN    – toggled enabled/disabled per plan
+        LIMIT      – numeric limit per plan
+        PRO_ONLY   – shown as a row but only ticked for the Pro plan
+    -->
+
+    <!-- sort_order=10: always-on -->
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000001" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[member.profiles]]></param>
+            <param name="displayLabel"><![CDATA[Member profiles]]></param>
+            <param name="sortOrder"><![CDATA[10]]></param>
+            <param name="featureType"><![CDATA[ALWAYS_ON]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000002" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[attendance.basic]]></param>
+            <param name="displayLabel"><![CDATA[Basic attendance tracking]]></param>
+            <param name="sortOrder"><![CDATA[20]]></param>
+            <param name="featureType"><![CDATA[ALWAYS_ON]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000003" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[reporting.basic]]></param>
+            <param name="displayLabel"><![CDATA[Basic reporting]]></param>
+            <param name="sortOrder"><![CDATA[30]]></param>
+            <param name="featureType"><![CDATA[ALWAYS_ON]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- sort_order=40–50: limits -->
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000004" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[admin.users.max]]></param>
+            <param name="displayLabel"><![CDATA[Admin users]]></param>
+            <param name="sortOrder"><![CDATA[40]]></param>
+            <param name="featureType"><![CDATA[LIMIT]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000005" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[members.max]]></param>
+            <param name="displayLabel"><![CDATA[Members]]></param>
+            <param name="sortOrder"><![CDATA[50]]></param>
+            <param name="featureType"><![CDATA[LIMIT]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- sort_order=60–200: boolean features -->
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000006" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[member.portal]]></param>
+            <param name="displayLabel"><![CDATA[Member portal]]></param>
+            <param name="sortOrder"><![CDATA[60]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000007" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[attendance.advanced]]></param>
+            <param name="displayLabel"><![CDATA[Advanced attendance tracking]]></param>
+            <param name="sortOrder"><![CDATA[70]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000008" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[import.excel]]></param>
+            <param name="displayLabel"><![CDATA[Excel import]]></param>
+            <param name="sortOrder"><![CDATA[80]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000009" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[member.search]]></param>
+            <param name="displayLabel"><![CDATA[Member search]]></param>
+            <param name="sortOrder"><![CDATA[90]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000010" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[member.saved_filters]]></param>
+            <param name="displayLabel"><![CDATA[Saved search filters]]></param>
+            <param name="sortOrder"><![CDATA[100]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000011" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[member.grouping]]></param>
+            <param name="displayLabel"><![CDATA[Member grouping]]></param>
+            <param name="sortOrder"><![CDATA[110]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000012" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[communication.tools]]></param>
+            <param name="displayLabel"><![CDATA[Communication tools]]></param>
+            <param name="sortOrder"><![CDATA[120]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000013" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[finance.multi_currency]]></param>
+            <param name="displayLabel"><![CDATA[Multi-currency support]]></param>
+            <param name="sortOrder"><![CDATA[130]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000014" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[reports.advanced]]></param>
+            <param name="displayLabel"><![CDATA[Advanced reports]]></param>
+            <param name="sortOrder"><![CDATA[140]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000015" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[payment.tracking]]></param>
+            <param name="displayLabel"><![CDATA[Payment tracking]]></param>
+            <param name="sortOrder"><![CDATA[150]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000016" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[document.management]]></param>
+            <param name="displayLabel"><![CDATA[Document management]]></param>
+            <param name="sortOrder"><![CDATA[160]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000017" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[api.access]]></param>
+            <param name="displayLabel"><![CDATA[API / integrations]]></param>
+            <param name="sortOrder"><![CDATA[170]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000018" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[roles.permissions]]></param>
+            <param name="displayLabel"><![CDATA[Roles & permissions]]></param>
+            <param name="sortOrder"><![CDATA[180]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000019" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[data.export]]></param>
+            <param name="displayLabel"><![CDATA[Data export & backups]]></param>
+            <param name="sortOrder"><![CDATA[190]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000020" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[family.tree]]></param>
+            <param name="displayLabel"><![CDATA[Family tree]]></param>
+            <param name="sortOrder"><![CDATA[200]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- sort_order=210: event limit -->
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000021" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[events.max]]></param>
+            <param name="displayLabel"><![CDATA[Events]]></param>
+            <param name="sortOrder"><![CDATA[210]]></param>
+            <param name="featureType"><![CDATA[LIMIT]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- sort_order=220: pro-only -->
+    <changeSet id="fd-a1000000-0001-0001-0001-000000000022" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[priority.support]]></param>
+            <param name="displayLabel"><![CDATA[Priority support]]></param>
+            <param name="sortOrder"><![CDATA[220]]></param>
+            <param name="featureType"><![CDATA[PRO_ONLY]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Remove api.access — not offered as a standalone feature -->
+    <changeSet id="fd-delete-api-access-0000-000000000001" author="mosque-crm">
+        <sql>DELETE FROM feature_definitions WHERE feature_key = 'api.access'</sql>
+    </changeSet>
+
+</databaseChangeLog>

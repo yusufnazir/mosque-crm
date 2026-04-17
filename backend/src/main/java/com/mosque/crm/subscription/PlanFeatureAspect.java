@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.mosque.crm.multitenancy.TenantContext;
+import com.mosque.crm.service.AuthorizationService;
 import com.mosque.crm.service.OrganizationSubscriptionService;
 
 /**
@@ -33,9 +34,12 @@ public class PlanFeatureAspect {
     private static final Logger log = LoggerFactory.getLogger(PlanFeatureAspect.class);
 
     private final OrganizationSubscriptionService organizationSubscriptionService;
+    private final AuthorizationService authorizationService;
 
-    public PlanFeatureAspect(OrganizationSubscriptionService organizationSubscriptionService) {
+    public PlanFeatureAspect(OrganizationSubscriptionService organizationSubscriptionService,
+                             AuthorizationService authorizationService) {
         this.organizationSubscriptionService = organizationSubscriptionService;
+        this.authorizationService = authorizationService;
     }
 
     /**
@@ -50,7 +54,8 @@ public class PlanFeatureAspect {
         Long organizationId = TenantContext.getCurrentOrganizationId();
 
         // Super-admins bypass all plan entitlement checks
-        if (organizationId == null) {
+        // Also bypass when a super-admin is scoped to an org via X-Organization-Id header
+        if (organizationId == null || authorizationService.hasPermission("superadmin.manage")) {
             log.debug("Super-admin request — bypassing plan check for feature={}", featureKey);
             return joinPoint.proceed();
         }
