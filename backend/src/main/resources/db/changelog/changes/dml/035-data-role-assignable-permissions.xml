@@ -25,4 +25,16 @@
 		</sql>
 	</changeSet>
 
+	<changeSet id="f1e2d3c4-0035-4bbb-bbbb-sync-pool-new-perms" author="mosque-crm">
+		<comment>Re-sync pool to pick up permissions added after the initial seed (id 42-76). INSERT IGNORE is idempotent.</comment>
+		<sql>
+			INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+			SELECT r.id, p.id
+			FROM roles r
+			CROSS JOIN permissions p
+			WHERE r.name != 'SUPER_ADMIN'
+			  AND p.category != 'superadmin';
+		</sql>
+	</changeSet>
+
 </databaseChangeLog>

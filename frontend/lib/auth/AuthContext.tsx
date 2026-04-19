@@ -154,8 +154,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // where localStorage is empty after a subdomain hop).
       let response = await fetch('/api/me', { headers });
 
-      if (!response.ok && response.status === 401) {
-        // Cross-subdomain hydration: try the dedicated auth/me route
+      if (!response.ok) {
+        // Cross-subdomain hydration: try the dedicated auth/me route.
+        // This handles the case where /api/me returns 404 (no proxy middleware)
+        // or 401 (not authenticated via proxy token).
         response = await fetch('/api/auth/me', { headers });
       }
 

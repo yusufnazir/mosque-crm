@@ -7,7 +7,11 @@ export const metadata: Metadata = {
     'MemberFlow helps community organizations manage members, families, contributions, events, and more — all in one place.',
   keywords: ['member management', 'community CRM', 'organization software', 'membership platform', 'community management'],
   icons: {
-    icon: '/memberflow-icon.svg',
+    icon: [
+      { url: "/memberflow-icon.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
+      { url: "/memberflow-icon-light.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
+    ],
+    apple: "/memberflow-icon.svg",
   },
   openGraph: {
     title: 'MemberFlow — Modern Membership Management',

@@ -392,7 +392,13 @@
       "contact_admin": "Neem contact op met een beheerder voor hulp."
     },
     "no_account": "Nog geen account?",
-    "register_link": "Registreren"
+    "register_link": "Registreren",
+    "hero_tagline": "Alles wat uw moskee nodig heeft, op één plek.",
+    "hero_description": "Beheer leden, volg bijdragen, organiseer evenementen en houd uw gemeenschap verbonden — allemaal vanuit één veilig platform gebouwd voor moskeeën.",
+    "feature_members": "Ledenprofielen, stambomen & groepen",
+    "feature_finance": "Bijdragen, betalingen & meerdere valuta's",
+    "feature_events": "Evenementen, uitdelingen & aanwezigheid",
+    "feature_comms": "Communicatie, documenten & portalen"
   },
   "register": {
     "title": "Account Aanmaken",

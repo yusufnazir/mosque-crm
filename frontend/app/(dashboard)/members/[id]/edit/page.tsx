@@ -112,7 +112,7 @@ export default function EditMemberPage() {
 
   const fetchHeadMembers = async () => {
     try {
-      const data: any = await memberApi.getAll();
+      const data: any = await memberApi.getAllAdmin();
       const heads = data.filter((m: Member) => m.username && String(m.id) !== String(memberId));
       setHeadMembers(heads);
     } catch (error) {

@@ -493,5 +493,75 @@
                 </customChange>
         </changeSet>
 
+	<!-- ═══════════════════════════════════════════════════════════
+	     PRO-PLAN COMPLETENESS — permissions that were missing from
+	     the ADMIN and MEMBER templates.
+	     Plan feature gates (PlanFeatureRequired) continue to restrict
+	     access on lower-tier plans; roles must hold the permission so
+	     that everything works correctly on the highest paid plan.
+	     ═══════════════════════════════════════════════════════════ -->
+
+	<!-- ADMIN → import.execute (11): plan-gated by import.excel entitlement -->
+	<changeSet id="7a3f9d2e-1b4c-4a5f-8d6e-a1b2c3d4e5f6" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[11]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ADMIN → privilege.view (24): plan-gated by roles.permissions entitlement -->
+	<changeSet id="8b4a0e3f-2c5d-4b6a-9e7f-b2c3d4e5f6a7" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[24]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ADMIN → privilege.manage (25): plan-gated by roles.permissions entitlement -->
+	<changeSet id="9c5b1f40-3d6e-4c7b-0f80-c3d4e5f6a7b8" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[25]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ADMIN → contribution.edit_payment (30): full payment management on Pro plan -->
+	<changeSet id="0d6c2a51-4e7f-4d8c-1091-d4e5f6a7b8c9" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[30]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ADMIN → contribution.delete_payment (31): full payment management on Pro plan -->
+	<changeSet id="1e7d3b62-5f80-4e9d-2102-e5f6a7b8c9d0" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[31]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ADMIN → tenant_settings.view (59): org-level settings visibility -->
+	<changeSet id="2f8e4c73-6091-4f0e-3213-f6a7b8c9d0e1" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[59]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ADMIN → tenant_settings.manage (60): org-level settings management -->
+	<changeSet id="3a915d84-7102-4aff-a324-a7b8c9d0e1f2" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[60]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- MEMBER → member.saved_filters.view (69): plan-gated by member.saved_filters entitlement -->
+	<changeSet id="4102e695-8213-41a0-b435-b8c9d0e1f2a3" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[69]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- MEMBER → member.saved_filters.manage (70): plan-gated by member.saved_filters entitlement -->
+	<changeSet id="5213f7a6-9324-42b1-c546-c9d0e1f2a3b4" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[2]]></param><param name="permissionId"><![CDATA[70]]></param>
+		</customChange>
+	</changeSet>
 
 </databaseChangeLog>

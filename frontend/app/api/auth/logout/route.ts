@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-cookies';
 
 /**
  * BFF logout endpoint.
@@ -11,14 +12,6 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
-
-function inferBaseDomainFromHost(hostname: string): string | undefined {
-  const host = hostname.split(':')[0].trim().toLowerCase();
-  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return undefined;
-  const parts = host.split('.').filter(Boolean);
-  if (parts.length < 3) return undefined;
-  return `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
-}
 
 function getEffectiveBaseDomain(request: NextRequest): string | undefined {
   const cookieDomain = request.cookies.get('app_base_domain')?.value?.trim();
@@ -33,22 +26,8 @@ function getEffectiveBaseDomain(request: NextRequest): string | undefined {
   return BASE_DOMAIN;
 }
 
-function clearCookies(response: NextResponse, baseDomain?: string) {
-  const clearOpts = {
-    path: '/',
-    maxAge: 0,
-    expires: new Date(0),
-    ...(baseDomain ? { domain: `.${baseDomain}` } : {}),
-  };
-
-  response.cookies.set('session_token', '', { ...clearOpts, httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const });
-  response.cookies.set('org_handle', '', { ...clearOpts, httpOnly: false, sameSite: 'lax' as const });
-  response.cookies.set('app_base_domain', '', { ...clearOpts, httpOnly: false, sameSite: 'lax' as const });
-  return response;
-}
-
 export async function POST(request: NextRequest) {
-  return clearCookies(NextResponse.json({ message: 'Logged out' }, { status: 200 }), getEffectiveBaseDomain(request));
+  return clearAuthCookies(NextResponse.json({ message: 'Logged out' }, { status: 200 }), getEffectiveBaseDomain(request));
 }
 
 export async function GET(request: NextRequest) {
@@ -71,5 +50,5 @@ export async function GET(request: NextRequest) {
     redirectUrl = `${protocol}//${host}/login`;
   }
 
-  return clearCookies(NextResponse.redirect(redirectUrl), baseDomain);
+  return clearAuthCookies(NextResponse.redirect(redirectUrl), baseDomain);
 }

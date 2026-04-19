@@ -464,8 +464,10 @@ export default function SettingsPage() {
     <div className="p-4 md:p-8">
       <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-6 md:mb-8">{t('settings.title')}</h1>
 
-      <div className="flex flex-wrap gap-3 md:gap-4 mb-6">
+      <div role="tablist" className="flex flex-wrap gap-3 md:gap-4 mb-6">
         <button
+          role="tab"
+          aria-selected={activeTab === 'general'}
           onClick={() => setActiveTab('general')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             activeTab === 'general'
@@ -476,6 +478,8 @@ export default function SettingsPage() {
           {t('settings.general')}
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'mail'}
           onClick={() => setActiveTab('mail')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             activeTab === 'mail'
@@ -486,6 +490,8 @@ export default function SettingsPage() {
           {t('settings.mail_server')}
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'document'}
           onClick={() => setActiveTab('document')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             activeTab === 'document'
@@ -496,6 +502,8 @@ export default function SettingsPage() {
           {t('settings.document_management')}
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'billing'}
           onClick={() => setActiveTab('billing')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             activeTab === 'billing'

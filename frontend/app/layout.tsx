@@ -23,7 +23,10 @@ export const metadata: Metadata = {
     userScalable: false,
   },
   icons: {
-    icon: "/memberflow-icon.svg",
+    icon: [
+      { url: "/memberflow-icon.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
+      { url: "/memberflow-icon-light.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
+    ],
     apple: "/memberflow-icon.svg",
   },
 };

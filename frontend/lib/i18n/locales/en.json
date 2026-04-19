@@ -393,7 +393,13 @@
       "contact_admin": "Please contact an administrator for assistance."
     },
     "no_account": "Don't have an account?",
-    "register_link": "Register"
+    "register_link": "Register",
+    "hero_tagline": "Everything your mosque needs, in one place.",
+    "hero_description": "Streamline member management, track contributions, organise events and keep your community connected — all from a single, secure platform built for mosques.",
+    "feature_members": "Member profiles, family trees & groups",
+    "feature_finance": "Contributions, payments & multi-currency",
+    "feature_events": "Events, distributions & attendance",
+    "feature_comms": "Communications, documents & portals"
   },
   "register": {
     "title": "Create Account",

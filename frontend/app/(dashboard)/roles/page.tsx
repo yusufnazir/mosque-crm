@@ -26,7 +26,7 @@ interface RoleDTO {
 
 export default function RolesPage() {
   const { t } = useTranslation();
-  const { isSuperAdmin } = useAuth();
+  const { isSuperAdmin, can } = useAuth();
   const [roles, setRoles] = useState<RoleDTO[]>([]);
   const [permissions, setPermissions] = useState<PermissionDTO[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
@@ -275,6 +275,7 @@ export default function RolesPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>{t('roles.all_roles')}</CardTitle>
+                {(isSuperAdmin || can('role.manage')) && (
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="p-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
@@ -284,6 +285,7 @@ export default function RolesPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 </button>
+                )}
               </div>
             </CardHeader>
             <CardContent className="p-0">

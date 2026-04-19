@@ -8,6 +8,7 @@ import { UserDTO, CreateUserRequest, UpdateUserRequest, userApi } from '@/lib/us
 import ToastNotification from '@/components/ToastNotification';
 import { useDateFormat } from '@/lib/DateFormatContext';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 interface RoleDTO {
   id: number;
@@ -36,6 +37,7 @@ export default function UsersPage() {
   const { t } = useTranslation();
   const { formatDate } = useDateFormat();
   const { getLimit } = useSubscription();
+  const { canAny, loading: authLoading } = useAuth();
   const adminUsersLimit = getLimit('admin.users.max');
 
   const [users, setUsers] = useState<UserDTO[]>([]);
@@ -77,8 +79,13 @@ export default function UsersPage() {
   }, [t]);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!canAny('user.view', 'user.manage')) {
+      setLoading(false);
+      return;
+    }
     loadData();
-  }, [loadData]);
+  }, [loadData, canAny, authLoading]);
 
   // Filter users by search
   const filteredUsers = users.filter((u) => {
@@ -193,6 +200,10 @@ export default function UsersPage() {
       setToast({ message: err.message || t('users.delete_error'), type: 'error' });
     }
   };
+
+  if (!authLoading && !canAny('user.view', 'user.manage')) {
+    return <div className="p-4 md:p-8" />;
+  }
 
   return (
     <div className="p-4 md:p-8">
@@ -621,7 +632,7 @@ export default function UsersPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteUserId !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
             <h3 className="text-lg font-bold text-charcoal mb-2">{t('users.confirm_delete_title')}</h3>
             <p className="text-gray-600 mb-6">{t('users.confirm_delete')}</p>

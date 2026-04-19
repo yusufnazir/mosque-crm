@@ -577,9 +577,11 @@ export default function ContributionsPage() {
 
       {/* Tab Navigation */}
       <div className="border-b border-stone-200">
-        <div className="flex space-x-2 sm:space-x-4 overflow-x-auto">
+        <div role="tablist" className="flex space-x-2 sm:space-x-4 overflow-x-auto">
           {tabs.map((tab) => (
             <button
+              role="tab"
+              aria-selected={activeTab === tab.key}
               key={tab.key}
               onClick={() => {
                 router.push(`/contributions/${tab.key}`);

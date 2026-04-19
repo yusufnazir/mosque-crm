@@ -10,6 +10,8 @@ services:
       - "3307:3306"
     volumes:
       - db-data:/var/lib/mysql
+      # Creates mcrm-test database on first boot (see docker/init-db.sql)
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
 
   minio:
     image: minio/minio:latest

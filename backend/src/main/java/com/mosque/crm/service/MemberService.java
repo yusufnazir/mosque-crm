@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +68,13 @@ public class MemberService {
     @Autowired
     private RoleGovernanceService roleGovernanceService;
 
+    @Autowired
+    private AuthorizationService authorizationService;
+
     public List<MemberDTO> getAllMembers() {
+        if (!authorizationService.hasPermission("member.view") && !authorizationService.hasPermission("member.create")) {
+            throw new AccessDeniedException("Insufficient permissions to view members");
+        }
         List<Person> persons = personRepository.findAll();
 
         return persons.stream()
@@ -76,6 +83,9 @@ public class MemberService {
     }
 
     public MemberDTO getMemberById(Long id) {
+        if (!authorizationService.hasPermission("member.view") && !authorizationService.hasPermission("member.create")) {
+            throw new AccessDeniedException("Insufficient permissions to view members");
+        }
         Optional<Person> personOpt = personRepository.findById(id);
         if (personOpt.isEmpty()) {
             return null;
@@ -87,6 +97,9 @@ public class MemberService {
     }
 
     public MemberDTO createMember(MemberDTO memberDTO) {
+        if (!authorizationService.hasPermission("member.create")) {
+            throw new AccessDeniedException("Insufficient permissions to create members");
+        }
         Person person = new Person();
         person.setFirstName(memberDTO.getFirstName());
         person.setLastName(memberDTO.getLastName());
@@ -105,6 +118,13 @@ public class MemberService {
     }
 
     public MemberDTO updateMember(Long id, MemberDTO memberDTO) {
+        if (!authorizationService.hasPermission("member.edit")) {
+            throw new AccessDeniedException("Insufficient permissions to edit members");
+        }
+        // Use path id if DTO id is not provided
+        if (memberDTO.getId() == null && id != null) {
+            memberDTO.setId(id.toString());
+        }
         // Convert Long id to UUID if needed, or use id from the MemberDTO
         // For now, we'll assume memberDTO has an id field that maps to UUID
         if (memberDTO.getId() != null) {
@@ -237,8 +257,11 @@ public class MemberService {
     }
 
     public void deleteMember(Long id) {
-        // Implementation depends on how the ID mapping works
-        throw new UnsupportedOperationException("Member deletion needs to be implemented based on personId");
+        if (!authorizationService.hasPermission("member.delete")) {
+            throw new AccessDeniedException("Insufficient permissions to delete members");
+        }
+        personRepository.deleteById(id);
+        log.info("Deleted member (person) id={}", id);
     }
 
     public List<MemberDTO> searchMembers(String keyword) {

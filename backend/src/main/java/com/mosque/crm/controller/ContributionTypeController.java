@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,6 +62,8 @@ public class ContributionTypeController {
         try {
             ContributionTypeDTO type = contributionTypeService.getTypeById(id);
             return ResponseEntity.ok(type);
+        } catch (AccessDeniedException e) {
+            throw e;
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -74,6 +77,8 @@ public class ContributionTypeController {
         try {
             ContributionTypeDTO type = contributionTypeService.createType(createDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(type);
+        } catch (AccessDeniedException e) {
+            throw e;
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -88,6 +93,8 @@ public class ContributionTypeController {
         try {
             ContributionTypeDTO type = contributionTypeService.updateType(id, updateDTO);
             return ResponseEntity.ok(type);
+        } catch (AccessDeniedException e) {
+            throw e;
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -101,6 +108,8 @@ public class ContributionTypeController {
         try {
             contributionTypeService.deactivateType(id);
             return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            throw e;
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -114,6 +123,8 @@ public class ContributionTypeController {
         try {
             contributionTypeService.activateType(id);
             return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            throw e;
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

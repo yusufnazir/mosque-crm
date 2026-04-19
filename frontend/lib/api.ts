@@ -111,10 +111,17 @@ export class ApiClient {
       // 401 = session expired or not authenticated
       if (response.status === 401) {
         if (typeof window !== 'undefined') {
-          // Redirect to login — the httpOnly cookie has already been cleared by the proxy
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 100);
+          // Don't redirect to login if already on an auth page — prevents overriding
+          // router.push('/dashboard') that fires right after login form submission.
+          const onAuthPage = window.location.pathname.includes('/login') ||
+                             window.location.pathname.includes('/set-password') ||
+                             window.location.pathname.includes('/reset-password');
+          if (!onAuthPage) {
+            // Redirect to login — the httpOnly cookie has already been cleared by the proxy
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 100);
+          }
         }
         throw new Error('Authentication required. Please login again.');
       }
@@ -339,6 +346,11 @@ export const memberApi = {
     const url = queryParams ? `/persons?${queryParams}` : '/persons';
     return ApiClient.get(url);
   },
+  getAllAdmin: async (queryParams?: string) => {
+    const url = queryParams ? `/admin/members?${queryParams}` : '/admin/members';
+    const data = await ApiClient.get<any>(url);
+    return Array.isArray(data) ? data : (Array.isArray(data?.content) ? data.content : []);
+  },
   getPaged: (params: {
     page?: number;
     size?: number;
@@ -368,7 +380,7 @@ export const memberApi = {
     return ApiClient.get<PageResponse<PersonSearchResult>>(`/persons/page?${searchParams.toString()}`);
   },
   getStats: () => ApiClient.get<{ total: number; active: number }>('/persons/stats'),
-  getById: (id: string) => ApiClient.get(`/persons/${id}`),
+  getById: (id: string) => ApiClient.get(`/admin/members/${id}`),
   search: (keyword: string) => ApiClient.get<any[]>(`/persons/search?q=${encodeURIComponent(keyword)}`),
   create: (data: any) => ApiClient.post('/persons', data),
   update: (id: string, data: any) => ApiClient.put(`/admin/members/${id}`, data),

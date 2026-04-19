@@ -74,7 +74,7 @@ export default function AddMemberPage() {
 
   const fetchHeadMembers = async () => {
     try {
-      const data: any = await memberApi.getAll();
+      const data: any = await memberApi.getAllAdmin();
       // Filter members who have accounts (heads of household)
       const heads = data.filter((m: Member) => m.username);
       setHeadMembers(heads);

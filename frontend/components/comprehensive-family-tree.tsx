@@ -40,7 +40,7 @@ export default function ComprehensiveFamilyTree({ currentMemberId }: Comprehensi
 
   const fetchAllMembers = async () => {
     try {
-      const members: any = await memberApi.getAll();
+      const members: any = await memberApi.getAllAdmin();
       setAllMembers(members);
       organizeFamilies(members);
     } catch (err) {

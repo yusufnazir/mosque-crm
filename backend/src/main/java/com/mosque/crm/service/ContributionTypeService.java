@@ -1,10 +1,16 @@
 package com.mosque.crm.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,9 +38,12 @@ public class ContributionTypeService {
     private static final Logger log = LoggerFactory.getLogger(ContributionTypeService.class);
 
     private final ContributionTypeRepository contributionTypeRepository;
+    private final AuthorizationService authorizationService;
 
-    public ContributionTypeService(ContributionTypeRepository contributionTypeRepository) {
+    public ContributionTypeService(ContributionTypeRepository contributionTypeRepository,
+                                   AuthorizationService authorizationService) {
         this.contributionTypeRepository = contributionTypeRepository;
+        this.authorizationService = authorizationService;
     }
 
     /**
@@ -72,6 +81,9 @@ public class ContributionTypeService {
      */
     @Transactional
     public ContributionTypeDTO createType(ContributionTypeCreateDTO createDTO) {
+        if (!authorizationService.hasPermission("contribution.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to manage contribution types");
+        }
         if (contributionTypeRepository.existsByCode(createDTO.getCode())) {
             throw new RuntimeException("Contribution type with code '" + createDTO.getCode() + "' already exists");
         }
@@ -101,6 +113,9 @@ public class ContributionTypeService {
      */
     @Transactional
     public ContributionTypeDTO updateType(Long id, ContributionTypeCreateDTO updateDTO) {
+        if (!authorizationService.hasPermission("contribution.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to manage contribution types");
+        }
         ContributionType type = contributionTypeRepository.findByIdWithTranslationsAndObligations(id)
                 .orElseThrow(() -> new RuntimeException("Contribution type not found with id: " + id));
 
@@ -121,14 +136,8 @@ public class ContributionTypeService {
             type.setIsActive(updateDTO.getIsActive());
         }
 
-        // Update translations: clear and re-add
         if (updateDTO.getTranslations() != null) {
-            type.getTranslations().clear();
-            for (ContributionTypeTranslationDTO transDTO : updateDTO.getTranslations()) {
-                ContributionTypeTranslation translation = new ContributionTypeTranslation(
-                        transDTO.getLocale(), transDTO.getName(), transDTO.getDescription());
-                type.addTranslation(translation);
-            }
+            synchronizeTranslations(type, updateDTO.getTranslations());
         }
 
         type = contributionTypeRepository.save(type);
@@ -136,11 +145,50 @@ public class ContributionTypeService {
         return convertToDTO(type);
     }
 
+    private void synchronizeTranslations(ContributionType type,
+                                         List<ContributionTypeTranslationDTO> translationDTOs) {
+        Map<String, ContributionTypeTranslation> existingByLocale = new HashMap<>();
+        for (ContributionTypeTranslation existing : type.getTranslations()) {
+            existingByLocale.put(existing.getLocale(), existing);
+        }
+
+        Set<String> requestedLocales = new HashSet<>();
+        for (ContributionTypeTranslationDTO transDTO : translationDTOs) {
+            String locale = transDTO.getLocale();
+            requestedLocales.add(locale);
+
+            ContributionTypeTranslation existing = existingByLocale.get(locale);
+            if (existing != null) {
+                existing.setName(transDTO.getName());
+                existing.setDescription(transDTO.getDescription());
+                continue;
+            }
+
+            ContributionTypeTranslation translation = new ContributionTypeTranslation(
+                    locale, transDTO.getName(), transDTO.getDescription());
+            type.addTranslation(translation);
+        }
+
+        List<ContributionTypeTranslation> toRemove = new ArrayList<>();
+        for (ContributionTypeTranslation existing : type.getTranslations()) {
+            if (!requestedLocales.contains(existing.getLocale())) {
+                toRemove.add(existing);
+            }
+        }
+
+        for (ContributionTypeTranslation translation : toRemove) {
+            type.removeTranslation(translation);
+        }
+    }
+
     /**
      * Soft-delete: deactivate a contribution type.
      */
     @Transactional
     public void deactivateType(Long id) {
+        if (!authorizationService.hasPermission("contribution.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to manage contribution types");
+        }
         ContributionType type = contributionTypeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contribution type not found with id: " + id));
         type.setIsActive(false);
@@ -153,6 +201,9 @@ public class ContributionTypeService {
      */
     @Transactional
     public void activateType(Long id) {
+        if (!authorizationService.hasPermission("contribution.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to manage contribution types");
+        }
         ContributionType type = contributionTypeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contribution type not found with id: " + id));
         type.setIsActive(true);

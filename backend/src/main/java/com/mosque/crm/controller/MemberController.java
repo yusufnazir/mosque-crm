@@ -34,7 +34,11 @@ public class MemberController {
 
     @GetMapping("/{id}")
     public ResponseEntity<MemberDTO> getMemberById(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.GONE).build();
+        MemberDTO member = memberService.getMemberById(id);
+        if (member == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(member);
     }
 
     @GetMapping("/search")
@@ -44,7 +48,8 @@ public class MemberController {
 
     @PostMapping
     public ResponseEntity<MemberDTO> createMember(@Valid @RequestBody MemberDTO memberDTO) {
-        return ResponseEntity.status(HttpStatus.GONE).build();
+        MemberDTO created = memberService.createMember(memberDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
@@ -56,6 +61,7 @@ public class MemberController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMember(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.GONE).build();
+        memberService.deleteMember(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -108,7 +108,11 @@ export function proxy(request: NextRequest) {
   if (
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
-    pathname.startsWith('/favicon')
+    pathname.startsWith('/favicon') ||
+    // Static files (images, fonts, icons) must never be redirected to the auth
+    // login page — that would trigger an unnecessary Next.js compilation cascade
+    // and cause the devBuildId to change mid-test, breaking Playwright E2E tests.
+    /\.(svg|png|jpg|jpeg|gif|ico|webp|woff|woff2|ttf|eot|otf)$/i.test(pathname)
   ) {
     return NextResponse.next();
   }

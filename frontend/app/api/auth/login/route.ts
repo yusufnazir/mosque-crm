@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-cookies';
 
 /**
  * BFF login endpoint.
@@ -15,14 +16,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080/api';
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
-
-function inferBaseDomainFromHost(hostname: string): string | undefined {
-  const host = hostname.split(':')[0].trim().toLowerCase();
-  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return undefined;
-  const parts = host.split('.').filter(Boolean);
-  if (parts.length < 3) return undefined;
-  return `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
-}
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -49,10 +42,17 @@ export async function POST(request: NextRequest) {
   // The DB-configured domain is only a fallback (it may be stale or for a different env).
   const effectiveBaseDomain = hostBasedDomain ?? configuredBaseDomain ?? BASE_DOMAIN;
 
-  // Extract token (and optional org handle) — do not send token to browser
-  const { token, organizationHandle, ...userData } = data;
+  // Extract token — do not send token to browser.
+  // organizationHandle IS included in the response so the login page can
+  // redirect the user to their correct tenant subdomain.
+  const { token, ...userData } = data;
 
   const response = NextResponse.json(userData, { status: 200 });
+
+  // Remove any stale host-only auth cookies before writing the shared-domain
+  // cookies. Otherwise an older empty session_token on admin.lvh.me can shadow
+  // the new .lvh.me cookie and make the first post-login hydration request fail.
+  clearAuthCookies(response, effectiveBaseDomain);
 
   // Shared cookie options — add wildcard domain when BASE_DOMAIN is configured
   const cookieOpts = {
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
   response.cookies.set('session_token', token, { ...cookieOpts, httpOnly: true });
 
   // Org handle in readable cookie — used by middleware for subdomain routing
-  response.cookies.set('org_handle', organizationHandle ?? '', { ...cookieOpts, httpOnly: false });
+  response.cookies.set('org_handle', userData.organizationHandle ?? '', { ...cookieOpts, httpOnly: false });
   response.cookies.set('app_base_domain', effectiveBaseDomain ?? '', { ...cookieOpts, httpOnly: false });
 
   return response;

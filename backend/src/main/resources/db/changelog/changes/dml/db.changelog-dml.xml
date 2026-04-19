@@ -43,9 +43,6 @@
     <!-- Default global configuration values -->
     <include file="db/changelog/changes/dml/061-data-configurations.xml"/>
 
-    <!-- Production Data Migration (runs after all seed data) -->
-    <include file="db/changelog/changes/dml/200-prod-data-migration.xml"/>
-
     <!-- Sync all Hibernate TableGenerator sequences on every startup -->
     <include file="db/changelog/changes/dml/215-sync-all-sequences.xml"/>
 

@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ import com.mosque.crm.dto.TenantSettingFieldDTO;
 import com.mosque.crm.entity.TenantSettingField;
 import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.TenantSettingFieldRepository;
+import com.mosque.crm.service.AuthorizationService;
 
 @Service
 public class TenantSettingService {
@@ -23,11 +25,14 @@ public class TenantSettingService {
 
     private final TenantSettingFieldRepository tenantSettingFieldRepository;
     private final ConfigurationService configurationService;
+    private final AuthorizationService authorizationService;
 
     public TenantSettingService(TenantSettingFieldRepository tenantSettingFieldRepository,
-                                ConfigurationService configurationService) {
+                                ConfigurationService configurationService,
+                                AuthorizationService authorizationService) {
         this.tenantSettingFieldRepository = tenantSettingFieldRepository;
         this.configurationService = configurationService;
+        this.authorizationService = authorizationService;
     }
 
     /**
@@ -90,6 +95,9 @@ public class TenantSettingService {
      */
     @Transactional
     public void updateTenantSettings(Map<String, String> fieldValues) {
+        if (!authorizationService.hasPermission("tenant_settings.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to update tenant settings");
+        }
         Long organizationId = TenantContext.getCurrentOrganizationId();
         if (organizationId == null) {
             log.warn("updateTenantSettings called without tenant context — aborting to prevent global config pollution");

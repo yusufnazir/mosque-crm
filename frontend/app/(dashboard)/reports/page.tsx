@@ -118,7 +118,7 @@ export default function ReportsPage() {
   useEffect(() => {
     if (selectedReport === 'member-payment-history') {
       setLoading(true);
-      memberApi.getAll()
+      memberApi.getAllAdmin()
         .then((data) => {
           const source = Array.isArray(data) ? data : [];
           const memberList = source

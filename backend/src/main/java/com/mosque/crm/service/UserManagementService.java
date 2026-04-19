@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,6 +100,9 @@ public class UserManagementService {
     }
 
     public List<UserListDTO> getAllUsers() {
+        if (!authorizationService.hasPermission("user.view") && !authorizationService.hasPermission("user.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to view users");
+        }
         List<User> users = userRepository.findAll();
         boolean canSeeSuperAdmins = canManageSuperAdmin();
         Long currentUserId = getCurrentUserId();
@@ -109,6 +113,9 @@ public class UserManagementService {
     }
 
     public UserListDTO getUserById(Long id) {
+        if (!authorizationService.hasPermission("user.view") && !authorizationService.hasPermission("user.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to view users");
+        }
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
             return null;
@@ -122,6 +129,9 @@ public class UserManagementService {
 
     @Transactional
     public UserListDTO createUser(CreateUserRequest request) {
+        if (!authorizationService.hasPermission("user.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to manage users");
+        }
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists: " + request.getUsername());
         }
@@ -181,6 +191,9 @@ public class UserManagementService {
 
     @Transactional
     public UserListDTO updateUser(Long id, UpdateUserRequest request) {
+        if (!authorizationService.hasPermission("user.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to manage users");
+        }
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
             return null;
@@ -273,6 +286,9 @@ public class UserManagementService {
 
     @Transactional
     public boolean deleteUser(Long id) {
+        if (!authorizationService.hasPermission("user.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to manage users");
+        }
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
             return false;
@@ -300,6 +316,9 @@ public class UserManagementService {
 
     @Transactional
     public UserListDTO toggleEnabled(Long id) {
+        if (!authorizationService.hasPermission("user.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to manage users");
+        }
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
             return null;

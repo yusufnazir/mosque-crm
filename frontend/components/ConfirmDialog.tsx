@@ -53,7 +53,7 @@ export default function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
+      <div role="dialog" aria-modal="true" className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
         <h3 className="text-lg font-bold text-stone-900 mb-2">{title}</h3>
         <div className="text-stone-600 mb-6">{message}</div>
         <div className="flex justify-end gap-3">

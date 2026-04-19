@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { clearAuthCookies } from '@/lib/auth/server-cookies';
 
 /**
  * BFF /api/auth/me endpoint.
@@ -30,18 +31,9 @@ export async function GET() {
   });
 
   if (!upstream.ok) {
-    // Token is stale or invalid — clear cookies to prevent redirect loops
-    const clearOpts = {
-      path: '/',
-      maxAge: 0,
-      expires: new Date(0),
-      ...(effectiveBaseDomain ? { domain: `.${effectiveBaseDomain}` } : {}),
-    };
-    const res = NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
-    res.cookies.set('session_token', '', { ...clearOpts, httpOnly: true, sameSite: 'lax' as const });
-    res.cookies.set('org_handle', '', { ...clearOpts, httpOnly: false, sameSite: 'lax' as const });
-    res.cookies.set('app_base_domain', '', { ...clearOpts, httpOnly: false, sameSite: 'lax' as const });
-    return res;
+    // Token is stale or invalid — clear both host-only and shared-domain
+    // cookies to prevent stale cookie shadowing across subdomains.
+    return clearAuthCookies(NextResponse.json({ message: 'Not authenticated' }, { status: 401 }), effectiveBaseDomain);
   }
 
   const data = await upstream.json();

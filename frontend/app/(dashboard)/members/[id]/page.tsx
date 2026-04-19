@@ -427,7 +427,7 @@ export default function MemberDetailPage() {
     // Fetch all members for the selector
     const fetchAllMembers = async () => {
       try {
-        const membersData: any = await memberApi.getAll();
+        const membersData: any = await memberApi.getAllAdmin();
         setAllMembers(membersData);
       } catch (err) {
         console.log('Failed to load members list');
@@ -452,7 +452,7 @@ export default function MemberDetailPage() {
           console.log('fetchMemberDetails: BEFORE await relationshipApi.getRelationships');
           const relationships = await relationshipApi.getRelationships(memberData.personId) as RelationshipResponse[];
           console.log('fetchMemberDetails: AFTER await relationshipApi.getRelationships, response:', relationships);
-          let allMembersData = await memberApi.getAll() as Member[];
+          let allMembersData = await memberApi.getAllAdmin() as Member[];
           // Always map id to personId for all members
           allMembersData = allMembersData.map(m => ({ ...m, personId: m.id }));
           console.log('fetchMemberDetails debug:', { relationships, allMembersData });

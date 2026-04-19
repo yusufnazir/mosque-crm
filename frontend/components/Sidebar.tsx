@@ -393,11 +393,8 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
       <div className="p-6 border-b border-primary-700">
         <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <img src="/memberflow-icon.svg" alt="" className="w-8 h-8 flex-shrink-0" />
-              <h1 className="text-xl font-display font-bold text-white leading-tight">{appName}</h1>
-            </div>
-            <p className="text-primary-200 text-sm pl-10">
+            <img src="/memberflow-logo-light.svg" alt="MemberFlow" className="h-7 mb-1" />
+            <p className="text-primary-200 text-sm">
               {isAdminPanel ? t('common.admin_panel') : t('common.member_portal')}
             </p>
           </div>
@@ -486,7 +483,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 min-h-0 p-4 overflow-y-auto">
+      <nav data-testid="sidebar-nav" className="flex-1 min-h-0 p-4 overflow-y-auto">
         {navGroups.map((group, groupIndex) => {
           const isExpanded = group.labelKey === undefined || expandedGroups[group.labelKey] !== false;
           return (

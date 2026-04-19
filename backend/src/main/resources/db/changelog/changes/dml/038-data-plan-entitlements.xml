@@ -16,12 +16,12 @@
             <param name="limitValue"><![CDATA[2]]></param>
         </customChange>
     </changeSet>
-    <changeSet id="fe241d72-a05f-4cb8-b2e3-6ea628de5859" author="mosque-crm">
+    <changeSet id="1a2b3c4d-5e6f-4a7b-8c9d-starter-portal" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
             <param name="id"><![CDATA[2]]></param>
             <param name="planId"><![CDATA[1]]></param>
             <param name="featureKey"><![CDATA[member.portal]]></param>
-            <param name="enabled"><![CDATA[false]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
         </customChange>
     </changeSet>
     <changeSet id="237f15c7-6d8e-49e8-9b05-bf77ecdc454f" author="mosque-crm">
@@ -169,12 +169,12 @@
             <param name="limitValue"><![CDATA[1]]></param>
         </customChange>
     </changeSet>
-    <changeSet id="c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f" author="mosque-crm">
+    <changeSet id="9f8e7d6c-5b4a-4392-a1b0-free-portal-on" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
             <param name="id"><![CDATA[20]]></param>
             <param name="planId"><![CDATA[4]]></param>
             <param name="featureKey"><![CDATA[member.portal]]></param>
-            <param name="enabled"><![CDATA[false]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
         </customChange>
     </changeSet>
     <changeSet id="d3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a" author="mosque-crm">

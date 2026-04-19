@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-cookies';
 
 /**
  * BFF (Backend for Frontend) catch-all proxy.
@@ -15,6 +16,16 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080/api';
+
+function getEffectiveBaseDomain(request: NextRequest): string | undefined {
+  const cookieDomain = request.cookies.get('app_base_domain')?.value?.trim();
+  if (cookieDomain) {
+    return cookieDomain;
+  }
+
+  const hostHeader = request.headers.get('host') || request.nextUrl.hostname;
+  return inferBaseDomainFromHost(hostHeader);
+}
 
 async function proxyRequest(
   request: NextRequest,
@@ -101,13 +112,7 @@ async function proxyRequest(
   // If backend returns 401, clear the session cookie so the browser
   // knows the user is no longer authenticated
   if (upstream.status === 401) {
-    response.cookies.set('session_token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 0,
-    });
+    clearAuthCookies(response, getEffectiveBaseDomain(request));
   }
 
   return response;
