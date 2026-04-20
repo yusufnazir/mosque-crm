@@ -28,6 +28,16 @@ pipeline {
             }
         }
 
+        stage('Build Website') {
+            steps {
+                dir('website') {
+                    script {
+                        docker.build("${NEXUS_REGISTRY}/memberflow-website:${IMAGE_TAG}", '.')
+                    }
+                }
+            }
+        }
+
         stage('Push to Nexus') {
             steps {
                 script {
@@ -36,6 +46,8 @@ pipeline {
                         docker.image("${NEXUS_REGISTRY}/memberflow-backend:${IMAGE_TAG}").push('latest')
                         docker.image("${NEXUS_REGISTRY}/memberflow-frontend:${IMAGE_TAG}").push()
                         docker.image("${NEXUS_REGISTRY}/memberflow-frontend:${IMAGE_TAG}").push('latest')
+                        docker.image("${NEXUS_REGISTRY}/memberflow-website:${IMAGE_TAG}").push()
+                        docker.image("${NEXUS_REGISTRY}/memberflow-website:${IMAGE_TAG}").push('latest')
                     }
                 }
             }
@@ -46,6 +58,7 @@ pipeline {
         always {
             sh "docker rmi ${NEXUS_REGISTRY}/memberflow-backend:${IMAGE_TAG} || true"
             sh "docker rmi ${NEXUS_REGISTRY}/memberflow-frontend:${IMAGE_TAG} || true"
+            sh "docker rmi ${NEXUS_REGISTRY}/memberflow-website:${IMAGE_TAG} || true"
         }
     }
 }
