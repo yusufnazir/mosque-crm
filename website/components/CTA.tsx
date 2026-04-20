@@ -1,3 +1,5 @@
+import { externalLinkProps } from '@/lib/externalLinkProps';
+
 type CTAProps = {
   getStartedUrl?: string;
 };
@@ -25,6 +27,7 @@ export default function CTA({ getStartedUrl = '#contact' }: CTAProps) {
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
             href={getStartedUrl}
+            {...externalLinkProps(getStartedUrl)}
             className="w-full sm:w-auto px-8 py-3.5 text-base font-semibold text-primary bg-white rounded-xl hover:bg-gold hover:text-white shadow-lg transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2"
           >
             Start Free Trial

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { externalLinkProps } from "@/lib/externalLinkProps";
 
 const subjects = [
   { value: "demo", label: "Request a demo" },
@@ -82,7 +83,13 @@ export default function ContactSection({ web3formsAccessKey = '' }: ContactSecti
                 </div>
                 <div>
                   <div className="text-xs text-stone-500 uppercase tracking-wider">Email</div>
-                  <div className="text-base text-charcoal font-medium">info@mosquecrm.com</div>
+                  <a
+                    href="mailto:info@cxode.com"
+                    {...externalLinkProps("mailto:info@cxode.com")}
+                    className="text-base text-charcoal font-medium hover:text-primary transition-colors"
+                  >
+                    info@cxode.com
+                  </a>
                 </div>
               </div>
               <div className="flex items-center gap-4">

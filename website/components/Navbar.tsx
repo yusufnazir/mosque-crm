@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { externalLinkProps } from '@/lib/externalLinkProps';
 
 const NAV_LINKS = [
   { label: 'Features', href: '#features' },
@@ -48,12 +49,14 @@ export default function Navbar({ signInUrl = '#contact', getStartedUrl = '#conta
           <div className="hidden md:flex items-center gap-3">
             <a
               href={SIGNIN_URL}
+              {...externalLinkProps(SIGNIN_URL)}
               className="text-sm font-medium text-charcoal-light hover:text-primary transition-colors"
             >
               Sign In
             </a>
             <a
               href={GETSTARTED_URL}
+              {...externalLinkProps(GETSTARTED_URL)}
               className="px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary-light transition-colors"
             >
               Get Started Free
@@ -92,9 +95,16 @@ export default function Navbar({ signInUrl = '#contact', getStartedUrl = '#conta
               </a>
             ))}
             <div className="pt-3 border-t border-stone-200 space-y-2">
-              <a href={SIGNIN_URL} className="block text-sm font-medium text-charcoal-light">Sign In</a>
+              <a
+                href={SIGNIN_URL}
+                {...externalLinkProps(SIGNIN_URL)}
+                className="block text-sm font-medium text-charcoal-light"
+              >
+                Sign In
+              </a>
               <a
                 href={GETSTARTED_URL}
+                {...externalLinkProps(GETSTARTED_URL)}
                 className="block text-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg"
               >
                 Get Started Free

@@ -1,3 +1,5 @@
+import { externalLinkProps } from '@/lib/externalLinkProps';
+
 const FOOTER_LINKS = {
   Product: [
     { label: 'Features', href: '#features' },
@@ -44,7 +46,11 @@ export default function Footer() {
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="text-sm hover:text-primary-light transition-colors">
+                    <a
+                      href={link.href}
+                      {...externalLinkProps(link.href)}
+                      className="text-sm hover:text-primary-light transition-colors"
+                    >
                       {link.label}
                     </a>
                   </li>

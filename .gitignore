@@ -19,6 +19,10 @@ Thumbs.db
 # Node
 node_modules/
 
+# Next.js build output (frontend/, website/, etc.)
+.next/
+out/
+
 # Backend build output
 backend/target/
 
