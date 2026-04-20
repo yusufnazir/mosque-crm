@@ -6,21 +6,13 @@
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
 						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
-	<!-- ADMIN Role -->
-	<changeSet id="d56ae040-0d02-4ecf-8d41-5e6194cf8854" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRole">
-			<param name="id"><![CDATA[1]]></param>
-			<param name="name"><![CDATA[ADMIN]]></param>
-			<param name="description"><![CDATA[Administrator with full access to all features]]></param>
-		</customChange>
-	</changeSet>
 
-	<!-- MEMBER Role -->
-	<changeSet id="9f1b0d8d-3d03-4bde-b59d-f5b89db9e111" author="mosque-crm">
+	<!-- ═══════════ SUPER_ADMIN ROLE ═══════════ -->
+	<changeSet id="d7a72fa2-4c77-4d02-a695-90f3b5e9a50e-1" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRole">
-			<param name="id"><![CDATA[2]]></param>
-			<param name="name"><![CDATA[MEMBER]]></param>
-			<param name="description"><![CDATA[Regular member with access to member self-service features]]></param>
+			<param name="id"><![CDATA[5]]></param>
+			<param name="name"><![CDATA[SUPER_ADMIN]]></param>
+			<param name="description"><![CDATA[Super administrator with access to all mosques and system settings]]></param>
 		</customChange>
 	</changeSet>
 

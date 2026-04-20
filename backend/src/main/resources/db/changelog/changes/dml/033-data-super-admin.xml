@@ -6,14 +6,6 @@
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
 						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
-	<!-- ═══════════ SUPER_ADMIN ROLE ═══════════ -->
-	<changeSet id="d7a72fa2-4c77-4d02-a695-90f3b5e9a50e" author="mosque-crm">
-		<customChange class="com.mosque.crm.liquibase.DataRole">
-			<param name="id"><![CDATA[5]]></param>
-			<param name="name"><![CDATA[SUPER_ADMIN]]></param>
-			<param name="description"><![CDATA[Super administrator with access to all mosques and system settings]]></param>
-		</customChange>
-	</changeSet>
 
 	<!-- ═══════════ ORGANIZATION MANAGEMENT PERMISSION ═══════════ -->
 	<!-- Note: previously used id=17 which collided with contribution.view from 030 -->

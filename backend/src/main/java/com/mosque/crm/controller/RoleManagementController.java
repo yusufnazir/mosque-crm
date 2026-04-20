@@ -330,35 +330,50 @@ public class RoleManagementController {
                 .map(Permission::getCode)
                 .collect(Collectors.toSet());
 
-        // Super admins update global templates; tenant admins update only their tenant roles.
-        List<Role> roles = canManageSuperAdmin
-            ? roleRepository.findByNameInAndOrganizationIdIsNull(List.of("ADMIN", "MEMBER"))
-            : getManageableRolesForPool();
-        for (Role role : roles) {
-            if ("SUPER_ADMIN".equals(role.getName())) {
-                continue;
-            }
-            role.getAssignablePermissions().clear();
-            role.getAssignablePermissions().addAll(new HashSet<>(newPool));
-
-            // Prune granted permissions that are no longer in the pool
-            Set<Permission> prunedGranted = role.getPermissions().stream()
-                    .filter(p -> newPoolCodes.contains(p.getCode()))
-                    .collect(Collectors.toSet());
-            role.getPermissions().clear();
-            role.getPermissions().addAll(prunedGranted);
-        }
-        roleRepository.saveAll(roles);
-
+        final List<Role> poolTargets;
         if (canManageSuperAdmin) {
-            roleTemplateService.syncTemplateRoleToAllTenants("ADMIN");
-            roleTemplateService.syncTemplateRoleToAllTenants("MEMBER");
+            // Tenant ADMIN/MEMBER copies follow role_templates; update templates first, then sync.
+            roleTemplateService.applyGlobalAssignablePoolToAdminMemberTemplates(newPool, newPoolCodes);
+
+            // Keep legacy null-organization_id Role rows aligned for any code paths that still read them.
+            List<Role> globalRoles = roleRepository.findByNameInAndOrganizationIdIsNull(List.of("ADMIN", "MEMBER"));
+            for (Role role : globalRoles) {
+                if ("SUPER_ADMIN".equals(role.getName())) {
+                    continue;
+                }
+                role.getAssignablePermissions().clear();
+                role.getAssignablePermissions().addAll(new HashSet<>(newPool));
+                Set<Permission> prunedGranted = role.getPermissions().stream()
+                        .filter(p -> newPoolCodes.contains(p.getCode()))
+                        .collect(Collectors.toSet());
+                role.getPermissions().clear();
+                role.getPermissions().addAll(prunedGranted);
+            }
+            roleRepository.saveAll(globalRoles);
+            poolTargets = globalRoles;
+        } else {
+            List<Role> roles = getManageableRolesForPool();
+            for (Role role : roles) {
+                if ("SUPER_ADMIN".equals(role.getName())) {
+                    continue;
+                }
+                role.getAssignablePermissions().clear();
+                role.getAssignablePermissions().addAll(new HashSet<>(newPool));
+                Set<Permission> prunedGranted = role.getPermissions().stream()
+                        .filter(p -> newPoolCodes.contains(p.getCode()))
+                        .collect(Collectors.toSet());
+                role.getPermissions().clear();
+                role.getPermissions().addAll(prunedGranted);
+            }
+            roleRepository.saveAll(roles);
+            poolTargets = roles;
         }
 
         authorizationService.evictAllCaches();
 
         log.info("Updated global permission pool: {} permissions for {} roles",
-                newPool.size(), roles.stream().filter(r -> !"SUPER_ADMIN".equals(r.getName())).count());
+                newPool.size(),
+                poolTargets.stream().filter(r -> !"SUPER_ADMIN".equals(r.getName())).count());
 
         List<String> sorted = newPoolCodes.stream().sorted().collect(Collectors.toList());
         return ResponseEntity.ok(sorted);

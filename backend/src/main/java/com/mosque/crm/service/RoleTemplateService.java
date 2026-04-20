@@ -131,6 +131,34 @@ public class RoleTemplateService {
     }
 
     /**
+     * Applies the super-admin "global privilege pool" to the ADMIN and MEMBER templates,
+     * prunes granted permissions to the new pool, persists, and pushes changes to every tenant copy.
+     * <p>
+     * Tenant roles are synced from {@code role_templates}, not from legacy {@code roles} rows with
+     * {@code organization_id IS NULL}. Callers must update templates (via this method) before syncing,
+     * otherwise {@link #syncTemplateToAllTenants(String)} would overwrite tenant pools with stale data.
+     */
+    @Transactional
+    public void applyGlobalAssignablePoolToAdminMemberTemplates(Set<Permission> newPool, Set<String> newPoolCodes) {
+        for (String templateName : List.of("ADMIN", "MEMBER")) {
+            RoleTemplate template = templateRepository.findByName(templateName).orElse(null);
+            if (template == null) {
+                log.warn("applyGlobalAssignablePoolToAdminMemberTemplates: template '{}' not found", templateName);
+                continue;
+            }
+            template.getAssignablePermissions().clear();
+            template.getAssignablePermissions().addAll(new HashSet<>(newPool));
+            Set<Permission> prunedGranted = template.getPermissions().stream()
+                    .filter(p -> newPoolCodes.contains(p.getCode()))
+                    .collect(Collectors.toSet());
+            template.getPermissions().clear();
+            template.getPermissions().addAll(prunedGranted);
+            templateRepository.save(template);
+            syncTemplateToAllTenants(templateName);
+        }
+    }
+
+    /**
      * Check if a role is a default template copy (i.e., has a organization_id and a corresponding template exists).
      */
     public boolean isTemplateRole(Role role) {

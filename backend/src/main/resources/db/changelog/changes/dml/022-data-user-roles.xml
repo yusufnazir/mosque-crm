@@ -7,10 +7,10 @@
 						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
 	<!-- Assign ADMIN role to admin user -->
-	<changeSet id="f3973356-e865-4656-b8ea-4e58fd2732c4" author="mosque-crm">
+	<changeSet id="f3973356-e865-4656-b8ea-4e58fd2732c4-1" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataUserRole">
 			<param name="userId"><![CDATA[1]]></param>
-			<param name="roleId"><![CDATA[1]]></param>
+			<param name="roleId"><![CDATA[5]]></param>
 		</customChange>
 	</changeSet>
 
