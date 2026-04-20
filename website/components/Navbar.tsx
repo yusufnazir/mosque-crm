@@ -9,11 +9,15 @@ const NAV_LINKS = [
   { label: 'Contact', href: '#contact' },
 ];
 
-export default function Navbar() {
+type NavbarProps = {
+  signInUrl?: string;
+  getStartedUrl?: string;
+};
+
+export default function Navbar({ signInUrl = '#contact', getStartedUrl = '#contact' }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const SIGNIN_URL = process.env.NEXT_PUBLIC_SIGNIN_URL || '#contact';
-  const GETSTARTED_URL = process.env.NEXT_PUBLIC_GETSTARTED_URL || '#contact';
-  const CONTACT_URL = process.env.NEXT_PUBLIC_CONTACT_URL || '#contact';
+  const SIGNIN_URL = signInUrl;
+  const GETSTARTED_URL = getStartedUrl;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-stone-200/60">

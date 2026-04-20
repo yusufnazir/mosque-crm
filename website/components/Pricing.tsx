@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from 'next/cache';
 import { fetchPlans, fetchFeatureDefinitions, SubscriptionPlan, PlanEntitlement, FeatureDefinition } from '../lib/pricingApi';
 
 // Per PRICING.md: CTA label per plan code
@@ -211,6 +212,7 @@ function ComparisonTable({ plans, featureDefs }: { plans: SubscriptionPlan[]; fe
 }
 
 export default async function Pricing() {
+  noStore();
   let plans: SubscriptionPlan[] = [];
   let featureDefs: FeatureDefinition[] = [];
   try {

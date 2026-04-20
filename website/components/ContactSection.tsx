@@ -9,7 +9,11 @@ const subjects = [
   { value: "other", label: "Other" },
 ];
 
-export default function ContactSection() {
+type ContactSectionProps = {
+  web3formsAccessKey?: string;
+};
+
+export default function ContactSection({ web3formsAccessKey = '' }: ContactSectionProps) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +25,7 @@ export default function ContactSection() {
 
     const form = e.currentTarget;
     const data = new FormData(form);
-    data.append("access_key", process.env.NEXT_PUBLIC_WEB3FORMS_KEY ?? "");
+    data.append("access_key", web3formsAccessKey);
 
     try {
       const res = await fetch("https://api.web3forms.com/submit", {
