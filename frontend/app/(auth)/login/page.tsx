@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import LanguageSelector from '@/components/LanguageSelector';
 import { authApi } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
@@ -8,6 +9,7 @@ import { buildTenantUrl } from '@/lib/auth/AuthContext';
 import { useAppName } from '@/lib/AppNameContext';
 
 export default function LoginPage() {
+  const router = useRouter();
   const { syncLanguageWithBackend, t } = useTranslation();
   const { appName } = useAppName();
   const [username, setUsername] = useState('');
