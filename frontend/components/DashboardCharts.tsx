@@ -383,7 +383,7 @@ export default function DashboardCharts() {
     })),
   };
 
-  const tooltipCurrencyCallback = (currency: string) => (ctx: { parsed: { y: number } }) => {
+  const tooltipCurrencyCallback = (currency: string) => (ctx: { parsed: { y: number | null } }) => {
     const val = ctx.parsed.y;
     return val != null ? ` ${currency} ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
   };
