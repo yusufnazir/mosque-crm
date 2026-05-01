@@ -9,6 +9,7 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import RecentCommunicationsCard from '@/components/RecentCommunicationsCard';
+import DashboardCharts from '@/components/DashboardCharts';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
@@ -81,12 +82,6 @@ export default function DashboardPage() {
     },
   ];
 
-  // ...existing code...
-  // Import DashboardCharts
-  // @ts-ignore
-  // eslint-disable-next-line
-  const DashboardCharts = require('@/components/DashboardCharts').default;
-
   return (
     <div className="p-4 md:p-8">
       <div className="mb-8">
@@ -94,7 +89,7 @@ export default function DashboardPage() {
         <p className="text-gray-600">{t('dashboard.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-2 gap-3 md:gap-6">
+      <div className="grid grid-cols-2 gap-3 md:gap-6">
         {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardContent className="flex items-center justify-between p-4 md:p-6">
@@ -110,6 +105,37 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Quick Actions - surfaced above charts for daily use */}
+      {(can('member.create') || can('member.view')) && (
+        <div className="mt-6">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('dashboard.quick_actions')}</h2>
+          <div className="flex flex-wrap gap-3">
+            {can('member.create') && (
+              <a
+                href="/members/add"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors font-medium text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                {t('dashboard.add_new_member')}
+              </a>
+            )}
+            {can('member.view') && (
+              <a
+                href="/members"
+                className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-emerald-700 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors font-medium text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                {t('members.title')}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Dashboard Charts */}
       <DashboardCharts />
 
@@ -117,43 +143,6 @@ export default function DashboardPage() {
       {hasFeature('communication.tools') && can('communication.view') && (
         <div className="mt-6">
           <RecentCommunicationsCard />
-        </div>
-      )}
-
-      {/* Quick Actions - Only show if user has any permissions */}
-      {(can('member.create') || can('member.view')) && (
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('dashboard.quick_actions')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {can('member.create') && (
-                  <a
-                    href="/members/add"
-                    className="flex flex-col items-center p-6 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-all"
-                  >
-                    <svg className="w-10 h-10 text-emerald-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
-                    <span className="font-medium text-emerald-600">{t('dashboard.add_new_member')}</span>
-                  </a>
-                )}
-                {can('member.view') && (
-                  <a
-                    href="/members"
-                    className="flex flex-col items-center p-6 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-all"
-                  >
-                    <svg className="w-10 h-10 text-emerald-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    <span className="font-medium text-emerald-600">{t('members.title')}</span>
-                  </a>
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       )}
     </div>

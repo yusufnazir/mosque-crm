@@ -194,6 +194,8 @@
     "families": "Families",
     "members": "Members",
     "loading_charts": "Loading charts...",
+    "member_analytics": "Member Analytics",
+    "financial_summary": "Financial Summary",
     "income_by_type_chart": "Income by Contribution Type",
     "total_income": "Total Income",
     "no_income_data": "No income data for this year",

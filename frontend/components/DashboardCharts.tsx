@@ -390,9 +390,54 @@ export default function DashboardCharts() {
 
   return (
     <>
-      {/* Income by Contribution Type chart — full width */}
-      <div className="mt-6 md:mt-8">
+      {/* ── Member Analytics ──────────────────────────────────────── */}
+      <div className="mt-8 mb-4 flex items-center gap-3">
+        <h2 className="text-base font-semibold text-charcoal whitespace-nowrap">{t('dashboard.member_analytics')}</h2>
+        <div className="h-px flex-1 bg-gray-200" />
+      </div>
+
+      {/* Age by Gender — full width */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('dashboard.age_gender_distribution_chart')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Bar data={ageGenderChart} options={{
+            responsive: true,
+            plugins: { legend: { display: true } },
+            scales: { y: { beginAtZero: true } },
+          }} />
+        </CardContent>
+      </Card>
+
+      {/* Family Size + Gender — 2-col */}
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <Card>
+          <CardHeader>
+            <CardTitle>{t('dashboard.family_size_chart')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Bar data={familySizeChart} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('dashboard.gender_distribution_chart')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div style={{ height: 280, maxWidth: 280, margin: '0 auto' }}>
+              <Pie data={genderChart} options={{ responsive: true, maintainAspectRatio: false }} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Financial Summary ─────────────────────────────────────── */}
+      <div className="mt-8 mb-4 flex items-center gap-3">
+        <h2 className="text-base font-semibold text-charcoal whitespace-nowrap">{t('dashboard.financial_summary')}</h2>
+        <div className="h-px flex-1 bg-gray-200" />
+      </div>
+      <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <CardTitle>{t('dashboard.income_by_type_chart')}</CardTitle>
@@ -452,51 +497,9 @@ export default function DashboardCharts() {
             )}
           </CardContent>
         </Card>
-      </div>
-
-      <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t('dashboard.age_gender_distribution_chart')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Bar data={ageGenderChart} options={{
-                      responsive: true,
-                      plugins: { legend: { display: true } },
-                      scales: { y: { beginAtZero: true } },
-                    }} />
-                  </CardContent>
-                </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.family_size_chart')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Bar data={familySizeChart} options={{ responsive: true, plugins: { legend: { display: false } } }} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.age_distribution_chart')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Bar data={ageChart} options={{ responsive: true, plugins: { legend: { display: false } } }} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.gender_distribution_chart')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div style={{ height: 280, maxWidth: 280, margin: '0 auto' }} className="md:!h-[320px] md:!max-w-[320px]">
-              <Pie data={genderChart} options={{ responsive: true, maintainAspectRatio: false }} />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Monthly Expenses chart — full width */}
-      <div className="mt-6 md:mt-8">
+      <div className="mt-4">
         <Card>
           <CardHeader>
             <CardTitle>{t('dashboard.monthly_expenses_chart')}</CardTitle>
@@ -538,7 +541,7 @@ export default function DashboardCharts() {
       </div>
 
       {/* Expense by Tag + Income vs Expense — 2-column grid */}
-      <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Expense by Tag donut */}
         <Card>
           <CardHeader>
