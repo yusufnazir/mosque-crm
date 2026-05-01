@@ -52,4 +52,7 @@
     <!-- Normalize SRD currency symbol to SR$ -->
     <include file="db/changelog/changes/dml/217-fix-srd-currency-symbol.xml"/>
 
+    <!-- Backfill expense permissions for ADMIN templates and tenant ADMIN roles -->
+    <include file="db/changelog/changes/dml/218-backfill-expense-permissions-admin-roles.xml"/>
+
 </databaseChangeLog>

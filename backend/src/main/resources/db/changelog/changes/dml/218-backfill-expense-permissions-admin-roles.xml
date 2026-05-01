@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Ensure ADMIN templates and tenant ADMIN roles can see/manage Expenses -->
+    <changeSet id="5a8f3f9c-b2f0-4d67-9e7a-1a2f9e7b4d31" author="mosque-crm">
+        <comment>Backfill expense permissions (77/78) to ADMIN templates and existing ADMIN role copies</comment>
+        <sql>
+            INSERT IGNORE INTO role_template_permissions (template_id, permission_id) VALUES (1, 77), (1, 78);
+            INSERT IGNORE INTO role_template_assignable_permissions (template_id, permission_id) VALUES (1, 77), (1, 78);
+
+            INSERT IGNORE INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id
+            FROM roles r
+            JOIN permissions p ON p.code IN ('expense.view', 'expense.manage')
+            WHERE r.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+            SELECT r.id, p.id
+            FROM roles r
+            JOIN permissions p ON p.code IN ('expense.view', 'expense.manage')
+            WHERE r.name = 'ADMIN';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
