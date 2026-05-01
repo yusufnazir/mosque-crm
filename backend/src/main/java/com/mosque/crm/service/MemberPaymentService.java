@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.mosque.crm.dto.MemberPaymentCreateDTO;
 import com.mosque.crm.dto.MemberPaymentDTO;
+import com.mosque.crm.dto.PaymentMonthlySummaryDTO;
 import com.mosque.crm.entity.ContributionType;
 import com.mosque.crm.entity.Currency;
 import com.mosque.crm.entity.MemberPayment;
@@ -398,5 +399,13 @@ public class MemberPaymentService {
     @Transactional(readOnly = true)
     public List<Integer> getPaymentYears() {
         return paymentRepository.findDistinctPaymentYears();
+    }
+
+    /**
+     * Returns income totals grouped by calendar month and currency for the given year.
+     */
+    @Transactional(readOnly = true)
+    public List<PaymentMonthlySummaryDTO> getMonthlySummary(int year) {
+        return paymentRepository.findMonthlySummaryByYear(year);
     }
 }

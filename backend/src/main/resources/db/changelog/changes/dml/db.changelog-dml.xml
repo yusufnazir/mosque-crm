@@ -49,4 +49,7 @@
     <!-- Backfill next_due_date for subscriptions created before auto-set was implemented -->
     <include file="db/changelog/changes/dml/216-backfill-subscription-next-due-date.xml"/>
 
+    <!-- Normalize SRD currency symbol to SR$ -->
+    <include file="db/changelog/changes/dml/217-fix-srd-currency-symbol.xml"/>
+
 </databaseChangeLog>

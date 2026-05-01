@@ -135,6 +135,9 @@
     <include file="db/changelog/changes/ddl/155-create-org-document-links-table.xml"/>
     <include file="db/changelog/changes/ddl/156-create-org-document-quotas-table.xml"/>
     <include file="db/changelog/changes/ddl/157-create-org-document-audit-events-table.xml"/>
+    <include file="db/changelog/changes/ddl/158-create-org-expenses-table.xml"/>
+    <include file="db/changelog/changes/ddl/159-create-org-expense-tags-table.xml"/>
+    <include file="db/changelog/changes/ddl/160-create-org-expense-audit-events-table.xml"/>
 
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>

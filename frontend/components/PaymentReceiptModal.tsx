@@ -5,6 +5,7 @@ import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
 import { MemberPayment } from '@/lib/contributionApi';
 import { Organization, organizationApi } from '@/lib/organizationApi';
+import { formatCurrencyAmount } from '@/lib/currencyDisplay';
 
 interface PaymentReceiptModalProps {
   open: boolean;
@@ -84,9 +85,10 @@ export default function PaymentReceiptModal({
     day: 'numeric',
   });
 
-  const formattedAmount = payment.currencySymbol
-    ? `${payment.currencySymbol} ${payment.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : `${payment.currencyCode || ''} ${payment.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`.trim();
+  const formattedAmount = formatCurrencyAmount(payment.amount, {
+    currencyCode: payment.currencyCode,
+    currencySymbol: payment.currencySymbol,
+  });
 
   const periodDisplay =
     payment.periodFrom && payment.periodTo

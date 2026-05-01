@@ -1039,4 +1039,50 @@
 
     </changeSet>
 
+    <changeSet id="b1000099-9990-0000-0000-000000000006" author="mosque-crm">
+        <!-- org_expenses -->
+        <addForeignKeyConstraint constraintName="fk_expense_org"
+            baseTableName="org_expenses" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_expense_currency"
+            baseTableName="org_expenses" baseColumnNames="currency_id"
+            referencedTableName="currencies" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_expense_deleted_by"
+            baseTableName="org_expenses" baseColumnNames="deleted_by"
+            referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_expense_created_by"
+            baseTableName="org_expenses" baseColumnNames="created_by"
+            referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_expense_updated_by"
+            baseTableName="org_expenses" baseColumnNames="updated_by"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- org_expense_tag_mappings -->
+        <addForeignKeyConstraint constraintName="fk_exptag_expense"
+            baseTableName="org_expense_tag_mappings" baseColumnNames="expense_id"
+            referencedTableName="org_expenses" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_exptag_tag"
+            baseTableName="org_expense_tag_mappings" baseColumnNames="tag_id"
+            referencedTableName="org_expense_tags" referencedColumnNames="id"/>
+
+        <!-- org_expense_tags -->
+        <addForeignKeyConstraint constraintName="fk_exptags_org"
+            baseTableName="org_expense_tags" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_exptags_created_by"
+            baseTableName="org_expense_tags" baseColumnNames="created_by"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- org_expense_audit_events -->
+        <addForeignKeyConstraint constraintName="fk_expaudit_expense"
+            baseTableName="org_expense_audit_events" baseColumnNames="expense_id"
+            referencedTableName="org_expenses" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_expaudit_org"
+            baseTableName="org_expense_audit_events" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_expaudit_user"
+            baseTableName="org_expense_audit_events" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
 </databaseChangeLog>

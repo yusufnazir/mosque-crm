@@ -115,6 +115,16 @@ const allNavItems: NavItem[] = [
       </svg>
     ) 
   },
+  {
+    name: 'Expenses',
+    href: '/expenses',
+    permission: 'expense.view',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+    )
+  },
   { 
     name: 'Currencies', 
     href: '/currencies', 
@@ -285,7 +295,7 @@ interface NavGroup {
 const NAV_GROUPS: NavGroup[] = [
   { labelKey: undefined, hrefs: ['/dashboard'] },
   { labelKey: 'sidebar.group_members', hrefs: ['/members', '/member-requests', '/groups'] },
-  { labelKey: 'sidebar.group_finance', hrefs: ['/contributions/types', '/currencies'] },
+  { labelKey: 'sidebar.group_finance', hrefs: ['/contributions/types', '/expenses', '/currencies'] },
   { labelKey: 'sidebar.group_operations', hrefs: ['/reports', '/events', '/import', '/export', '/communications', '/documents'] },
   { labelKey: 'sidebar.group_personal', hrefs: ['/profile', '/inbox'] },
   { labelKey: 'sidebar.group_administration', hrefs: ['/users', '/roles', '/privileges', '/role-templates', '/organizations', '/billing', '/settings', '/tenant-settings'] },

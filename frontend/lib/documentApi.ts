@@ -9,7 +9,7 @@ export type DocumentStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'TRASHED';
 export type DocumentVisibility = 'PRIVATE' | 'ORGANIZATION' | 'SHARED';
 export type DocumentShareType = 'USER' | 'ROLE' | 'ORGANIZATION';
 export type DocumentAccessLevel = 'VIEW' | 'COMMENT' | 'EDIT' | 'MANAGE';
-export type DocumentLinkedEntityType = 'MEMBER' | 'EVENT' | 'CONTRIBUTION' | 'GROUP' | 'MEMBERSHIP';
+export type DocumentLinkedEntityType = 'MEMBER' | 'EVENT' | 'CONTRIBUTION' | 'GROUP' | 'MEMBERSHIP' | 'EXPENSE';
 export type FolderVisibility = 'PRIVATE' | 'ORGANIZATION' | 'SHARED';
 
 export interface DocumentFolder {
@@ -160,6 +160,14 @@ export interface DocumentDownloadUrlDTO {
   fileSize?: number;
 }
 
+export interface DocumentSearchResponseDTO {
+  items: DocumentDTO[];
+  totalElements: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+}
+
 export interface RichTextDocumentSaveDTO {
   contentHtml: string;
   changeNote?: string;
@@ -184,6 +192,14 @@ export const DocumentFolderApi = {
 export const DocumentApi = {
   list: (folderId?: number) =>
     ApiClient.get<DocumentDTO[]>(`/documents${folderId != null ? `?folderId=${folderId}` : ''}`),
+  search: (params?: { q?: string; page?: number; size?: number }) => {
+    const search = new URLSearchParams();
+    if (params?.q) search.set('q', params.q);
+    if (params?.page != null) search.set('page', String(params.page));
+    if (params?.size != null) search.set('size', String(params.size));
+    const qs = search.toString();
+    return ApiClient.get<DocumentSearchResponseDTO>(`/documents/search${qs ? `?${qs}` : ''}`);
+  },
   listTrash: () => ApiClient.get<DocumentDTO[]>('/documents/trash'),
   get: (id: number) => ApiClient.get<DocumentDetailDTO>(`/documents/${id}`),
 

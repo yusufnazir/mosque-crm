@@ -10,6 +10,7 @@ import com.mosque.crm.dto.DocumentDownloadUrlDTO;
 import com.mosque.crm.dto.DocumentShareCreateDTO;
 import com.mosque.crm.dto.DocumentShareDTO;
 import com.mosque.crm.dto.DocumentVersionDTO;
+import com.mosque.crm.dto.DocumentSearchResponseDTO;
 import com.mosque.crm.dto.RichTextDocumentSaveDTO;
 import com.mosque.crm.entity.Document;
 import com.mosque.crm.entity.User;
@@ -60,6 +61,15 @@ public class DocumentController {
             return ResponseEntity.ok(documentService.listDocumentsInFolder(folderId));
         }
         return ResponseEntity.ok(documentService.listRootDocuments());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<DocumentSearchResponseDTO> searchDocuments(
+            @RequestParam(value = "q", required = false) String query,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "25") int size
+    ) {
+        return ResponseEntity.ok(documentService.searchDocuments(query, page, size));
     }
 
     @GetMapping("/trash")

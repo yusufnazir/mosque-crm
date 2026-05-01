@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -e
+
+BASEDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+WRAPPER_JAR="$BASEDIR/.mvn/wrapper/maven-wrapper.jar"
+WRAPPER_PROPS="$BASEDIR/.mvn/wrapper/maven-wrapper.properties"
+
+if [ ! -f "$WRAPPER_JAR" ]; then
+  WRAPPER_URL=$(grep '^wrapperUrl=' "$WRAPPER_PROPS" | cut -d'=' -f2-)
+  if [ -z "$WRAPPER_URL" ]; then
+    WRAPPER_URL="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.2/maven-wrapper-3.3.2.jar"
+  fi
+  mkdir -p "$BASEDIR/.mvn/wrapper"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$WRAPPER_URL" -o "$WRAPPER_JAR"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q "$WRAPPER_URL" -O "$WRAPPER_JAR"
+  else
+    echo "Error: curl or wget is required to download maven-wrapper.jar" >&2
+    exit 1
+  fi
+fi
+
+if [ -z "$JAVA_HOME" ]; then
+  JAVA_HOME="D:/Tools/Eclipse Adoptium/jdk-21.0.3.9-hotspot"
+fi
+
+exec "$JAVA_HOME/bin/java" -classpath "$WRAPPER_JAR" "-Dmaven.multiModuleProjectDirectory=$BASEDIR" org.apache.maven.wrapper.MavenWrapperMain "$@"

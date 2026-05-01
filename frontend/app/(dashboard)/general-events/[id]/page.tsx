@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useDateFormat } from '@/lib/DateFormatContext';
+import DateInput from '@/components/DateInput';
 import { memberApi } from '@/lib/api';
 import { PersonSearchResult } from '@/types';
 import {
@@ -1220,13 +1221,12 @@ export default function GeneralEventDetailPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-medium text-stone-600 mb-1 block">{t('general_events.sessions.date')} *</label>
-                      <input
-                        type="date"
+                      <DateInput
                         value={sessionForm.sessionDate}
                         min={event.startDate}
                         max={event.endDate ?? undefined}
-                        onChange={e => setSessionForm(f => ({ ...f, sessionDate: e.target.value }))}
-                        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        onChange={value => setSessionForm(f => ({ ...f, sessionDate: value }))}
+                        className="text-sm"
                       />
                     </div>
                     <div>

@@ -1,21 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LanguageSelector from '@/components/LanguageSelector';
 import { authApi } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
-import { buildTenantUrl } from '@/lib/auth/AuthContext';
+import { buildTenantUrl, useAuth } from '@/lib/auth/AuthContext';
 import { useAppName } from '@/lib/AppNameContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { syncLanguageWithBackend, t } = useTranslation();
   const { appName } = useAppName();
+  const { user, loading: authLoading } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Redirect already-authenticated users to dashboard
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (user.organizationHandle) {
+        window.location.replace(buildTenantUrl(user.organizationHandle, '/dashboard'));
+      } else {
+        window.location.replace('/dashboard');
+      }
+    }
+  }, [user, authLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

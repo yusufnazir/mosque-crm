@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import Button from '@/components/Button';
+import DateInput from '@/components/DateInput';
 import { memberApi, ApiClient } from '@/lib/api';
 import { Member } from '@/types';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
@@ -239,13 +240,11 @@ export default function AddMemberPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {t('member_detail.date_of_birth')} <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       name="dateOfBirth"
                       value={formData.dateOfBirth}
-                      onChange={handleInputChange}
+                      onChange={(value) => setFormData((prev) => ({ ...prev, dateOfBirth: value }))}
                       required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                     />
                   </div>
 

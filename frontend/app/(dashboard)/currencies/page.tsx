@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import Card from '@/components/Card';
+import DateInput from '@/components/DateInput';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import ToastNotification from '@/components/ToastNotification';
 import {
@@ -812,11 +813,10 @@ export default function CurrenciesPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">{t('currency.effectiveDate')}</label>
-                <input
-                  type="date"
+                <DateInput
                   value={rateForm.effectiveDate}
-                  onChange={(e) => setRateForm({ ...rateForm, effectiveDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-emerald-500 focus:border-emerald-500"
+                  onChange={(value) => setRateForm({ ...rateForm, effectiveDate: value })}
+                  className="text-sm"
                 />
               </div>
             </div>

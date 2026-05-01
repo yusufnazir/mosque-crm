@@ -1,11 +1,13 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './Card';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { familyApi } from '@/lib/familyApi';
 import { memberApi, reportApi, paymentStatsApi, isPlanRestriction } from '@/lib/api';
-import type { ContributionTotalReport } from '@/lib/api';
-import { Bar, Pie } from 'react-chartjs-2';
+import type { ContributionTotalReport, PaymentMonthlySummaryDTO } from '@/lib/api';
+import { expenseApi } from '@/lib/expenseApi';
+import type { ExpenseDTO, ExpenseMonthlySummaryDTO } from '@/lib/expenseApi';
+import { Bar, Pie, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS, 
   CategoryScale, 
@@ -50,6 +52,13 @@ export default function DashboardCharts() {
   const [incomeYears, setIncomeYears] = useState<number[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [incomeLoading, setIncomeLoading] = useState(false);
+
+  // Expense chart state
+  const [expenseMonthlySummary, setExpenseMonthlySummary] = useState<ExpenseMonthlySummaryDTO[]>([]);
+  const [incomeMonthlySummary, setIncomeMonthlySummary] = useState<PaymentMonthlySummaryDTO[]>([]);
+  const [expenseTagData, setExpenseTagData] = useState<ExpenseDTO[]>([]);
+  const [selectedExpenseCurrency, setSelectedExpenseCurrency] = useState<string>('');
+  const [expenseChartLoading, setExpenseChartLoading] = useState(false);
 
 
   useEffect(() => {
@@ -129,6 +138,45 @@ export default function DashboardCharts() {
     }
     fetchIncome();
   }, [selectedYear, language]);
+
+  // Fetch expense monthly summary, income monthly summary, and tag data when year changes
+  useEffect(() => {
+    async function fetchExpenseData() {
+      setExpenseChartLoading(true);
+      try {
+        const [expSummary, incSummary] = await Promise.all([
+          expenseApi.getMonthlySummary(selectedYear),
+          paymentStatsApi.getMonthlySummary(selectedYear),
+        ]);
+        setExpenseMonthlySummary(expSummary);
+        setIncomeMonthlySummary(incSummary);
+
+        // Fetch raw expenses for the year for tag breakdown
+        const yearStart = `${selectedYear}-01-01`;
+        const yearEnd = `${selectedYear}-12-31`;
+        const rawExpenses = await expenseApi.list({ dateFrom: yearStart, dateTo: yearEnd, includeDeleted: false });
+        setExpenseTagData(rawExpenses);
+
+        // Auto-select currency: prefer currency with most income, then expense
+        const allCurrencies = Array.from(new Set([
+          ...incSummary.map(r => r.currencyCode),
+          ...expSummary.map(r => r.currencyCode),
+        ]));
+        if (allCurrencies.length > 0) {
+          // Pick currency with highest total income
+          const incByCur: Record<string, number> = {};
+          for (const r of incSummary) incByCur[r.currencyCode] = (incByCur[r.currencyCode] || 0) + r.total;
+          const best = allCurrencies.reduce((a, b) => (incByCur[b] || 0) > (incByCur[a] || 0) ? b : a, allCurrencies[0]);
+          setSelectedExpenseCurrency(prev => allCurrencies.includes(prev) ? prev : best);
+        }
+      } catch (e) {
+        console.error('Expense chart data error', e);
+      } finally {
+        setExpenseChartLoading(false);
+      }
+    }
+    fetchExpenseData();
+  }, [selectedYear]);
   // Grouped bar chart: Members' ages by gender
   // Prepare buckets and genders
   const ageBuckets = React.useMemo(() => {
@@ -189,6 +237,96 @@ export default function DashboardCharts() {
 
   // All hooks must be above any early return
 
+  // ── Expense chart data — all useMemo hooks before any early return ──────────
+  const currencyColorPalette = [
+    '#047857', '#D4AF37', '#0284c7', '#dc2626', '#7c3aed',
+    '#ea580c', '#0891b2', '#be185d', '#4d7c0f', '#6366f1',
+  ];
+
+  const yearMonths = useMemo(
+    () => Array.from({ length: 12 }, (_, i) => `${selectedYear}-${String(i + 1).padStart(2, '0')}`),
+    [selectedYear]
+  );
+
+  const monthLabels = useMemo(
+    () => ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].map(k => t(`dashboard.month.${k}`)),
+    [t]
+  );
+
+  const expenseCurrencies = useMemo(
+    () => Array.from(new Set(expenseMonthlySummary.map(r => r.currencyCode))),
+    [expenseMonthlySummary]
+  );
+
+  const monthlyExpenseChart = useMemo(() => ({
+    labels: monthLabels,
+    datasets: expenseCurrencies.map((currency, i) => ({
+      label: currency,
+      data: yearMonths.map(month => {
+        const found = expenseMonthlySummary.find(r => r.month === month && r.currencyCode === currency);
+        return found ? found.total : 0;
+      }),
+      backgroundColor: currencyColorPalette[i % currencyColorPalette.length],
+    })),
+  }), [expenseMonthlySummary, expenseCurrencies, yearMonths, monthLabels]);
+
+  const tagDonutData = useMemo(() => {
+    const filtered = expenseTagData.filter(e => !selectedExpenseCurrency || e.currencyCode === selectedExpenseCurrency);
+    const tagTotals: Record<string, number> = {};
+    for (const exp of filtered) {
+      if (!exp.tags || exp.tags.length === 0) {
+        const key = t('dashboard.untagged');
+        tagTotals[key] = (tagTotals[key] || 0) + Number(exp.amount);
+      } else {
+        for (const tag of exp.tags) {
+          tagTotals[tag.name] = (tagTotals[tag.name] || 0) + Number(exp.amount);
+        }
+      }
+    }
+    const tagNames = Object.keys(tagTotals);
+    const donutColors = currencyColorPalette;
+    return {
+      labels: tagNames,
+      datasets: [{
+        data: tagNames.map(n => tagTotals[n]),
+        backgroundColor: tagNames.map((_, i) => donutColors[i % donutColors.length]),
+        borderWidth: 2,
+        borderColor: '#fff',
+      }],
+    };
+  }, [expenseTagData, selectedExpenseCurrency, t]);
+
+  const allIvECurrencies = useMemo(() => Array.from(new Set([
+    ...incomeMonthlySummary.map(r => r.currencyCode),
+    ...expenseMonthlySummary.map(r => r.currencyCode),
+  ])), [incomeMonthlySummary, expenseMonthlySummary]);
+
+  const incomeVsExpenseChart = useMemo(() => {
+    const cur = selectedExpenseCurrency;
+    const incomeData = yearMonths.map(month => {
+      const found = incomeMonthlySummary.find(r => r.month === month && r.currencyCode === cur);
+      return found ? found.total : 0;
+    });
+    const expenseData = yearMonths.map(month => {
+      const found = expenseMonthlySummary.find(r => r.month === month && r.currencyCode === cur);
+      return found ? found.total : 0;
+    });
+    return {
+      labels: monthLabels,
+      datasets: [
+        { label: t('dashboard.income'), data: incomeData, backgroundColor: '#047857' },
+        { label: t('dashboard.expense'), data: expenseData, backgroundColor: '#D4AF37' },
+      ],
+    };
+  }, [incomeMonthlySummary, expenseMonthlySummary, selectedExpenseCurrency, yearMonths, monthLabels, t]);
+
+  const netBalance = useMemo(() => {
+    const cur = selectedExpenseCurrency;
+    const totalIncome = incomeMonthlySummary.filter(r => r.currencyCode === cur).reduce((s, r) => s + r.total, 0);
+    const totalExpense = expenseMonthlySummary.filter(r => r.currencyCode === cur).reduce((s, r) => s + r.total, 0);
+    return totalIncome - totalExpense;
+  }, [incomeMonthlySummary, expenseMonthlySummary, selectedExpenseCurrency]);
+
   if (loading) {
     return <div className="mt-8">{t('dashboard.loading_charts') || 'Loading charts...'}</div>;
   }
@@ -206,9 +344,9 @@ export default function DashboardCharts() {
 
   const genderChartColors = genderData.map((d) => {
     const code = d.gender;
-    if (code === 'M') return '#047857'; // Men: emerald
-    if (code === 'F') return '#D4AF37'; // Women: deep gold
-    return '#78716c'; // Unknown: visible gray
+    if (code === 'M') return '#047857';
+    if (code === 'F') return '#D4AF37';
+    return '#78716c';
   });
 
   const genderChart = {
@@ -225,28 +363,10 @@ export default function DashboardCharts() {
     ],
   };
 
-  // For charts, use Bar or Line as needed
-  // import { Bar as BarChart, Line } from 'react-chartjs-2';
-  // Here, we'll use Bar for all for simplicity
-  // If you want to use Line, import it and swap below
-  // If you want to use Doughnut for gender, import and swap below
-  // import { Doughnut } from 'react-chartjs-2';
-
-  // For this patch, assume Bar and Pie are imported
-  // If not, add at the top:
-  // import { Bar, Pie } from 'react-chartjs-2';
-
   // Income chart data — stacked bars, one dataset per currency
   const currencyColors: Record<string, string> = {};
-  const currencyColorPalette = [
-    '#047857', '#D4AF37', '#0284c7', '#dc2626', '#7c3aed',
-    '#ea580c', '#0891b2', '#be185d', '#4d7c0f', '#6366f1',
-  ];
-
   const incomeLabels = incomeReport?.rows?.map(r => r.contributionTypeName) ?? [];
   const incomeCurrencies = incomeReport?.currencies ?? [];
-
-  // Assign a color to each currency
   incomeCurrencies.forEach((cur, i) => {
     currencyColors[cur] = currencyColorPalette[i % currencyColorPalette.length];
   });
@@ -261,6 +381,11 @@ export default function DashboardCharts() {
       }),
       backgroundColor: currencyColors[currency],
     })),
+  };
+
+  const tooltipCurrencyCallback = (currency: string) => (ctx: { parsed: { y: number } }) => {
+    const val = ctx.parsed.y;
+    return val != null ? ` ${currency} ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
   };
 
   return (
@@ -366,6 +491,151 @@ export default function DashboardCharts() {
             <div style={{ height: 280, maxWidth: 280, margin: '0 auto' }} className="md:!h-[320px] md:!max-w-[320px]">
               <Pie data={genderChart} options={{ responsive: true, maintainAspectRatio: false }} />
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Monthly Expenses chart — full width */}
+      <div className="mt-6 md:mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('dashboard.monthly_expenses_chart')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {expenseChartLoading ? (
+              <div className="flex items-center justify-center py-12 text-gray-400">{t('dashboard.loading_charts')}</div>
+            ) : expenseCurrencies.length === 0 ? (
+              <div className="flex items-center justify-center py-12 text-gray-400">{t('dashboard.no_expense_data')}</div>
+            ) : (
+              <div style={{ maxHeight: '300px' }}>
+                <Bar
+                  data={monthlyExpenseChart}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: expenseCurrencies.length > 1 },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => {
+                            const val = ctx.parsed.y;
+                            const currency = ctx.dataset.label ?? '';
+                            return val != null ? ` ${currency} ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+                          },
+                        },
+                      },
+                    },
+                    scales: {
+                      x: { stacked: true },
+                      y: { stacked: true, beginAtZero: true, ticks: { callback: (v) => Number(v).toLocaleString() } },
+                    },
+                  }}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Expense by Tag + Income vs Expense — 2-column grid */}
+      <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+        {/* Expense by Tag donut */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle>{t('dashboard.expense_by_tag_chart')}</CardTitle>
+              {allIvECurrencies.length > 1 && (
+                <select
+                  value={selectedExpenseCurrency}
+                  onChange={(e) => setSelectedExpenseCurrency(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
+                >
+                  {allIvECurrencies.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {expenseChartLoading ? (
+              <div className="flex items-center justify-center py-12 text-gray-400">{t('dashboard.loading_charts')}</div>
+            ) : tagDonutData.labels.length === 0 ? (
+              <div className="flex items-center justify-center py-12 text-gray-400">{t('dashboard.no_expense_tag_data')}</div>
+            ) : (
+              <div style={{ height: 300, maxWidth: 300, margin: '0 auto' }}>
+                <Doughnut
+                  data={tagDonutData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { position: 'bottom' },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => {
+                            const val = Number(ctx.parsed);
+                            return val != null ? ` ${selectedExpenseCurrency} ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+                          },
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Income vs Expense grouped bar */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <CardTitle>{t('dashboard.income_vs_expense_chart')}</CardTitle>
+                {selectedExpenseCurrency && !expenseChartLoading && (
+                  <p className={`text-sm font-medium mt-1 ${netBalance >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                    {t('dashboard.net_balance')}: {selectedExpenseCurrency} {netBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                )}
+              </div>
+              {allIvECurrencies.length > 1 && (
+                <select
+                  value={selectedExpenseCurrency}
+                  onChange={(e) => setSelectedExpenseCurrency(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
+                >
+                  {allIvECurrencies.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {expenseChartLoading ? (
+              <div className="flex items-center justify-center py-12 text-gray-400">{t('dashboard.loading_charts')}</div>
+            ) : allIvECurrencies.length === 0 ? (
+              <div className="flex items-center justify-center py-12 text-gray-400">{t('dashboard.no_expense_data')}</div>
+            ) : (
+              <div style={{ maxHeight: '280px' }}>
+                <Bar
+                  data={incomeVsExpenseChart}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: true },
+                      tooltip: {
+                        callbacks: {
+                          label: tooltipCurrencyCallback(selectedExpenseCurrency),
+                        },
+                      },
+                    },
+                    scales: {
+                      x: { stacked: false },
+                      y: { stacked: false, beginAtZero: true, ticks: { callback: (v) => Number(v).toLocaleString() } },
+                    },
+                  }}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

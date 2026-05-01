@@ -16,6 +16,7 @@ import { isPlanRestriction } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useDateFormat } from '@/lib/DateFormatContext';
+import { formatCurrencyAmount, resolveCurrencySymbol } from '@/lib/currencyDisplay';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -582,7 +583,7 @@ export default function ReportsPage() {
         const currencyTotals = filteredPayments.reduce((acc: any, p: MemberPayment) => {
           const currKey = p.currencyCode || 'Unknown';
           if (!acc[currKey]) {
-            acc[currKey] = { total: 0, symbol: p.currencySymbol || '', code: currKey };
+            acc[currKey] = { total: 0, symbol: resolveCurrencySymbol(p.currencyCode, p.currencySymbol), code: currKey };
           }
           acc[currKey].total += p.amount || 0;
           return acc;
@@ -590,7 +591,7 @@ export default function ReportsPage() {
 
         const totalsRows = Object.entries(currencyTotals).map(([currKey, data]: [string, any]) => [
           data.code,
-          `${data.symbol}${data.total.toFixed(2)}`
+          formatCurrencyAmount(data.total, { currencyCode: data.code, currencySymbol: data.symbol })
         ]);
 
         const estimatedHeight = 15 + (totalsRows.length * 8);
@@ -808,7 +809,7 @@ export default function ReportsPage() {
         const currencyTotals = filteredPayments.reduce((acc: any, p: MemberPayment) => {
           const currKey = p.currencyCode || 'Unknown';
           if (!acc[currKey]) {
-            acc[currKey] = { total: 0, symbol: p.currencySymbol || '', code: currKey };
+            acc[currKey] = { total: 0, symbol: resolveCurrencySymbol(p.currencyCode, p.currencySymbol), code: currKey };
           }
           acc[currKey].total += p.amount || 0;
           return acc;
@@ -817,7 +818,7 @@ export default function ReportsPage() {
         // Create totals table
         const totalsRows = Object.entries(currencyTotals).map(([currKey, data]: [string, any]) => [
           data.code,
-          `${data.symbol}${data.total.toFixed(2)}`
+          formatCurrencyAmount(data.total, { currencyCode: data.code, currencySymbol: data.symbol })
         ]);
 
         // Check if there's enough space for totals table, if not add a new page
@@ -1510,7 +1511,7 @@ export default function ReportsPage() {
                   const currencyTotals = filteredPayments.reduce((acc: any, p: MemberPayment) => {
                     const currKey = p.currencyCode || 'Unknown';
                     if (!acc[currKey]) {
-                      acc[currKey] = { total: 0, symbol: p.currencySymbol || currKey };
+                      acc[currKey] = { total: 0, symbol: resolveCurrencySymbol(p.currencyCode, p.currencySymbol), code: currKey };
                     }
                     acc[currKey].total += p.amount || 0;
                     return acc;
@@ -1548,7 +1549,10 @@ export default function ReportsPage() {
                                   {payment.contributionTypeName || payment.contributionTypeCode || 'Unknown'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-right font-semibold text-emerald-700">
-                                  {payment.amount.toFixed(2)}
+                                  {formatCurrencyAmount(payment.amount, {
+                                    currencyCode: payment.currencyCode,
+                                    currencySymbol: payment.currencySymbol,
+                                  })}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-700">
                                   {payment.currencyCode || 'N/A'}
@@ -1582,7 +1586,10 @@ export default function ReportsPage() {
                               <div className="text-right">
                                 <p className="text-xs text-gray-500 uppercase font-semibold">{t('reports.amount')}</p>
                                 <p className="text-lg font-semibold text-emerald-700">
-                                  {payment.currencySymbol || payment.currencyCode} {payment.amount.toFixed(2)}
+                                  {formatCurrencyAmount(payment.amount, {
+                                    currencyCode: payment.currencyCode,
+                                    currencySymbol: payment.currencySymbol,
+                                  })}
                                 </p>
                               </div>
                             </div>
@@ -1631,7 +1638,7 @@ export default function ReportsPage() {
                               <div key={currKey} className="bg-white px-3 py-2 rounded border border-emerald-200">
                                 <p className="text-xs text-gray-500">{currKey}</p>
                                 <p className="text-lg font-bold text-emerald-700">
-                                  {data.symbol} {data.total.toFixed(2)}
+                                  {formatCurrencyAmount(data.total, { currencyCode: data.code, currencySymbol: data.symbol })}
                                 </p>
                               </div>
                             ))}
@@ -1665,7 +1672,7 @@ export default function ReportsPage() {
                         {Object.entries(groupedByType).map(([typeKey, typePayments]) => {
                           const groupedByCurrency = typePayments.reduce<Record<string, { amount: number; symbol: string }>>((acc, p) => {
                             const currKey = p.currencyCode || 'Unknown';
-                            if (!acc[currKey]) acc[currKey] = { amount: 0, symbol: p.currencySymbol || currKey };
+                            if (!acc[currKey]) acc[currKey] = { amount: 0, symbol: resolveCurrencySymbol(p.currencyCode, p.currencySymbol) };
                             acc[currKey].amount += p.amount || 0;
                             return acc;
                           }, {});
@@ -1683,7 +1690,7 @@ export default function ReportsPage() {
                                   <div key={currKey} className="flex justify-between items-end bg-gray-50 p-2 rounded">
                                     <span className="text-xs text-gray-600">{currKey}</span>
                                     <p className="font-semibold text-charcoal">
-                                      {data.symbol} {data.amount.toFixed(2)}
+                                      {formatCurrencyAmount(data.amount, { currencyCode: currKey, currencySymbol: data.symbol })}
                                     </p>
                                   </div>
                                 ))}

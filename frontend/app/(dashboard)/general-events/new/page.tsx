@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import DateInput from '@/components/DateInput';
 import { generalEventApi, GeneralEventCreate, GeneralEventType, GeneralEventStatus } from '@/lib/generalEventApi';
 import { distributionApi, DistributionEventCreate } from '@/lib/distributionApi';
 import { isPlanRestriction, parsePlanRestrictionFromError } from '@/lib/api';
@@ -252,12 +253,7 @@ export default function NewGeneralEventPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-stone-600 mb-1 block">{t('distribution.event_date')}</label>
-                  <input
-                    type="date"
-                    value={distForm.eventDate ?? ''}
-                    onChange={e => setDist('eventDate', e.target.value || undefined)}
-                    className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
+                  <DateInput value={distForm.eventDate ?? ''} onChange={value => setDist('eventDate', value || undefined)} className="text-sm" />
                 </div>
               </div>
               <div>
@@ -283,23 +279,11 @@ export default function NewGeneralEventPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-stone-600 mb-1 block">{t('general_events.start_date')} *</label>
-                <input
-                  type="date"
-                  required
-                  value={form.startDate}
-                  onChange={e => set('startDate', e.target.value)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+                <DateInput value={form.startDate} onChange={value => set('startDate', value)} className="text-sm" required />
               </div>
               <div>
                 <label className="text-sm font-medium text-stone-600 mb-1 block">{t('general_events.end_date')}</label>
-                <input
-                  type="date"
-                  value={form.endDate ?? ''}
-                  min={form.startDate}
-                  onChange={e => set('endDate', e.target.value || undefined)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+                <DateInput value={form.endDate ?? ''} onChange={value => set('endDate', value || undefined)} min={form.startDate} className="text-sm" />
                 <p className="text-xs text-stone-400 mt-1">{t('general_events.end_date_hint')}</p>
               </div>
             </div>
@@ -381,21 +365,11 @@ export default function NewGeneralEventPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-stone-600 mb-1 block">{t('general_events.registration_open_date')}</label>
-                    <input
-                      type="date"
-                      value={form.registrationOpenDate ?? ''}
-                      onChange={e => set('registrationOpenDate', e.target.value)}
-                      className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
+                    <DateInput value={form.registrationOpenDate ?? ''} onChange={value => set('registrationOpenDate', value)} className="text-sm" />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-stone-600 mb-1 block">{t('general_events.registration_close_date')}</label>
-                    <input
-                      type="date"
-                      value={form.registrationCloseDate ?? ''}
-                      onChange={e => set('registrationCloseDate', e.target.value)}
-                      className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
+                    <DateInput value={form.registrationCloseDate ?? ''} onChange={value => set('registrationCloseDate', value)} className="text-sm" />
                   </div>
                 </div>
 

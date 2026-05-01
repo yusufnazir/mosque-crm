@@ -5,5 +5,6 @@ public enum DocumentLinkedEntityType {
     EVENT,
     CONTRIBUTION,
     GROUP,
-    MEMBERSHIP
+    MEMBERSHIP,
+    EXPENSE
 }

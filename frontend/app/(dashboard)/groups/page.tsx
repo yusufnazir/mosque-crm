@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Button from '@/components/Button';
+import DateInput from '@/components/DateInput';
 import { groupApi, GroupDTO, GroupTranslationDTO } from '@/lib/groupApi';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useDateFormat } from '@/lib/DateFormatContext';
@@ -405,21 +406,11 @@ export default function GroupsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{t('groups.start_date') || 'Start Date'}</label>
-                  <input
-                    type="date"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                    value={createStartDate}
-                    onChange={(e) => setCreateStartDate(e.target.value)}
-                  />
+                  <DateInput value={createStartDate} onChange={setCreateStartDate} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{t('groups.end_date') || 'End Date'}</label>
-                  <input
-                    type="date"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                    value={createEndDate}
-                    onChange={(e) => setCreateEndDate(e.target.value)}
-                  />
+                  <DateInput value={createEndDate} onChange={setCreateEndDate} />
                 </div>
               </div>
             </div>

@@ -10,6 +10,7 @@ import com.mosque.crm.dto.DocumentFolderCreateDTO;
 import com.mosque.crm.dto.DocumentFolderDTO;
 import com.mosque.crm.dto.DocumentLinkCreateDTO;
 import com.mosque.crm.dto.DocumentLinkDTO;
+import com.mosque.crm.dto.DocumentSearchResponseDTO;
 import com.mosque.crm.dto.DocumentShareCreateDTO;
 import com.mosque.crm.dto.DocumentShareDTO;
 import com.mosque.crm.dto.DocumentVersionDTO;
@@ -34,6 +35,9 @@ import com.mosque.crm.repository.DocumentShareRepository;
 import com.mosque.crm.repository.DocumentVersionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -253,6 +257,29 @@ public class DocumentService {
         Long orgId = TenantContext.getCurrentOrganizationId();
         return documentRepository.findByOrganizationIdAndStatus(orgId, DocumentStatus.TRASHED)
             .stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public DocumentSearchResponseDTO searchDocuments(String query, int page, int size) {
+        Long orgId = TenantContext.getCurrentOrganizationId();
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(1, Math.min(size, 100));
+        String normalizedQuery = query != null && !query.trim().isEmpty() ? query.trim() : null;
+
+        Page<Document> resultPage = documentRepository.searchDocuments(
+                orgId,
+                DocumentStatus.TRASHED,
+                normalizedQuery,
+                PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "updatedAt"))
+        );
+
+        DocumentSearchResponseDTO dto = new DocumentSearchResponseDTO();
+        dto.setItems(resultPage.getContent().stream().map(this::toDTO).collect(Collectors.toList()));
+        dto.setTotalElements(resultPage.getTotalElements());
+        dto.setPage(resultPage.getNumber());
+        dto.setSize(resultPage.getSize());
+        dto.setHasNext(resultPage.hasNext());
+        return dto;
     }
 
     @Transactional

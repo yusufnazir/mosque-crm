@@ -9,6 +9,9 @@ interface DateInputProps {
   value: string; // ISO yyyy-MM-dd
   onChange: (isoDate: string) => void;
   required?: boolean;
+  disabled?: boolean;
+  min?: string;
+  max?: string;
   className?: string;
 }
 
@@ -19,7 +22,7 @@ interface DateInputProps {
  * Includes a calendar button that opens the native date picker as fallback.
  * Stores and emits ISO yyyy-MM-dd values.
  */
-export default function DateInput({ name, value, onChange, required, className = '' }: DateInputProps) {
+export default function DateInput({ name, value, onChange, required, disabled = false, min, max, className = '' }: DateInputProps) {
   const { dateFormat } = useDateFormat();
   const [textValue, setTextValue] = useState('');
   const [error, setError] = useState(false);
@@ -49,7 +52,7 @@ export default function DateInput({ name, value, onChange, required, className =
     }
 
     const parsed = parseDateWithFormat(raw, dateFormat);
-    if (parsed) {
+    if (parsed && isWithinRange(parsed, min, max)) {
       onChange(parsed);
       setError(false);
     } else {
@@ -69,6 +72,7 @@ export default function DateInput({ name, value, onChange, required, className =
   };
 
   const handleCalendarClick = () => {
+    if (disabled) return;
     hiddenDateRef.current?.showPicker?.();
   };
 
@@ -90,14 +94,16 @@ export default function DateInput({ name, value, onChange, required, className =
         onChange={handleTextChange}
         onBlur={handleBlur}
         required={required}
+        disabled={disabled}
         placeholder={dateFormatToPlaceholder(dateFormat)}
-        className={`w-full px-4 py-2.5 pr-10 border rounded-lg focus:ring-2 focus:border-transparent transition ${borderColor} ${className}`}
+        className={`w-full px-4 py-2.5 pr-10 border rounded-lg focus:ring-2 focus:border-transparent transition disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed ${borderColor} ${className}`}
       />
       {/* Calendar icon button */}
       <button
         type="button"
         onClick={handleCalendarClick}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+        disabled={disabled}
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
         tabIndex={-1}
         aria-label="Open calendar"
       >
@@ -111,10 +117,19 @@ export default function DateInput({ name, value, onChange, required, className =
         type="date"
         value={value}
         onChange={handleNativeDateChange}
+        disabled={disabled}
+        min={min}
+        max={max}
         className="sr-only"
         tabIndex={-1}
         aria-hidden="true"
       />
     </div>
   );
+}
+
+function isWithinRange(value: string, min?: string, max?: string): boolean {
+  if (min && value < min) return false;
+  if (max && value > max) return false;
+  return true;
 }

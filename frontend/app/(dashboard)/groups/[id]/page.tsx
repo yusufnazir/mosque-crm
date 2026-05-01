@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Button from '@/components/Button';
+import DateInput from '@/components/DateInput';
 import { groupApi, GroupMemberDTO, GroupDTO, GroupTranslationDTO, GroupRoleDTO, GroupRoleTranslationDTO } from '@/lib/groupApi';
 import MemberSearchModal, { MemberSearchResult } from '@/components/MemberSearchModal';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
@@ -713,21 +714,11 @@ export default function GroupDetailPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{t('groups.start_date') || 'Start Date'}</label>
-                  <input
-                    type="date"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                    value={editStartDate}
-                    onChange={(e) => setEditStartDate(e.target.value)}
-                  />
+                  <DateInput value={editStartDate} onChange={setEditStartDate} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{t('groups.end_date') || 'End Date'}</label>
-                  <input
-                    type="date"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                    value={editEndDate}
-                    onChange={(e) => setEditEndDate(e.target.value)}
-                  />
+                  <DateInput value={editEndDate} onChange={setEditEndDate} />
                 </div>
               </div>
 
@@ -819,21 +810,11 @@ export default function GroupDetailPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{t('groups.start_date') || 'Start Date'}</label>
-                  <input
-                    type="date"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                    value={editMemberStartDate}
-                    onChange={(e) => setEditMemberStartDate(e.target.value)}
-                  />
+                  <DateInput value={editMemberStartDate} onChange={setEditMemberStartDate} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{t('groups.end_date') || 'End Date'}</label>
-                  <input
-                    type="date"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                    value={editMemberEndDate}
-                    onChange={(e) => setEditMemberEndDate(e.target.value)}
-                  />
+                  <DateInput value={editMemberEndDate} onChange={setEditMemberEndDate} />
                 </div>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">

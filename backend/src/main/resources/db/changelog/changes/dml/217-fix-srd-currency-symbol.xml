@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Normalize SRD display symbol to avoid ambiguity with USD -->
+    <changeSet id="0f2ecf5a-8e7f-4f5e-9c96-36f1c8f7f67d" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataCurrency">
+            <param name="id"><![CDATA[60]]></param>
+            <param name="code"><![CDATA[SRD]]></param>
+            <param name="name"><![CDATA[Surinamese Dollar]]></param>
+            <param name="symbol"><![CDATA[SR$]]></param>
+            <param name="decimalPlaces"><![CDATA[2]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

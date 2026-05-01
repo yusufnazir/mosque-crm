@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import Button from '@/components/Button';
+import DateInput from '@/components/DateInput';
 import { memberApi, relationshipApi, personApi } from '@/lib/api';
 import {
   exemptionApi,
@@ -31,6 +32,7 @@ import FamilyTree from '@/components/family-tree';
 import ComprehensiveFamilyTree from '@/components/comprehensive-family-tree';
 import GenealogyTree from '@/components/GenealogyTree';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { formatCurrencyAmount } from '@/lib/currencyDisplay';
 
 // Helper function to capitalize names properly
 const capitalizeName = (name: string | undefined): string => {
@@ -382,16 +384,11 @@ export default function MemberDetailPage() {
 
   // Format currency helper
   const formatCurrency = (amount: number, currencyCode?: string, currencySymbol?: string) => {
-    if (currencyCode) {
-      try {
-        return new Intl.NumberFormat(locale === 'nl' ? 'nl-NL' : 'en-US', {
-          style: 'currency',
-          currency: currencyCode,
-        }).format(amount);
-      } catch { /* fall through */ }
-    }
-    if (currencySymbol) return `${currencySymbol} ${amount.toFixed(2)}`;
-    return amount.toFixed(2);
+    return formatCurrencyAmount(amount, {
+      currencyCode,
+      currencySymbol,
+      locale: locale === 'nl' ? 'nl-NL' : 'en-US',
+    });
   };
 
   useEffect(() => {
@@ -736,12 +733,7 @@ export default function MemberDetailPage() {
                     </label>
                     {editingDeceasedDate ? (
                       <div className="flex items-center gap-2">
-                        <input
-                          type="date"
-                          value={tempDeceasedDate}
-                          onChange={(e) => setTempDeceasedDate(e.target.value)}
-                          className="border border-gray-300 rounded px-2 py-1 text-sm"
-                        />
+                        <DateInput value={tempDeceasedDate} onChange={setTempDeceasedDate} className="text-sm" />
                         <button onClick={saveEditedDeceasedDate} className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
                           {t('common.save')}
                         </button>
@@ -1319,12 +1311,7 @@ export default function MemberDetailPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('member_detail.date_of_death')}
               </label>
-              <input
-                type="date"
-                value={deceasedDate}
-                onChange={(e) => setDeceasedDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
-              />
+              <DateInput value={deceasedDate} onChange={setDeceasedDate} className="text-sm" />
             </div>
             
             <div className="flex justify-end space-x-3">
@@ -1757,13 +1744,7 @@ function MemberPaymentModal({ payment, personId, personName, types, organization
 
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.payment_date')}</label>
-              <input
-                type="date"
-                value={paymentDate}
-                onChange={(e) => setPaymentDate(e.target.value)}
-                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
-                required
-              />
+              <DateInput value={paymentDate} onChange={setPaymentDate} className="text-sm" required />
             </div>
 
             <div>
@@ -1925,24 +1906,13 @@ function MemberExemptionModal({ exemption, personId, personName, types, onSave, 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.start_date')}</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
-                  required
-                />
+                <DateInput value={startDate} onChange={setStartDate} className="text-sm" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">
                   {t('contributions.end_date')} <span className="text-xs text-stone-400">({t('contributions.optional')})</span>
                 </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
-                />
+                <DateInput value={endDate} onChange={setEndDate} className="text-sm" />
               </div>
             </div>
 

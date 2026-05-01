@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import Button from '@/components/Button';
@@ -31,10 +31,18 @@ export default function RecordAttachmentsPanel({ entityType, entityId, className
   const [availableDocs, setAvailableDocs] = useState<DocumentDTO[]>([]);
   const [pickerLoading, setPickerLoading] = useState(false);
   const [linking, setLinking] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [unlinkTarget, setUnlinkTarget] = useState<DocumentLinkDTO | null>(null);
   const [note, setNote] = useState('');
+  const [docQuery, setDocQuery] = useState('');
   const [selectedDocId, setSelectedDocId] = useState<number | undefined>(undefined);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadTitle, setUploadTitle] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [docPage, setDocPage] = useState(0);
+  const [docTotal, setDocTotal] = useState(0);
+  const [docHasNext, setDocHasNext] = useState(false);
+  const docPageSize = 25;
 
   const loadLinks = useCallback(async () => {
     if (!entityId) return;
@@ -46,18 +54,50 @@ export default function RecordAttachmentsPanel({ entityType, entityId, className
     }
   }, [entityType, entityId]);
 
+  const fetchDocuments = useCallback(async (query: string, page: number) => {
+    setPickerLoading(true);
+    try {
+      const response = await DocumentApi.search({ q: query || undefined, page, size: docPageSize });
+      setAvailableDocs(response.items || []);
+      setDocTotal(response.totalElements || 0);
+      setDocHasNext(!!response.hasNext);
+    } finally {
+      setPickerLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadLinks();
   }, [loadLinks]);
 
-  const openPicker = async () => {
-    setShowPickerModal(true);
-    setPickerLoading(true);
-    try {
-      setAvailableDocs(await DocumentApi.list());
-    } finally {
-      setPickerLoading(false);
+  useEffect(() => {
+    if (!showPickerModal) {
+      return;
     }
+
+    const timeoutId = setTimeout(() => {
+      setDocPage(0);
+      fetchDocuments(docQuery.trim(), 0);
+    }, 250);
+
+    return () => clearTimeout(timeoutId);
+  }, [docQuery, showPickerModal, fetchDocuments]);
+
+  const openPicker = () => {
+    setShowPickerModal(true);
+    setDocQuery('');
+    setDocPage(0);
+    setSelectedDocId(undefined);
+  };
+
+  const closePicker = () => {
+    setShowPickerModal(false);
+    setDocQuery('');
+    setDocPage(0);
+    setSelectedDocId(undefined);
+    setNote('');
+    setUploadFile(null);
+    setUploadTitle('');
   };
 
   const handleLink = async () => {
@@ -66,14 +106,36 @@ export default function RecordAttachmentsPanel({ entityType, entityId, className
     try {
       await RecordAttachmentApi.link({ documentId: selectedDocId, entityType, entityId, note: note || undefined });
       setToast({ message: t('documents.attachSuccess'), type: 'success' });
-      setShowPickerModal(false);
-      setSelectedDocId(undefined);
-      setNote('');
+      closePicker();
       loadLinks();
     } catch {
       setToast({ message: t('documents.attachError'), type: 'error' });
     } finally {
       setLinking(false);
+    }
+  };
+
+  const handleUploadAndAttach = async () => {
+    if (!uploadFile) return;
+    setUploading(true);
+    try {
+      const uploaded = await DocumentApi.uploadFile(uploadFile, {
+        title: uploadTitle || uploadFile.name,
+      });
+      await RecordAttachmentApi.link({
+        documentId: uploaded.id,
+        entityType,
+        entityId,
+        note: note || undefined,
+      });
+
+      setToast({ message: t('documents.attachSuccess'), type: 'success' });
+      closePicker();
+      loadLinks();
+    } catch {
+      setToast({ message: t('documents.uploadError'), type: 'error' });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -95,6 +157,12 @@ export default function RecordAttachmentsPanel({ entityType, entityId, className
     } catch {
       setToast({ message: t('documents.downloadError'), type: 'error' });
     }
+  };
+
+  const goToPage = async (page: number) => {
+    const nextPage = Math.max(0, page);
+    setDocPage(nextPage);
+    await fetchDocuments(docQuery.trim(), nextPage);
   };
 
   return (
@@ -157,18 +225,30 @@ export default function RecordAttachmentsPanel({ entityType, entityId, className
         </ul>
       )}
 
-      {/* Document Picker Modal */}
       {showPickerModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg">
             <h2 className="text-lg font-semibold text-stone-800 mb-4">{t('documents.attachDocument')}</h2>
 
-            {pickerLoading ? (
-              <p className="text-stone-400">{t('common.loading')}</p>
-            ) : (
-              <div className="space-y-4">
+            <div className="relative min-h-[360px]">
+              <div
+                className={`absolute inset-0 z-10 flex items-start justify-start bg-white/70 pt-1 transition-opacity duration-150 ${
+                  pickerLoading ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
+              >
+                <p className="text-stone-400">{t('common.loading')}</p>
+              </div>
+
+              <div className={`space-y-4 ${pickerLoading ? 'pointer-events-none' : ''}`}>
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-1">{t('documents.selectDocument')}</label>
+                  <input
+                    type="text"
+                    value={docQuery}
+                    onChange={e => setDocQuery(e.target.value)}
+                    placeholder="Search documents by title or filename"
+                    className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm mb-2"
+                  />
                   <select
                     value={selectedDocId ?? ''}
                     onChange={e => setSelectedDocId(e.target.value ? Number(e.target.value) : undefined)}
@@ -179,7 +259,31 @@ export default function RecordAttachmentsPanel({ entityType, entityId, className
                       <option key={doc.id} value={doc.id}>{doc.title}</option>
                     ))}
                   </select>
+                  <p className="text-xs text-stone-500 mt-1">
+                    {docTotal === 0
+                      ? 'No matching documents.'
+                      : `${docTotal} match(es), page ${docPage + 1}.`}
+                  </p>
+                  <div className="mt-2 flex items-center justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => goToPage(docPage - 1)}
+                      disabled={pickerLoading || docPage === 0}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => goToPage(docPage + 1)}
+                      disabled={pickerLoading || !docHasNext}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-1">{t('documents.noteOptional')}</label>
                   <input
@@ -190,20 +294,50 @@ export default function RecordAttachmentsPanel({ entityType, entityId, className
                     placeholder={t('documents.notePlaceholder')}
                   />
                 </div>
+
+                <div className="border-t border-stone-100 pt-4 space-y-3">
+                  <h3 className="text-sm font-semibold text-stone-700">{t('documents.uploadFile')}</h3>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">{t('documents.file')}</label>
+                    <input
+                      type="file"
+                      onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
+                      className="block w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-3 file:rounded file:border-0 file:bg-emerald-50 file:text-emerald-700"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">{t('documents.title')}</label>
+                    <input
+                      type="text"
+                      value={uploadTitle}
+                      onChange={e => setUploadTitle(e.target.value)}
+                      placeholder={uploadFile?.name || t('documents.titlePlaceholder')}
+                      className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
 
             <div className="flex gap-3 justify-end mt-6">
-              <Button variant="ghost" size="sm" onClick={() => setShowPickerModal(false)}>
+              <Button variant="ghost" size="sm" onClick={closePicker}>
                 {t('common.cancel')}
               </Button>
               <Button
                 variant="primary"
                 size="sm"
                 onClick={handleLink}
-                disabled={!selectedDocId || linking}
+                disabled={!selectedDocId || linking || uploading}
               >
                 {linking ? t('common.saving') : t('documents.attach')}
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleUploadAndAttach}
+                disabled={!uploadFile || uploading || linking}
+              >
+                {uploading ? t('common.uploading') : `${t('documents.upload')} & ${t('documents.attach')}`}
               </Button>
             </div>
           </div>

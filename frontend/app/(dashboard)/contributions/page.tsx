@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import Card from '@/components/Card';
+import DateInput from '@/components/DateInput';
 import {
   ContributionType,
   ContributionTypeCreate,
@@ -2114,13 +2115,7 @@ function ObligationModal({ obligation, types, organizationCurrencies, onSave, on
 
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.start_date')}</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
-                required
-              />
+              <DateInput value={startDate} onChange={setStartDate} className="text-sm" required />
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
@@ -2799,13 +2794,7 @@ function PaymentModal({ payment, types, organizationCurrencies, onSave, onClose,
 
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.payment_date')}</label>
-              <input
-                type="date"
-                value={paymentDate}
-                onChange={(e) => setPaymentDate(e.target.value)}
-                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
-                required
-              />
+              <DateInput value={paymentDate} onChange={setPaymentDate} className="text-sm" required />
             </div>
 
             <div>
@@ -3010,24 +2999,13 @@ function ExemptionModal({ exemption, types, onSave, onClose, personSearch, perso
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.start_date')}</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
-                  required
-                />
+                <DateInput value={startDate} onChange={setStartDate} className="text-sm" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">
                   {t('contributions.end_date')} <span className="text-xs text-stone-400">({t('contributions.optional')})</span>
                 </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
-                />
+                <DateInput value={endDate} onChange={setEndDate} className="text-sm" />
               </div>
             </div>
 
@@ -3094,19 +3072,19 @@ function AssignmentsTab({ assignments, loading, canManage, onAdd, onEdit, onDele
           <div className="text-center py-8 text-stone-400">{t('contributions.no_assignments')}</div>
         ) : (
           <>
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-stone-200 text-left text-stone-500">
-                  <th className="pb-3 pr-4">{t('contributions.person')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.type')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.start_date')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.end_date')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.notes')}</th>
-                  <th className="pb-3 pr-4">{t('contributions.status')}</th>
-                  {canManage && <th className="pb-3">{t('common.actions')}</th>}
-                </tr>
-              </thead>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm text-left text-stone-700">
+                <thead>
+                  <tr className="border-b border-stone-200">
+                    <th className="pb-3 pr-4">{t('contributions.person')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.type')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.start_date')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.end_date')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.notes')}</th>
+                    <th className="pb-3 pr-4">{t('contributions.status')}</th>
+                    {canManage && <th className="pb-3">{t('common.actions')}</th>}
+                  </tr>
+                </thead>
               <tbody>
                 {assignments.map((a) => (
                   <tr key={a.id} className="border-b border-stone-100 hover:bg-stone-50">
@@ -3319,24 +3297,13 @@ function AssignmentModal({ assignment, types, onSave, onClose, personSearch, per
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">{t('contributions.start_date')}</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
-                  required
-                />
+                <DateInput value={startDate} onChange={setStartDate} className="text-sm" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">
                   {t('contributions.end_date')} <span className="text-xs text-stone-400">({t('contributions.optional')})</span>
                 </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500"
-                />
+                <DateInput value={endDate} onChange={setEndDate} className="text-sm" />
               </div>
             </div>
 

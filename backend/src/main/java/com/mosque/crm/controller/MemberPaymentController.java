@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mosque.crm.dto.MemberPaymentCreateDTO;
 import com.mosque.crm.dto.MemberPaymentDTO;
+import com.mosque.crm.dto.PaymentMonthlySummaryDTO;
 import com.mosque.crm.service.MemberPaymentService;
 import com.mosque.crm.service.AuthorizationService;
 import com.mosque.crm.subscription.FeatureKeys;
@@ -280,5 +281,16 @@ public class MemberPaymentController {
     public ResponseEntity<List<Integer>> getPaymentYears() {
         List<Integer> years = paymentService.getPaymentYears();
         return ResponseEntity.ok(years);
+    }
+
+    /**
+     * Get income totals grouped by calendar month and currency for a given year.
+     * GET /contributions/payments/monthly-summary?year=2026
+     */
+    @GetMapping("/monthly-summary")
+    public ResponseEntity<List<PaymentMonthlySummaryDTO>> getIncomeMonthlySummary(
+            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().getYear()}") int year) {
+        List<PaymentMonthlySummaryDTO> summary = paymentService.getMonthlySummary(year);
+        return ResponseEntity.ok(summary);
     }
 }

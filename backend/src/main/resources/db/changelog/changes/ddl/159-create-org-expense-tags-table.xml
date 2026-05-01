@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000015-0159-0000-0000-000000000001" author="mosque-crm">
+        <createTable tableName="org_expense_tags">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="BIGINT"/>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="org_expense_tags"
+                             columnNames="organization_id, name"
+                             constraintName="uq_expense_tags_org_name"/>
+
+        <createIndex tableName="org_expense_tags" indexName="idx_expense_tags_org_id">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

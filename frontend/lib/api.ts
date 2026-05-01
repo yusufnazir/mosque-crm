@@ -391,11 +391,19 @@ export const memberApi = {
 };
 
 // Payment Statistics API (for dashboard charts)
+export interface PaymentMonthlySummaryDTO {
+  month: string;        // "yyyy-MM", e.g. "2026-01"
+  currencyCode: string; // e.g. "SRD"
+  total: number;
+}
+
 export const paymentStatsApi = {
   getIncomeByType: (year: number): Promise<Record<string, number>> =>
     ApiClient.get(`/contributions/payments/stats/income-by-type?year=${year}`),
   getPaymentYears: (): Promise<number[]> =>
     ApiClient.get('/contributions/payments/stats/years'),
+  getMonthlySummary: (year: number): Promise<PaymentMonthlySummaryDTO[]> =>
+    ApiClient.get(`/contributions/payments/monthly-summary?year=${year}`),
 };
 
 // Member Portal API

@@ -668,5 +668,23 @@
                 </customChange>
         </changeSet>
 
+        <!-- ══════════════ EXPENSES ══════════════ -->
+        <changeSet id="c3d4e5f6-0077-4exp-cccc-expenseview077" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[77]]></param>
+                        <param name="code"><![CDATA[expense.view]]></param>
+                        <param name="description"><![CDATA[View the expense list and expense details]]></param>
+                        <param name="category"><![CDATA[expense]]></param>
+                </customChange>
+        </changeSet>
+        <changeSet id="d4e5f6a7-0078-4exp-dddd-expensemana078" author="mosque-crm">
+                <customChange class="com.mosque.crm.liquibase.DataPermission">
+                        <param name="id"><![CDATA[78]]></param>
+                        <param name="code"><![CDATA[expense.manage]]></param>
+                        <param name="description"><![CDATA[Create, edit, delete, and restore expense records]]></param>
+                        <param name="category"><![CDATA[expense]]></param>
+                </customChange>
+        </changeSet>
+
 </databaseChangeLog>
 

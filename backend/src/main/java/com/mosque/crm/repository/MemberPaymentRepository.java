@@ -10,10 +10,25 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.mosque.crm.dto.PaymentMonthlySummaryDTO;
 import com.mosque.crm.entity.MemberPayment;
 
 @Repository
 public interface MemberPaymentRepository extends JpaRepository<MemberPayment, Long> {
+
+    /**
+     * Returns income totals grouped by calendar month and currency for the given year.
+     * Uses paymentDate. Multi-tenancy is enforced via the organizationFilter.
+     */
+    @Query("SELECT new com.mosque.crm.dto.PaymentMonthlySummaryDTO(" +
+           "  FUNCTION('DATE_FORMAT', p.paymentDate, '%Y-%m')," +
+           "  p.currency.code," +
+           "  SUM(p.amount)" +
+           ") FROM MemberPayment p " +
+           "WHERE YEAR(p.paymentDate) = :year " +
+           "GROUP BY FUNCTION('DATE_FORMAT', p.paymentDate, '%Y-%m'), p.currency.code " +
+           "ORDER BY FUNCTION('DATE_FORMAT', p.paymentDate, '%Y-%m')")
+    List<PaymentMonthlySummaryDTO> findMonthlySummaryByYear(@Param("year") int year);
 
     List<MemberPayment> findByPersonId(Long personId);
 

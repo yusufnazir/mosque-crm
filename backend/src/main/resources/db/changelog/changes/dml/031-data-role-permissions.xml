@@ -564,4 +564,18 @@
 		</customChange>
 	</changeSet>
 
+	<!-- ADMIN → expense.view (77) -->
+	<changeSet id="e5f6a7b8-0077-4exp-eeee-expadminvw077" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[77]]></param>
+		</customChange>
+	</changeSet>
+
+	<!-- ADMIN → expense.manage (78) -->
+	<changeSet id="f6a7b8c9-0078-4exp-ffff-expadminmg078" author="mosque-crm">
+		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
+			<param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[78]]></param>
+		</customChange>
+	</changeSet>
+
 </databaseChangeLog>
