@@ -1,0 +1,186 @@
+{
+  "Metadata": {
+    "title": "MemberFlow — Modern ledenbeheer voor organisaties",
+    "description": "MemberFlow helpt gemeenschapsorganisaties leden, gezinnen, bijdragen, evenementen en meer te beheren — op één plek.",
+    "ogTitle": "MemberFlow — Modern ledenbeheer",
+    "ogDescription": "Alles-in-één platform voor gemeenschapsorganisaties.",
+    "keyword0": "ledenbeheer",
+    "keyword1": "gemeenschaps-CRM",
+    "keyword2": "organisatiesoftware",
+    "keyword3": "ledenplatform",
+    "keyword4": "gemeenschapsbeheer"
+  },
+  "Navbar": {
+    "features": "Functies",
+    "pricing": "Prijzen",
+    "outcomes": "Resultaten",
+    "contact": "Contact",
+    "signIn": "Inloggen",
+    "getStarted": "Gratis starten",
+    "toggleMenu": "Menu openen of sluiten",
+    "language": "Taal"
+  },
+  "Hero": {
+    "badge": "Vertrouwd door organisaties wereldwijd",
+    "titleLine1": "Beheer je gemeenschap",
+    "titleLine2": "met overzicht en gemak",
+    "subtitle": "MemberFlow is het alles-in-één platform voor gemeenschapsorganisaties om leden, gezinnen, bijdragen, evenementen en meer te beheren.",
+    "ctaTrial": "Start gratis proefperiode",
+    "ctaFeatures": "Zo werkt het",
+    "socialProof": "Organisaties groeien al met MemberFlow",
+    "statTotalMembers": "Totaal leden",
+    "statActiveFamilies": "Actieve gezinnen",
+    "statThisMonth": "Deze maand",
+    "statEvents": "Evenementen",
+    "chartTitle": "Maandelijkse bijdragen",
+    "recentMembers": "Recente leden"
+  },
+  "Features": {
+    "eyebrow": "Functies",
+    "title": "Alles wat je gemeenschap nodig heeft",
+    "subtitle": "Van dagelijks ledenbeheer tot jaarlijkse evenementen: MemberFlow ondersteunt de volledige cyclus van gemeenschapsadministratie.",
+    "memberManagement": {
+      "title": "Ledenbeheer",
+      "description": "Een volledig profiel per lid — persoonsgegevens, contactinformatie, lidmaatschapsstatus, identiteitsdocumenten en meer."
+    },
+    "familyGenealogy": {
+      "title": "Gezin & genealogie",
+      "description": "Bre familierelaties uit met interactieve stambomen. Zie meerdere generaties in één oogopslag."
+    },
+    "contributionsFinance": {
+      "title": "Bijdragen & financiën",
+      "description": "Volg donaties, lidgelden en financiële groepen. Genereer betalingsbewijzen en exporteer rapporten direct."
+    },
+    "eventManagement": {
+      "title": "Evenementenbeheer",
+      "description": "Maak evenementen voor fondsenwerving, bijeenkomsten en meer. Volg aanmeldingen, categorieën en verdeling van middelen."
+    },
+    "multiTenancy": {
+      "title": "Multi-tenant",
+      "description": "Eén platform, veel organisaties. Elke gemeenschap krijgt een eigen afgeschermde omgeving met merk en instellingen."
+    },
+    "rolesPermissions": {
+      "title": "Rollen & rechten",
+      "description": "Fijnmazige toegangscontrole met aangepaste rollen. Wijs beheerder, penningmeester, manager of lid toe met rechten per module."
+    },
+    "multilingual": {
+      "title": "Meertalig",
+      "description": "Ingebouwde ondersteuning voor Engels en Nederlands, met een uitbreidbaar taalsysteem. Dien je gemeenschap in de voorkeurstaal."
+    },
+    "reportsExport": {
+      "title": "Rapporten & export",
+      "description": "Genereer Excel- en PDF-rapporten voor leden, bijdragen, verdelingen en meer. Download of deel met één klik."
+    }
+  },
+  "Pricing": {
+    "eyebrow": "Prijzen",
+    "title": "Eenvoudige, transparante prijzen",
+    "subtitle": "Start gratis en schaal mee met je gemeenschap. Geen verborgen kosten.",
+    "unavailable": "Prijsinformatie is momenteel niet beschikbaar.",
+    "mostPopular": "Meest gekozen",
+    "featuresColumn": "Functies",
+    "free": "Gratis",
+    "custom": "Op maat",
+    "perMonth": "/maand",
+    "unlimited": "Onbeperkt",
+    "ctaFree": "Gratis starten",
+    "ctaStarter": "Ga groeien",
+    "ctaGrowth": "Upgrade naar Growth",
+    "ctaPro": "Ga Pro",
+    "ctaDefault": "Aan de slag"
+  },
+  "Testimonials": {
+    "eyebrow": "Resultaten",
+    "title": "Wat klanten met MemberFlow kunnen",
+    "subtitle": "Praktische manieren waarop organisaties MemberFlow gebruiken om tijd te besparen, georganiseerd te blijven en op te schalen.",
+    "card1": {
+      "tag": "Ledenbeheer",
+      "title": "Centraliseer ledengegevens",
+      "description": "Houd profielen, huishoudens, rollen en notities op één doorzoekbare plek, zodat teams minder tijd aan administratie besteden.",
+      "highlight": "Eén bron van waarheid voor ledengegevens"
+    },
+    "card2": {
+      "tag": "Financiën",
+      "title": "Volg bijdragen en financiën",
+      "description": "Registreer donaties, verstuur bewijzen en volg trends met duidelijke dashboards voor zeker plannen.",
+      "highlight": "Duidelijke rapportage voor elke bijdrage"
+    },
+    "card3": {
+      "tag": "Operatie",
+      "title": "Organiseer evenementen met minder stress",
+      "description": "Plan evenementen, beheer aanmeldingen en volg verdelingsworkflows in realtime — van begin tot eind overzichtelijk.",
+      "highlight": "Coördineer evenementen met volledig zicht"
+    },
+    "card4": {
+      "tag": "Beveiliging",
+      "title": "Beheer toegang met rechten",
+      "description": "Wijs rollen toe, bescherm gevoelige data en geef elk teamlid precies de toegang die nodig is — over locaties en afdelingen heen.",
+      "highlight": "Veilige toegang voor elke rol"
+    }
+  },
+  "CTA": {
+    "titleLine1": "Klaar om je",
+    "titleLine2": "gemeenschapsbeheer te moderniseren?",
+    "subtitle": "Sluit je aan bij honderden organisaties die MemberFlow al gebruiken. Start binnen minuten — geen creditcard nodig.",
+    "button": "Start gratis proefperiode",
+    "gdpr": "AVG-conform",
+    "ssl": "SSL-versleuteld",
+    "cloud": "Cloud-gehost",
+    "uptime": "99,9% uptime"
+  },
+  "Contact": {
+    "successTitle": "Bericht ontvangen!",
+    "successBody": "Bedankt voor je bericht. Ons team neemt binnen 1 werkdag contact met je op.",
+    "sendAnother": "Nog een bericht sturen",
+    "errorGeneric": "Er ging iets mis. Probeer het opnieuw of mail ons rechtstreeks.",
+    "errorNetwork": "Netwerkfout. Controleer je verbinding en probeer het opnieuw.",
+    "eyebrow": "Neem contact op",
+    "title": "Contact",
+    "intro": "Vraag, demo nodig of enterprise-prijzen bespreken? We horen graag van je.",
+    "infoTitle": "Contactgegevens",
+    "emailLabel": "E-mail",
+    "phoneLabel": "Telefoon",
+    "fullName": "Volledige naam",
+    "workEmail": "Zakelijke e-mail",
+    "company": "Bedrijf",
+    "subject": "Onderwerp",
+    "subjectPlaceholder": "Kies een onderwerp...",
+    "message": "Bericht",
+    "messagePlaceholder": "Vertel ons hoe we kunnen helpen...",
+    "sending": "Verzenden...",
+    "sendMessage": "Bericht versturen",
+    "subjects": {
+      "demo": "Demo aanvragen",
+      "pricing": "Enterprise-prijzen",
+      "support": "Technische ondersteuning",
+      "other": "Overig"
+    },
+    "placeholders": {
+      "name": "Jan de Vries",
+      "email": "jan@bedrijf.nl",
+      "company": "Voorbeeld BV"
+    }
+  },
+  "Footer": {
+    "tagline": "Modern ledenbeheer voor gemeenschapsorganisaties.",
+    "product": "Product",
+    "resources": "Bronnen",
+    "company": "Bedrijf",
+    "features": "Functies",
+    "pricing": "Prijzen",
+    "testimonials": "Ervaringen",
+    "roadmap": "Roadmap",
+    "documentation": "Documentatie",
+    "apiReference": "API-referentie",
+    "helpCenter": "Helpcentrum",
+    "blog": "Blog",
+    "about": "Over ons",
+    "contact": "Contact",
+    "privacy": "Privacybeleid",
+    "terms": "Algemene voorwaarden",
+    "copyright": "© {year} MemberFlow. Alle rechten voorbehouden.",
+    "github": "GitHub",
+    "twitter": "Twitter",
+    "linkedin": "LinkedIn"
+  }
+}

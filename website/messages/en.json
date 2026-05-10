@@ -1,0 +1,186 @@
+{
+  "Metadata": {
+    "title": "MemberFlow — Modern Membership Management for Organizations",
+    "description": "MemberFlow helps community organizations manage members, families, contributions, events, and more — all in one place.",
+    "ogTitle": "MemberFlow — Modern Membership Management",
+    "ogDescription": "All-in-one platform for community organizations.",
+    "keyword0": "member management",
+    "keyword1": "community CRM",
+    "keyword2": "organization software",
+    "keyword3": "membership platform",
+    "keyword4": "community management"
+  },
+  "Navbar": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "outcomes": "Outcomes",
+    "contact": "Contact",
+    "signIn": "Sign In",
+    "getStarted": "Get Started Free",
+    "toggleMenu": "Toggle menu",
+    "language": "Language"
+  },
+  "Hero": {
+    "badge": "Trusted by organizations worldwide",
+    "titleLine1": "Manage your community",
+    "titleLine2": "with clarity & ease",
+    "subtitle": "MemberFlow is the all-in-one platform for community organizations to manage members, families, contributions, events, and more.",
+    "ctaTrial": "Start Free Trial",
+    "ctaFeatures": "See How It Works",
+    "socialProof": "Organizations are already growing with MemberFlow",
+    "statTotalMembers": "Total Members",
+    "statActiveFamilies": "Active Families",
+    "statThisMonth": "This Month",
+    "statEvents": "Events",
+    "chartTitle": "Monthly Contributions",
+    "recentMembers": "Recent Members"
+  },
+  "Features": {
+    "eyebrow": "Features",
+    "title": "Everything your community needs",
+    "subtitle": "From daily member management to annual events, MemberFlow covers the full lifecycle of community administration.",
+    "memberManagement": {
+      "title": "Member Management",
+      "description": "Keep a complete profile for every member — personal details, contact info, membership status, ID documents, and more."
+    },
+    "familyGenealogy": {
+      "title": "Family & Genealogy",
+      "description": "Map family relationships with interactive family trees. Visualize multi-generational connections at a glance."
+    },
+    "contributionsFinance": {
+      "title": "Contributions & Finance",
+      "description": "Track donations, membership fees, and financial groups. Generate payment receipts and export reports instantly."
+    },
+    "eventManagement": {
+      "title": "Event Management",
+      "description": "Create events for fundraisers, community gatherings, and more. Track registrations, categories, and resource distribution."
+    },
+    "multiTenancy": {
+      "title": "Multi-Tenancy",
+      "description": "One platform, many organizations. Each community gets its own isolated space with custom branding and settings."
+    },
+    "rolesPermissions": {
+      "title": "Roles & Permissions",
+      "description": "Granular access control with custom roles. Assign Admin, Treasurer, Manager, or Member roles with specific module-level permissions."
+    },
+    "multilingual": {
+      "title": "Multilingual",
+      "description": "Built-in support for English and Dutch, with an extensible language system. Serve your community in their preferred language."
+    },
+    "reportsExport": {
+      "title": "Reports & Export",
+      "description": "Generate Excel and PDF reports for members, contributions, distributions, and more. Download or share in one click."
+    }
+  },
+  "Pricing": {
+    "eyebrow": "Pricing",
+    "title": "Simple, transparent pricing",
+    "subtitle": "Start free and scale as your community grows. No hidden fees.",
+    "unavailable": "Pricing information is currently unavailable.",
+    "mostPopular": "Most Popular",
+    "featuresColumn": "Features",
+    "free": "Free",
+    "custom": "Custom",
+    "perMonth": "/month",
+    "unlimited": "Unlimited",
+    "ctaFree": "Get Started Free",
+    "ctaStarter": "Start Growing",
+    "ctaGrowth": "Upgrade to Growth",
+    "ctaPro": "Go Pro",
+    "ctaDefault": "Get Started"
+  },
+  "Testimonials": {
+    "eyebrow": "Outcomes",
+    "title": "What customers can do with MemberFlow",
+    "subtitle": "Practical ways organizations use MemberFlow to save time, stay organized, and scale operations.",
+    "card1": {
+      "tag": "Member Management",
+      "title": "Centralize member records",
+      "description": "Keep profiles, households, roles, and notes in one searchable place so teams spend less time on admin and more time serving people.",
+      "highlight": "One source of truth for member data"
+    },
+    "card2": {
+      "tag": "Finance",
+      "title": "Track contributions and finances",
+      "description": "Record donations, issue receipts, and monitor trends with clear dashboards that help leadership plan confidently.",
+      "highlight": "Clear reporting for every contribution"
+    },
+    "card3": {
+      "tag": "Operations",
+      "title": "Run events with less stress",
+      "description": "Plan events, manage registrations, and follow distribution workflows in real time so execution stays organized from start to finish.",
+      "highlight": "Coordinate events with full visibility"
+    },
+    "card4": {
+      "tag": "Security",
+      "title": "Control access with permissions",
+      "description": "Assign roles, protect sensitive data, and give each team member the exact access they need across locations and departments.",
+      "highlight": "Secure access for every role"
+    }
+  },
+  "CTA": {
+    "titleLine1": "Ready to modernize your",
+    "titleLine2": "community management?",
+    "subtitle": "Join hundreds of organizations already using MemberFlow. Get started in minutes — no credit card required.",
+    "button": "Start Free Trial",
+    "gdpr": "GDPR Compliant",
+    "ssl": "SSL Encrypted",
+    "cloud": "Cloud Hosted",
+    "uptime": "99.9% Uptime"
+  },
+  "Contact": {
+    "successTitle": "Message received!",
+    "successBody": "Thank you for reaching out. Our team will get back to you within 1 business day.",
+    "sendAnother": "Send another message",
+    "errorGeneric": "Something went wrong. Please try again or email us directly.",
+    "errorNetwork": "Network error. Please check your connection and try again.",
+    "eyebrow": "Get in Touch",
+    "title": "Contact Us",
+    "intro": "Have a question, need a demo, or want to discuss Enterprise pricing? We'd love to hear from you.",
+    "infoTitle": "Contact Information",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "fullName": "Full Name",
+    "workEmail": "Work Email",
+    "company": "Company",
+    "subject": "Subject",
+    "subjectPlaceholder": "Select a topic...",
+    "message": "Message",
+    "messagePlaceholder": "Tell us how we can help...",
+    "sending": "Sending...",
+    "sendMessage": "Send Message",
+    "subjects": {
+      "demo": "Request a demo",
+      "pricing": "Enterprise pricing",
+      "support": "Technical support",
+      "other": "Other"
+    },
+    "placeholders": {
+      "name": "Jane Smith",
+      "email": "jane@company.com",
+      "company": "Acme Logistics"
+    }
+  },
+  "Footer": {
+    "tagline": "Modern membership management for community organizations.",
+    "product": "Product",
+    "resources": "Resources",
+    "company": "Company",
+    "features": "Features",
+    "pricing": "Pricing",
+    "testimonials": "Testimonials",
+    "roadmap": "Roadmap",
+    "documentation": "Documentation",
+    "apiReference": "API Reference",
+    "helpCenter": "Help Center",
+    "blog": "Blog",
+    "about": "About",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© {year} MemberFlow. All rights reserved.",
+    "github": "GitHub",
+    "twitter": "Twitter",
+    "linkedin": "LinkedIn"
+  }
+}
