@@ -2,6 +2,9 @@
   "name": "memberflow-website",
   "version": "1.0.0",
   "private": true,
+  "overrides": {
+    "@swc/helpers": "0.5.21"
+  },
   "scripts": {
     "dev": "next dev --port 3006",
     "build": "next build",
