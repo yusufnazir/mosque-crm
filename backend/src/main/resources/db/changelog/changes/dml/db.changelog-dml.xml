@@ -54,5 +54,6 @@
 
     <!-- Backfill expense permissions for ADMIN templates and tenant ADMIN roles -->
     <include file="db/changelog/changes/dml/218-backfill-expense-permissions-admin-roles.xml"/>
+    <include file="db/changelog/changes/dml/219-normalize-person-name-separators.xml"/>
 
 </databaseChangeLog>

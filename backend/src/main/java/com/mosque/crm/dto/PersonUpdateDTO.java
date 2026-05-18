@@ -19,6 +19,8 @@ public class PersonUpdateDTO {
     private String postalCode;
     private PersonStatus status;
     private String idNumber;
+    private String familyNumber;
+    private String civilState;
 
     public PersonUpdateDTO() {
     }
@@ -133,5 +135,21 @@ public class PersonUpdateDTO {
 
     public void setIdNumber(String idNumber) {
         this.idNumber = idNumber;
+    }
+
+    public String getFamilyNumber() {
+        return familyNumber;
+    }
+
+    public void setFamilyNumber(String familyNumber) {
+        this.familyNumber = familyNumber;
+    }
+
+    public String getCivilState() {
+        return civilState;
+    }
+
+    public void setCivilState(String civilState) {
+        this.civilState = civilState;
     }
 }

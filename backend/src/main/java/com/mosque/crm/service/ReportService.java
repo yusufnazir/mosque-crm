@@ -1,6 +1,8 @@
 package com.mosque.crm.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -17,13 +19,21 @@ import org.springframework.transaction.annotation.Transactional;
 import com.mosque.crm.dto.report.ContributionTotalReportDTO;
 import com.mosque.crm.dto.report.ContributionTotalReportDTO.ContributionTotalRow;
 import com.mosque.crm.dto.report.ContributionTotalReportDTO.CurrencyTotal;
+import com.mosque.crm.dto.report.MemberDirectoryReportDTO;
+import com.mosque.crm.dto.report.MemberDirectoryReportDTO.MemberDirectoryFamilyGroup;
+import com.mosque.crm.dto.report.MemberDirectoryReportDTO.MemberDirectoryRow;
+import com.mosque.crm.service.MemberDirectoryFamilyResolver.FamilyAssignment;
 import com.mosque.crm.dto.report.PaymentSummaryReportDTO;
 import com.mosque.crm.dto.report.PaymentSummaryReportDTO.ContributionTypeColumn;
 import com.mosque.crm.dto.report.PaymentSummaryReportDTO.CurrencyAmount;
 import com.mosque.crm.dto.report.PaymentSummaryReportDTO.PersonPaymentRow;
 import com.mosque.crm.entity.MemberPayment;
+import com.mosque.crm.entity.Person;
+import com.mosque.crm.enums.PersonStatus;
 import com.mosque.crm.repository.ContributionTypeRepository;
 import com.mosque.crm.repository.MemberPaymentRepository;
+import com.mosque.crm.repository.PersonRepository;
+import com.mosque.crm.util.PersonNameUtil;
 
 @Service
 public class ReportService {
@@ -32,11 +42,17 @@ public class ReportService {
 
     private final MemberPaymentRepository paymentRepository;
     private final ContributionTypeRepository contributionTypeRepository;
+    private final PersonRepository personRepository;
+    private final MemberDirectoryFamilyResolver familyResolver;
 
     public ReportService(MemberPaymentRepository paymentRepository,
-                         ContributionTypeRepository contributionTypeRepository) {
+                         ContributionTypeRepository contributionTypeRepository,
+                         PersonRepository personRepository,
+                         MemberDirectoryFamilyResolver familyResolver) {
         this.paymentRepository = paymentRepository;
         this.contributionTypeRepository = contributionTypeRepository;
+        this.personRepository = personRepository;
+        this.familyResolver = familyResolver;
     }
 
     /**
@@ -213,5 +229,91 @@ public class ReportService {
                 .collect(Collectors.toList());
 
         return new ContributionTotalReportDTO(year, currencies, rows, grandTotals);
+    }
+
+    /**
+     * Generate a directory of all members with profile fields for export.
+     */
+    @Transactional(readOnly = true)
+    public MemberDirectoryReportDTO generateMemberDirectory() {
+        log.info("Generating member directory report");
+
+        List<Person> persons = personRepository.findAll();
+        Map<Long, FamilyAssignment> assignments = familyResolver.resolveAssignments(persons);
+
+        Map<String, List<MemberDirectoryRow>> groupedRows = new LinkedHashMap<>();
+        Map<String, FamilyAssignment> groupMeta = new LinkedHashMap<>();
+
+        for (Person person : persons) {
+            FamilyAssignment assignment = assignments.get(person.getId());
+            if (assignment == null) {
+                continue;
+            }
+            groupMeta.putIfAbsent(assignment.groupKey(), assignment);
+            groupedRows.computeIfAbsent(assignment.groupKey(), k -> new ArrayList<>())
+                    .add(toMemberDirectoryRow(person, assignment.familyNumber()));
+        }
+
+        List<MemberDirectoryFamilyGroup> families = groupedRows.entrySet().stream()
+                .map(entry -> {
+                    FamilyAssignment meta = groupMeta.get(entry.getKey());
+                    List<MemberDirectoryRow> members = entry.getValue().stream()
+                            .sorted(Comparator
+                                    .comparing((MemberDirectoryRow r) -> r.getLastName() != null ? r.getLastName() : "",
+                                            String.CASE_INSENSITIVE_ORDER)
+                                    .thenComparing(r -> r.getFirstName() != null ? r.getFirstName() : "",
+                                            String.CASE_INSENSITIVE_ORDER))
+                            .collect(Collectors.toList());
+                    return new MemberDirectoryFamilyGroup(
+                            entry.getKey(),
+                            meta != null ? meta.familyNumber() : null,
+                            meta != null ? meta.familyLabel() : null,
+                            members);
+                })
+                .sorted(Comparator.comparing(g -> g.getFamilyLabel() != null ? g.getFamilyLabel() : "",
+                        String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toList());
+
+        List<MemberDirectoryRow> rows = families.stream()
+                .flatMap(f -> f.getMembers().stream())
+                .collect(Collectors.toList());
+
+        long deceasedMembers = persons.stream().filter(this::isDeceased).count();
+        long aliveMembers = persons.size() - deceasedMembers;
+
+        return new MemberDirectoryReportDTO(rows.size(), families.size(), aliveMembers, deceasedMembers, families, rows);
+    }
+
+    private boolean isDeceased(Person person) {
+        return person.getDateOfDeath() != null || person.getStatus() == PersonStatus.DECEASED;
+    }
+
+    private MemberDirectoryRow toMemberDirectoryRow(Person person, String familyNumber) {
+        MemberDirectoryRow row = new MemberDirectoryRow();
+        row.setPersonId(person.getId());
+        row.setFirstName(PersonNameUtil.normalize(person.getFirstName()));
+        row.setLastName(PersonNameUtil.normalize(person.getLastName()));
+        row.setFamilyNumber(familyNumber);
+        row.setDateOfBirth(person.getDateOfBirth());
+        row.setDateOfDeath(person.getDateOfDeath());
+        row.setAge(calculateAge(person.getDateOfBirth(), person.getDateOfDeath()));
+        row.setAddress(person.getAddress());
+        row.setPhone(person.getPhone());
+        row.setIdNumber(person.getIdNumber());
+        row.setEmail(person.getEmail());
+        row.setCivilState(person.getCivilState());
+        row.setGender(person.getGender());
+        return row;
+    }
+
+    private Integer calculateAge(LocalDate dateOfBirth, LocalDate dateOfDeath) {
+        if (dateOfBirth == null) {
+            return null;
+        }
+        LocalDate endDate = dateOfDeath != null ? dateOfDeath : LocalDate.now();
+        if (endDate.isBefore(dateOfBirth)) {
+            return null;
+        }
+        return Period.between(dateOfBirth, endDate).getYears();
     }
 }

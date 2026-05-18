@@ -43,6 +43,8 @@ public class PersonDTO {
 
     // External ID number (CBB ID, national ID, etc.)
     private String idNumber;
+    private String familyNumber;
+    private String civilState;
 
     public PersonDTO() {
     }
@@ -253,6 +255,22 @@ public class PersonDTO {
 
     public void setIdNumber(String idNumber) {
         this.idNumber = idNumber;
+    }
+
+    public String getFamilyNumber() {
+        return familyNumber;
+    }
+
+    public void setFamilyNumber(String familyNumber) {
+        this.familyNumber = familyNumber;
+    }
+
+    public String getCivilState() {
+        return civilState;
+    }
+
+    public void setCivilState(String civilState) {
+        this.civilState = civilState;
     }
 
     public String getFullName() {

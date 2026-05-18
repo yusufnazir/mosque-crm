@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000003-0219-0000-0000-000000000001-1" author="mosque-crm">
+        <comment>Normalize legacy name separators (? and Unicode dashes) to spaced hyphen</comment>
+        <sql>
+            UPDATE persons SET first_name = TRIM(REPLACE(REPLACE(REPLACE(REPLACE(first_name, ' ? ', ' - '), ' – ', ' - '), ' — ', ' - '), '  ', ' '))
+            WHERE first_name LIKE '%?%' OR first_name LIKE '%–%' OR first_name LIKE '%—%';
+
+            UPDATE persons SET last_name = TRIM(REPLACE(REPLACE(REPLACE(REPLACE(last_name, ' ? ', ' - '), ' – ', ' - '), ' — ', ' - '), '  ', ' '))
+            WHERE last_name LIKE '%?%' OR last_name LIKE '%–%' OR last_name LIKE '%—%';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

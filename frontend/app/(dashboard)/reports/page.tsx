@@ -10,6 +10,9 @@ import {
   ContributionTotalReport,
   ContributionTypeColumn,
   CurrencyAmount,
+  MemberDirectoryReport,
+  MemberDirectoryRow,
+  MemberDirectoryFamilyGroup,
 } from '@/lib/api';
 import { memberPaymentApi, MemberPayment } from '@/lib/contributionApi';
 import { isPlanRestriction } from '@/lib/api';
@@ -17,6 +20,7 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useDateFormat } from '@/lib/DateFormatContext';
 import { formatCurrencyAmount, resolveCurrencySymbol } from '@/lib/currencyDisplay';
+import { normalizePersonName } from '@/lib/utils';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -36,6 +40,7 @@ export default function ReportsPage() {
   // Report data
   const [report, setReport] = useState<PaymentSummaryReport | null>(null);
   const [contribReport, setContribReport] = useState<ContributionTotalReport | null>(null);
+  const [memberDirectoryReport, setMemberDirectoryReport] = useState<MemberDirectoryReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [sharingMemberReport, setSharingMemberReport] = useState(false);
@@ -109,6 +114,25 @@ export default function ReportsPage() {
       fetchContributionTotals();
     }
   }, [fetchContributionTotals, selectedYear, selectedReport]);
+
+  const fetchMemberDirectory = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await reportApi.getMemberDirectory();
+      if (isPlanRestriction(data)) return;
+      setMemberDirectoryReport(data);
+    } catch (error) {
+      console.error('Failed to fetch member directory:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedReport === 'member-directory') {
+      fetchMemberDirectory();
+    }
+  }, [fetchMemberDirectory, selectedReport]);
 
   // Reset to first page when year changes
   useEffect(() => {
@@ -440,6 +464,212 @@ export default function ReportsPage() {
       }
 
       doc.save(`contribution-totals-${contribReport.year}.pdf`);
+    } catch (error) {
+      console.error('PDF export failed:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // ── Member Directory export helpers ─────────────────────────────
+
+  const formatGender = (gender: string | null | undefined): string => {
+    if (!gender) return '';
+    const code = gender.trim().toUpperCase();
+    const key = `gender.${code}`;
+    const translated = t(key);
+    if (translated !== key) return translated;
+    return gender;
+  };
+
+  const buildMemberDirectoryHeaders = (): string[] => [
+    t('reports.col_firstname'),
+    t('reports.col_lastname'),
+    t('reports.col_family_number'),
+    t('reports.col_gender'),
+    t('reports.col_date_of_birth'),
+    t('reports.col_date_of_death'),
+    t('reports.col_age'),
+    t('reports.address'),
+    t('reports.phone'),
+    t('reports.col_id_number'),
+    t('reports.email'),
+    t('reports.col_civil_state'),
+  ];
+
+  const getMemberDirectoryFamilies = (): MemberDirectoryFamilyGroup[] => {
+    if (!memberDirectoryReport) return [];
+    if (memberDirectoryReport.families?.length) {
+      return memberDirectoryReport.families;
+    }
+    return [{
+      groupKey: 'all',
+      familyNumber: null,
+      familyLabel: '',
+      memberCount: memberDirectoryReport.rows.length,
+      members: memberDirectoryReport.rows,
+    }];
+  };
+
+  const buildMemberDirectoryRowCells = (row: MemberDirectoryRow): string[] => [
+    normalizePersonName(row.firstName),
+    normalizePersonName(row.lastName),
+    row.familyNumber || '',
+    formatGender(row.gender),
+    formatDate(row.dateOfBirth),
+    formatDate(row.dateOfDeath),
+    row.age != null ? String(row.age) : '',
+    row.address || '',
+    row.phone || '',
+    row.idNumber || '',
+    row.email || '',
+    row.civilState || '',
+  ];
+
+  const buildMemberDirectoryExportRows = (): string[][] => {
+    const exportRows: string[][] = [];
+    for (const family of getMemberDirectoryFamilies()) {
+      const familyTitle = family.familyNumber
+        ? t('reports.family_group', { number: family.familyNumber, label: family.familyLabel })
+        : family.familyLabel || t('reports.family_ungrouped');
+      exportRows.push([familyTitle, t('reports.family_members_count', { count: String(family.memberCount) })]);
+      for (const member of family.members) {
+        exportRows.push(buildMemberDirectoryRowCells(member));
+      }
+      exportRows.push([]);
+    }
+    return exportRows;
+  };
+
+  const buildMemberDirectorySummaryRows = (): [string, string][] => {
+    if (!memberDirectoryReport) return [];
+    return [
+      [t('reports.summary_families'), String(memberDirectoryReport.totalFamilies ?? getMemberDirectoryFamilies().length)],
+      [t('reports.summary_members_alive'), String(memberDirectoryReport.aliveMembers ?? 0)],
+      [t('reports.summary_members_deceased'), String(memberDirectoryReport.deceasedMembers ?? 0)],
+    ];
+  };
+
+  const buildMemberDirectoryExcelSummary = (): string[][] => {
+    return [[t('reports.export_summary_title')], ...buildMemberDirectorySummaryRows(), []];
+  };
+
+  const isMemberDirectoryFamilyHeaderRow = (rowCells: string[]): boolean =>
+    Boolean(rowCells[0] && rowCells.slice(1).every((c) => !c));
+
+  const handleMemberDirectoryExportExcel = async () => {
+    if (!memberDirectoryReport) return;
+    setExporting(true);
+    try {
+      const XLSX = await import('xlsx');
+      const headers = buildMemberDirectoryHeaders();
+      const summaryRows = buildMemberDirectoryExcelSummary();
+      const dataRows = buildMemberDirectoryExportRows();
+      const sheetRows = [...summaryRows, headers, ...dataRows];
+      const ws = XLSX.utils.aoa_to_sheet(sheetRows);
+      const colCount = headers.length;
+      ws['!cols'] = Array.from({ length: colCount }, (_, i) => ({
+        wch: Math.max(
+          headers[i]?.length ?? 10,
+          ...sheetRows.map(r => (r[i] || '').length),
+        ) + 2,
+      }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, t('reports.member_directory'));
+      XLSX.writeFile(wb, 'member-directory.xlsx');
+    } catch (error) {
+      console.error('Excel export failed:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleMemberDirectoryExportPdf = async () => {
+    if (!memberDirectoryReport) return;
+    setExporting(true);
+    try {
+      const { jsPDF } = await import('jspdf');
+      const autoTable = (await import('jspdf-autotable')).default;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+      doc.setFontSize(16);
+      doc.setTextColor(4, 120, 87);
+      doc.text(t('reports.member_directory'), 14, 18);
+
+      autoTable(doc, {
+        startY: 24,
+        head: [[t('reports.export_summary_title'), '']],
+        body: buildMemberDirectorySummaryRows(),
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: {
+          fillColor: [236, 253, 245],
+          textColor: [4, 120, 87],
+          fontStyle: 'bold',
+        },
+        columnStyles: {
+          0: { cellWidth: 120 },
+          1: { cellWidth: 40, halign: 'right' },
+        },
+        margin: { left: 10, right: 10 },
+      });
+
+      const headers = buildMemberDirectoryHeaders();
+      const body: string[][] = [];
+      for (const family of getMemberDirectoryFamilies()) {
+        const familyTitle = family.familyNumber
+          ? `${t('reports.family_group', { number: family.familyNumber, label: family.familyLabel })} (${family.memberCount})`
+          : `${family.familyLabel || t('reports.family_ungrouped')} (${family.memberCount})`;
+        body.push([familyTitle, ...Array(headers.length - 1).fill('')]);
+        for (const member of family.members) {
+          body.push(buildMemberDirectoryRowCells(member));
+        }
+      }
+
+      const tableStartY = (doc as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 24;
+      autoTable(doc, {
+        startY: tableStartY + 6,
+        head: [headers],
+        body,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        didParseCell: (data: any) => {
+          if (data.section === 'body') {
+            const rowCells = body[data.row.index];
+            if (rowCells && isMemberDirectoryFamilyHeaderRow(rowCells)) {
+              data.cell.colSpan = headers.length;
+              data.cell.styles.fontStyle = 'bold';
+              data.cell.styles.fillColor = [236, 253, 245];
+            }
+          }
+        },
+        styles: { fontSize: 7, cellPadding: 1.5 },
+        headStyles: {
+          fillColor: [4, 120, 87],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: { fillColor: [245, 245, 244] },
+        margin: { left: 10, right: 10 },
+      });
+
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        doc.text(
+          `${t('reports.generated_on')} ${formatDate(new Date().toISOString().slice(0, 10))}`,
+          14,
+          doc.internal.pageSize.height - 10
+        );
+        doc.text(
+          `${i} / ${pageCount}`,
+          doc.internal.pageSize.width - 25,
+          doc.internal.pageSize.height - 10
+        );
+      }
+
+      doc.save('member-directory.pdf');
     } catch (error) {
       console.error('PDF export failed:', error);
     } finally {
@@ -918,6 +1148,16 @@ export default function ReportsPage() {
         </svg>
       ),
     },
+    {
+      id: 'member-directory',
+      name: t('reports.member_directory'),
+      description: t('reports.member_directory_desc'),
+      icon: (
+        <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
+    },
   ];
 
   // ── Render ──────────────────────────────────────────────────────
@@ -931,7 +1171,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Report catalog cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         {reportCatalog.map((r) => (
           <button
             key={r.id}
@@ -1309,6 +1549,118 @@ export default function ReportsPage() {
                       </tr>
                     </tbody>
                   </table>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Member Directory Report */}
+      {selectedReport === 'member-directory' && (
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <CardTitle className="text-lg sm:text-xl">{t('reports.member_directory')}</CardTitle>
+                {can('report.export') && memberDirectoryReport && getMemberDirectoryFamilies().length > 0 && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleMemberDirectoryExportExcel}
+                      disabled={exporting}
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Excel
+                    </button>
+                    <button
+                      onClick={handleMemberDirectoryExportPdf}
+                      disabled={exporting}
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      PDF
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 relative">
+            {loading && (!memberDirectoryReport || memberDirectoryReport.rows.length === 0) ? (
+              <div className="p-8 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+              </div>
+            ) : !memberDirectoryReport || memberDirectoryReport.rows.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                {t('reports.no_members')}
+              </div>
+            ) : (
+              <>
+                <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-b border-gray-200">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                      <span className="text-xs sm:text-sm text-gray-500">{t('reports.total_families')}</span>
+                      <p className="text-base sm:text-lg font-semibold text-charcoal">{memberDirectoryReport.totalFamilies ?? getMemberDirectoryFamilies().length}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs sm:text-sm text-gray-500">{t('reports.summary_members_alive')}</span>
+                      <p className="text-base sm:text-lg font-semibold text-charcoal">{memberDirectoryReport.aliveMembers ?? 0}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs sm:text-sm text-gray-500">{t('reports.summary_members_deceased')}</span>
+                      <p className="text-base sm:text-lg font-semibold text-charcoal">{memberDirectoryReport.deceasedMembers ?? 0}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs sm:text-sm text-gray-500">{t('reports.total_all_members')}</span>
+                      <p className="text-base sm:text-lg font-semibold text-charcoal">{memberDirectoryReport.totalMembers}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="divide-y divide-gray-200">
+                  {getMemberDirectoryFamilies().map((family) => (
+                    <div key={family.groupKey} className="overflow-x-auto">
+                      <div className="px-4 sm:px-6 py-3 bg-emerald-50 border-b border-emerald-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                        <h3 className="font-semibold text-emerald-900 text-sm sm:text-base">
+                          {family.familyNumber
+                            ? t('reports.family_group', { number: family.familyNumber, label: family.familyLabel })
+                            : (family.familyLabel || t('reports.family_ungrouped'))}
+                        </h3>
+                        <span className="text-xs sm:text-sm text-emerald-700">
+                          {t('reports.family_members_count', { count: String(family.memberCount) })}
+                        </span>
+                      </div>
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            {buildMemberDirectoryHeaders().map((header) => (
+                              <th
+                                key={`${family.groupKey}-${header}`}
+                                className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                              >
+                                {header}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                          {family.members.map((row) => (
+                            <tr key={row.personId} className="hover:bg-gray-50">
+                              {buildMemberDirectoryRowCells(row).map((cell, idx) => (
+                                <td key={idx} className="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">
+                                  {cell}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
                 </div>
               </>
             )}

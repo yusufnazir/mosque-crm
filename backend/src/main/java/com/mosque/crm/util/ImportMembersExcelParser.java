@@ -68,6 +68,9 @@ public class ImportMembersExcelParser {
 					String gezinnen = ExcelParserUtil.getCellValueAsString(row, columnIndexMap.get("Gezinnen"));
 
 					if (personDto != null) {
+						if (StringUtils.isNotBlank(gezinnen)) {
+							personDto.setFamilyNumber(gezinnen.trim());
+						}
 						allRows.add(new RowData(row, personDto, gezinnen, totalRecords));
 					} else {
 						skipped++;
@@ -117,13 +120,13 @@ public class ImportMembersExcelParser {
 		// Extract NAAM (surname)
 		String naam = ExcelParserUtil.getCellValueAsString(row, columnIndexMap.get("NAAM"));
 		if (StringUtils.isNotBlank(naam)) {
-			dto.setLastName(naam.trim());
+			dto.setLastName(PersonNameUtil.normalize(naam.trim()));
 		}
 
 		// Extract VOORNAMEN (first names)
 		String voornamen = ExcelParserUtil.getCellValueAsString(row, columnIndexMap.get("VOORNAMEN"));
 		if (StringUtils.isNotBlank(voornamen)) {
-			dto.setFirstName(voornamen.trim());
+			dto.setFirstName(PersonNameUtil.normalize(voornamen.trim()));
 		}
 
 		// Extract ADRES (address)
@@ -174,6 +177,12 @@ public class ImportMembersExcelParser {
 		String cbbId = ExcelParserUtil.getCellValueAsString(row, columnIndexMap.get("CBB ID#"));
 		if (StringUtils.isNotBlank(cbbId)) {
 			dto.setIdNumber(cbbId.trim());
+		}
+
+		// Extract Burgerlijke Staat (civil state)
+		String civilState = ExcelParserUtil.getCellValueAsString(row, columnIndexMap.get("Burgerlijke Staat"));
+		if (StringUtils.isNotBlank(civilState)) {
+			dto.setCivilState(civilState.trim());
 		}
 
 		// Extract Heengegaan (date of death) - handle missing dates gracefully

@@ -100,6 +100,12 @@ public class Person implements OrganizationAware {
     @Column(name = "id_number", length = 50)
     private String idNumber;
 
+    @Column(name = "family_number", length = 50)
+    private String familyNumber;
+
+    @Column(name = "civil_state", length = 100)
+    private String civilState;
+
     // Relationships
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Membership> memberships = new ArrayList<>();
@@ -262,6 +268,22 @@ public class Person implements OrganizationAware {
 
     public void setIdNumber(String idNumber) {
         this.idNumber = idNumber;
+    }
+
+    public String getFamilyNumber() {
+        return familyNumber;
+    }
+
+    public void setFamilyNumber(String familyNumber) {
+        this.familyNumber = familyNumber;
+    }
+
+    public String getCivilState() {
+        return civilState;
+    }
+
+    public void setCivilState(String civilState) {
+        this.civilState = civilState;
     }
 
     public List<Membership> getMemberships() {

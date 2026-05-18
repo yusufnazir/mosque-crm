@@ -157,10 +157,10 @@ public class ExcelImportService {
 	private void updateExistingPerson(Person existingPerson, PersonCreateDTO updatedData) {
 		// Update fields from the DTO
 		if (updatedData.getFirstName() != null) {
-			existingPerson.setFirstName(updatedData.getFirstName());
+			existingPerson.setFirstName(com.mosque.crm.util.PersonNameUtil.normalize(updatedData.getFirstName()));
 		}
 		if (updatedData.getLastName() != null) {
-			existingPerson.setLastName(updatedData.getLastName());
+			existingPerson.setLastName(com.mosque.crm.util.PersonNameUtil.normalize(updatedData.getLastName()));
 		}
 		if (updatedData.getGender() != null) {
 			existingPerson.setGender(updatedData.getGender());
@@ -197,6 +197,12 @@ public class ExcelImportService {
 		}
 		if (updatedData.getIdNumber() != null) {
 			existingPerson.setIdNumber(updatedData.getIdNumber());
+		}
+		if (updatedData.getFamilyNumber() != null) {
+			existingPerson.setFamilyNumber(updatedData.getFamilyNumber());
+		}
+		if (updatedData.getCivilState() != null) {
+			existingPerson.setCivilState(updatedData.getCivilState());
 		}
 		if (updatedData.getStatus() != null) {
 			existingPerson.setStatus(updatedData.getStatus());

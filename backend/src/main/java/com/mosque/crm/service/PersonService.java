@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.mosque.crm.dto.PageResponse;
 import com.mosque.crm.dto.PersonCreateDTO;
+import com.mosque.crm.util.PersonNameUtil;
 import com.mosque.crm.dto.PersonDTO;
 import com.mosque.crm.dto.PersonUpdateDTO;
 import com.mosque.crm.dto.MemberFilterCriteria;
@@ -294,8 +295,8 @@ public class PersonService {
         }
 
         Person person = new Person();
-        person.setFirstName(createDTO.getFirstName());
-        person.setLastName(createDTO.getLastName());
+        person.setFirstName(PersonNameUtil.normalize(createDTO.getFirstName()));
+        person.setLastName(PersonNameUtil.normalize(createDTO.getLastName()));
         person.setGender(createDTO.getGender());
         person.setDateOfBirth(createDTO.getDateOfBirth());
         person.setDateOfDeath(createDTO.getDateOfDeath());
@@ -306,6 +307,8 @@ public class PersonService {
         person.setCountry(createDTO.getCountry());
         person.setPostalCode(createDTO.getPostalCode());
         person.setIdNumber(createDTO.getIdNumber());
+        person.setFamilyNumber(createDTO.getFamilyNumber());
+        person.setCivilState(createDTO.getCivilState());
         person.setStatus(createDTO.getStatus() != null ? createDTO.getStatus() : PersonStatus.ACTIVE);
         person.setCreatedAt(LocalDateTime.now());
         person.setUpdatedAt(LocalDateTime.now());
@@ -324,10 +327,10 @@ public class PersonService {
 
         // Update fields
         if (updateDTO.getFirstName() != null) {
-            person.setFirstName(updateDTO.getFirstName());
+            person.setFirstName(PersonNameUtil.normalize(updateDTO.getFirstName()));
         }
         if (updateDTO.getLastName() != null) {
-            person.setLastName(updateDTO.getLastName());
+            person.setLastName(PersonNameUtil.normalize(updateDTO.getLastName()));
         }
         if (updateDTO.getGender() != null) {
             person.setGender(updateDTO.getGender());
@@ -358,6 +361,12 @@ public class PersonService {
         }
         if (updateDTO.getIdNumber() != null) {
             person.setIdNumber(updateDTO.getIdNumber());
+        }
+        if (updateDTO.getFamilyNumber() != null) {
+            person.setFamilyNumber(updateDTO.getFamilyNumber());
+        }
+        if (updateDTO.getCivilState() != null) {
+            person.setCivilState(updateDTO.getCivilState());
         }
         if (updateDTO.getStatus() != null) {
             person.setStatus(updateDTO.getStatus());
@@ -431,8 +440,8 @@ public class PersonService {
     private PersonDTO convertToDTO(Person person, boolean hasActiveMembership) {
         PersonDTO dto = new PersonDTO();
         dto.setId(person.getId());
-        dto.setFirstName(person.getFirstName());
-        dto.setLastName(person.getLastName());
+        dto.setFirstName(PersonNameUtil.normalize(person.getFirstName()));
+        dto.setLastName(PersonNameUtil.normalize(person.getLastName()));
         dto.setGender(person.getGender());
         dto.setDateOfBirth(person.getDateOfBirth());
         dto.setDateOfDeath(person.getDateOfDeath());
@@ -444,6 +453,8 @@ public class PersonService {
         dto.setPostalCode(person.getPostalCode());
         dto.setStatus(person.getStatus());
         dto.setIdNumber(person.getIdNumber());
+        dto.setFamilyNumber(person.getFamilyNumber());
+        dto.setCivilState(person.getCivilState());
 
         // Defensive: if dateOfDeath is set but status is not DECEASED, override the status
         if (person.getDateOfDeath() != null && person.getStatus() != PersonStatus.DECEASED) {

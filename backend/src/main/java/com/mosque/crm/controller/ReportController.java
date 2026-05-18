@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mosque.crm.dto.report.ContributionTotalReportDTO;
+import com.mosque.crm.dto.report.MemberDirectoryReportDTO;
 import com.mosque.crm.dto.report.PaymentSummaryReportDTO;
 import com.mosque.crm.service.ReportService;
 import com.mosque.crm.subscription.PlanFeatureRequired;
@@ -69,5 +70,14 @@ public class ReportController {
         log.info("GET /reports/contribution-totals?year={} (locale={})", year, locale);
         ContributionTotalReportDTO report = reportService.generateContributionTotals(year, locale);
         return ResponseEntity.ok(report);
+    }
+
+    /**
+     * All members with profile fields for directory export.
+     */
+    @GetMapping("/member-directory")
+    public ResponseEntity<MemberDirectoryReportDTO> getMemberDirectory() {
+        log.info("GET /reports/member-directory");
+        return ResponseEntity.ok(reportService.generateMemberDirectory());
     }
 }

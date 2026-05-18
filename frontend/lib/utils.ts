@@ -177,3 +177,14 @@ export const getLocalizedStatus = (status: string): string => {
     default: return 'common.status_inactive';
   }
 };
+
+/** Normalize legacy name separators (? and Unicode dashes) to a spaced hyphen. */
+export const normalizePersonName = (name?: string | null): string => {
+  if (!name) return '';
+  let result = name;
+  result = result.replace(/\s+\?\s+/g, ' - ');
+  result = result.replace(/\s*[\u2013\u2014\u2212]\s*/g, ' - ');
+  result = result.replace(/\s+-\s+/g, ' - ');
+  result = result.replace(/( - )+/g, ' - ');
+  return result.trim().replace(/ {2,}/g, ' ');
+};

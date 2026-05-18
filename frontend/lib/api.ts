@@ -500,6 +500,39 @@ export interface ContributionTotalReport {
   grandTotals: { currencyCode: string; amount: number }[];
 }
 
+export interface MemberDirectoryRow {
+  personId: number;
+  firstName: string;
+  lastName: string;
+  familyNumber: string | null;
+  gender: string | null;
+  dateOfBirth: string | null;
+  dateOfDeath: string | null;
+  age: number | null;
+  address: string | null;
+  phone: string | null;
+  idNumber: string | null;
+  email: string | null;
+  civilState: string | null;
+}
+
+export interface MemberDirectoryFamilyGroup {
+  groupKey: string;
+  familyNumber: string | null;
+  familyLabel: string;
+  memberCount: number;
+  members: MemberDirectoryRow[];
+}
+
+export interface MemberDirectoryReport {
+  totalMembers: number;
+  totalFamilies: number;
+  aliveMembers: number;
+  deceasedMembers: number;
+  families: MemberDirectoryFamilyGroup[];
+  rows: MemberDirectoryRow[];
+}
+
 // Report API
 export const reportApi = {
   getPaymentSummary: (year: number, locale: string = 'en', page: number = 0, size: number = 20): Promise<PaymentSummaryReport> =>
@@ -509,6 +542,8 @@ export const reportApi = {
     ApiClient.get(`/reports/payment-summary?year=${year}&locale=${encodeURIComponent(locale)}&page=0&size=0`),
   getContributionTotals: (year: number, locale: string = 'en'): Promise<ContributionTotalReport> =>
     ApiClient.get(`/reports/contribution-totals?year=${year}&locale=${encodeURIComponent(locale)}`),
+  getMemberDirectory: (): Promise<MemberDirectoryReport> =>
+    ApiClient.get('/reports/member-directory'),
 };
 
 // ── Subscription / Plan types ──────────────────────────────────────────────

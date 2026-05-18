@@ -322,8 +322,8 @@ public class MemberService {
     private MemberDTO convertPersonToDTO(Person person) {
         MemberDTO dto = new MemberDTO();
         dto.setId(person.getId().toString());
-        dto.setFirstName(person.getFirstName());
-        dto.setLastName(person.getLastName());
+        dto.setFirstName(com.mosque.crm.util.PersonNameUtil.normalize(person.getFirstName()));
+        dto.setLastName(com.mosque.crm.util.PersonNameUtil.normalize(person.getLastName()));
         dto.setEmail(person.getEmail());
         dto.setPhone(person.getPhone());
         dto.setGender(person.getGender());
