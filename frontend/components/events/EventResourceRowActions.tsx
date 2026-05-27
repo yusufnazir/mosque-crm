@@ -25,10 +25,12 @@ export function ActionButton({
   variant = 'default',
   onClick,
   children,
+  disabled = false,
 }: {
   variant?: 'default' | 'primary' | 'danger';
   onClick: () => void;
   children: ReactNode;
+  disabled?: boolean;
 }) {
   const styles = {
     default: 'text-stone-700 bg-stone-100 hover:bg-stone-200',
@@ -39,7 +41,8 @@ export function ActionButton({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full sm:flex-1 sm:min-w-[4.5rem] px-3 py-2 text-sm font-medium rounded-lg transition-colors ${styles[variant]}`}
+      disabled={disabled}
+      className={`w-full sm:flex-1 sm:min-w-[4.5rem] px-3 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${styles[variant]}`}
     >
       {children}
     </button>
