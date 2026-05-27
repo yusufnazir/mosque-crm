@@ -15,7 +15,7 @@ import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-coo
  *  - No CORS issues — all browser requests stay on the same origin
  */
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080/api';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8200/api';
 
 function getEffectiveBaseDomain(request: NextRequest): string | undefined {
   const cookieDomain = request.cookies.get('app_base_domain')?.value?.trim();
@@ -72,11 +72,22 @@ async function proxyRequest(
     body = await request.arrayBuffer();
   }
 
-  const upstream = await fetch(url, {
-    method: request.method,
-    headers,
-    body,
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(url, {
+      method: request.method,
+      headers,
+      body,
+      signal: AbortSignal.timeout(30_000),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Backend unavailable';
+    console.error(`[BFF] Upstream unreachable: ${url} — ${message}`);
+    return NextResponse.json(
+      { error: 'Backend service is temporarily unavailable. Please try again.', code: 'BACKEND_UNAVAILABLE' },
+      { status: 503 },
+    );
+  }
 
   // Handle 204 No Content — must not include a body per HTTP spec
   if (upstream.status === 204) {
@@ -87,17 +98,30 @@ async function proxyRequest(
     return response;
   }
 
-  // Read the response
   const responseBody = await upstream.arrayBuffer();
+  const responseText = new TextDecoder().decode(responseBody);
+  const upstreamContentType = upstream.headers.get('Content-Type') ?? '';
 
-  // Build the response to send back to the browser
+  // Expired/invalid JWT used to fall through as anonymous → 403; treat opaque 403 as 401
+  if (upstream.status === 403 && token) {
+    const isPlanGate =
+      responseText.includes('PLAN_ENTITLEMENT_REQUIRED') ||
+      responseText.includes('PLAN_LIMIT_EXCEEDED');
+    if (!isPlanGate && (responseText.length === 0 || !upstreamContentType.includes('json'))) {
+      const authResponse = NextResponse.json(
+        { error: 'Session expired or invalid. Please sign in again.' },
+        { status: 401 },
+      );
+      clearAuthCookies(authResponse, getEffectiveBaseDomain(request));
+      return authResponse;
+    }
+  }
+
   const responseHeaders = new Headers();
-  const upstreamContentType = upstream.headers.get('Content-Type');
   if (upstreamContentType) {
     responseHeaders.set('Content-Type', upstreamContentType);
   }
 
-  // Pass through Cache-Control for cacheable responses (e.g., profile images)
   const cacheControl = upstream.headers.get('Cache-Control');
   if (cacheControl) {
     responseHeaders.set('Cache-Control', cacheControl);
@@ -109,8 +133,6 @@ async function proxyRequest(
     headers: responseHeaders,
   });
 
-  // If backend returns 401, clear the session cookie so the browser
-  // knows the user is no longer authenticated
   if (upstream.status === 401) {
     clearAuthCookies(response, getEffectiveBaseDomain(request));
   }

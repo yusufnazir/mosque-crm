@@ -52,6 +52,17 @@
             INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'user_member_link_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM user_member_link) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'user_member_link_seq');
             INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'user_preferences_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM user_preferences) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'user_preferences_seq');
             INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'users_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM users) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'users_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'event_resource_categories_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_resource_categories) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'event_resource_categories_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'event_resource_types_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_resource_types) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'event_resource_types_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'event_resources_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_resources) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'event_resources_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'event_resource_assignments_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_resource_assignments) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'event_resource_assignments_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'event_roles_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_roles) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'event_roles_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'event_member_groups_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_member_groups) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'event_member_groups_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'event_member_group_members_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_member_group_members) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'event_member_group_members_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'event_sacrifice_animals_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_sacrifice_animals) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'event_sacrifice_animals_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'event_sacrifice_animal_shares_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_sacrifice_animal_shares) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'event_sacrifice_animal_shares_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'distribution_registration_types_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_distribution_registration_types) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'distribution_registration_types_seq');
+            INSERT INTO sequences_ (PK_NAME, PK_VALUE) SELECT 'distribution_registrations_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM org_distribution_registrations) WHERE NOT EXISTS (SELECT 1 FROM sequences_ WHERE PK_NAME = 'distribution_registrations_seq');
 
             <!-- Step 2: Sync existing rows to actual max IDs (handles seed data / manual inserts).
                  Sequence names here MUST match the pkColumnValue in each entity's @TableGenerator. -->
@@ -93,6 +104,17 @@
             UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM user_member_link)) WHERE PK_NAME = 'user_member_link_seq';
             UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM user_preferences)) WHERE PK_NAME = 'user_preferences_seq';
             UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM users)) WHERE PK_NAME = 'users_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_resource_categories)) WHERE PK_NAME = 'event_resource_categories_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_resource_types)) WHERE PK_NAME = 'event_resource_types_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_resources)) WHERE PK_NAME = 'event_resources_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_resource_assignments)) WHERE PK_NAME = 'event_resource_assignments_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_roles)) WHERE PK_NAME = 'event_roles_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_member_groups)) WHERE PK_NAME = 'event_member_groups_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_member_group_members)) WHERE PK_NAME = 'event_member_group_members_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_sacrifice_animals)) WHERE PK_NAME = 'event_sacrifice_animals_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_event_sacrifice_animal_shares)) WHERE PK_NAME = 'event_sacrifice_animal_shares_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_distribution_registration_types)) WHERE PK_NAME = 'distribution_registration_types_seq';
+            UPDATE sequences_ SET PK_VALUE = GREATEST(PK_VALUE, (SELECT COALESCE(MAX(id), 0) + 1 FROM org_distribution_registrations)) WHERE PK_NAME = 'distribution_registrations_seq';
         </sql>
     </changeSet>
 

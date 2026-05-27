@@ -13,7 +13,7 @@ import { clearAuthCookies } from '@/lib/auth/server-cookies';
  * On failure, stale cookies are cleared to prevent middleware redirect loops.
  */
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080/api';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8200/api';
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
 
 export async function GET() {

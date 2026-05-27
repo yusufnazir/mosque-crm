@@ -8,6 +8,7 @@ public class MemberRegistrationDTO {
     private Long distributionEventId;
     private Long personId;
     private String personName;
+    private boolean member;
     private String status;
     private LocalDateTime registeredAt;
     private LocalDateTime createdAt;
@@ -46,6 +47,14 @@ public class MemberRegistrationDTO {
 
     public void setPersonName(String personName) {
         this.personName = personName;
+    }
+
+    public boolean isMember() {
+        return member;
+    }
+
+    public void setMember(boolean member) {
+        this.member = member;
     }
 
     public String getStatus() {

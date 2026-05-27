@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000007-0172-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_event_sacrifice_animal_shares"/>
+            <not><columnExists tableName="org_event_sacrifice_animal_shares" columnName="meat_entitlement_kg"/></not>
+        </preConditions>
+        <comment>Add per-shareholder meat entitlement in kg</comment>
+        <addColumn tableName="org_event_sacrifice_animal_shares">
+            <column name="meat_entitlement_kg" type="DECIMAL(10,2)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

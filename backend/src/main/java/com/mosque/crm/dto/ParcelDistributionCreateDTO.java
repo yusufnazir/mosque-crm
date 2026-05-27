@@ -14,7 +14,7 @@ public class ParcelDistributionCreateDTO {
     @NotNull(message = "Recipient ID is required")
     private Long recipientId;
 
-    @NotNull(message = "Parcel category ID is required")
+    /** Optional; when omitted, distribution is tracked on registrations only. */
     private Long parcelCategoryId;
 
     @NotNull(message = "Parcel count is required")

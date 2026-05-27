@@ -13,6 +13,7 @@ import { distributionApi, DistributionEvent } from '@/lib/distributionApi';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { ActionButton, RowActions } from '@/components/events/EventResourceRowActions';
 
 const STATUS_COLORS: Record<GeneralEventStatus, string> = {
   DRAFT: 'bg-stone-100 text-stone-700',
@@ -36,9 +37,15 @@ const STATUSES: GeneralEventStatus[] = ['DRAFT', 'PUBLISHED', 'ACTIVE', 'CLOSED'
 
 interface Props {
   onSelectDistribution?: (event: DistributionEvent) => void;
+  onEditDistribution?: (event: DistributionEvent) => void;
+  onDeleteDistribution?: (event: DistributionEvent) => void;
 }
 
-export default function GeneralEventsView({ onSelectDistribution }: Props) {
+export default function GeneralEventsView({
+  onSelectDistribution,
+  onEditDistribution,
+  onDeleteDistribution,
+}: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const { getLimit } = useSubscription();
@@ -125,7 +132,7 @@ export default function GeneralEventsView({ onSelectDistribution }: Props) {
       <ConfirmDialog
         open={!!deleteTarget}
         title={t('general_events.delete')}
-        message={`Are you sure you want to delete "${deleteTarget?.name}"?`}
+        message={t('general_events.delete_confirm_message', { name: deleteTarget?.name ?? '' })}
         confirmLabel={t('general_events.delete')}
         cancelLabel="Cancel"
         variant="danger"
@@ -266,15 +273,14 @@ export default function GeneralEventsView({ onSelectDistribution }: Props) {
                 <span>{ev.totalVolunteers} {t('general_events.volunteers.title').toLowerCase()}</span>
               </div>
 
-              <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                <button onClick={() => router.push(`/general-events/${ev.id}/edit`)} className="text-xs text-emerald-700 hover:underline">
+              <RowActions>
+                <ActionButton variant="primary" onClick={() => router.push(`/general-events/${ev.id}/edit`)}>
                   {t('common.edit')}
-                </button>
-                <span className="text-stone-300">|</span>
-                <button onClick={() => setDeleteTarget(ev)} className="text-xs text-red-600 hover:underline">
+                </ActionButton>
+                <ActionButton variant="danger" onClick={() => setDeleteTarget(ev)}>
                   {t('common.delete')}
-                </button>
-              </div>
+                </ActionButton>
+              </RowActions>
             </div>
           ))}
 
@@ -318,6 +324,21 @@ export default function GeneralEventsView({ onSelectDistribution }: Props) {
                   </div>
                 )}
               </div>
+
+              {(onEditDistribution || onDeleteDistribution) && (
+                <RowActions>
+                  {onEditDistribution && (
+                    <ActionButton variant="primary" onClick={() => onEditDistribution(ev)}>
+                      {t('common.edit')}
+                    </ActionButton>
+                  )}
+                  {onDeleteDistribution && (
+                    <ActionButton variant="danger" onClick={() => onDeleteDistribution(ev)}>
+                      {t('common.delete')}
+                    </ActionButton>
+                  )}
+                </RowActions>
+              )}
             </div>
           ))}
         </div>

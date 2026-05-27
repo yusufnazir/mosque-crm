@@ -1085,4 +1085,145 @@
             referencedTableName="users" referencedColumnNames="id"/>
     </changeSet>
 
+    <changeSet id="b1000099-9990-0000-0000-000000000010-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_event_resource_categories"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for event resources and member groups</comment>
+
+        <addForeignKeyConstraint constraintName="fk_evtrescat_org"
+            baseTableName="org_event_resource_categories" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtrestype_cat"
+            baseTableName="org_event_resource_types" baseColumnNames="category_id"
+            referencedTableName="org_event_resource_categories" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtrestype_org"
+            baseTableName="org_event_resource_types" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtresource_type"
+            baseTableName="org_event_resources" baseColumnNames="resource_type_id"
+            referencedTableName="org_event_resource_types" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtresource_org"
+            baseTableName="org_event_resources" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtresassign_resource"
+            baseTableName="org_event_resource_assignments" baseColumnNames="resource_id"
+            referencedTableName="org_event_resources" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtresassign_person"
+            baseTableName="org_event_resource_assignments" baseColumnNames="person_id"
+            referencedTableName="persons" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtresassign_org"
+            baseTableName="org_event_resource_assignments" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtrole_org"
+            baseTableName="org_event_roles" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtmemgroup_org"
+            baseTableName="org_event_member_groups" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtmemgroupmem_group"
+            baseTableName="org_event_member_group_members" baseColumnNames="group_id"
+            referencedTableName="org_event_member_groups" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtmemgroupmem_person"
+            baseTableName="org_event_member_group_members" baseColumnNames="person_id"
+            referencedTableName="persons" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtmemgroupmem_role"
+            baseTableName="org_event_member_group_members" baseColumnNames="event_role_id"
+            referencedTableName="org_event_roles" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtmemgroupmem_org"
+            baseTableName="org_event_member_group_members" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_evtrescat_event" tableName="org_event_resource_categories">
+            <column name="event_kind"/><column name="event_id"/>
+        </createIndex>
+        <createIndex indexName="idx_evtrescat_org" tableName="org_event_resource_categories">
+            <column name="organization_id"/>
+        </createIndex>
+        <createIndex indexName="idx_evtrestype_cat" tableName="org_event_resource_types">
+            <column name="category_id"/>
+        </createIndex>
+        <createIndex indexName="idx_evtresource_type" tableName="org_event_resources">
+            <column name="resource_type_id"/>
+        </createIndex>
+        <createIndex indexName="idx_evtresassign_resource" tableName="org_event_resource_assignments">
+            <column name="resource_id"/>
+        </createIndex>
+        <createIndex indexName="idx_evtresassign_person" tableName="org_event_resource_assignments">
+            <column name="person_id"/>
+        </createIndex>
+        <createIndex indexName="idx_evtrole_event" tableName="org_event_roles">
+            <column name="event_kind"/><column name="event_id"/>
+        </createIndex>
+        <createIndex indexName="idx_evtmemgroup_event" tableName="org_event_member_groups">
+            <column name="event_kind"/><column name="event_id"/>
+        </createIndex>
+        <createIndex indexName="idx_evtmemgroupmem_group" tableName="org_event_member_group_members">
+            <column name="group_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="b1000099-9990-0000-0000-000000000011-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_event_sacrifice_animals"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for sacrifice animals</comment>
+
+        <addForeignKeyConstraint constraintName="fk_evtsacrifice_org"
+            baseTableName="org_event_sacrifice_animals" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtsacrificeshare_animal"
+            baseTableName="org_event_sacrifice_animal_shares" baseColumnNames="animal_id"
+            referencedTableName="org_event_sacrifice_animals" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtsacrificeshare_person"
+            baseTableName="org_event_sacrifice_animal_shares" baseColumnNames="person_id"
+            referencedTableName="persons" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_evtsacrificeshare_org"
+            baseTableName="org_event_sacrifice_animal_shares" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_evtsacrifice_event" tableName="org_event_sacrifice_animals">
+            <column name="event_kind"/><column name="event_id"/>
+        </createIndex>
+        <createIndex indexName="idx_evtsacrificeshare_animal" tableName="org_event_sacrifice_animal_shares">
+            <column name="animal_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="b1000099-9990-0000-0000-000000000012-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_distribution_registration_types"/>
+        </preConditions>
+        <comment>Foreign keys for distribution registration types and registrations</comment>
+
+        <addForeignKeyConstraint constraintName="fk_distregtype_event"
+            baseTableName="org_distribution_registration_types" baseColumnNames="event_id"
+            referencedTableName="org_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_distregtype_org"
+            baseTableName="org_distribution_registration_types" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_distreg_event"
+            baseTableName="org_distribution_registrations" baseColumnNames="event_id"
+            referencedTableName="org_events" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_distreg_type"
+            baseTableName="org_distribution_registrations" baseColumnNames="registration_type_id"
+            referencedTableName="org_distribution_registration_types" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_distreg_person"
+            baseTableName="org_distribution_registrations" baseColumnNames="person_id"
+            referencedTableName="persons" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_distreg_org"
+            baseTableName="org_distribution_registrations" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_distregtype_event" tableName="org_distribution_registration_types">
+            <column name="event_id"/>
+        </createIndex>
+        <createIndex indexName="idx_distreg_event" tableName="org_distribution_registrations">
+            <column name="event_id"/>
+        </createIndex>
+        <createIndex indexName="idx_distreg_type" tableName="org_distribution_registrations">
+            <column name="registration_type_id"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

@@ -65,6 +65,66 @@ export function parsePlanRestrictionFromError(err: unknown): PlanRestriction | n
   return null;
 }
 
+/** Parsed JSON error body from ApiClient (`Error.message` holds response text). */
+export function parseApiErrorBody(err: unknown): Record<string, string> | null {
+  if (!err || !(err instanceof Error)) return null;
+  try {
+    const body = JSON.parse(err.message);
+    if (body && typeof body === 'object') {
+      const out: Record<string, string> = {};
+      for (const [k, v] of Object.entries(body)) {
+        if (v != null) out[k] = String(v);
+      }
+      return out;
+    }
+  } catch { /* not JSON */ }
+  return null;
+}
+
+export type EventStatusUpdateErrorResult = {
+  message: string;
+  /** Switch to Resources tab when close blocked by active assignments */
+  goToResourcesTab?: boolean;
+};
+
+/**
+ * Resolves a user-visible message when changing event status fails.
+ */
+export function resolveEventStatusUpdateError(
+  err: unknown,
+  options: {
+    fallback: string;
+    closeBlockedMessage: (count: string | number) => string;
+  }
+): EventStatusUpdateErrorResult {
+  const body = parseApiErrorBody(err);
+  if (body?.code === 'ACTIVE_RESOURCE_ASSIGNMENTS') {
+    return {
+      message: options.closeBlockedMessage(body.activeCount ?? '?'),
+      goToResourcesTab: true,
+    };
+  }
+
+  const detail = body?.error || body?.message;
+  if (detail) {
+    const lower = detail.toLowerCase();
+    if (lower.includes('resource assignment') && lower.includes('active')) {
+      const count = detail.match(/(\d+)/)?.[1] ?? '?';
+      return {
+        message: options.closeBlockedMessage(count),
+        goToResourcesTab: true,
+      };
+    }
+    return { message: detail };
+  }
+
+  if (err instanceof Error && err.message && !err.message.startsWith('{')) {
+    return { message: err.message };
+  }
+
+  return { message: options.fallback };
+}
+
 /**
  * Returned when the backend responds with 402 because the tenant's
  * subscription is inactive (canceled, expired, or missing).
@@ -136,8 +196,8 @@ export class ApiClient {
           code = body.code || code;
           message = body.message || message;
         } catch { /* not JSON */ }
-        // Fire a global event so the layout can show the blocking overlay
-        if (typeof window !== 'undefined') {
+        // READ_ONLY mutations return 402 but the subscription is still valid — refresh status instead
+        if (typeof window !== 'undefined' && code !== 'SUBSCRIPTION_READ_ONLY') {
           window.dispatchEvent(new CustomEvent(SUBSCRIPTION_INACTIVE_EVENT, { detail: { code, message } }));
         }
         return {

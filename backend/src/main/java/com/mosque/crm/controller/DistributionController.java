@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mosque.crm.exception.ActiveResourceAssignmentsException;
 import com.mosque.crm.dto.DistributionEventCreateDTO;
 import com.mosque.crm.dto.DistributionEventDTO;
 import com.mosque.crm.dto.DistributionSummaryDTO;
@@ -23,10 +24,17 @@ import com.mosque.crm.dto.MemberRegistrationCreateDTO;
 import com.mosque.crm.dto.MemberRegistrationDTO;
 import com.mosque.crm.dto.NonMemberRecipientCreateDTO;
 import com.mosque.crm.dto.NonMemberRecipientDTO;
+import com.mosque.crm.dto.NonMemberRecipientUpdateDTO;
 import com.mosque.crm.dto.ParcelCategoryCreateDTO;
 import com.mosque.crm.dto.ParcelCategoryDTO;
 import com.mosque.crm.dto.ParcelDistributionCreateDTO;
 import com.mosque.crm.dto.ParcelDistributionDTO;
+import com.mosque.crm.dto.DistributionRegistrationCreateDTO;
+import com.mosque.crm.dto.DistributionRegistrationDTO;
+import com.mosque.crm.dto.DistributionRegistrationTypeCreateDTO;
+import com.mosque.crm.dto.DistributionRegistrationTypeDTO;
+import com.mosque.crm.dto.DistributionRegistrationUpdateDTO;
+import com.mosque.crm.service.DistributionRegistrationService;
 import com.mosque.crm.service.DistributionService;
 
 import jakarta.validation.Valid;
@@ -37,9 +45,13 @@ import jakarta.validation.Valid;
 public class DistributionController {
 
     private final DistributionService distributionService;
+    private final DistributionRegistrationService distributionRegistrationService;
 
-    public DistributionController(DistributionService distributionService) {
+    public DistributionController(
+            DistributionService distributionService,
+            DistributionRegistrationService distributionRegistrationService) {
         this.distributionService = distributionService;
+        this.distributionRegistrationService = distributionRegistrationService;
     }
 
     // ========================
@@ -72,6 +84,8 @@ public class DistributionController {
             String status = body.get("status");
             DistributionEventDTO result = distributionService.updateEventStatus(id, status);
             return ResponseEntity.ok(result);
+        } catch (ActiveResourceAssignmentsException e) {
+            throw e;
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -190,6 +204,26 @@ public class DistributionController {
         }
     }
 
+    @PutMapping("/non-members/{id}")
+    public ResponseEntity<?> updateNonMember(@PathVariable Long id, @Valid @RequestBody NonMemberRecipientUpdateDTO dto) {
+        try {
+            NonMemberRecipientDTO result = distributionService.updateNonMember(id, dto);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/non-members/{id}")
+    public ResponseEntity<?> deleteNonMember(@PathVariable Long id) {
+        try {
+            distributionService.deleteNonMember(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // ========================
     // Member Registrations
     // ========================
@@ -217,6 +251,105 @@ public class DistributionController {
     @GetMapping("/member-registrations")
     public ResponseEntity<List<MemberRegistrationDTO>> listMemberRegistrations(@RequestParam Long eventId) {
         return ResponseEntity.ok(distributionService.listMemberRegistrationsByEvent(eventId));
+    }
+
+    @DeleteMapping("/member-registrations/{id}")
+    public ResponseEntity<?> deleteMemberRegistration(@PathVariable Long id) {
+        try {
+            distributionService.deleteMemberRegistration(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ========================
+    // Registration types & registrations
+    // ========================
+
+    @GetMapping("/events/{eventId}/registration-types")
+    public List<DistributionRegistrationTypeDTO> listRegistrationTypes(@PathVariable Long eventId) {
+        return distributionRegistrationService.listTypes(eventId);
+    }
+
+    @PostMapping("/events/{eventId}/registration-types")
+    public ResponseEntity<?> createRegistrationType(
+            @PathVariable Long eventId, @Valid @RequestBody DistributionRegistrationTypeCreateDTO dto) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(distributionRegistrationService.createType(eventId, dto));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/registration-types/{id}")
+    public ResponseEntity<?> updateRegistrationType(
+            @PathVariable Long id, @Valid @RequestBody DistributionRegistrationTypeCreateDTO dto) {
+        try {
+            return ResponseEntity.ok(distributionRegistrationService.updateType(id, dto));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/registration-types/{id}")
+    public ResponseEntity<?> deleteRegistrationType(@PathVariable Long id) {
+        try {
+            distributionRegistrationService.deleteType(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/events/{eventId}/registrations")
+    public List<DistributionRegistrationDTO> listRegistrations(@PathVariable Long eventId) {
+        return distributionRegistrationService.listRegistrations(eventId);
+    }
+
+    @GetMapping("/events/{eventId}/registrations/queue")
+    public List<DistributionRegistrationDTO> listQueueRegistrations(@PathVariable Long eventId) {
+        return distributionRegistrationService.listQueueRegistrations(eventId);
+    }
+
+    @PostMapping("/registrations")
+    public ResponseEntity<?> createRegistration(@Valid @RequestBody DistributionRegistrationCreateDTO dto) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(distributionRegistrationService.createRegistration(dto));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/registrations/{id}")
+    public ResponseEntity<?> updateRegistration(
+            @PathVariable Long id, @Valid @RequestBody DistributionRegistrationUpdateDTO dto) {
+        try {
+            return ResponseEntity.ok(distributionRegistrationService.updateRegistration(id, dto));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/registrations/{id}/mark-collected")
+    public ResponseEntity<?> markRegistrationCollected(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(distributionRegistrationService.markCollected(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/registrations/{id}")
+    public ResponseEntity<?> deleteRegistration(@PathVariable Long id) {
+        try {
+            distributionRegistrationService.deleteRegistration(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // ========================

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000007-0162-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_event_recipients"/>
+            <not>
+                <indexExists tableName="org_event_recipients" indexName="uk_org_event_recipients_event_distribution_number"/>
+            </not>
+        </preConditions>
+        <comment>Prevent duplicate non-member distribution numbers per event</comment>
+        <addUniqueConstraint
+            tableName="org_event_recipients"
+            columnNames="event_id, distribution_number"
+            constraintName="uk_org_event_recipients_event_distribution_number"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,5 +1,6 @@
 package com.mosque.crm.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.mosque.crm.enums.DistributionEventStatus;
 import com.mosque.crm.enums.OrganizationEventType;
+import com.mosque.crm.enums.ParcelWeightUnit;
 import com.mosque.crm.multitenancy.OrganizationAware;
 import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
@@ -65,6 +67,13 @@ public class DistributionEvent implements OrganizationAware {
 
     @Column(name = "non_member_capacity", nullable = false)
     private int nonMemberCapacity = 0;
+
+    @Column(name = "parcel_kg_per_unit", nullable = false, precision = 10, scale = 2)
+    private BigDecimal parcelKgPerUnit = BigDecimal.ONE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "parcel_weight_unit", nullable = false, length = 10)
+    private ParcelWeightUnit parcelWeightUnit = ParcelWeightUnit.KG;
 
     @CreationTimestamp
     @Column(name = "created_at")
@@ -179,6 +188,22 @@ public class DistributionEvent implements OrganizationAware {
 
     public void setNonMemberCapacity(int nonMemberCapacity) {
         this.nonMemberCapacity = nonMemberCapacity;
+    }
+
+    public BigDecimal getParcelKgPerUnit() {
+        return parcelKgPerUnit;
+    }
+
+    public void setParcelKgPerUnit(BigDecimal parcelKgPerUnit) {
+        this.parcelKgPerUnit = parcelKgPerUnit;
+    }
+
+    public ParcelWeightUnit getParcelWeightUnit() {
+        return parcelWeightUnit;
+    }
+
+    public void setParcelWeightUnit(ParcelWeightUnit parcelWeightUnit) {
+        this.parcelWeightUnit = parcelWeightUnit;
     }
 
     public List<ParcelCategory> getParcelCategories() {

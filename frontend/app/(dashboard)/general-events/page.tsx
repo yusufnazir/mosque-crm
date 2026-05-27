@@ -12,6 +12,7 @@ import {
 } from '@/lib/generalEventApi';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { ActionButton, RowActions } from '@/components/events/EventResourceRowActions';
 
 const STATUS_COLORS: Record<GeneralEventStatus, string> = {
   DRAFT: 'bg-stone-100 text-stone-700',
@@ -92,7 +93,7 @@ export default function GeneralEventsPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         title={t('general_events.delete')}
-        message={`Are you sure you want to delete "${deleteTarget?.name}"?`}
+        message={t('general_events.delete_confirm_message', { name: deleteTarget?.name ?? '' })}
         confirmLabel={t('general_events.delete')}
         cancelLabel="Cancel"
         variant="danger"
@@ -216,22 +217,14 @@ export default function GeneralEventsPage() {
                 <span>{ev.totalVolunteers} volunteers</span>
               </div>
 
-              {/* Actions */}
-              <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                <button
-                  onClick={() => router.push(`/general-events/${ev.id}/edit`)}
-                  className="text-xs text-emerald-700 hover:underline"
-                >
-                  Edit
-                </button>
-                <span className="text-stone-300">|</span>
-                <button
-                  onClick={() => setDeleteTarget(ev)}
-                  className="text-xs text-red-600 hover:underline"
-                >
-                  Delete
-                </button>
-              </div>
+              <RowActions>
+                <ActionButton variant="primary" onClick={() => router.push(`/general-events/${ev.id}/edit`)}>
+                  {t('common.edit')}
+                </ActionButton>
+                <ActionButton variant="danger" onClick={() => setDeleteTarget(ev)}>
+                  {t('common.delete')}
+                </ActionButton>
+              </RowActions>
             </div>
           ))}
         </div>

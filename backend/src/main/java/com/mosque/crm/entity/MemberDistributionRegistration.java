@@ -41,8 +41,14 @@ public class MemberDistributionRegistration implements OrganizationAware {
     private DistributionEvent distributionEvent;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "person_id", nullable = false)
+    @JoinColumn(name = "person_id")
     private Person person;
+
+    @Column(name = "worker_name", nullable = false, length = 255)
+    private String workerName;
+
+    @Column(name = "is_member", nullable = false)
+    private boolean member;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -87,6 +93,22 @@ public class MemberDistributionRegistration implements OrganizationAware {
 
     public void setPerson(Person person) {
         this.person = person;
+    }
+
+    public String getWorkerName() {
+        return workerName;
+    }
+
+    public void setWorkerName(String workerName) {
+        this.workerName = workerName;
+    }
+
+    public boolean isMember() {
+        return member;
+    }
+
+    public void setMember(boolean member) {
+        this.member = member;
     }
 
     public RegistrationStatus getStatus() {

@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * 4. Returns the user data to the browser (without the token)
  */
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080/api';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8200/api';
 
 export async function POST(request: NextRequest) {
   const body = await request.json();

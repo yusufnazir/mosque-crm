@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.mosque.crm.exception.ActiveResourceAssignmentsException;
+import com.mosque.crm.exception.SacrificeShareLimitExceededException;
 import com.mosque.crm.subscription.PlanEntitlementException;
 import com.mosque.crm.subscription.PlanLimitExceededException;
 
@@ -77,5 +79,27 @@ public class GlobalExceptionHandler {
         body.put("current", String.valueOf(ex.getCurrent()));
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    @ExceptionHandler(SacrificeShareLimitExceededException.class)
+    public ResponseEntity<Map<String, String>> handleSacrificeShareLimitExceeded(
+            SacrificeShareLimitExceededException ex) {
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("code", "SACRIFICE_SHARE_LIMIT_EXCEEDED");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(ActiveResourceAssignmentsException.class)
+    public ResponseEntity<Map<String, String>> handleActiveResourceAssignmentsException(
+            ActiveResourceAssignmentsException ex) {
+        log.warn("Cannot close event — active resource assignments: {}", ex.getActiveCount());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("code", "ACTIVE_RESOURCE_ASSIGNMENTS");
+        body.put("message", ex.getMessage());
+        body.put("activeCount", String.valueOf(ex.getActiveCount()));
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 }

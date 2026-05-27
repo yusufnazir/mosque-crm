@@ -1,5 +1,6 @@
 package com.mosque.crm.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -17,23 +18,28 @@ import com.mosque.crm.dto.MemberRegistrationCreateDTO;
 import com.mosque.crm.dto.MemberRegistrationDTO;
 import com.mosque.crm.dto.NonMemberRecipientCreateDTO;
 import com.mosque.crm.dto.NonMemberRecipientDTO;
+import com.mosque.crm.dto.NonMemberRecipientUpdateDTO;
 import com.mosque.crm.dto.ParcelCategoryCreateDTO;
 import com.mosque.crm.dto.ParcelCategoryDTO;
 import com.mosque.crm.dto.ParcelDistributionCreateDTO;
 import com.mosque.crm.dto.ParcelDistributionDTO;
 import com.mosque.crm.entity.DistributionEvent;
+import com.mosque.crm.entity.DistributionRegistration;
 import com.mosque.crm.entity.MemberDistributionRegistration;
 import com.mosque.crm.entity.NonMemberRecipient;
 import com.mosque.crm.entity.ParcelCategory;
 import com.mosque.crm.entity.ParcelDistribution;
 import com.mosque.crm.entity.Person;
 import com.mosque.crm.enums.DistributionEventStatus;
+import com.mosque.crm.enums.EventKind;
 import com.mosque.crm.enums.OrganizationEventType;
+import com.mosque.crm.enums.ParcelWeightUnit;
 import com.mosque.crm.enums.RecipientStatus;
 import com.mosque.crm.enums.RecipientType;
 import com.mosque.crm.enums.RegistrationStatus;
 import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.DistributionEventRepository;
+import com.mosque.crm.repository.DistributionRegistrationRepository;
 import com.mosque.crm.repository.GeneralEventRepository;
 import com.mosque.crm.repository.MemberDistributionRegistrationRepository;
 import com.mosque.crm.repository.NonMemberRecipientRepository;
@@ -57,6 +63,10 @@ public class DistributionService {
     private final ParcelDistributionRepository parcelDistributionRepository;
     private final PersonRepository personRepository;
     private final OrganizationSubscriptionService organizationSubscriptionService;
+    private final EventResourceAssignmentService eventResourceAssignmentService;
+    private final EventFeatureCleanupService eventFeatureCleanupService;
+    private final DistributionRegistrationService distributionRegistrationService;
+    private final DistributionRegistrationRepository distributionRegistrationRepository;
 
     public DistributionService(
             DistributionEventRepository distributionEventRepository,
@@ -66,7 +76,11 @@ public class DistributionService {
             MemberDistributionRegistrationRepository memberRegistrationRepository,
             ParcelDistributionRepository parcelDistributionRepository,
             PersonRepository personRepository,
-            OrganizationSubscriptionService organizationSubscriptionService) {
+            OrganizationSubscriptionService organizationSubscriptionService,
+            EventResourceAssignmentService eventResourceAssignmentService,
+            EventFeatureCleanupService eventFeatureCleanupService,
+            DistributionRegistrationService distributionRegistrationService,
+            DistributionRegistrationRepository distributionRegistrationRepository) {
         this.distributionEventRepository = distributionEventRepository;
         this.generalEventRepository = generalEventRepository;
         this.parcelCategoryRepository = parcelCategoryRepository;
@@ -75,6 +89,10 @@ public class DistributionService {
         this.parcelDistributionRepository = parcelDistributionRepository;
         this.personRepository = personRepository;
         this.organizationSubscriptionService = organizationSubscriptionService;
+        this.eventResourceAssignmentService = eventResourceAssignmentService;
+        this.eventFeatureCleanupService = eventFeatureCleanupService;
+        this.distributionRegistrationService = distributionRegistrationService;
+        this.distributionRegistrationRepository = distributionRegistrationRepository;
     }
 
     // ========================
@@ -115,6 +133,12 @@ public class DistributionService {
         if (dto.getNonMemberCapacity() != null) {
             event.setNonMemberCapacity(dto.getNonMemberCapacity());
         }
+        if (dto.getParcelKgPerUnit() != null) {
+            event.setParcelKgPerUnit(dto.getParcelKgPerUnit());
+        } else {
+            event.setParcelKgPerUnit(BigDecimal.ONE);
+        }
+        applyParcelWeightUnit(event, dto.getParcelWeightUnit());
         event = distributionEventRepository.save(event);
         log.info("Created distribution event: {} (id={})", event.getName(), event.getId());
         return convertToEventDTO(event);
@@ -134,6 +158,12 @@ public class DistributionService {
         if (dto.getNonMemberCapacity() != null) {
             event.setNonMemberCapacity(dto.getNonMemberCapacity());
         }
+        if (dto.getParcelKgPerUnit() != null) {
+            event.setParcelKgPerUnit(dto.getParcelKgPerUnit());
+        }
+        if (dto.getParcelWeightUnit() != null) {
+            applyParcelWeightUnit(event, dto.getParcelWeightUnit());
+        }
         event = distributionEventRepository.save(event);
         log.info("Updated distribution event: {} (id={})", event.getName(), event.getId());
         return convertToEventDTO(event);
@@ -143,6 +173,9 @@ public class DistributionService {
     public DistributionEventDTO updateEventStatus(Long id, String status) {
         DistributionEvent event = distributionEventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Distribution event not found: " + id));
+        if (DistributionEventStatus.valueOf(status) == DistributionEventStatus.CLOSED) {
+            eventResourceAssignmentService.assertNoActiveAssignments(EventKind.DISTRIBUTION, id);
+        }
         event.setStatus(DistributionEventStatus.valueOf(status));
         event = distributionEventRepository.save(event);
         log.info("Updated distribution event status: {} -> {} (id={})", event.getName(), status, event.getId());
@@ -153,7 +186,9 @@ public class DistributionService {
     public void deleteEvent(Long id) {
         DistributionEvent event = distributionEventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Distribution event not found: " + id));
+        eventFeatureCleanupService.deleteAllForEvent(EventKind.DISTRIBUTION, id);
         parcelDistributionRepository.deleteByDistributionEventId(id);
+        distributionRegistrationService.deleteAllForEvent(id);
         memberRegistrationRepository.deleteByDistributionEventId(id);
         nonMemberRecipientRepository.deleteByDistributionEventId(id);
         parcelCategoryRepository.deleteByDistributionEventId(id);
@@ -184,32 +219,30 @@ public class DistributionService {
         distributionEventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Distribution event not found: " + eventId));
 
-        List<ParcelCategory> categories = parcelCategoryRepository.findByDistributionEventIdOrderByNameAsc(eventId);
-        int totalParcels = categories.stream().mapToInt(ParcelCategory::getTotalParcels).sum();
-        int distributedParcels = categories.stream().mapToInt(ParcelCategory::getDistributedParcels).sum();
-
-        long totalMembers = memberRegistrationRepository.countByDistributionEventId(eventId);
-        long totalNonMembers = nonMemberRecipientRepository.countByDistributionEventId(eventId);
-
-        List<MemberDistributionRegistration> memberRegs = memberRegistrationRepository
+        distributionRegistrationService.migrateLegacyRecipientsIfNeeded(eventId);
+        List<DistributionRegistration> parcelRegs = distributionRegistrationRepository
                 .findByDistributionEventIdOrderByRegisteredAtDesc(eventId);
-        long collectedMembers = memberRegs.stream()
+        int totalParcels = parcelRegs.stream().mapToInt(DistributionRegistration::getPlannedParcelCount).sum();
+        int distributedParcels = parcelRegs.stream().mapToInt(DistributionRegistration::getDistributedParcelCount).sum();
+        long totalRegistrations = parcelRegs.size();
+        long collectedRegistrations = parcelRegs.stream()
                 .filter(r -> r.getStatus() == RegistrationStatus.COLLECTED).count();
-
-        List<NonMemberRecipient> nonMemberRegs = nonMemberRecipientRepository
-                .findByDistributionEventIdOrderByDistributionNumberAsc(eventId);
-        long collectedNonMembers = nonMemberRegs.stream()
-                .filter(r -> r.getStatus() == RecipientStatus.COLLECTED).count();
+        long memberRegCount = parcelRegs.stream().filter(DistributionRegistration::isMember).count();
+        long nonMemberRegCount = totalRegistrations - memberRegCount;
 
         DistributionSummaryDTO summary = new DistributionSummaryDTO();
         summary.setTotalParcels(totalParcels);
         summary.setDistributedParcels(distributedParcels);
         summary.setRemainingParcels(totalParcels - distributedParcels);
-        summary.setTotalMembers((int) totalMembers);
-        summary.setTotalNonMembers((int) totalNonMembers);
-        summary.setCollectedMembers((int) collectedMembers);
-        summary.setCollectedNonMembers((int) collectedNonMembers);
-        summary.setNonMemberAllocation(categories.stream().mapToInt(ParcelCategory::getNonMemberAllocation).sum());
+        summary.setTotalMembers((int) memberRegCount);
+        summary.setTotalNonMembers((int) nonMemberRegCount);
+        summary.setCollectedMembers((int) parcelRegs.stream().filter(DistributionRegistration::isMember)
+                .filter(r -> r.getStatus() == RegistrationStatus.COLLECTED).count());
+        summary.setCollectedNonMembers((int) parcelRegs.stream().filter(r -> !r.isMember())
+                .filter(r -> r.getStatus() == RegistrationStatus.COLLECTED).count());
+        summary.setTotalRegistrations((int) totalRegistrations);
+        summary.setCollectedRegistrations((int) collectedRegistrations);
+        summary.setNonMemberAllocation(0);
         return summary;
     }
 
@@ -270,10 +303,8 @@ public class DistributionService {
 
     @Transactional
     public NonMemberRecipientDTO createNonMember(NonMemberRecipientCreateDTO dto) {
-        DistributionEvent event = distributionEventRepository.findById(dto.getDistributionEventId())
+        DistributionEvent event = distributionEventRepository.findByIdForUpdate(dto.getDistributionEventId())
                 .orElseThrow(() -> new RuntimeException("Distribution event not found: " + dto.getDistributionEventId()));
-
-        String distributionNumber = generateDistributionNumber(event.getId());
 
         // Non-member registration requires non-member allocation to be configured
         int nonMemberAllocation = parcelCategoryRepository.findByDistributionEventIdOrderByNameAsc(event.getId())
@@ -281,6 +312,14 @@ public class DistributionService {
         if (nonMemberAllocation <= 0) {
             throw new RuntimeException("Configure non-member parcel allocation before registering non-members");
         }
+
+        long currentCount = nonMemberRecipientRepository.countByDistributionEventId(event.getId());
+        if (currentCount >= nonMemberAllocation) {
+            throw new RuntimeException(
+                    "Non-member registration capacity reached (" + currentCount + "/" + nonMemberAllocation + ")");
+        }
+
+        String distributionNumber = generateDistributionNumber(event.getId());
 
         NonMemberRecipient recipient = new NonMemberRecipient();
         recipient.setDistributionEvent(event);
@@ -318,6 +357,49 @@ public class DistributionService {
         return convertToNonMemberDTO(recipient);
     }
 
+    @Transactional
+    public NonMemberRecipientDTO updateNonMember(Long id, NonMemberRecipientUpdateDTO dto) {
+        NonMemberRecipient recipient = nonMemberRecipientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Non-member recipient not found: " + id));
+        assertNonMemberRegistrationEditable(recipient);
+
+        recipient.setName(dto.getName());
+        recipient.setIdNumber(dto.getIdNumber());
+        recipient.setPhoneNumber(dto.getPhoneNumber());
+        recipient = nonMemberRecipientRepository.save(recipient);
+        log.info("Updated non-member recipient: {} number={} (id={})",
+                recipient.getName(), recipient.getDistributionNumber(), recipient.getId());
+        return convertToNonMemberDTO(recipient);
+    }
+
+    @Transactional
+    public void deleteNonMember(Long id) {
+        NonMemberRecipient recipient = nonMemberRecipientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Non-member recipient not found: " + id));
+        assertNonMemberRegistrationEditable(recipient);
+
+        nonMemberRecipientRepository.delete(recipient);
+        log.info("Deleted non-member recipient: {} number={} (id={})",
+                recipient.getName(), recipient.getDistributionNumber(), recipient.getId());
+    }
+
+    private void assertNonMemberRegistrationEditable(NonMemberRecipient recipient) {
+        DistributionEvent event = recipient.getDistributionEvent();
+        if (event.getStatus() == DistributionEventStatus.CLOSED) {
+            throw new RuntimeException("Cannot change non-member registrations on a closed event");
+        }
+        if (recipient.getStatus() != RecipientStatus.REGISTERED) {
+            throw new RuntimeException("Cannot change a non-member who has already collected parcels");
+        }
+
+        List<ParcelDistribution> distributions = parcelDistributionRepository
+                .findByDistributionEventIdAndRecipientTypeAndRecipientId(
+                        event.getId(), RecipientType.NON_MEMBER, recipient.getId());
+        if (!distributions.isEmpty()) {
+            throw new RuntimeException("Cannot change a non-member with distribution records");
+        }
+    }
+
     // ========================
     // Member Registrations
     // ========================
@@ -327,21 +409,32 @@ public class DistributionService {
         DistributionEvent event = distributionEventRepository.findById(dto.getDistributionEventId())
                 .orElseThrow(() -> new RuntimeException("Distribution event not found: " + dto.getDistributionEventId()));
 
-        Person person = personRepository.findById(dto.getPersonId())
-                .orElseThrow(() -> new RuntimeException("Person not found: " + dto.getPersonId()));
-
-        memberRegistrationRepository.findByDistributionEventIdAndPersonId(event.getId(), person.getId())
-                .ifPresent(existing -> {
-                    throw new RuntimeException("Person is already registered for this event");
-                });
-
+        String workerName = dto.getPersonName().trim();
         MemberDistributionRegistration reg = new MemberDistributionRegistration();
         reg.setDistributionEvent(event);
-        reg.setPerson(person);
+        reg.setWorkerName(workerName);
         reg.setStatus(RegistrationStatus.REGISTERED);
         reg.setRegisteredAt(LocalDateTime.now());
+
+        if (dto.getPersonId() != null) {
+            Person person = personRepository.findById(dto.getPersonId())
+                    .orElseThrow(() -> new RuntimeException("Person not found: " + dto.getPersonId()));
+            memberRegistrationRepository.findByDistributionEventIdAndPersonId(event.getId(), person.getId())
+                    .ifPresent(existing -> {
+                        throw new RuntimeException("This person is already registered as a worker for this event");
+                    });
+            reg.setPerson(person);
+            reg.setMember(Boolean.TRUE.equals(dto.getMember()));
+        } else {
+            if (memberRegistrationRepository.existsByDistributionEventIdAndPersonIdIsNullAndWorkerNameIgnoreCase(
+                    event.getId(), workerName)) {
+                throw new RuntimeException("A worker with this name is already registered for this event");
+            }
+            reg.setMember(false);
+        }
+
         reg = memberRegistrationRepository.save(reg);
-        log.info("Registered member {} for event {} (id={})", person.getId(), event.getId(), reg.getId());
+        log.info("Registered worker for event {} (id={}, member={})", event.getId(), reg.getId(), reg.isMember());
         return convertToMemberRegDTO(reg);
     }
 
@@ -360,6 +453,32 @@ public class DistributionService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteMemberRegistration(Long id) {
+        MemberDistributionRegistration reg = memberRegistrationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Member registration not found: " + id));
+        assertMemberRegistrationEditable(reg);
+        memberRegistrationRepository.delete(reg);
+        log.info("Deleted worker registration {} on event {} (id={})",
+                reg.getWorkerName(), reg.getDistributionEvent().getId(), reg.getId());
+    }
+
+    private void assertMemberRegistrationEditable(MemberDistributionRegistration reg) {
+        DistributionEvent event = reg.getDistributionEvent();
+        if (event.getStatus() == DistributionEventStatus.CLOSED) {
+            throw new RuntimeException("Cannot change member registrations on a closed event");
+        }
+        if (reg.getStatus() != RegistrationStatus.REGISTERED) {
+            throw new RuntimeException("Cannot remove a member who has already collected parcels");
+        }
+        List<ParcelDistribution> distributions = parcelDistributionRepository
+                .findByDistributionEventIdAndRecipientTypeAndRecipientId(
+                        event.getId(), RecipientType.MEMBER, reg.getId());
+        if (!distributions.isEmpty()) {
+            throw new RuntimeException("Cannot remove a member with distribution records");
+        }
+    }
+
     // ========================
     // Parcel Distribution
     // ========================
@@ -373,19 +492,30 @@ public class DistributionService {
             throw new RuntimeException("Distribution event is closed");
         }
 
-        ParcelCategory category = parcelCategoryRepository.findById(dto.getParcelCategoryId())
-                .orElseThrow(() -> new RuntimeException("Parcel category not found: " + dto.getParcelCategoryId()));
-
         RecipientType recipientType = RecipientType.valueOf(dto.getRecipientType());
         int parcelCount = dto.getParcelCount();
 
-        // Business rule: prevent over-distribution
-        if (parcelCount > category.getRemainingParcels()) {
-            throw new RuntimeException("Not enough parcels available. Remaining: " + category.getRemainingParcels());
+        boolean useCategoryInventory = dto.getParcelCategoryId() != null;
+        ParcelCategory category;
+        if (useCategoryInventory) {
+            category = parcelCategoryRepository.findById(dto.getParcelCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Parcel category not found: " + dto.getParcelCategoryId()));
+            if (parcelCount > category.getRemainingParcels()) {
+                throw new RuntimeException("Not enough parcels available. Remaining: " + category.getRemainingParcels());
+            }
+        } else {
+            category = getOrCreateDefaultCategory(event);
         }
 
         String recipientName;
-        if (recipientType == RecipientType.MEMBER) {
+        if (recipientType == RecipientType.REGISTRATION) {
+            DistributionRegistration reg = distributionRegistrationService.getRegistrationEntity(dto.getRecipientId());
+            if (reg.getStatus() != RegistrationStatus.REGISTERED) {
+                throw new RuntimeException("Registration has already been fulfilled");
+            }
+            distributionRegistrationService.applyDistribution(reg, parcelCount);
+            recipientName = distributionRegistrationService.formatRecipientLabel(reg);
+        } else if (recipientType == RecipientType.MEMBER) {
             MemberDistributionRegistration reg = memberRegistrationRepository.findById(dto.getRecipientId())
                     .orElseThrow(() -> new RuntimeException("Member registration not found: " + dto.getRecipientId()));
 
@@ -393,12 +523,10 @@ public class DistributionService {
                 throw new RuntimeException("Member has already collected parcels");
             }
 
-            // Mark as collected
             reg.setStatus(RegistrationStatus.COLLECTED);
             memberRegistrationRepository.save(reg);
 
-            Person person = reg.getPerson();
-            recipientName = person.getFirstName() + " " + person.getLastName();
+            recipientName = reg.getWorkerName();
         } else {
             NonMemberRecipient recipient = nonMemberRecipientRepository.findById(dto.getRecipientId())
                     .orElseThrow(() -> new RuntimeException("Non-member recipient not found: " + dto.getRecipientId()));
@@ -414,9 +542,10 @@ public class DistributionService {
             recipientName = recipient.getDistributionNumber() + " — " + recipient.getName();
         }
 
-        // Update distributed count
-        category.setDistributedParcels(category.getDistributedParcels() + parcelCount);
-        parcelCategoryRepository.save(category);
+        if (useCategoryInventory) {
+            category.setDistributedParcels(category.getDistributedParcels() + parcelCount);
+            parcelCategoryRepository.save(category);
+        }
 
         // Create distribution record
         ParcelDistribution dist = new ParcelDistribution();
@@ -453,6 +582,11 @@ public class DistributionService {
                 .stream()
                 .collect(Collectors.toMap(MemberDistributionRegistration::getId, r -> r));
 
+        Map<Long, DistributionRegistration> registrationMap = distributionRegistrationRepository
+                .findByDistributionEventIdOrderByRegisteredAtDesc(eventId)
+                .stream()
+                .collect(Collectors.toMap(DistributionRegistration::getId, r -> r));
+
         return dists.stream().map(dist -> {
             ParcelDistributionDTO dto = convertToDistributionDTO(dist);
             if (dist.getRecipientType() == RecipientType.NON_MEMBER) {
@@ -460,11 +594,15 @@ public class DistributionService {
                 if (nm != null) {
                     dto.setRecipientName(nm.getDistributionNumber() + " — " + nm.getName());
                 }
+            } else if (dist.getRecipientType() == RecipientType.REGISTRATION) {
+                DistributionRegistration reg = registrationMap.get(dist.getRecipientId());
+                if (reg != null) {
+                    dto.setRecipientName(distributionRegistrationService.formatRecipientLabel(reg));
+                }
             } else {
                 MemberDistributionRegistration mr = memberMap.get(dist.getRecipientId());
                 if (mr != null) {
-                    Person person = mr.getPerson();
-                    dto.setRecipientName(person.getFirstName() + " " + person.getLastName());
+                    dto.setRecipientName(mr.getWorkerName());
                 }
             }
             return dto;
@@ -483,8 +621,8 @@ public class DistributionService {
     // ========================
 
     private String generateDistributionNumber(Long eventId) {
-        long count = nonMemberRecipientRepository.countByDistributionEventId(eventId);
-        return String.format("N-%03d", count + 1);
+        int maxSeq = nonMemberRecipientRepository.findMaxDistributionSequence(eventId);
+        return String.format("N-%03d", maxSeq + 1);
     }
 
     private DistributionEventDTO convertToEventDTO(DistributionEvent event) {
@@ -498,9 +636,37 @@ public class DistributionService {
         dto.setEventType(event.getEventType().name());
         dto.setMemberCapacity(event.getMemberCapacity());
         dto.setNonMemberCapacity(event.getNonMemberCapacity());
+        dto.setParcelKgPerUnit(event.getParcelKgPerUnit());
+        dto.setParcelWeightUnit(event.getParcelWeightUnit().name());
         dto.setCreatedAt(event.getCreatedAt());
         dto.setUpdatedAt(event.getUpdatedAt());
         return dto;
+    }
+
+    private static final String DEFAULT_PARCEL_CATEGORY_NAME = "Parcels";
+
+    private void applyParcelWeightUnit(DistributionEvent event, String unit) {
+        if (unit == null || unit.isBlank()) {
+            event.setParcelWeightUnit(ParcelWeightUnit.KG);
+            return;
+        }
+        event.setParcelWeightUnit(ParcelWeightUnit.valueOf(unit.trim().toUpperCase()));
+    }
+
+    private ParcelCategory getOrCreateDefaultCategory(DistributionEvent event) {
+        return parcelCategoryRepository.findByDistributionEventIdOrderByNameAsc(event.getId())
+                .stream()
+                .filter(c -> DEFAULT_PARCEL_CATEGORY_NAME.equals(c.getName()))
+                .findFirst()
+                .orElseGet(() -> {
+                    ParcelCategory category = new ParcelCategory();
+                    category.setDistributionEvent(event);
+                    category.setName(DEFAULT_PARCEL_CATEGORY_NAME);
+                    category.setTotalParcels(1_000_000);
+                    category.setDistributedParcels(0);
+                    category.setNonMemberAllocation(0);
+                    return parcelCategoryRepository.save(category);
+                });
     }
 
     private ParcelCategoryDTO convertToCategoryDTO(ParcelCategory category) {
@@ -537,8 +703,11 @@ public class DistributionService {
         MemberRegistrationDTO dto = new MemberRegistrationDTO();
         dto.setId(reg.getId());
         dto.setDistributionEventId(reg.getDistributionEvent().getId());
-        dto.setPersonId(reg.getPerson().getId());
-        dto.setPersonName(reg.getPerson().getFirstName() + " " + reg.getPerson().getLastName());
+        if (reg.getPerson() != null) {
+            dto.setPersonId(reg.getPerson().getId());
+        }
+        dto.setPersonName(reg.getWorkerName());
+        dto.setMember(reg.isMember());
         dto.setStatus(reg.getStatus().name());
         dto.setRegisteredAt(reg.getRegisteredAt());
         dto.setCreatedAt(reg.getCreatedAt());
@@ -552,8 +721,11 @@ public class DistributionService {
         dto.setDistributionEventId(dist.getDistributionEvent().getId());
         dto.setRecipientType(dist.getRecipientType().name());
         dto.setRecipientId(dist.getRecipientId());
-        dto.setParcelCategoryId(dist.getParcelCategory().getId());
-        dto.setParcelCategoryName(dist.getParcelCategory().getName());
+        if (dist.getParcelCategory() != null) {
+            dto.setParcelCategoryId(dist.getParcelCategory().getId());
+            String categoryName = dist.getParcelCategory().getName();
+            dto.setParcelCategoryName(DEFAULT_PARCEL_CATEGORY_NAME.equals(categoryName) ? null : categoryName);
+        }
         dto.setParcelCount(dist.getParcelCount());
         dto.setDistributedBy(dist.getDistributedBy());
         dto.setDistributedAt(dist.getDistributedAt());

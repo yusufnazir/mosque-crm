@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mosque.crm.dto.GeneralEventAttendanceCreateDTO;
 import com.mosque.crm.dto.GeneralEventAttendanceDTO;
+import com.mosque.crm.exception.ActiveResourceAssignmentsException;
 import com.mosque.crm.dto.GeneralEventCreateDTO;
 import com.mosque.crm.dto.GeneralEventDTO;
 import com.mosque.crm.dto.GeneralEventDocumentDTO;
@@ -106,6 +107,8 @@ public class GeneralEventController {
         try {
             String status = body.get("status");
             return ResponseEntity.ok(generalEventService.updateEventStatus(id, status));
+        } catch (ActiveResourceAssignmentsException e) {
+            throw e;
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

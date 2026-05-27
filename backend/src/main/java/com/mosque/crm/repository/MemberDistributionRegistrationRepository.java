@@ -15,6 +15,9 @@ public interface MemberDistributionRegistrationRepository extends JpaRepository<
 
     Optional<MemberDistributionRegistration> findByDistributionEventIdAndPersonId(Long distributionEventId, Long personId);
 
+    boolean existsByDistributionEventIdAndPersonIdIsNullAndWorkerNameIgnoreCase(
+            Long distributionEventId, String workerName);
+
     long countByDistributionEventId(Long distributionEventId);
 
     void deleteByDistributionEventId(Long distributionEventId);

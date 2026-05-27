@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header onMenuToggle={() => setSidebarOpen(true)} />
           <SubscriptionBanner />
-          <main className="flex-1 overflow-auto w-full">{children}</main>
+          <main className="flex-1 overflow-x-hidden overflow-y-auto w-full min-w-0">{children}</main>
         </div>
       </div>
     </PageHeaderProvider>

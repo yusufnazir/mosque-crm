@@ -14,7 +14,7 @@ import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-coo
  * and falls back to NEXT_PUBLIC_BASE_DOMAIN when needed.
  */
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080/api';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8200/api';
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
 
 export async function POST(request: NextRequest) {

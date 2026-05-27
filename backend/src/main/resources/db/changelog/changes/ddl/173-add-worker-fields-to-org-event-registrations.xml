@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000007-0173-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_event_registrations"/>
+            <not><columnExists tableName="org_event_registrations" columnName="worker_name"/></not>
+        </preConditions>
+        <comment>Add worker name and member flag; allow external workers without person link</comment>
+        <addColumn tableName="org_event_registrations">
+            <column name="worker_name" type="VARCHAR(255)"/>
+            <column name="is_member" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>
+            UPDATE org_event_registrations r
+            INNER JOIN persons p ON r.person_id = p.id
+            SET r.worker_name = TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, ''))),
+                r.is_member = TRUE
+            WHERE r.worker_name IS NULL OR TRIM(r.worker_name) = ''
+        </sql>
+        <addNotNullConstraint tableName="org_event_registrations" columnName="worker_name" columnDataType="VARCHAR(255)"/>
+        <dropNotNullConstraint tableName="org_event_registrations" columnName="person_id" columnDataType="BIGINT"/>
+    </changeSet>
+
+</databaseChangeLog>

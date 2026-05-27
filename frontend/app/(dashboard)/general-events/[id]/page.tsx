@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useDateFormat } from '@/lib/DateFormatContext';
 import DateInput from '@/components/DateInput';
-import { memberApi } from '@/lib/api';
+import { memberApi, resolveEventStatusUpdateError } from '@/lib/api';
 import { PersonSearchResult } from '@/types';
 import {
   generalEventApi,
@@ -28,8 +28,20 @@ import {
 } from '@/lib/generalEventApi';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import EventResourcesTab from '@/components/events/EventResourcesTab';
+import EventMemberGroupsTab from '@/components/events/EventMemberGroupsTab';
+import ScrollableTabs from '@/components/ScrollableTabs';
+import { ActionButton, RowActions } from '@/components/events/EventResourceRowActions';
+import {
+  TabSectionHeader,
+  ResponsiveFilters,
+  ResponsiveFilterSelect,
+  MobileCardList,
+  MobileCardItem,
+  DesktopTableWrap,
+} from '@/components/ResponsiveEventLayout';
 
-type Tab = 'overview' | 'registrations' | 'volunteers' | 'sessions' | 'attendance' | 'documents' | 'report';
+type Tab = 'overview' | 'registrations' | 'volunteers' | 'sessions' | 'attendance' | 'documents' | 'report' | 'resources' | 'member_groups';
 
 const STATUS_COLORS: Record<GeneralEventStatus, string> = {
   DRAFT: 'bg-stone-100 text-stone-700',
@@ -81,6 +93,7 @@ export default function GeneralEventDetailPage() {
   const [loading, setLoading] = useState(true);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [showDeleteEvent, setShowDeleteEvent] = useState(false);
 
   // Registration form state
   const [showRegForm, setShowRegForm] = useState(false);
@@ -252,8 +265,24 @@ export default function GeneralEventDetailPage() {
       setEvent(updated);
       setShowStatusMenu(false);
       setToast({ message: t('general_events.toast.status_updated'), type: 'success' });
+    } catch (err) {
+      const { message, goToResourcesTab } = resolveEventStatusUpdateError(err, {
+        fallback: t('general_events.toast.error'),
+        closeBlockedMessage: count => t('event_features.close_blocked', { count }),
+      });
+      setToast({ message, type: 'error' });
+      if (goToResourcesTab) setActiveTab('resources');
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    try {
+      await generalEventApi.deleteEvent(id);
+      setToast({ message: t('general_events.toast.deleted'), type: 'success' });
+      router.push('/events');
     } catch {
       setToast({ message: t('general_events.toast.error'), type: 'error' });
+      setShowDeleteEvent(false);
     }
   };
 
@@ -593,7 +622,7 @@ export default function GeneralEventDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8 flex justify-center pt-16">
+      <div className="p-4 sm:p-8 flex justify-center pt-16">
         <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -601,14 +630,14 @@ export default function GeneralEventDetailPage() {
 
   if (!event) {
     return (
-      <div className="p-8 text-center text-stone-500">Event not found.</div>
+      <div className="p-4 sm:p-8 text-center text-stone-500">Event not found.</div>
     );
   }
 
   const STATUSES: GeneralEventStatus[] = ['DRAFT', 'PUBLISHED', 'ACTIVE', 'CLOSED', 'CANCELLED'];
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0 max-w-full overflow-x-hidden">
       {toast && (
         <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
@@ -657,6 +686,17 @@ export default function GeneralEventDetailPage() {
         onCancel={() => setDeleteDocTarget(null)}
       />
 
+      <ConfirmDialog
+        open={showDeleteEvent}
+        title={t('general_events.delete')}
+        message={t('general_events.delete_confirm_message', { name: event.name })}
+        confirmLabel={t('general_events.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={handleDeleteEvent}
+        onCancel={() => setShowDeleteEvent(false)}
+      />
+
       {/* Header */}
       <div className="mb-6">
         <button
@@ -669,10 +709,10 @@ export default function GeneralEventDetailPage() {
           {t('sidebar.events')}
         </button>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-stone-800">{event.name}</h1>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-stone-800 break-words">{event.name}</h1>
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
                 {t(`general_events.statuses.${event.status}`)}
               </span>
@@ -686,7 +726,7 @@ export default function GeneralEventDetailPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             {/* Status dropdown */}
             <div className="relative">
               <button
@@ -718,23 +758,22 @@ export default function GeneralEventDetailPage() {
             >
               {t('general_events.edit')}
             </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteEvent(true)}
+              className="border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50"
+            >
+              {t('general_events.delete')}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-stone-200 mb-6">
-        <div className="flex gap-1">
-          {(['overview', 'registrations', 'volunteers', 'sessions', 'attendance', 'documents', 'report'] as Tab[]).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab
-                  ? 'border-emerald-600 text-emerald-700'
-                  : 'border-transparent text-stone-500 hover:text-stone-700'
-              }`}
-            >
+      <ScrollableTabs
+        tabs={(['overview', 'registrations', 'volunteers', 'sessions', 'attendance', 'documents', 'resources', 'member_groups', 'report'] as Tab[]).map(tab => ({
+          id: tab,
+          label: (
+            <>
               {t(`general_events.tabs.${tab}`)}
               {tab === 'registrations' && (
                 <span className="ml-1.5 bg-stone-100 text-stone-600 text-xs px-1.5 py-0.5 rounded-full">
@@ -756,10 +795,12 @@ export default function GeneralEventDetailPage() {
                   {documents.length}
                 </span>
               )}
-            </button>
-          ))}
-        </div>
-      </div>
+            </>
+          ),
+        }))}
+        activeId={activeTab}
+        onChange={id => setActiveTab(id as Tab)}
+      />
 
       {/* Overview Tab */}
       {activeTab === 'overview' && (
@@ -863,14 +904,17 @@ export default function GeneralEventDetailPage() {
       {/* Registrations Tab */}
       {activeTab === 'registrations' && (
         <div>
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={openAddReg}
-              className="bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
-            >
-              + {t('general_events.registrations.add')}
-            </button>
-          </div>
+          <TabSectionHeader
+            title={t('general_events.tabs.registrations')}
+            action={
+              <button
+                onClick={openAddReg}
+                className="w-full sm:w-auto bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
+              >
+                + {t('general_events.registrations.add')}
+              </button>
+            }
+          />
 
           {/* Registration Form Modal */}
           {showRegForm && (
@@ -1015,56 +1059,71 @@ export default function GeneralEventDetailPage() {
           {registrations.length === 0 ? (
             <p className="text-stone-400 text-sm text-center py-8">{t('general_events.registrations.no_registrations')}</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-stone-200">
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.name')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.registrant_type')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.party_size')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.rsvp_status')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.check_in_status')}</th>
-                    <th className="text-right py-3 px-4"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {registrations.map(reg => (
-                    <tr key={reg.id} className="border-b border-stone-100 hover:bg-stone-50">
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-stone-800">{reg.name}</div>
-                        {reg.email && <div className="text-xs text-stone-400">{reg.email}</div>}
-                      </td>
-                      <td className="py-3 px-4 text-stone-600">{reg.registrantType === 'MEMBER' ? 'Member' : 'Non-Member'}</td>
-                      <td className="py-3 px-4 text-stone-600">{reg.partySize}</td>
-                      <td className="py-3 px-4">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${RSVP_COLORS[reg.rsvpStatus]}`}>
-                          {reg.rsvpStatus}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${CHECKIN_COLORS[reg.checkInStatus]}`}>
-                          {reg.checkInStatus.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {event.requiresCheckIn && reg.checkInStatus === 'NOT_CHECKED_IN' && (
-                            <button
-                              onClick={() => handleCheckIn(reg.id)}
-                              className="text-xs text-emerald-700 hover:underline font-medium"
-                            >
-                              {t('general_events.registrations.check_in')}
-                            </button>
-                          )}
-                          <button onClick={() => openEditReg(reg)} className="text-xs text-stone-500 hover:text-stone-700">Edit</button>
-                          <button onClick={() => setDeleteRegTarget(reg)} className="text-xs text-red-500 hover:text-red-700">Delete</button>
-                        </div>
-                      </td>
+            <>
+              <MobileCardList>
+                {registrations.map(reg => (
+                  <MobileCardItem key={reg.id}>
+                    <p className="text-sm font-semibold text-stone-900">{reg.name}</p>
+                    {reg.email && <p className="text-xs text-stone-500 mt-0.5">{reg.email}</p>}
+                    <p className="text-sm text-stone-600 mt-1">
+                      {reg.registrantType === 'MEMBER' ? 'Member' : 'Non-Member'} · {t('general_events.registrations.party_size')}: {reg.partySize}
+                    </p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${RSVP_COLORS[reg.rsvpStatus]}`}>{reg.rsvpStatus}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${CHECKIN_COLORS[reg.checkInStatus]}`}>{reg.checkInStatus.replace('_', ' ')}</span>
+                    </div>
+                    <RowActions>
+                      {event.requiresCheckIn && reg.checkInStatus === 'NOT_CHECKED_IN' && (
+                        <ActionButton variant="primary" onClick={() => handleCheckIn(reg.id)}>{t('general_events.registrations.check_in')}</ActionButton>
+                      )}
+                      <ActionButton variant="default" onClick={() => openEditReg(reg)}>{t('common.edit')}</ActionButton>
+                      <ActionButton variant="danger" onClick={() => setDeleteRegTarget(reg)}>{t('common.delete')}</ActionButton>
+                    </RowActions>
+                  </MobileCardItem>
+                ))}
+              </MobileCardList>
+              <DesktopTableWrap>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-stone-200 bg-stone-50">
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.name')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.registrant_type')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.party_size')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.rsvp_status')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.check_in_status')}</th>
+                      <th className="text-right py-3 px-4"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {registrations.map(reg => (
+                      <tr key={reg.id} className="border-b border-stone-100 hover:bg-stone-50">
+                        <td className="py-3 px-4">
+                          <div className="font-medium text-stone-800">{reg.name}</div>
+                          {reg.email && <div className="text-xs text-stone-400">{reg.email}</div>}
+                        </td>
+                        <td className="py-3 px-4 text-stone-600">{reg.registrantType === 'MEMBER' ? 'Member' : 'Non-Member'}</td>
+                        <td className="py-3 px-4 text-stone-600">{reg.partySize}</td>
+                        <td className="py-3 px-4">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${RSVP_COLORS[reg.rsvpStatus]}`}>{reg.rsvpStatus}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${CHECKIN_COLORS[reg.checkInStatus]}`}>{reg.checkInStatus.replace('_', ' ')}</span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2 flex-wrap">
+                            {event.requiresCheckIn && reg.checkInStatus === 'NOT_CHECKED_IN' && (
+                              <button onClick={() => handleCheckIn(reg.id)} className="text-xs text-emerald-700 hover:underline font-medium">{t('general_events.registrations.check_in')}</button>
+                            )}
+                            <button onClick={() => openEditReg(reg)} className="text-xs text-stone-500 hover:text-stone-700">{t('common.edit')}</button>
+                            <button onClick={() => setDeleteRegTarget(reg)} className="text-xs text-red-500 hover:text-red-700">{t('common.delete')}</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </DesktopTableWrap>
+            </>
           )}
         </div>
       )}
@@ -1072,14 +1131,17 @@ export default function GeneralEventDetailPage() {
       {/* Volunteers Tab */}
       {activeTab === 'volunteers' && (
         <div>
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={openAddVol}
-              className="bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
-            >
-              + {t('general_events.volunteers.add')}
-            </button>
-          </div>
+          <TabSectionHeader
+            title={t('general_events.tabs.volunteers')}
+            action={
+              <button
+                onClick={openAddVol}
+                className="w-full sm:w-auto bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
+              >
+                + {t('general_events.volunteers.add')}
+              </button>
+            }
+          />
 
           {/* Volunteer Form Modal */}
           {showVolForm && (
@@ -1150,40 +1212,56 @@ export default function GeneralEventDetailPage() {
           {volunteers.length === 0 ? (
             <p className="text-stone-400 text-sm text-center py-8">{t('general_events.volunteers.no_volunteers')}</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-stone-200">
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.volunteers.person')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.volunteers.role')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.volunteers.status')}</th>
-                    <th className="text-right py-3 px-4"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {volunteers.map(vol => (
-                    <tr key={vol.id} className="border-b border-stone-100 hover:bg-stone-50">
-                      <td className="py-3 px-4 font-medium text-stone-800">{vol.personName}</td>
-                      <td className="py-3 px-4 text-stone-600">
-                        <div>{vol.role}</div>
-                        {vol.roleDescription && <div className="text-xs text-stone-400">{vol.roleDescription}</div>}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${VOLUNTEER_STATUS_COLORS[vol.status]}`}>
-                          {vol.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => openEditVol(vol)} className="text-xs text-stone-500 hover:text-stone-700">Edit</button>
-                          <button onClick={() => setDeleteVolTarget(vol)} className="text-xs text-red-500 hover:text-red-700">Delete</button>
-                        </div>
-                      </td>
+            <>
+              <MobileCardList>
+                {volunteers.map(vol => (
+                  <MobileCardItem key={vol.id}>
+                    <p className="text-sm font-semibold text-stone-900">{vol.personName}</p>
+                    <p className="text-sm text-stone-600 mt-0.5">{vol.role}</p>
+                    {vol.roleDescription && <p className="text-xs text-stone-400 mt-0.5">{vol.roleDescription}</p>}
+                    <div className="mt-2">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${VOLUNTEER_STATUS_COLORS[vol.status]}`}>{vol.status}</span>
+                    </div>
+                    <RowActions>
+                      <ActionButton variant="default" onClick={() => openEditVol(vol)}>{t('common.edit')}</ActionButton>
+                      <ActionButton variant="danger" onClick={() => setDeleteVolTarget(vol)}>{t('common.delete')}</ActionButton>
+                    </RowActions>
+                  </MobileCardItem>
+                ))}
+              </MobileCardList>
+              <DesktopTableWrap>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-stone-200 bg-stone-50">
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.volunteers.person')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.volunteers.role')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.volunteers.status')}</th>
+                      <th className="text-right py-3 px-4"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {volunteers.map(vol => (
+                      <tr key={vol.id} className="border-b border-stone-100 hover:bg-stone-50">
+                        <td className="py-3 px-4 font-medium text-stone-800">{vol.personName}</td>
+                        <td className="py-3 px-4 text-stone-600">
+                          <div>{vol.role}</div>
+                          {vol.roleDescription && <div className="text-xs text-stone-400">{vol.roleDescription}</div>}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${VOLUNTEER_STATUS_COLORS[vol.status]}`}>{vol.status}</span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2 flex-wrap">
+                            <button onClick={() => openEditVol(vol)} className="text-xs text-stone-500 hover:text-stone-700">{t('common.edit')}</button>
+                            <button onClick={() => setDeleteVolTarget(vol)} className="text-xs text-red-500 hover:text-red-700">{t('common.delete')}</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </DesktopTableWrap>
+            </>
           )}
         </div>
       )}
@@ -1191,14 +1269,17 @@ export default function GeneralEventDetailPage() {
       {/* Sessions Tab */}
       {activeTab === 'sessions' && (
         <div>
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={openAddSession}
-              className="bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
-            >
-              + {t('general_events.sessions.add')}
-            </button>
-          </div>
+          <TabSectionHeader
+            title={t('general_events.tabs.sessions')}
+            action={
+              <button
+                onClick={openAddSession}
+                className="w-full sm:w-auto bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
+              >
+                + {t('general_events.sessions.add')}
+              </button>
+            }
+          />
 
           {/* Session Form Modal */}
           {showSessionForm && (
@@ -1304,8 +1385,8 @@ export default function GeneralEventDetailPage() {
           ) : (
             <div className="space-y-3">
               {sessions.map(s => (
-                <div key={s.id} className="bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between">
-                  <div className="flex-1">
+                <div key={s.id} className="bg-white border border-stone-200 rounded-xl p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex-1 min-w-0">
                     <div className="font-medium text-stone-800">{s.sessionName}</div>
                     <div className="text-xs text-stone-500 mt-0.5">
                       {formatDate(s.sessionDate)}
@@ -1324,15 +1405,15 @@ export default function GeneralEventDetailPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex flex-wrap gap-2 sm:ml-4 shrink-0">
                     <button
                       onClick={() => { setSelectedSessionId(s.id); setActiveTab('attendance'); }}
-                      className="text-xs text-emerald-700 hover:underline font-medium"
+                      className="flex-1 sm:flex-none text-xs text-emerald-700 hover:underline font-medium px-3 py-2 bg-emerald-50 rounded-lg"
                     >
                       {t('general_events.sessions.view_attendance')}
                     </button>
-                    <button onClick={() => openEditSession(s)} className="text-xs text-stone-500 hover:text-stone-700">Edit</button>
-                    <button onClick={() => setDeleteSessionTarget(s)} className="text-xs text-red-500 hover:text-red-700">Delete</button>
+                    <button onClick={() => openEditSession(s)} className="flex-1 sm:flex-none text-xs text-stone-600 px-3 py-2 border border-stone-200 rounded-lg">{t('common.edit')}</button>
+                    <button onClick={() => setDeleteSessionTarget(s)} className="flex-1 sm:flex-none text-xs text-red-600 px-3 py-2 border border-red-100 rounded-lg">{t('common.delete')}</button>
                   </div>
                 </div>
               ))}
@@ -1344,33 +1425,30 @@ export default function GeneralEventDetailPage() {
       {/* Attendance Tab */}
       {activeTab === 'attendance' && (
         <div>
-          {/* Session Selector */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex-1">
-              <select
-                value={selectedSessionId ?? ''}
-                onChange={e => setSelectedSessionId(e.target.value ? Number(e.target.value) : null)}
-                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="">{t('general_events.attendance.select_session')}</option>
-                {sessions.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.sessionName} · {formatDate(s.sessionDate)}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="flex flex-col gap-3 mb-4">
+            <ResponsiveFilterSelect
+              value={selectedSessionId ?? ''}
+              onChange={e => setSelectedSessionId(e.target.value ? Number(e.target.value) : null)}
+              className="w-full"
+            >
+              <option value="">{t('general_events.attendance.select_session')}</option>
+              {sessions.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.sessionName} · {formatDate(s.sessionDate)}
+                </option>
+              ))}
+            </ResponsiveFilterSelect>
             {selectedSessionId && (
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => handlePrepopulate(selectedSessionId)}
-                  className="border border-emerald-600 text-emerald-700 px-3 py-2 rounded-lg text-sm hover:bg-emerald-50"
+                  className="w-full sm:w-auto border border-emerald-600 text-emerald-700 px-3 py-2 rounded-lg text-sm hover:bg-emerald-50"
                 >
                   {t('general_events.attendance.prepopulate')}
                 </button>
                 <button
                   onClick={() => setShowWalkInForm(true)}
-                  className="bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
+                  className="w-full sm:w-auto bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
                 >
                   + {t('general_events.attendance.add_walk_in')}
                 </button>
@@ -1469,96 +1547,121 @@ export default function GeneralEventDetailPage() {
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-stone-200">
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.person')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.type')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.status')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.checked_in_at')}</th>
-                    <th className="text-right py-3 px-4"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {attendance.map(row => (
-                    <tr key={row.id} className="border-b border-stone-100 hover:bg-stone-50">
-                      <td className="py-3 px-4 font-medium text-stone-800">
-                        {row.personName ?? row.walkInName ?? '—'}
-                      </td>
-                      <td className="py-3 px-4">
-                        {row.registrationId ? (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Registered</span>
-                        ) : (
-                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Walk-in</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        {row.registrationId ? (
-                          <select
-                            value={row.status}
-                            onChange={e => handleMarkStatus(selectedSessionId, row, e.target.value as AttendanceStatus)}
-                            className={`text-xs font-medium px-2 py-0.5 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 ${ATTENDANCE_STATUS_COLORS[row.status]}`}
-                          >
-                            {(['PRESENT', 'LATE', 'ABSENT', 'EXCUSED'] as AttendanceStatus[]).map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
-                        ) : (
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ATTENDANCE_STATUS_COLORS[row.status]}`}>
-                            {row.status}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-stone-500 text-xs">
-                        {editingCheckedInId === row.id ? (
-                          <input
-                            type="text"
-                            autoFocus
-                            placeholder="HH:MM"
-                            maxLength={5}
-                            defaultValue={row.checkedInAt ? new Date(row.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : ''}
-                            className="border border-emerald-400 rounded px-1.5 py-0.5 text-xs text-stone-700 w-16 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                            onBlur={e => {
-                              const val = e.target.value.trim();
-                              if (!val) { setEditingCheckedInId(null); return; }
-                              const match = val.match(/^(\d{1,2}):(\d{2})$/);
-                              if (!match) { setEditingCheckedInId(null); return; }
-                              const base = row.checkedInAt ? new Date(row.checkedInAt) : new Date();
-                              base.setHours(parseInt(match[1]), parseInt(match[2]), 0, 0);
-                              // Send local wall-clock time (no UTC conversion) so backend stores what the user typed
-                              const pad = (n: number) => String(n).padStart(2, '0');
-                              const localISO = `${base.getFullYear()}-${pad(base.getMonth()+1)}-${pad(base.getDate())}T${pad(base.getHours())}:${pad(base.getMinutes())}:00`;
-                              handleUpdateCheckedIn(selectedSessionId, row, localISO);
-                            }}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                              if (e.key === 'Escape') setEditingCheckedInId(null);
-                            }}
-                          />
-                        ) : (
-                          <span
-                            className="cursor-pointer hover:text-emerald-700 hover:underline"
-                            title="Click to edit"
-                            onClick={() => setEditingCheckedInId(row.id)}
-                          >
-                            {row.checkedInAt ? new Date(row.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '—'}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={() => handleDeleteAttendance(selectedSessionId, row.id)}
-                          className="text-xs text-red-500 hover:text-red-700"
+            <>
+              <MobileCardList>
+                {attendance.map(row => (
+                  <MobileCardItem key={row.id}>
+                    <p className="text-sm font-semibold text-stone-900">{row.personName ?? row.walkInName ?? '—'}</p>
+                    <p className="text-xs mt-1">
+                      {row.registrationId ? (
+                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Registered</span>
+                      ) : (
+                        <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Walk-in</span>
+                      )}
+                    </p>
+                    <div className="mt-3">
+                      <label className="block text-xs font-medium text-stone-500 mb-1">{t('general_events.attendance.status')}</label>
+                      {row.registrationId ? (
+                        <select
+                          value={row.status}
+                          onChange={e => handleMarkStatus(selectedSessionId!, row, e.target.value as AttendanceStatus)}
+                          className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm"
                         >
-                          Remove
-                        </button>
-                      </td>
+                          {(['PRESENT', 'LATE', 'ABSENT', 'EXCUSED'] as AttendanceStatus[]).map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ATTENDANCE_STATUS_COLORS[row.status]}`}>{row.status}</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-stone-500 mt-2">
+                      {t('general_events.attendance.checked_in_at')}:{' '}
+                      {row.checkedInAt ? new Date(row.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '—'}
+                    </p>
+                    <RowActions>
+                      <ActionButton variant="danger" onClick={() => handleDeleteAttendance(selectedSessionId!, row.id)}>Remove</ActionButton>
+                    </RowActions>
+                  </MobileCardItem>
+                ))}
+              </MobileCardList>
+              <DesktopTableWrap>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-stone-200 bg-stone-50">
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.person')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.type')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.status')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.checked_in_at')}</th>
+                      <th className="text-right py-3 px-4"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {attendance.map(row => (
+                      <tr key={row.id} className="border-b border-stone-100 hover:bg-stone-50">
+                        <td className="py-3 px-4 font-medium text-stone-800">{row.personName ?? row.walkInName ?? '—'}</td>
+                        <td className="py-3 px-4">
+                          {row.registrationId ? (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Registered</span>
+                          ) : (
+                            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Walk-in</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {row.registrationId ? (
+                            <select
+                              value={row.status}
+                              onChange={e => handleMarkStatus(selectedSessionId!, row, e.target.value as AttendanceStatus)}
+                              className={`text-xs font-medium px-2 py-0.5 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 ${ATTENDANCE_STATUS_COLORS[row.status]}`}
+                            >
+                              {(['PRESENT', 'LATE', 'ABSENT', 'EXCUSED'] as AttendanceStatus[]).map(s => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ATTENDANCE_STATUS_COLORS[row.status]}`}>{row.status}</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-stone-500 text-xs">
+                          {editingCheckedInId === row.id ? (
+                            <input
+                              type="text"
+                              autoFocus
+                              placeholder="HH:MM"
+                              maxLength={5}
+                              defaultValue={row.checkedInAt ? new Date(row.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : ''}
+                              className="border border-emerald-400 rounded px-1.5 py-0.5 text-xs text-stone-700 w-16 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                              onBlur={e => {
+                                const val = e.target.value.trim();
+                                if (!val) { setEditingCheckedInId(null); return; }
+                                const match = val.match(/^(\d{1,2}):(\d{2})$/);
+                                if (!match) { setEditingCheckedInId(null); return; }
+                                const base = row.checkedInAt ? new Date(row.checkedInAt) : new Date();
+                                base.setHours(parseInt(match[1]), parseInt(match[2]), 0, 0);
+                                const pad = (n: number) => String(n).padStart(2, '0');
+                                const localISO = `${base.getFullYear()}-${pad(base.getMonth()+1)}-${pad(base.getDate())}T${pad(base.getHours())}:${pad(base.getMinutes())}:00`;
+                                handleUpdateCheckedIn(selectedSessionId!, row, localISO);
+                              }}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                if (e.key === 'Escape') setEditingCheckedInId(null);
+                              }}
+                            />
+                          ) : (
+                            <span className="cursor-pointer hover:text-emerald-700 hover:underline" title="Click to edit" onClick={() => setEditingCheckedInId(row.id)}>
+                              {row.checkedInAt ? new Date(row.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '—'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button onClick={() => handleDeleteAttendance(selectedSessionId!, row.id)} className="text-xs text-red-500 hover:text-red-700">Remove</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </DesktopTableWrap>
+            </>
           )}
         </div>
       )}
@@ -1624,26 +1727,28 @@ export default function GeneralEventDetailPage() {
             </div>
           )}
 
-          {/* Toolbar */}
-          <div className="flex items-center gap-3 mb-4">
-            <select
+          <TabSectionHeader
+            title={t('general_events.tabs.documents')}
+            action={
+              <button
+                onClick={() => setShowUploadForm(true)}
+                className="w-full sm:w-auto bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
+              >
+                + {t('general_events.documents.add')}
+              </button>
+            }
+          />
+          <ResponsiveFilters className="mb-4">
+            <ResponsiveFilterSelect
               value={docFilterSessionId}
               onChange={e => setDocFilterSessionId(e.target.value ? Number(e.target.value) : '')}
-              className="border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="">{t('general_events.documents.all_sessions')}</option>
               {sessions.map(s => (
                 <option key={s.id} value={s.id}>{s.sessionName}</option>
               ))}
-            </select>
-            <div className="flex-1" />
-            <button
-              onClick={() => setShowUploadForm(true)}
-              className="bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
-            >
-              + {t('general_events.documents.add')}
-            </button>
-          </div>
+            </ResponsiveFilterSelect>
+          </ResponsiveFilters>
 
           {loadingDocuments ? (
             <div className="flex justify-center py-8">
@@ -1657,58 +1762,90 @@ export default function GeneralEventDetailPage() {
               <p className="text-stone-400 text-sm">{t('general_events.documents.no_documents')}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-stone-200">
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.file_name')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.description')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.session')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.file_size')}</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.uploaded_at')}</th>
-                    <th className="text-right py-3 px-4"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {documents.map(doc => (
-                    <tr key={doc.id} className="border-b border-stone-100 hover:bg-stone-50">
-                      <td className="py-3 px-4">
-                        <a
-                          href={generalEventApi.downloadDocumentUrl(id, doc.id)}
-                          download={doc.fileName}
-                          className="text-emerald-700 hover:underline font-medium flex items-center gap-1.5"
-                        >
-                          <svg className="w-4 h-4 flex-shrink-0 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          {doc.fileName}
-                        </a>
-                      </td>
-                      <td className="py-3 px-4 text-stone-600">{doc.description ?? '—'}</td>
-                      <td className="py-3 px-4">
-                        {doc.sessionName ? (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{doc.sessionName}</span>
-                        ) : (
-                          <span className="text-xs text-stone-400">—</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-stone-500">{formatFileSize(doc.fileSize)}</td>
-                      <td className="py-3 px-4 text-stone-500 text-xs">{formatDate(doc.createdAt)}</td>
-                      <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={() => setDeleteDocTarget(doc)}
-                          className="text-xs text-red-500 hover:text-red-700"
-                        >
-                          {t('general_events.documents.delete')}
-                        </button>
-                      </td>
+            <>
+              <MobileCardList>
+                {documents.map(doc => (
+                  <MobileCardItem key={doc.id}>
+                    <a
+                      href={generalEventApi.downloadDocumentUrl(id, doc.id)}
+                      download={doc.fileName}
+                      className="text-sm font-semibold text-emerald-700 hover:underline break-all"
+                    >
+                      {doc.fileName}
+                    </a>
+                    {doc.description && <p className="text-sm text-stone-600 mt-1">{doc.description}</p>}
+                    <dl className="mt-2 space-y-1 text-xs text-stone-500">
+                      <div className="flex justify-between gap-2">
+                        <dt>{t('general_events.documents.session')}</dt>
+                        <dd>{doc.sessionName ?? '—'}</dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt>{t('general_events.documents.file_size')}</dt>
+                        <dd>{formatFileSize(doc.fileSize)}</dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt>{t('general_events.documents.uploaded_at')}</dt>
+                        <dd>{formatDate(doc.createdAt)}</dd>
+                      </div>
+                    </dl>
+                    <RowActions>
+                      <ActionButton variant="danger" onClick={() => setDeleteDocTarget(doc)}>{t('general_events.documents.delete')}</ActionButton>
+                    </RowActions>
+                  </MobileCardItem>
+                ))}
+              </MobileCardList>
+              <DesktopTableWrap>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-stone-200 bg-stone-50">
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.file_name')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.description')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.session')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.file_size')}</th>
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.documents.uploaded_at')}</th>
+                      <th className="text-right py-3 px-4"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {documents.map(doc => (
+                      <tr key={doc.id} className="border-b border-stone-100 hover:bg-stone-50">
+                        <td className="py-3 px-4">
+                          <a href={generalEventApi.downloadDocumentUrl(id, doc.id)} download={doc.fileName} className="text-emerald-700 hover:underline font-medium flex items-center gap-1.5">
+                            <svg className="w-4 h-4 flex-shrink-0 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            {doc.fileName}
+                          </a>
+                        </td>
+                        <td className="py-3 px-4 text-stone-600">{doc.description ?? '—'}</td>
+                        <td className="py-3 px-4">
+                          {doc.sessionName ? (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{doc.sessionName}</span>
+                          ) : (
+                            <span className="text-xs text-stone-400">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-stone-500">{formatFileSize(doc.fileSize)}</td>
+                        <td className="py-3 px-4 text-stone-500 text-xs">{formatDate(doc.createdAt)}</td>
+                        <td className="py-3 px-4 text-right">
+                          <button onClick={() => setDeleteDocTarget(doc)} className="text-xs text-red-500 hover:text-red-700">{t('general_events.documents.delete')}</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </DesktopTableWrap>
+            </>
           )}
         </div>
+      )}
+
+      {activeTab === 'resources' && (
+        <EventResourcesTab eventKind="GENERAL" eventId={id} />
+      )}
+
+      {activeTab === 'member_groups' && (
+        <EventMemberGroupsTab eventKind="GENERAL" eventId={id} />
       )}
 
       {/* Report Tab */}

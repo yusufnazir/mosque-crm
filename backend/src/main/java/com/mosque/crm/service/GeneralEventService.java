@@ -23,6 +23,7 @@ import com.mosque.crm.entity.GeneralEventRegistration;
 import com.mosque.crm.entity.GeneralEventVolunteer;
 import com.mosque.crm.entity.Person;
 import com.mosque.crm.enums.CheckInStatus;
+import com.mosque.crm.enums.EventKind;
 import com.mosque.crm.enums.GeneralEventStatus;
 import com.mosque.crm.enums.GeneralEventType;
 import com.mosque.crm.enums.RegistrantType;
@@ -48,6 +49,8 @@ public class GeneralEventService {
     private final GeneralEventVolunteerRepository volunteerRepository;
     private final PersonRepository personRepository;
     private final OrganizationSubscriptionService organizationSubscriptionService;
+    private final EventResourceAssignmentService eventResourceAssignmentService;
+    private final EventFeatureCleanupService eventFeatureCleanupService;
 
     public GeneralEventService(
             GeneralEventRepository generalEventRepository,
@@ -55,13 +58,17 @@ public class GeneralEventService {
             GeneralEventRegistrationRepository registrationRepository,
             GeneralEventVolunteerRepository volunteerRepository,
             PersonRepository personRepository,
-            OrganizationSubscriptionService organizationSubscriptionService) {
+            OrganizationSubscriptionService organizationSubscriptionService,
+            EventResourceAssignmentService eventResourceAssignmentService,
+            EventFeatureCleanupService eventFeatureCleanupService) {
         this.generalEventRepository = generalEventRepository;
         this.distributionEventRepository = distributionEventRepository;
         this.registrationRepository = registrationRepository;
         this.volunteerRepository = volunteerRepository;
         this.personRepository = personRepository;
         this.organizationSubscriptionService = organizationSubscriptionService;
+        this.eventResourceAssignmentService = eventResourceAssignmentService;
+        this.eventFeatureCleanupService = eventFeatureCleanupService;
     }
 
     // ========================
@@ -114,6 +121,9 @@ public class GeneralEventService {
     public GeneralEventDTO updateEventStatus(Long id, String statusStr) {
         GeneralEvent event = generalEventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("General event not found: " + id));
+        if (GeneralEventStatus.valueOf(statusStr) == GeneralEventStatus.CLOSED) {
+            eventResourceAssignmentService.assertNoActiveAssignments(EventKind.GENERAL, id);
+        }
         event.setStatus(GeneralEventStatus.valueOf(statusStr));
         event = generalEventRepository.save(event);
         log.info("Updated general event status: id={} status={}", id, statusStr);
@@ -135,6 +145,7 @@ public class GeneralEventService {
     public void deleteEvent(Long id) {
         GeneralEvent event = generalEventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("General event not found: " + id));
+        eventFeatureCleanupService.deleteAllForEvent(EventKind.GENERAL, id);
         generalEventRepository.delete(event);
         log.info("Deleted general event id={}", id);
     }

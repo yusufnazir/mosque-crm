@@ -1,5 +1,6 @@
 package com.mosque.crm.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,6 +16,8 @@ public class DistributionEventDTO {
     private String eventType;
     private int memberCapacity;
     private int nonMemberCapacity;
+    private BigDecimal parcelKgPerUnit;
+    private String parcelWeightUnit;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ParcelCategoryDTO> parcelCategories;
@@ -116,5 +119,21 @@ public class DistributionEventDTO {
 
     public void setNonMemberCapacity(int nonMemberCapacity) {
         this.nonMemberCapacity = nonMemberCapacity;
+    }
+
+    public BigDecimal getParcelKgPerUnit() {
+        return parcelKgPerUnit;
+    }
+
+    public void setParcelKgPerUnit(BigDecimal parcelKgPerUnit) {
+        this.parcelKgPerUnit = parcelKgPerUnit;
+    }
+
+    public String getParcelWeightUnit() {
+        return parcelWeightUnit;
+    }
+
+    public void setParcelWeightUnit(String parcelWeightUnit) {
+        this.parcelWeightUnit = parcelWeightUnit;
     }
 }

@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080/api';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8200/api';
 
 /**
  * Returns the JWT token and the backend WebSocket URL.

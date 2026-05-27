@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './Card';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { familyApi } from '@/lib/familyApi';
-import { memberApi, reportApi, paymentStatsApi, isPlanRestriction } from '@/lib/api';
+import { memberApi, reportApi, paymentStatsApi, isPlanRestriction, isSubscriptionInactive } from '@/lib/api';
 import type { ContributionTotalReport, PaymentMonthlySummaryDTO } from '@/lib/api';
 import { expenseApi } from '@/lib/expenseApi';
 import type { ExpenseDTO, ExpenseMonthlySummaryDTO } from '@/lib/expenseApi';
@@ -39,6 +39,13 @@ export interface FamilySizeDatum { size: number; count: number; }
 export interface AgeDatum { bucket: string; count: number; }
 export interface GenderDatum { gender: string; count: number; }
 
+function asMonthlySummaryArray<T>(value: unknown): T[] {
+  if (isPlanRestriction(value) || isSubscriptionInactive(value) || !Array.isArray(value)) {
+    return [];
+  }
+  return value as T[];
+}
+
 export default function DashboardCharts() {
   const { t, language } = useTranslation();
   const [familySizeData, setFamilySizeData] = useState<FamilySizeDatum[]>([]);
@@ -60,6 +67,14 @@ export default function DashboardCharts() {
   const [selectedExpenseCurrency, setSelectedExpenseCurrency] = useState<string>('');
   const [expenseChartLoading, setExpenseChartLoading] = useState(false);
 
+  const safeIncomeMonthlySummary = useMemo(
+    () => asMonthlySummaryArray<PaymentMonthlySummaryDTO>(incomeMonthlySummary),
+    [incomeMonthlySummary],
+  );
+  const safeExpenseMonthlySummary = useMemo(
+    () => asMonthlySummaryArray<ExpenseMonthlySummaryDTO>(expenseMonthlySummary),
+    [expenseMonthlySummary],
+  );
 
   useEffect(() => {
     async function fetchData() {
@@ -106,7 +121,7 @@ export default function DashboardCharts() {
     async function fetchYears() {
       try {
         const res = await paymentStatsApi.getPaymentYears();
-        if (!isPlanRestriction(res)) {
+        if (!isPlanRestriction(res) && !isSubscriptionInactive(res) && Array.isArray(res)) {
           setIncomeYears(res);
           if (res.length > 0 && !res.includes(selectedYear)) {
             setSelectedYear(res[0]);
@@ -148,24 +163,26 @@ export default function DashboardCharts() {
           expenseApi.getMonthlySummary(selectedYear),
           paymentStatsApi.getMonthlySummary(selectedYear),
         ]);
-        setExpenseMonthlySummary(expSummary);
-        setIncomeMonthlySummary(incSummary);
+        const safeExpSummary = asMonthlySummaryArray<ExpenseMonthlySummaryDTO>(expSummary);
+        const safeIncSummary = asMonthlySummaryArray<PaymentMonthlySummaryDTO>(incSummary);
+        setExpenseMonthlySummary(safeExpSummary);
+        setIncomeMonthlySummary(safeIncSummary);
 
         // Fetch raw expenses for the year for tag breakdown
         const yearStart = `${selectedYear}-01-01`;
         const yearEnd = `${selectedYear}-12-31`;
         const rawExpenses = await expenseApi.list({ dateFrom: yearStart, dateTo: yearEnd, includeDeleted: false });
-        setExpenseTagData(rawExpenses);
+        setExpenseTagData(Array.isArray(rawExpenses) ? rawExpenses : []);
 
         // Auto-select currency: prefer currency with most income, then expense
         const allCurrencies = Array.from(new Set([
-          ...incSummary.map(r => r.currencyCode),
-          ...expSummary.map(r => r.currencyCode),
+          ...safeIncSummary.map(r => r.currencyCode),
+          ...safeExpSummary.map(r => r.currencyCode),
         ]));
         if (allCurrencies.length > 0) {
           // Pick currency with highest total income
           const incByCur: Record<string, number> = {};
-          for (const r of incSummary) incByCur[r.currencyCode] = (incByCur[r.currencyCode] || 0) + r.total;
+          for (const r of safeIncSummary) incByCur[r.currencyCode] = (incByCur[r.currencyCode] || 0) + r.total;
           const best = allCurrencies.reduce((a, b) => (incByCur[b] || 0) > (incByCur[a] || 0) ? b : a, allCurrencies[0]);
           setSelectedExpenseCurrency(prev => allCurrencies.includes(prev) ? prev : best);
         }
@@ -254,8 +271,8 @@ export default function DashboardCharts() {
   );
 
   const expenseCurrencies = useMemo(
-    () => Array.from(new Set(expenseMonthlySummary.map(r => r.currencyCode))),
-    [expenseMonthlySummary]
+    () => Array.from(new Set(safeExpenseMonthlySummary.map(r => r.currencyCode))),
+    [safeExpenseMonthlySummary]
   );
 
   const monthlyExpenseChart = useMemo(() => ({
@@ -263,12 +280,12 @@ export default function DashboardCharts() {
     datasets: expenseCurrencies.map((currency, i) => ({
       label: currency,
       data: yearMonths.map(month => {
-        const found = expenseMonthlySummary.find(r => r.month === month && r.currencyCode === currency);
+        const found = safeExpenseMonthlySummary.find(r => r.month === month && r.currencyCode === currency);
         return found ? found.total : 0;
       }),
       backgroundColor: currencyColorPalette[i % currencyColorPalette.length],
     })),
-  }), [expenseMonthlySummary, expenseCurrencies, yearMonths, monthLabels]);
+  }), [safeExpenseMonthlySummary, expenseCurrencies, yearMonths, monthLabels]);
 
   const tagDonutData = useMemo(() => {
     const filtered = expenseTagData.filter(e => !selectedExpenseCurrency || e.currencyCode === selectedExpenseCurrency);
@@ -297,18 +314,18 @@ export default function DashboardCharts() {
   }, [expenseTagData, selectedExpenseCurrency, t]);
 
   const allIvECurrencies = useMemo(() => Array.from(new Set([
-    ...incomeMonthlySummary.map(r => r.currencyCode),
-    ...expenseMonthlySummary.map(r => r.currencyCode),
-  ])), [incomeMonthlySummary, expenseMonthlySummary]);
+    ...safeIncomeMonthlySummary.map(r => r.currencyCode),
+    ...safeExpenseMonthlySummary.map(r => r.currencyCode),
+  ])), [safeIncomeMonthlySummary, safeExpenseMonthlySummary]);
 
   const incomeVsExpenseChart = useMemo(() => {
     const cur = selectedExpenseCurrency;
     const incomeData = yearMonths.map(month => {
-      const found = incomeMonthlySummary.find(r => r.month === month && r.currencyCode === cur);
+      const found = safeIncomeMonthlySummary.find(r => r.month === month && r.currencyCode === cur);
       return found ? found.total : 0;
     });
     const expenseData = yearMonths.map(month => {
-      const found = expenseMonthlySummary.find(r => r.month === month && r.currencyCode === cur);
+      const found = safeExpenseMonthlySummary.find(r => r.month === month && r.currencyCode === cur);
       return found ? found.total : 0;
     });
     return {
@@ -318,14 +335,14 @@ export default function DashboardCharts() {
         { label: t('dashboard.expense'), data: expenseData, backgroundColor: '#D4AF37' },
       ],
     };
-  }, [incomeMonthlySummary, expenseMonthlySummary, selectedExpenseCurrency, yearMonths, monthLabels, t]);
+  }, [safeIncomeMonthlySummary, safeExpenseMonthlySummary, selectedExpenseCurrency, yearMonths, monthLabels, t]);
 
   const netBalance = useMemo(() => {
     const cur = selectedExpenseCurrency;
-    const totalIncome = incomeMonthlySummary.filter(r => r.currencyCode === cur).reduce((s, r) => s + r.total, 0);
-    const totalExpense = expenseMonthlySummary.filter(r => r.currencyCode === cur).reduce((s, r) => s + r.total, 0);
+    const totalIncome = safeIncomeMonthlySummary.filter(r => r.currencyCode === cur).reduce((s, r) => s + r.total, 0);
+    const totalExpense = safeExpenseMonthlySummary.filter(r => r.currencyCode === cur).reduce((s, r) => s + r.total, 0);
     return totalIncome - totalExpense;
-  }, [incomeMonthlySummary, expenseMonthlySummary, selectedExpenseCurrency]);
+  }, [safeIncomeMonthlySummary, safeExpenseMonthlySummary, selectedExpenseCurrency]);
 
   if (loading) {
     return <div className="mt-8">{t('dashboard.loading_charts') || 'Loading charts...'}</div>;

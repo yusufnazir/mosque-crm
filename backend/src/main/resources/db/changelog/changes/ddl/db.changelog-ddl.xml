@@ -139,6 +139,23 @@
     <include file="db/changelog/changes/ddl/159-create-org-expense-tags-table.xml"/>
     <include file="db/changelog/changes/ddl/160-create-org-expense-audit-events-table.xml"/>
     <include file="db/changelog/changes/ddl/161-add-person-family-and-civil-state.xml"/>
+    <include file="db/changelog/changes/ddl/162-unique-non-member-distribution-number.xml"/>
+
+    <!-- ======================== EVENT RESOURCES & MEMBER GROUPS ======================== -->
+    <include file="db/changelog/changes/ddl/163-create-org-event-resource-categories-table.xml"/>
+    <include file="db/changelog/changes/ddl/164-create-org-event-resource-types-table.xml"/>
+    <include file="db/changelog/changes/ddl/165-create-org-event-resources-table.xml"/>
+    <include file="db/changelog/changes/ddl/166-create-org-event-resource-assignments-table.xml"/>
+    <include file="db/changelog/changes/ddl/167-create-org-event-roles-table.xml"/>
+    <include file="db/changelog/changes/ddl/168-create-org-event-member-groups-table.xml"/>
+    <include file="db/changelog/changes/ddl/169-create-org-event-member-group-members-table.xml"/>
+    <include file="db/changelog/changes/ddl/170-create-org-event-sacrifice-animals-table.xml"/>
+    <include file="db/changelog/changes/ddl/171-create-org-event-sacrifice-animal-shares-table.xml"/>
+    <include file="db/changelog/changes/ddl/172-add-meat-entitlement-kg-to-sacrifice-shares.xml"/>
+    <include file="db/changelog/changes/ddl/173-add-worker-fields-to-org-event-registrations.xml"/>
+    <include file="db/changelog/changes/ddl/174-create-distribution-registration-types-and-registrations.xml"/>
+    <include file="db/changelog/changes/ddl/175-add-parcel-weight-unit-to-org-events.xml"/>
+    <include file="db/changelog/changes/ddl/176-add-entitlement-received-to-sacrifice-shares.xml"/>
 
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>

@@ -20,6 +20,9 @@ export const distributionApi = {
   listNonMembers: (eventId: number): Promise<NonMemberRecipient[]> => ApiClient.get(`/events/non-members?eventId=${eventId}`),
   getNonMember: (id: number): Promise<NonMemberRecipient> => ApiClient.get(`/events/non-members/${id}`),
   createNonMember: (data: NonMemberRecipientCreate): Promise<NonMemberRecipient> => ApiClient.post('/events/non-members', data),
+  updateNonMember: (id: number, data: NonMemberRecipientUpdate): Promise<NonMemberRecipient> =>
+    ApiClient.put(`/events/non-members/${id}`, data),
+  deleteNonMember: (id: number): Promise<void> => ApiClient.delete(`/events/non-members/${id}`),
   findNonMemberByNumber: (eventId: number, number: string): Promise<NonMemberRecipient> =>
     ApiClient.get(`/events/non-members/search?eventId=${eventId}&number=${encodeURIComponent(number)}`),
 
@@ -27,11 +30,32 @@ export const distributionApi = {
   listMemberRegistrations: (eventId: number): Promise<MemberRegistration[]> => ApiClient.get(`/events/member-registrations?eventId=${eventId}`),
   getMemberRegistration: (id: number): Promise<MemberRegistration> => ApiClient.get(`/events/member-registrations/${id}`),
   createMemberRegistration: (data: MemberRegistrationCreate): Promise<MemberRegistration> => ApiClient.post('/events/member-registrations', data),
+  deleteMemberRegistration: (id: number): Promise<void> => ApiClient.delete(`/events/member-registrations/${id}`),
 
   // Parcel Distribution
   listDistributions: (eventId: number): Promise<ParcelDistribution[]> => ApiClient.get(`/events/distributions?eventId=${eventId}`),
   getDistribution: (id: number): Promise<ParcelDistribution> => ApiClient.get(`/events/distributions/${id}`),
   distribute: (data: ParcelDistributionCreate): Promise<ParcelDistribution> => ApiClient.post('/events/distribute', data),
+
+  listRegistrationTypes: (eventId: number): Promise<DistributionRegistrationType[]> =>
+    ApiClient.get(`/events/events/${eventId}/registration-types`),
+  createRegistrationType: (eventId: number, data: DistributionRegistrationTypeCreate) =>
+    ApiClient.post<DistributionRegistrationType>(`/events/events/${eventId}/registration-types`, data),
+  updateRegistrationType: (id: number, data: DistributionRegistrationTypeCreate) =>
+    ApiClient.put<DistributionRegistrationType>(`/events/registration-types/${id}`, data),
+  deleteRegistrationType: (id: number): Promise<void> => ApiClient.delete(`/events/registration-types/${id}`),
+
+  listRegistrations: (eventId: number): Promise<DistributionRegistration[]> =>
+    ApiClient.get(`/events/events/${eventId}/registrations`),
+  listQueueRegistrations: (eventId: number): Promise<DistributionRegistration[]> =>
+    ApiClient.get(`/events/events/${eventId}/registrations/queue`),
+  createRegistration: (data: DistributionRegistrationCreate): Promise<DistributionRegistration> =>
+    ApiClient.post('/events/registrations', data),
+  updateRegistration: (id: number, data: DistributionRegistrationUpdate): Promise<DistributionRegistration> =>
+    ApiClient.put(`/events/registrations/${id}`, data),
+  markRegistrationCollected: (id: number): Promise<DistributionRegistration> =>
+    ApiClient.post(`/events/registrations/${id}/mark-collected`, {}),
+  deleteRegistration: (id: number): Promise<void> => ApiClient.delete(`/events/registrations/${id}`),
 };
 
 // Types
@@ -48,6 +72,8 @@ export interface DistributionEvent {
   createdAt: string;
   updatedAt: string;
   parcelCategories?: ParcelCategory[];
+  parcelKgPerUnit?: number;
+  parcelWeightUnit?: 'KG' | 'LB';
 }
 
 export interface DistributionEventCreate {
@@ -58,6 +84,8 @@ export interface DistributionEventCreate {
   eventType?: 'EID_UL_ADHA_DISTRIBUTION' | 'GENERAL';
   memberCapacity?: number;
   nonMemberCapacity?: number;
+  parcelKgPerUnit?: number;
+  parcelWeightUnit?: 'KG' | 'LB';
 }
 
 export interface ParcelCategory {
@@ -101,11 +129,18 @@ export interface NonMemberRecipientCreate {
   phoneNumber?: string;
 }
 
+export interface NonMemberRecipientUpdate {
+  name: string;
+  idNumber?: string;
+  phoneNumber?: string;
+}
+
 export interface MemberRegistration {
   id: number;
   distributionEventId: number;
-  personId: number;
+  personId?: number | null;
   personName: string;
+  member: boolean;
   status: 'REGISTERED' | 'COLLECTED';
   registeredAt: string;
   createdAt: string;
@@ -114,17 +149,81 @@ export interface MemberRegistration {
 
 export interface MemberRegistrationCreate {
   distributionEventId: number;
-  personId: number;
+  personId?: number | null;
+  personName: string;
+  member: boolean;
+}
+
+export type RegistrationFulfillmentMode = 'QUEUE' | 'ADHOC' | 'MANUAL';
+
+export interface DistributionRegistrationType {
+  id: number;
+  distributionEventId: number;
+  name: string;
+  sortOrder: number;
+  fulfillmentMode: RegistrationFulfillmentMode;
+  defaultPlannedParcels: number;
+  softLimit?: number | null;
+  assignDistributionNumber: boolean;
+  registrationCount: number;
+  overSoftLimit: boolean;
+}
+
+export interface DistributionRegistrationTypeCreate {
+  name: string;
+  sortOrder?: number;
+  fulfillmentMode: RegistrationFulfillmentMode;
+  defaultPlannedParcels: number;
+  softLimit?: number | null;
+  assignDistributionNumber?: boolean;
+}
+
+export interface DistributionRegistration {
+  id: number;
+  distributionEventId: number;
+  registrationTypeId: number;
+  registrationTypeName: string;
+  personId?: number | null;
+  displayName: string;
+  member: boolean;
+  distributionNumber?: string | null;
+  plannedParcelCount: number;
+  distributedParcelCount: number;
+  idNumber?: string | null;
+  phoneNumber?: string | null;
+  adHoc: boolean;
+  status: 'REGISTERED' | 'COLLECTED';
+  registeredAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DistributionRegistrationCreate {
+  distributionEventId: number;
+  registrationTypeId: number;
+  personId?: number | null;
+  displayName: string;
+  member: boolean;
+  plannedParcelCount?: number;
+  idNumber?: string;
+  phoneNumber?: string;
+  adHoc?: boolean;
+}
+
+export interface DistributionRegistrationUpdate {
+  plannedParcelCount?: number;
+  idNumber?: string;
+  phoneNumber?: string;
 }
 
 export interface ParcelDistribution {
   id: number;
   distributionEventId: number;
-  recipientType: 'MEMBER' | 'NON_MEMBER';
+  recipientType: 'MEMBER' | 'NON_MEMBER' | 'REGISTRATION';
   recipientId: number;
   recipientName: string;
-  parcelCategoryId: number;
-  parcelCategoryName: string;
+  parcelCategoryId?: number | null;
+  parcelCategoryName?: string | null;
   parcelCount: number;
   distributedBy: string | null;
   distributedAt: string;
@@ -134,9 +233,9 @@ export interface ParcelDistribution {
 
 export interface ParcelDistributionCreate {
   distributionEventId: number;
-  recipientType: 'MEMBER' | 'NON_MEMBER';
+  recipientType: 'MEMBER' | 'NON_MEMBER' | 'REGISTRATION';
   recipientId: number;
-  parcelCategoryId: number;
+  parcelCategoryId?: number;
   parcelCount: number;
   distributedBy?: string;
 }
@@ -150,4 +249,6 @@ export interface DistributionSummary {
   collectedMembers: number;
   collectedNonMembers: number;
   nonMemberAllocation: number;
+  totalRegistrations?: number;
+  collectedRegistrations?: number;
 }

@@ -10,6 +10,8 @@ public class DistributionSummaryDTO {
     private int collectedMembers;
     private int collectedNonMembers;
     private int nonMemberAllocation;
+    private int totalRegistrations;
+    private int collectedRegistrations;
 
     public DistributionSummaryDTO() {
     }
@@ -76,5 +78,21 @@ public class DistributionSummaryDTO {
 
     public void setNonMemberAllocation(int nonMemberAllocation) {
         this.nonMemberAllocation = nonMemberAllocation;
+    }
+
+    public int getTotalRegistrations() {
+        return totalRegistrations;
+    }
+
+    public void setTotalRegistrations(int totalRegistrations) {
+        this.totalRegistrations = totalRegistrations;
+    }
+
+    public int getCollectedRegistrations() {
+        return collectedRegistrations;
+    }
+
+    public void setCollectedRegistrations(int collectedRegistrations) {
+        this.collectedRegistrations = collectedRegistrations;
     }
 }

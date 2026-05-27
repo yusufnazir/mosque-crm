@@ -52,23 +52,30 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            if (jwtUtil.validateToken(jwt, userDetails)) {
-                // Extract role from JWT token to ensure authorities are set correctly
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            if (!jwtUtil.validateToken(jwt, userDetails)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Invalid or expired JWT token");
+                return;
+            }
 
-                // Set tenant context from JWT organizationId claim
-                // null organizationId = super admin (sees all organizations)
-                try {
-                    Long organizationId = jwtUtil.extractOrganizationId(jwt);
-                    TenantContext.setCurrentOrganizationId(organizationId);
-                } catch (Exception e) {
-                    logger.warn("Could not extract organizationId from JWT: " + e.getMessage());
-                }
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            // Set tenant context from JWT organizationId claim
+            // null organizationId = super admin (sees all organizations)
+            try {
+                Long organizationId = jwtUtil.extractOrganizationId(jwt);
+                TenantContext.setCurrentOrganizationId(organizationId);
+            } catch (Exception e) {
+                logger.warn("Could not extract organizationId from JWT: " + e.getMessage());
             }
         }
-        chain.doFilter(request, response);
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            TenantContext.clear();
+        }
     }
 }

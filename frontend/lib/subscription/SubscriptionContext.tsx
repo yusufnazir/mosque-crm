@@ -6,6 +6,24 @@ import { useAuth } from '@/lib/auth/AuthContext';
 
 type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'grace' | 'read_only' | 'locked' | 'inactive' | 'loading';
 
+const USABLE_STATUSES = new Set(['ACTIVE', 'TRIALING', 'PAST_DUE', 'GRACE', 'READ_ONLY']);
+
+function isTransientFetchError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.includes('BACKEND_UNAVAILABLE') ||
+    msg.includes('temporarily unavailable') ||
+    msg.includes('503') ||
+    msg.includes('fetch failed') ||
+    msg.includes('Failed to fetch')
+  );
+}
+
+function isNoActiveSubscriptionError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes('NO_ACTIVE_SUBSCRIPTION') || msg.includes('No active subscription');
+}
+
 interface SubscriptionContextValue {
   /** The active subscription for the current organization, null if none */
   subscription: OrganizationSubscriptionDTO | null;
@@ -34,22 +52,43 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const { user, isSuperAdmin, loading: authLoading } = useAuth();
   const [subscription, setSubscription] = useState<OrganizationSubscriptionDTO | null>(null);
   const [loading, setLoading] = useState(true);
-  const [blocked, setBlocked] = useState(false);
+  /** True only when we have confirmed there is no usable subscription for this org */
+  const [enforceInactive, setEnforceInactive] = useState(false);
+  /** True when the latest fetch failed for transient reasons (backend down, network, etc.) */
+  const [fetchError, setFetchError] = useState(false);
 
   const fetchSubscription = useCallback(async () => {
     // Unauthenticated users skip subscription checks
     if (!user) {
       setSubscription(null);
+      setEnforceInactive(false);
+      setFetchError(false);
       setLoading(false);
       return;
     }
     try {
       const data = await subscriptionApi.getCurrent();
-      setSubscription(data);
-      setBlocked(false);
-    } catch {
-      // No active subscription or network error — treat as no subscription
-      setSubscription(null);
+      setFetchError(false);
+      if (data) {
+        setSubscription(data);
+        setEnforceInactive(!USABLE_STATUSES.has(data.status));
+      } else {
+        // 204 No Content — super admin without org scope, or tenant with no org in JWT
+        setSubscription(null);
+        setEnforceInactive(!isSuperAdmin);
+      }
+    } catch (err) {
+      if (isNoActiveSubscriptionError(err)) {
+        setSubscription(null);
+        setEnforceInactive(!isSuperAdmin);
+        setFetchError(false);
+      } else if (isTransientFetchError(err)) {
+        // Do not clear subscription or show the inactive overlay when the API is unreachable
+        setFetchError(true);
+      } else {
+        // Unknown error — avoid falsely blocking the app
+        setFetchError(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -61,12 +100,15 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   }, [authLoading, fetchSubscription]);
 
-  // Listen for 402 events from ApiClient to detect subscription enforcement
+  // Re-verify subscription when another API returns 402 (that endpoint is enforced;
+  // /subscription/current is excluded and is the source of truth).
   useEffect(() => {
-    const handler = () => setBlocked(true);
+    const handler = () => {
+      void fetchSubscription();
+    };
     window.addEventListener(SUBSCRIPTION_INACTIVE_EVENT, handler);
     return () => window.removeEventListener(SUBSCRIPTION_INACTIVE_EVENT, handler);
-  }, []);
+  }, [fetchSubscription]);
 
   // Re-fetch subscription when tab becomes visible (catches plan changes made elsewhere)
   useEffect(() => {
@@ -90,7 +132,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const status: SubscriptionStatus = useMemo(() => {
     if (loading) return 'loading';
     if (isSuperAdmin) return 'active';
-    if (blocked) return 'inactive';
+    // Backend unreachable — do not show the inactive overlay
+    if (fetchError) return 'loading';
+    if (enforceInactive) return 'inactive';
     if (!subscription) return 'inactive';
     const s = subscription.status;
     if (s === 'ACTIVE') return 'active';
@@ -100,7 +144,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     if (s === 'READ_ONLY') return 'read_only';
     if (s === 'LOCKED') return 'locked';
     return 'inactive';
-  }, [loading, isSuperAdmin, blocked, subscription]);
+  }, [loading, isSuperAdmin, enforceInactive, fetchError, subscription]);
 
   const entitlementMap = useMemo(() => {
     const map = new Map<string, PlanEntitlementDTO>();

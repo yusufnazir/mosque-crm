@@ -1,9 +1,11 @@
 package com.mosque.crm.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
-import java.time.LocalDate;
+import jakarta.validation.constraints.Positive;
 
 public class DistributionEventCreateDTO {
 
@@ -22,6 +24,11 @@ public class DistributionEventCreateDTO {
     private Integer memberCapacity;
 
     private Integer nonMemberCapacity;
+
+    @Positive
+    private BigDecimal parcelKgPerUnit;
+
+    private String parcelWeightUnit;
 
     public DistributionEventCreateDTO() {
     }
@@ -80,5 +87,21 @@ public class DistributionEventCreateDTO {
 
     public void setNonMemberCapacity(Integer nonMemberCapacity) {
         this.nonMemberCapacity = nonMemberCapacity;
+    }
+
+    public BigDecimal getParcelKgPerUnit() {
+        return parcelKgPerUnit;
+    }
+
+    public void setParcelKgPerUnit(BigDecimal parcelKgPerUnit) {
+        this.parcelKgPerUnit = parcelKgPerUnit;
+    }
+
+    public String getParcelWeightUnit() {
+        return parcelWeightUnit;
+    }
+
+    public void setParcelWeightUnit(String parcelWeightUnit) {
+        this.parcelWeightUnit = parcelWeightUnit;
     }
 }
