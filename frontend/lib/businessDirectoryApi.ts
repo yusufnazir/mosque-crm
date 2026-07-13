@@ -154,7 +154,7 @@ export const businessDirectoryApi = {
 
   submitMy: (id: number) => ApiClient.post<BusinessDTO>(`/business-directory/my/${id}/submit`, {}),
 
-  deleteMy: (id: number) => ApiClient.delete<void>(`/business-directory/my/${id}`),
+  deleteMy: (id: number) => ApiClient.delete(`/business-directory/my/${id}`),
 
   updateMyListing: (id: number, data: Partial<BusinessListingDTO>) =>
     ApiClient.put<BusinessListingDTO>(`/business-directory/my/${id}/listing`, data),
@@ -176,7 +176,7 @@ export const businessDirectoryApi = {
   update: (id: number, data: Partial<BusinessDTO>) =>
     ApiClient.put<BusinessDTO>(`/business-directory/${id}`, data),
 
-  delete: (id: number) => ApiClient.delete<void>(`/business-directory/${id}`),
+  delete: (id: number) => ApiClient.delete(`/business-directory/${id}`),
 
   updateListing: (id: number, data: Partial<BusinessListingDTO>) =>
     ApiClient.put<BusinessListingDTO>(`/business-directory/${id}/listing`, data),
@@ -184,10 +184,10 @@ export const businessDirectoryApi = {
   uploadMyLogo: (id: number, file: File) =>
     ApiClient.uploadFile<{ message: string; imageUrl: string }>(`/business-directory/my/${id}/logo`, file),
 
-  deleteMyLogo: (id: number) => ApiClient.delete<{ message: string }>(`/business-directory/my/${id}/logo`),
+  deleteMyLogo: (id: number) => ApiClient.delete(`/business-directory/my/${id}/logo`),
 
   uploadLogo: (id: number, file: File) =>
     ApiClient.uploadFile<{ message: string; imageUrl: string }>(`/business-directory/${id}/logo`, file),
 
-  deleteLogo: (id: number) => ApiClient.delete<{ message: string }>(`/business-directory/${id}/logo`),
+  deleteLogo: (id: number) => ApiClient.delete(`/business-directory/${id}/logo`),
 };
