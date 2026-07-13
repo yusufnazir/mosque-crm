@@ -344,15 +344,15 @@ Admin lookup for cross-org alerts runs **without** the Hibernate org filter so i
 
 ---
 
-## Example Use Case: SIS Suriname
+## Example Use Case: RBSIS Paramaribo
 
-- **SIS** acts as federation parent; mosques remain independent tenants
-- SIS invites a mosque (or mosque requests via handle/invite code)
+- **RBSIS Paramaribo** acts as federation parent; mosques remain independent tenants
+- RBSIS invites a mosque (or mosque requests via handle/invite code)
 - Each mosque opts in per module (business directory, public events) — default off
-- Opted-in published listings appear for SIS and, if share level allows, sibling mosques
-- Internet public directory: each mosque’s own published listings; **SIS (parent) public directory also aggregates** partner published listings when those partners share the business directory module
+- Opted-in published listings appear for RBSIS and, if share level allows, sibling mosques
+- Internet public directory: each mosque’s own published listings; **RBSIS (parent) public directory also aggregates** partner published listings when those partners share the business directory module
 - Logged-in **Directory → Federation** remains available for authenticated parent/sibling browse
-- Federation browse for SIS is the logged-in **Directory → Federation** tab, not SIS’s anonymous public page
+- Federation browse for RBSIS is the logged-in **Directory → Federation** tab, not RBSIS’s anonymous public page
 - Members, finances, families stay within each mosque
 
 ---

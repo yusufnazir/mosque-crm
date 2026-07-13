@@ -198,8 +198,8 @@ async function captureLocale(browser, lang) {
 
   await logout(page);
 
-  console.log('  federation admin (demo_sis_admin)');
-  await login(page, 'demo_sis_admin', DEMO_PASSWORD, lang);
+  console.log('  federation admin (demo_rbsis_admin)');
+  await login(page, 'demo_rbsis_admin', DEMO_PASSWORD, lang);
   await page.goto(`${new URL(page.url()).origin}/partnerships`, {
     waitUntil: 'networkidle',
     timeout: 60_000,

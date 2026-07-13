@@ -681,7 +681,7 @@
     "billing_run_error": "Factuureringstaak uitvoeren mislukt",
     "demo_data": "Demodata",
     "demo_title": "Demo federatiegegevens",
-    "demo_description": "Eenmalige vulling voor een lege database: SIS Suriname (ouder) plus drie moskeeën op het Pro-plan, met leden, betalingen, evenementen, bedrijfsvermeldingen en actieve partnerschappen. De openbare gids staat aan bij de ouder.",
+    "demo_description": "Eenmalige vulling voor een lege database: RBSIS Paramaribo (ouder) plus drie moskeeën op het Pro-plan, met leden, betalingen, evenementen, bedrijfsvermeldingen en actieve partnerschappen. De openbare gids staat aan bij de ouder.",
     "demo_create": "Demodata aanmaken",
     "demo_seeding": "Bezig met aanmaken…",
     "demo_confirm": "Surinaamse federatie-demodata aanmaken? Dit werkt alleen als er nog geen organisaties bestaan.",

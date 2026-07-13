@@ -24,7 +24,7 @@ if "memberflow-demo-web" in text:
 map_block = """map $tenant $memberflow_ui {
     default                 memberflow-web:3000;
     demo                    memberflow-demo-web:3000;
-    demo-sis                memberflow-demo-web:3000;
+    rbsis-paramaribo        memberflow-demo-web:3000;
     demo-baiturrochim       memberflow-demo-web:3000;
     demo-daruliman          memberflow-demo-web:3000;
     demo-annur              memberflow-demo-web:3000;

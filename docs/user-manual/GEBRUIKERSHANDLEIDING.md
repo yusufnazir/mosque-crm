@@ -8,7 +8,7 @@ Een eenvoudige handleiding voor moskeemedewerkers en leden. De schermafbeeldinge
 
 MemberFlow helpt uw moskee bij het beheren van leden, contributies, evenementen en een **bedrijvengids** — een overzicht van betrouwbare bedrijven van mensen uit uw gemeenschap.
 
-Organisaties kunnen ook een **federatie** (partnerschap) vormen. Een koepelorganisatie zoals SIS Suriname kan bijvoorbeeld samenwerken met lokale moskeeën, zodat gedeelde bedrijven in het hele netwerk zichtbaar worden.
+Organisaties kunnen ook een **federatie** (partnerschap) vormen. Een koepelorganisatie zoals RBSIS Paramaribo kan bijvoorbeeld samenwerken met lokale moskeeën, zodat gedeelde bedrijven in het hele netwerk zichtbaar worden.
 
 ---
 
@@ -18,7 +18,7 @@ Alle demo-gebruikers hebben hetzelfde wachtwoord: **`DemoPass123!`**
 
 | Rol | Gebruikersnaam | Organisatie | Geschikt voor |
 |-----|----------------|-------------|---------------|
-| Federatiebeheerder | `demo_sis_admin` | SIS Suriname | Partnerschappen, federatie-overzicht |
+| Federatiebeheerder | `demo_rbsis_admin` | RBSIS Paramaribo | Partnerschappen, federatie-overzicht |
 | Moskeebeheerder | `demo_baitur_admin` | Moskee Baitur Rochim | Bedrijven goedkeuren, directorybeheer |
 | Lid (portaal) | `demo_baitur_member` | Moskee Baitur Rochim | Eigen bedrijven registreren |
 
@@ -131,7 +131,7 @@ Na goedkeuring verschijnt het bedrijf in de bedrijvengids voor uw leden (en in d
 
 ## 6. Partnerschappen (federatie)
 
-Koepelorganisaties (zoals SIS Suriname) beheren partnerschappen via **Administration → Partnerships** (of **Partnerschappen**).
+Koepelorganisaties (zoals RBSIS Paramaribo) beheren partnerschappen via **Administration → Partnerships** (of **Partnerschappen**).
 
 Op dit scherm kunt u:
 
@@ -167,4 +167,4 @@ Delen is optioneel. Er wordt niets gedeeld totdat een beheerder delen inschakelt
 3. Log uit en log in als **`demo_baitur_admin`** / `DemoPass123!`  
 4. Open **Directorybeheer** → **Wacht op goedkeuring** → Goedkeuren.  
 5. Open de **Bedrijvengids** om de publicatie te zien.  
-6. Log in als **`demo_sis_admin`** om **Partnerschappen** en federatiedelen te bekijken.
+6. Log in als **`demo_rbsis_admin`** om **Partnerschappen** en federatiedelen te bekijken.

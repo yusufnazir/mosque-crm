@@ -19,6 +19,7 @@ Site:  www.memflox.com      → memberflow-site
 | Nginx | `memflox-demo.conf` |
 | TLS | `demo.memflox.com` + `*.demo.memflox.com` (acme.sh / Namecheap DNS) |
 | App base domain | `demo.memflox.com` |
+| Federation parent | **RBSIS Paramaribo** (`rbsis-paramaribo`) |
 
 ## URLs
 
@@ -26,13 +27,9 @@ Site:  www.memflox.com      → memberflow-site
 |-----|---------|
 | https://auth.demo.memflox.com/login | Demo login entry |
 | https://admin.demo.memflox.com/login | Demo superadmin |
+| https://rbsis-paramaribo.demo.memflox.com | RBSIS Paramaribo (federation) |
 | https://demo-baiturrochim.demo.memflox.com | Mosque Baitur Rochim |
-| https://demo-sis.demo.memflox.com | SIS federation |
 | https://demo.memflox.com | Redirects to auth.demo.memflox.com |
-
-Nested base domains require the frontend fix in `frontend/lib/auth/base-domain.ts` so
-cookies and post-login redirects use `.demo.memflox.com`, not `.memflox.com`.
-Deploy an updated frontend image to `memberflow-demo-web` for that fix to take effect.
 
 ## Demo credentials
 
@@ -40,7 +37,7 @@ Password for all demo_* users: `DemoPass123!`
 
 - `demo_baitur_member` — My Businesses
 - `demo_baitur_admin` — Directory Admin
-- `demo_sis_admin` — Partnerships
+- `demo_rbsis_admin` — Partnerships (RBSIS Paramaribo)
 
 ## Ops
 
@@ -48,6 +45,8 @@ Password for all demo_* users: `DemoPass123!`
 cd /opt/memberflow-demo
 docker compose ps
 docker compose pull && docker compose up -d
+# Full demo reset + reseed:
+# bash 14-reseed-demo-rbsis.sh
 ```
 
 Cert renewal is handled by acme.sh (reloadcmd reloads `nginx-base`).

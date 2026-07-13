@@ -682,7 +682,7 @@
     "billing_run_error": "Failed to run billing job",
     "demo_data": "Demo data",
     "demo_title": "Demo federation data",
-    "demo_description": "One-shot seed for an empty database: SIS Suriname (parent) plus three mosques on the Pro plan, with members, payments, events, business listings, and active partnerships. Public directory is enabled on the parent.",
+    "demo_description": "One-shot seed for an empty database: RBSIS Paramaribo (parent) plus three mosques on the Pro plan, with members, payments, events, business listings, and active partnerships. Public directory is enabled on the parent.",
     "demo_create": "Create demo data",
     "demo_seeding": "Creating…",
     "demo_confirm": "Create Suriname federation demo data? This only works when no organizations exist yet.",

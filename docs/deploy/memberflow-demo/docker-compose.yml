@@ -5,10 +5,10 @@
 #   cd /opt/memberflow-demo
 #   docker compose up -d
 #
-# Hosts (routed by nginx map on *.memflox.com):
-#   https://demo.memflox.com/login
-#   https://demo-baiturrochim.memflox.com/login
-#   https://demo-sis.memflox.com/login
+# Hosts (under *.demo.memflox.com):
+#   https://auth.demo.memflox.com/login
+#   https://rbsis-paramaribo.demo.memflox.com
+#   https://demo-baiturrochim.demo.memflox.com
 #   etc.
 
 name: memberflow-demo

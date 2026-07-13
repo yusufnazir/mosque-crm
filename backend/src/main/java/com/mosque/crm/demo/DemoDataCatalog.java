@@ -5,12 +5,15 @@ import java.util.List;
 
 /**
  * Fixed Suriname/Dutch demo federation credentials shown in Settings → Demo data.
+ * Parent federation: RBSIS Paramaribo (handle {@code rbsis-paramaribo}).
  */
 public final class DemoDataCatalog {
 
     public static final String SHARED_PASSWORD = "DemoPass123!";
 
-    public static final String PARENT_HANDLE = "demo-sis";
+    public static final String PARENT_HANDLE = "rbsis-paramaribo";
+
+    public static final String PARENT_PREFIX = "rbsis";
 
     private DemoDataCatalog() {
     }
@@ -28,11 +31,11 @@ public final class DemoDataCatalog {
     public static List<Credential> credentials() {
         List<Credential> list = new ArrayList<>();
         list.add(new Credential(
-                "SIS Suriname (federatie)",
+                "RBSIS Paramaribo (federatie)",
                 PARENT_HANDLE,
                 "Admin",
-                "demo_sis_admin",
-                "demo-sis-admin@demo.local",
+                "demo_" + PARENT_PREFIX + "_admin",
+                "demo-" + PARENT_PREFIX + "-admin@demo.local",
                 SHARED_PASSWORD));
         addMosque(list, "Moskee Baitur Rochim", "demo-baiturrochim", "baitur");
         addMosque(list, "Moskee Darul Iman", "demo-daruliman", "darul");

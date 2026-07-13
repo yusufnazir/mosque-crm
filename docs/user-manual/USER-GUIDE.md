@@ -8,7 +8,7 @@ A simple guide for mosque staff and members. Screenshots are from the **Suriname
 
 MemberFlow helps your mosque manage members, contributions, events, and a **business directory** — a list of trusted businesses run by people in your community.
 
-Organizations can also form a **federation** (partnership). For example, a parent organization like SIS Suriname can partner with local mosques so shared businesses appear across the network.
+Organizations can also form a **federation** (partnership). For example, a parent organization like RBSIS Paramaribo can partner with local mosques so shared businesses appear across the network.
 
 ---
 
@@ -18,7 +18,7 @@ All demo users share the password: **`DemoPass123!`**
 
 | Who | Username | Organization | Best for |
 |-----|----------|--------------|----------|
-| Federation admin | `demo_sis_admin` | SIS Suriname | Partnerships, federation overview |
+| Federation admin | `demo_rbsis_admin` | RBSIS Paramaribo | Partnerships, federation overview |
 | Mosque admin | `demo_baitur_admin` | Moskee Baitur Rochim | Approving businesses, directory admin |
 | Member (portal) | `demo_baitur_member` | Moskee Baitur Rochim | Registering your own businesses |
 
@@ -131,7 +131,7 @@ After approval, the business appears in the Business Directory for your members 
 
 ## 6. Partnerships (federation)
 
-Parent organizations (like SIS Suriname) manage partnerships under **Administration → Partnerships**.
+Parent organizations (like RBSIS Paramaribo) manage partnerships under **Administration → Partnerships**.
 
 From this screen you can:
 
@@ -167,4 +167,4 @@ Sharing is optional. Nothing is shared until an admin turns sharing on.
 3. Sign out, then sign in as **`demo_baitur_admin`** / `DemoPass123!`  
 4. Open **Directory Admin** → **Pending approval** → Approve.  
 5. Open **Business Directory** to see it published.  
-6. Sign in as **`demo_sis_admin`** to review **Partnerships** and federation sharing.
+6. Sign in as **`demo_rbsis_admin`** to review **Partnerships** and federation sharing.

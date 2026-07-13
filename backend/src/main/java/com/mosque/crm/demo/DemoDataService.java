@@ -76,7 +76,7 @@ public class DemoDataService {
         } else if (!canCreate) {
             message = "Database already has organizations. Demo seed requires an empty tenant database.";
         } else {
-            message = "Ready to create Suriname federation demo data.";
+            message = "Ready to create RBSIS Paramaribo federation demo data.";
         }
         return new DemoDataStatusDTO(seeded, canCreate, message, DemoDataCatalog.credentials());
     }
@@ -92,13 +92,13 @@ public class DemoDataService {
         Long srdId = jdbc.queryForObject("SELECT id FROM currencies WHERE code = 'SRD'", Long.class);
         LocalDateTime now = LocalDateTime.now();
 
-        long sisId = createOrganization(
-                "SIS Suriname", "SIS", DemoDataCatalog.PARENT_HANDLE,
-                "Paramaribo", "Suriname", "info@demo-sis.local", now);
-        roleTemplateService.provisionDefaultRolesForOrganization(sisId);
-        subscribePro(sisId, now);
+        long parentId = createOrganization(
+                "RBSIS Paramaribo", "RBSIS", DemoDataCatalog.PARENT_HANDLE,
+                "Paramaribo", "Suriname", "info@" + DemoDataCatalog.PARENT_HANDLE + ".local", now);
+        roleTemplateService.provisionDefaultRolesForOrganization(parentId);
+        subscribePro(parentId, now);
         configurationService.setTenantValue(
-                TenantSettingService.PUBLIC_DIRECTORY_ENABLED_KEY, "true", sisId);
+                TenantSettingService.PUBLIC_DIRECTORY_ENABLED_KEY, "true", parentId);
 
         long baiturId = createMosque("Moskee Baitur Rochim", "Baitur Rochim", "demo-baiturrochim",
                 "Wanica", now);
@@ -107,16 +107,16 @@ public class DemoDataService {
         long annurId = createMosque("Moskee An-Nur", "An-Nur", "demo-annur",
                 "Nickerie", now);
 
-        seedOrgUsersAndContent(sisId, "sis", "SIS", passwordHash, srdId, now, true);
+        seedOrgUsersAndContent(parentId, DemoDataCatalog.PARENT_PREFIX, "RBSIS", passwordHash, srdId, now, true);
         seedOrgUsersAndContent(baiturId, "baitur", "Baitur", passwordHash, srdId, now, false);
         seedOrgUsersAndContent(darulId, "darul", "Darul", passwordHash, srdId, now, false);
         seedOrgUsersAndContent(annurId, "annur", "AnNur", passwordHash, srdId, now, false);
 
-        createActivePartnership(sisId, baiturId, now);
-        createActivePartnership(sisId, darulId, now);
-        createActivePartnership(sisId, annurId, now);
+        createActivePartnership(parentId, baiturId, now);
+        createActivePartnership(parentId, darulId, now);
+        createActivePartnership(parentId, annurId, now);
 
-        log.info("Demo federation seeded: parent={} members={},{},{}", sisId, baiturId, darulId, annurId);
+        log.info("Demo federation seeded: parent={} members={},{},{}", parentId, baiturId, darulId, annurId);
         return getStatus();
     }
 
