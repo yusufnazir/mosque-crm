@@ -43,9 +43,9 @@
       "title": "Member Management",
       "description": "Keep a complete profile for every member — personal details, contact info, membership status, ID documents, and more."
     },
-    "familyGenealogy": {
-      "title": "Family & Genealogy",
-      "description": "Map family relationships with interactive family trees. Visualize multi-generational connections at a glance."
+    "businessDirectory": {
+      "title": "Business Directory",
+      "description": "Publish community businesses with approval, public pages, and optional partner sharing across your federation."
     },
     "contributionsFinance": {
       "title": "Contributions & Finance",

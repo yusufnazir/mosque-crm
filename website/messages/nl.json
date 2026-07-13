@@ -43,9 +43,9 @@
       "title": "Ledenbeheer",
       "description": "Een volledig profiel per lid — persoonsgegevens, contactinformatie, lidmaatschapsstatus, identiteitsdocumenten en meer."
     },
-    "familyGenealogy": {
-      "title": "Gezin & genealogie",
-      "description": "Bre familierelaties uit met interactieve stambomen. Zie meerdere generaties in één oogopslag."
+    "businessDirectory": {
+      "title": "Bedrijvengids",
+      "description": "Publiceer bedrijven uit de gemeenschap met goedkeuring, openbare pagina’s en optioneel delen met partnerorganisaties."
     },
     "contributionsFinance": {
       "title": "Bijdragen & financiën",

@@ -80,4 +80,16 @@ public class TenantSettingController {
         tenantSettingService.setTermsEnabledForCurrentTenant(enabled);
         return ResponseEntity.ok(Map.of("enabled", enabled));
     }
+
+    @GetMapping("/public-directory-enabled")
+    public ResponseEntity<Map<String, Boolean>> getPublicDirectoryEnabled() {
+        return ResponseEntity.ok(Map.of("enabled", tenantSettingService.getPublicDirectoryEnabledForCurrentTenant()));
+    }
+
+    @PutMapping("/public-directory-enabled")
+    public ResponseEntity<Map<String, Boolean>> updatePublicDirectoryEnabled(@RequestBody Map<String, Boolean> body) {
+        boolean enabled = Boolean.TRUE.equals(body.get("enabled"));
+        tenantSettingService.setPublicDirectoryEnabledForCurrentTenant(enabled);
+        return ResponseEntity.ok(Map.of("enabled", enabled));
+    }
 }

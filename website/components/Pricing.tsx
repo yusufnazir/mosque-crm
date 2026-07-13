@@ -19,8 +19,8 @@ function getEntitlement(plan: SubscriptionPlan, key: string): PlanEntitlement | 
   return plan.entitlements.find((e) => e.featureKey === key);
 }
 
-function formatLimitValue(e: PlanEntitlement | undefined, unlimitedLabel: string): string {
-  if (!e) return '—';
+function formatLimitValue(e: PlanEntitlement | undefined, unlimitedLabel: string): string | null {
+  if (!e || !e.enabled) return null;
   if (e.limitValue === null || e.limitValue === -1) return unlimitedLabel;
   return String(e.limitValue);
 }
@@ -78,9 +78,11 @@ function TableCellValue({
       return plan.code === 'PRO' ? <CheckIcon highlight={false} /> : <XIcon />;
     case 'limit': {
       const e = getEntitlement(plan, row.key!);
+      const value = formatLimitValue(e, unlimitedLabel);
+      if (value === null) return <XIcon />;
       return (
         <span className={`text-sm font-medium ${isGrowth ? 'text-primary font-bold' : 'text-charcoal'}`}>
-          {formatLimitValue(e, unlimitedLabel)}
+          {value}
         </span>
       );
     }

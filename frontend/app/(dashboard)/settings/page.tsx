@@ -28,7 +28,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const { appName, setAppName, refreshAppName } = useAppName();
   const { setDateFormat } = useDateFormat();
-  const [activeTab, setActiveTab] = useState<'general' | 'mail' | 'document' | 'billing'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'mail' | 'document' | 'billing' | 'demo'>('general');
   const [config, setConfig] = useState<MailServerConfig>({
     host: '',
     username: '',
@@ -57,6 +57,20 @@ export default function SettingsPage() {
   const [superAdminSubdomain, setSuperAdminSubdomain] = useState('admin');
   const [superAdminSubdomainError, setSuperAdminSubdomainError] = useState('');
   const [dateFormatInput, setDateFormatInput] = useState(DEFAULT_DATE_FORMAT);
+  const [demoStatus, setDemoStatus] = useState<{
+    seeded: boolean;
+    canCreate: boolean;
+    message: string;
+    credentials: Array<{
+      organization: string;
+      handle: string;
+      role: string;
+      username: string;
+      email: string;
+      password: string;
+    }>;
+  } | null>(null);
+  const [seedingDemo, setSeedingDemo] = useState(false);
 
   useEffect(() => {
     fetchMailServerConfig();
@@ -67,7 +81,40 @@ export default function SettingsPage() {
     fetchBillingSchedulerConfig();
     fetchSuperAdminSubdomain();
     fetchDateFormat();
+    fetchDemoStatus();
   }, []);
+
+  const fetchDemoStatus = async () => {
+    try {
+      const response = await fetch('/api/demo-data/status');
+      if (response.ok) {
+        setDemoStatus(await response.json());
+      }
+    } catch (error) {
+      console.error('Failed to fetch demo data status:', error);
+    }
+  };
+
+  const handleSeedDemoData = async () => {
+    if (!demoStatus?.canCreate || seedingDemo) return;
+    if (!window.confirm(t('settings.demo_confirm'))) return;
+    setSeedingDemo(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/demo-data/seed', { method: 'POST' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setMessage(data.error || t('settings.demo_seed_error'));
+      } else {
+        setDemoStatus(data);
+        setMessage(t('settings.demo_seed_success'));
+      }
+    } catch {
+      setMessage(t('settings.demo_seed_error'));
+    } finally {
+      setSeedingDemo(false);
+    }
+  };
 
   useEffect(() => {
     setAppNameInput(appName);
@@ -512,6 +559,18 @@ export default function SettingsPage() {
           }`}
         >
           {t('settings.billing_scheduler')}
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === 'demo'}
+          onClick={() => setActiveTab('demo')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            activeTab === 'demo'
+              ? 'bg-emerald-700 text-white'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          {t('settings.demo_data')}
         </button>
       </div>
 
@@ -1106,6 +1165,71 @@ export default function SettingsPage() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'demo' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 max-w-4xl">
+          <h2 className="text-xl font-semibold text-charcoal mb-2">{t('settings.demo_title')}</h2>
+          <p className="text-sm text-gray-600 mb-6">{t('settings.demo_description')}</p>
+
+          {demoStatus && (
+            <div className={`mb-6 p-4 rounded-lg text-sm ${
+              demoStatus.seeded
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                : demoStatus.canCreate
+                  ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                  : 'bg-amber-50 text-amber-800 border border-amber-200'
+            }`}>
+              {demoStatus.message}
+            </div>
+          )}
+
+          {message && activeTab === 'demo' && (
+            <div className={`mb-6 p-4 rounded-lg ${
+              message.includes('success') || message.includes('succesvol')
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-red-50 text-red-700'
+            }`}>
+              {message}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSeedDemoData}
+            disabled={!demoStatus?.canCreate || seedingDemo}
+            className="mb-8 px-6 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {seedingDemo ? t('settings.demo_seeding') : t('settings.demo_create')}
+          </button>
+
+          <h3 className="text-base font-semibold text-charcoal mb-3">{t('settings.demo_credentials_title')}</h3>
+          <p className="text-sm text-gray-500 mb-4">{t('settings.demo_credentials_hint')}</p>
+          <div className="overflow-x-auto border border-gray-200 rounded-lg">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium text-gray-700">{t('settings.demo_col_org')}</th>
+                  <th className="px-3 py-2 font-medium text-gray-700">{t('settings.demo_col_role')}</th>
+                  <th className="px-3 py-2 font-medium text-gray-700">{t('settings.demo_col_username')}</th>
+                  <th className="px-3 py-2 font-medium text-gray-700">{t('settings.demo_col_password')}</th>
+                  <th className="px-3 py-2 font-medium text-gray-700">{t('settings.demo_col_handle')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(demoStatus?.credentials ?? []).map((cred) => (
+                  <tr key={`${cred.handle}-${cred.username}`} className="border-t border-gray-100">
+                    <td className="px-3 py-2 text-gray-800">{cred.organization}</td>
+                    <td className="px-3 py-2 text-gray-600">{cred.role}</td>
+                    <td className="px-3 py-2 font-mono text-gray-900">{cred.username}</td>
+                    <td className="px-3 py-2 font-mono text-gray-900">{cred.password}</td>
+                    <td className="px-3 py-2 font-mono text-gray-600">{cred.handle}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

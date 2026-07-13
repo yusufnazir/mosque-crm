@@ -31,4 +31,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             + "OR (r.name = 'SUPER_ADMIN' AND (u.selectedOrganizationId = :orgId OR u.organizationId = :orgId))) "
             + "AND u.email IS NOT NULL AND u.email <> ''")
     List<User> findAdminUsersWithEmail(@Param("orgId") Long orgId);
+
+    @Query("SELECT DISTINCT u FROM User u JOIN u.roles r "
+            + "WHERE (u.organizationId = :orgId AND r.name = 'ADMIN') "
+            + "OR (r.name = 'SUPER_ADMIN' AND (u.selectedOrganizationId = :orgId OR u.organizationId = :orgId))")
+    List<User> findAdminUsers(@Param("orgId") Long orgId);
 }

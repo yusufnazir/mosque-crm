@@ -49,8 +49,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/membership-terms/public/*/current").permitAll()
                 // Public membership application and registration completion
                 .requestMatchers("/join-requests/apply", "/join-requests/validate-token", "/join-requests/complete-registration").permitAll()
+                // Public business directory on org subdomain
+                .requestMatchers(HttpMethod.GET, "/business-directory/public/**").permitAll()
                 // Public country reference list for registration form
                 .requestMatchers("/countries/**").permitAll()
+                // Public business category vocabulary for directory forms/filters
+                .requestMatchers(HttpMethod.GET, "/business-categories", "/business-categories/**").permitAll()
                 // Read-only display configurations (APP_NAME, DATE_FORMAT) needed on the login page
                 .requestMatchers(HttpMethod.GET, "/configurations/{key}").permitAll()
                 // Public subscription plan catalog (used by marketing site)

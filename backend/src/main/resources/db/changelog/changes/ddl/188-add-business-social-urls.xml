@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="b1000005-0188-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="businesses"/>
+            <not><columnExists tableName="businesses" columnName="facebook_url"/></not>
+        </preConditions>
+        <comment>Optional social media profile URLs for businesses</comment>
+        <addColumn tableName="businesses">
+            <column name="facebook_url" type="VARCHAR(500)"/>
+            <column name="instagram_url" type="VARCHAR(500)"/>
+            <column name="tiktok_url" type="VARCHAR(500)"/>
+            <column name="youtube_url" type="VARCHAR(500)"/>
+            <column name="linkedin_url" type="VARCHAR(500)"/>
+            <column name="whatsapp_url" type="VARCHAR(500)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

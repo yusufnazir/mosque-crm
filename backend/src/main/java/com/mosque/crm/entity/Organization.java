@@ -72,6 +72,9 @@ public class Organization {
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
+    @Column(name = "federation_invite_code", length = 20, unique = true)
+    private String federationInviteCode;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -192,6 +195,14 @@ public class Organization {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public String getFederationInviteCode() {
+        return federationInviteCode;
+    }
+
+    public void setFederationInviteCode(String federationInviteCode) {
+        this.federationInviteCode = federationInviteCode;
     }
 
     public LocalDateTime getCreatedAt() {

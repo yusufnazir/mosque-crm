@@ -42,6 +42,7 @@ Start free and scale as your community grows. No hidden fees.
 - Member search & filters
 - Basic grouping (e.g. households, teams)
 - Simple reporting (member count, growth)
+- Business directory (up to 10 listings)
 
 #### CTA
 - Text: Start Growing
@@ -63,6 +64,7 @@ Start free and scale as your community grows. No hidden fees.
 - Multi-currency support
 - Advanced attendance tracking
 - Communication tools (announcements)
+- Business directory (up to 50 listings)
 - Priority support
 
 #### CTA
@@ -81,6 +83,7 @@ Start free and scale as your community grows. No hidden fees.
 - Unlimited members
 - Everything in Growth
 - Advanced reporting & insights
+- Business directory (unlimited listings)
 - Payment tracking (contributions, fees)
 - Document management (upload & manage member documents)
 - API access / integrations
@@ -111,6 +114,7 @@ Start free and scale as your community grows. No hidden fees.
 | Multi-currency support              | ✗    | ✗       | ✓      | ✓ |
 | Reporting (basic)                   | ✓    | ✓       | ✓      | ✓ |
 | Reporting (advanced insights)       | ✗    | ✗       | ✗      | ✓ |
+| Business listings                   | ✗    | 10      | 50     | Unlimited |
 | Payment tracking                    | ✗    | ✗       | ✗      | ✓ |
 | Document management                | ✗    | ✗       | ✗      | ✓ |
 | API / integrations                  | ✗    | ✗       | ✗      | ✓ |

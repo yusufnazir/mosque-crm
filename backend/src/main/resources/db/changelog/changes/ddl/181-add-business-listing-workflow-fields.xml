@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="f1a2b3c4-0181-0001-business-listing-workflow" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="business_listings"/>
+            <not><columnExists tableName="business_listings" columnName="submitted_at"/></not>
+        </preConditions>
+        <addColumn tableName="business_listings">
+            <column name="submitted_at" type="TIMESTAMP"/>
+            <column name="reviewed_at" type="TIMESTAMP"/>
+            <column name="reviewed_by_user_id" type="BIGINT"/>
+            <column name="rejection_reason" type="VARCHAR(1000)"/>
+            <column name="federation_hidden" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="federation_hidden_at" type="TIMESTAMP"/>
+            <column name="federation_hidden_by_user_id" type="BIGINT"/>
+            <column name="federation_hidden_reason" type="VARCHAR(1000)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

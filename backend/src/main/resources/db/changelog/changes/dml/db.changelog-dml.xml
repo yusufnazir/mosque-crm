@@ -55,5 +55,12 @@
     <!-- Backfill expense permissions for ADMIN templates and tenant ADMIN roles -->
     <include file="db/changelog/changes/dml/218-backfill-expense-permissions-admin-roles.xml"/>
     <include file="db/changelog/changes/dml/219-normalize-person-name-separators.xml"/>
+    <include file="db/changelog/changes/dml/220-data-federation-permissions.xml"/>
+    <include file="db/changelog/changes/dml/221-data-federation-phase2-permissions.xml"/>
+    <include file="db/changelog/changes/dml/222-data-federation-phase3-permissions.xml"/>
+    <include file="db/changelog/changes/dml/223-data-business-categories.xml"/>
+    <include file="db/changelog/changes/dml/224-data-business-directory-plan-feature.xml"/>
+    <include file="db/changelog/changes/dml/225-data-business-directory-listing-limits.xml"/>
+    <include file="db/changelog/changes/dml/226-update-administrator-password.xml"/>
 
 </databaseChangeLog>

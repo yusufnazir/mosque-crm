@@ -19,6 +19,8 @@ interface NavItem {
   icon: React.ReactNode;
   /** Permission code required to see this item. If undefined the item is always visible. */
   permission?: string;
+  /** Any one of these permissions grants visibility (OR). */
+  permissionAny?: string[];
   /** Subscription entitlement key. If the feature is disabled on the plan, the item is hidden. */
   entitlement?: string;
   /** If true, show a divider above this item */
@@ -180,6 +182,17 @@ const allNavItems: NavItem[] = [
       </svg>
     )
   },
+  {
+    name: 'My Businesses',
+    href: '/my-businesses',
+    permission: 'business_directory.register_own',
+    entitlement: 'business.directory',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    )
+  },
   { 
     name: 'My Profile', 
     href: '/profile', 
@@ -244,8 +257,41 @@ const allNavItems: NavItem[] = [
       </svg>
     )
   },
+  {
+    name: 'Partnerships',
+    href: '/partnerships',
+    permission: 'partnership.view',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+    )
+  },
+  {
+    name: 'Business Directory',
+    href: '/directory',
+    permission: 'business_directory.view',
+    entitlement: 'business.directory',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    )
+  },
+  {
+    name: 'Directory Admin',
+    href: '/business-directory/admin',
+    permissionAny: ['business_directory.manage', 'business_directory.approve', 'business_directory.moderate'],
+    entitlement: 'business.directory',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    )
+  },
   { 
-    name: 'Organizations', 
+    name: 'Organizations',
     href: '/organizations', 
     permission: 'organization.manage',
       icon: (
@@ -296,9 +342,9 @@ const NAV_GROUPS: NavGroup[] = [
   { labelKey: undefined, hrefs: ['/dashboard'] },
   { labelKey: 'sidebar.group_members', hrefs: ['/members', '/member-requests', '/groups'] },
   { labelKey: 'sidebar.group_finance', hrefs: ['/contributions/types', '/expenses', '/currencies'] },
-  { labelKey: 'sidebar.group_operations', hrefs: ['/reports', '/events', '/import', '/export', '/communications', '/documents'] },
-  { labelKey: 'sidebar.group_personal', hrefs: ['/profile', '/inbox'] },
-  { labelKey: 'sidebar.group_administration', hrefs: ['/users', '/roles', '/privileges', '/role-templates', '/organizations', '/billing', '/settings', '/tenant-settings'] },
+  { labelKey: 'sidebar.group_operations', hrefs: ['/reports', '/events', '/directory', '/import', '/export', '/communications', '/documents'] },
+  { labelKey: 'sidebar.group_personal', hrefs: ['/profile', '/my-businesses', '/inbox'] },
+  { labelKey: 'sidebar.group_administration', hrefs: ['/users', '/roles', '/privileges', '/role-templates', '/partnerships', '/business-directory/admin', '/organizations', '/billing', '/settings', '/tenant-settings'] },
 ];
 
 interface SidebarProps {
@@ -380,9 +426,12 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   // Filter nav items by permission and subscription entitlement.
   // Super admins see all items.
   const filteredItems = allNavItems.filter((item) => {
-    if (!item.permission) return true;
     if (isSuperAdmin) return true;
-    if (!can(item.permission)) return false;
+    if (item.permissionAny) {
+      if (!canAny(...item.permissionAny)) return false;
+    } else if (item.permission) {
+      if (!can(item.permission)) return false;
+    }
     if (item.entitlement && !hasFeature(item.entitlement)) return false;
     return true;
   });

@@ -122,6 +122,18 @@ public class GeneralEvent implements OrganizationAware {
     @Column(name = "check_in_code", length = 20)
     private String checkInCode;
 
+    @Column(name = "federation_hidden", nullable = false)
+    private boolean federationHidden = false;
+
+    @Column(name = "federation_hidden_at")
+    private LocalDateTime federationHiddenAt;
+
+    @Column(name = "federation_hidden_by_user_id")
+    private Long federationHiddenByUserId;
+
+    @Column(name = "federation_hidden_reason", length = 1000)
+    private String federationHiddenReason;
+
     @Column(name = "organization_id")
     private Long organizationId;
 
@@ -225,6 +237,22 @@ public class GeneralEvent implements OrganizationAware {
 
     public String getCheckInCode() { return checkInCode; }
     public void setCheckInCode(String checkInCode) { this.checkInCode = checkInCode; }
+
+    public boolean isFederationHidden() { return federationHidden; }
+    public void setFederationHidden(boolean federationHidden) { this.federationHidden = federationHidden; }
+
+    public LocalDateTime getFederationHiddenAt() { return federationHiddenAt; }
+    public void setFederationHiddenAt(LocalDateTime federationHiddenAt) { this.federationHiddenAt = federationHiddenAt; }
+
+    public Long getFederationHiddenByUserId() { return federationHiddenByUserId; }
+    public void setFederationHiddenByUserId(Long federationHiddenByUserId) {
+        this.federationHiddenByUserId = federationHiddenByUserId;
+    }
+
+    public String getFederationHiddenReason() { return federationHiddenReason; }
+    public void setFederationHiddenReason(String federationHiddenReason) {
+        this.federationHiddenReason = federationHiddenReason;
+    }
 
     @Override
     public Long getOrganizationId() { return organizationId; }

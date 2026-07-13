@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Business directory — Pro plan feature (BOOLEAN for pricing table + gating) -->
+    <changeSet id="fd-bizdir-0000-0001-0001-000000000001" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="displayLabel"><![CDATA[Business directory]]></param>
+            <param name="sortOrder"><![CDATA[230]]></param>
+            <param name="featureType"><![CDATA[BOOLEAN]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Plan 4 (Free): disabled -->
+    <changeSet id="pe-bizdir-0000-0001-0001-000000000073" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[73]]></param>
+            <param name="planId"><![CDATA[4]]></param>
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="enabled"><![CDATA[false]]></param>
+        </customChange>
+    </changeSet>
+    <!-- Plan 1 (Starter): disabled -->
+    <changeSet id="pe-bizdir-0000-0001-0001-000000000074" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[74]]></param>
+            <param name="planId"><![CDATA[1]]></param>
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="enabled"><![CDATA[false]]></param>
+        </customChange>
+    </changeSet>
+    <!-- Plan 2 (Growth): disabled -->
+    <changeSet id="pe-bizdir-0000-0001-0001-000000000075" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[75]]></param>
+            <param name="planId"><![CDATA[2]]></param>
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="enabled"><![CDATA[false]]></param>
+        </customChange>
+    </changeSet>
+    <!-- Plan 3 (Pro): enabled -->
+    <changeSet id="pe-bizdir-0000-0001-0001-000000000076" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[76]]></param>
+            <param name="planId"><![CDATA[3]]></param>
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

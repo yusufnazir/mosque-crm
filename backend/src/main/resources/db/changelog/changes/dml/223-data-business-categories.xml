@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="d1000001-0223-bc01-0001-000000000001" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[1]]></param>
+            <param name="code"><![CDATA[restaurant]]></param>
+            <param name="sortOrder"><![CDATA[10]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Restaurant & Food]]></param>
+            <param name="nameNl"><![CDATA[Restaurant & eten]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000002" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[2]]></param>
+            <param name="code"><![CDATA[grocery]]></param>
+            <param name="sortOrder"><![CDATA[20]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Grocery]]></param>
+            <param name="nameNl"><![CDATA[Supermarkt]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000003" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[3]]></param>
+            <param name="code"><![CDATA[retail]]></param>
+            <param name="sortOrder"><![CDATA[30]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Retail]]></param>
+            <param name="nameNl"><![CDATA[Detailhandel]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000004" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[4]]></param>
+            <param name="code"><![CDATA[services]]></param>
+            <param name="sortOrder"><![CDATA[40]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Services]]></param>
+            <param name="nameNl"><![CDATA[Diensten]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000005" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[5]]></param>
+            <param name="code"><![CDATA[education]]></param>
+            <param name="sortOrder"><![CDATA[50]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Education]]></param>
+            <param name="nameNl"><![CDATA[Onderwijs]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000006" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[6]]></param>
+            <param name="code"><![CDATA[health]]></param>
+            <param name="sortOrder"><![CDATA[60]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Health & Wellness]]></param>
+            <param name="nameNl"><![CDATA[Gezondheid & welzijn]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000007" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[7]]></param>
+            <param name="code"><![CDATA[professional]]></param>
+            <param name="sortOrder"><![CDATA[70]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Professional]]></param>
+            <param name="nameNl"><![CDATA[Professioneel]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000008" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[8]]></param>
+            <param name="code"><![CDATA[hospitality]]></param>
+            <param name="sortOrder"><![CDATA[80]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Hospitality]]></param>
+            <param name="nameNl"><![CDATA[Horeca & verblijf]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000009" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[9]]></param>
+            <param name="code"><![CDATA[automotive]]></param>
+            <param name="sortOrder"><![CDATA[90]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Automotive]]></param>
+            <param name="nameNl"><![CDATA[Automotive]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000010" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[10]]></param>
+            <param name="code"><![CDATA[construction]]></param>
+            <param name="sortOrder"><![CDATA[100]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Construction & Trades]]></param>
+            <param name="nameNl"><![CDATA[Bouw & ambacht]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000011" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[11]]></param>
+            <param name="code"><![CDATA[nonprofit]]></param>
+            <param name="sortOrder"><![CDATA[110]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Nonprofit]]></param>
+            <param name="nameNl"><![CDATA[Non-profit]]></param>
+        </customChange>
+    </changeSet>
+    <changeSet id="d1000001-0223-bc01-0001-000000000012" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBusinessCategory">
+            <param name="id"><![CDATA[12]]></param>
+            <param name="code"><![CDATA[other]]></param>
+            <param name="sortOrder"><![CDATA[120]]></param>
+            <param name="active"><![CDATA[true]]></param>
+            <param name="nameEn"><![CDATA[Other]]></param>
+            <param name="nameNl"><![CDATA[Overig]]></param>
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

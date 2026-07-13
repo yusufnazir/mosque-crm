@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mosque.crm.dto.OrganizationDTO;
 import com.mosque.crm.entity.Organization;
 import com.mosque.crm.entity.User;
+import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.OrganizationRepository;
 import com.mosque.crm.service.AuthorizationService;
 import com.mosque.crm.service.OrganizationDeletionService;
@@ -184,10 +185,11 @@ public class OrganizationController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (user.getOrganizationId() == null) {
+        Long orgId = resolveOrganizationIdForCurrentUser(user);
+        if (orgId == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return organizationRepository.findById(user.getOrganizationId())
+        return organizationRepository.findById(orgId)
                 .map(this::toDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -199,12 +201,13 @@ public class OrganizationController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (user.getOrganizationId() == null) {
+        Long orgId = resolveOrganizationIdForCurrentUser(user);
+        if (orgId == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         String handle = body.get("handle");
         if (handle == null || handle.isBlank()) {
-            return organizationRepository.findById(user.getOrganizationId())
+            return organizationRepository.findById(orgId)
                     .map(org -> {
                         org.setHandle(null);
                         return ResponseEntity.ok(toDTO(organizationRepository.save(org)));
@@ -217,12 +220,12 @@ public class OrganizationController {
         }
         final String normalizedHandle = handle;
         boolean taken = organizationRepository.findByHandle(normalizedHandle)
-                .map(existing -> !existing.getId().equals(user.getOrganizationId()))
+                .map(existing -> !existing.getId().equals(orgId))
                 .orElse(false);
         if (taken) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
-        return organizationRepository.findById(user.getOrganizationId())
+        return organizationRepository.findById(orgId)
                 .map(org -> {
                     org.setHandle(normalizedHandle);
                     Organization saved = organizationRepository.save(org);
@@ -230,6 +233,17 @@ public class OrganizationController {
                     return ResponseEntity.ok(toDTO(saved));
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Tenant admins use their user.organizationId.
+     * Super admins scope via X-Organization-Id (TenantContext) when managing a specific org.
+     */
+    private Long resolveOrganizationIdForCurrentUser(User user) {
+        if (user.getOrganizationId() != null) {
+            return user.getOrganizationId();
+        }
+        return TenantContext.getCurrentOrganizationId();
     }
 
     private OrganizationDTO toDTO(Organization organization) {

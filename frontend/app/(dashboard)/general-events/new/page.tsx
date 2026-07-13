@@ -478,6 +478,7 @@ export default function NewGeneralEventPage() {
               >
                 <option value="MEMBERS_ONLY">Members Only</option>
                 <option value="PUBLIC">Public</option>
+                <option value="SHARED_WITH_FEDERATION">{t('general_events.visibility_shared_federation')}</option>
                 <option value="PRIVATE">Private</option>
               </select>
             </div>

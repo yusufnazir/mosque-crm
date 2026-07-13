@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="f1a2b3c4-0177-0001-org-partnerships" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="organization_partnerships"/></not>
+        </preConditions>
+        <createTable tableName="organization_partnerships">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="parent_organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(30)" defaultValue="PENDING_INVITE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="initiated_by" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="VARCHAR(1000)"/>
+            <column name="ended_reason" type="VARCHAR(500)"/>
+            <column name="initiated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="accepted_at" type="TIMESTAMP"/>
+            <column name="ended_at" type="TIMESTAMP"/>
+            <column name="ended_by_user_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="organization_partnerships"
+            columnNames="parent_organization_id, member_organization_id"
+            constraintName="uk_org_partnership_parent_member"/>
+    </changeSet>
+
+</databaseChangeLog>

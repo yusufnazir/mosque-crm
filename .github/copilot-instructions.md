@@ -2,6 +2,7 @@
 
 ## IMPORTANT: Mandatory Documentation Check for AI Assistants
 - **READ ALL DOCUMENTATION FIRST**: Before generating ANY code, AI assistants must read and understand all project documentation
+- **FEDERATION FEATURES**: Before implementing org hierarchy, partnerships, opt-in sharing, or business directory — read `docs/FEDERATION-ORG-STRUCTURE.md`
 - **NO LOMBOK ALLOWED**: This project strictly prohibits Lombok annotations - see Coding Standards section below
 - **Follow ALL guidelines**: Any code that violates these standards will be rejected
 
@@ -79,6 +80,7 @@ Every new view/feature needs its own permission category so admins can control a
 - **Family Tree Visualization**: D3.js-based genealogy trees in frontend components
 
 ## Important Documentation
+- **Federation & Organization Partnership (PLANNED)**: See `docs/FEDERATION-ORG-STRUCTURE.md` before implementing org hierarchy, parent/sub-org partnerships, opt-in data sharing, or the business directory module. This is the authoritative design for federation features — generic (not mosque-specific), invite/request partnership flow, default-no-sharing, and the first shareable module (business directory).
 - **Security Architecture**: See `backend/SECURITY.md` for complete security module documentation
   - **Users are independent** - No member profile required for login/authentication
   - **Users ≠ Members** - Separated authentication layer (users, roles, user_roles tables)

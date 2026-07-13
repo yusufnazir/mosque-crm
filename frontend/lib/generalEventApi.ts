@@ -3,6 +3,11 @@ import { ApiClient } from './api';
 export const generalEventApi = {
   // Events
   listEvents: (): Promise<GeneralEvent[]> => ApiClient.get('/general-events'),
+  listFederationEvents: (): Promise<FederatedGeneralEvent[]> => ApiClient.get('/general-events/federation'),
+  hideFromFederation: (eventId: number, reason?: string) =>
+    ApiClient.post<FederatedGeneralEvent>(`/general-events/federation/${eventId}/hide`, { reason }),
+  unhideFromFederation: (eventId: number) =>
+    ApiClient.post<FederatedGeneralEvent>(`/general-events/federation/${eventId}/unhide`, {}),
   getEvent: (id: number): Promise<GeneralEvent> => ApiClient.get(`/general-events/${id}`),
   createEvent: (data: GeneralEventCreate): Promise<GeneralEvent> => ApiClient.post('/general-events', data),
   updateEvent: (id: number, data: GeneralEventCreate): Promise<GeneralEvent> => ApiClient.put(`/general-events/${id}`, data),
@@ -117,6 +122,13 @@ export interface GeneralEvent {
   totalVolunteers: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface FederatedGeneralEvent extends GeneralEvent {
+  hostedByOrganizationName?: string;
+  hostedByOrganizationHandle?: string;
+  federationHidden?: boolean;
+  federationHiddenReason?: string;
 }
 
 export interface GeneralEventCreate {

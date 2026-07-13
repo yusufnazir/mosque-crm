@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="f1a2b3c4-0178-0001-org-share-settings" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="organization_share_settings"/></not>
+        </preConditions>
+        <createTable tableName="organization_share_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="partnership_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="module_key" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="share_level" type="VARCHAR(20)" defaultValue="PARENT_ONLY">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_user_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="organization_share_settings"
+            columnNames="partnership_id, module_key"
+            constraintName="uk_org_share_settings_partnership_module"/>
+    </changeSet>
+
+</databaseChangeLog>

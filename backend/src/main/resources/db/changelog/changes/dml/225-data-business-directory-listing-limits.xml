@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        Business directory: BOOLEAN Pro-only → LIMIT tiers
+        Free: off | Starter: 10 | Growth: 50 | Pro: unlimited
+    -->
+    <changeSet id="fd-bizdir-limit-0001-0001-000000000001" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataFeatureDefinition">
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="displayLabel"><![CDATA[Business listings]]></param>
+            <param name="sortOrder"><![CDATA[230]]></param>
+            <param name="featureType"><![CDATA[LIMIT]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Free (plan 4): module off -->
+    <changeSet id="pe-bizdir-limit-0001-0001-000000000073" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[73]]></param>
+            <param name="planId"><![CDATA[4]]></param>
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="enabled"><![CDATA[false]]></param>
+        </customChange>
+    </changeSet>
+    <!-- Starter (plan 1): 10 listings -->
+    <changeSet id="pe-bizdir-limit-0001-0001-000000000074" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[74]]></param>
+            <param name="planId"><![CDATA[1]]></param>
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+            <param name="limitValue"><![CDATA[10]]></param>
+        </customChange>
+    </changeSet>
+    <!-- Growth (plan 2): 50 listings -->
+    <changeSet id="pe-bizdir-limit-0001-0001-000000000075" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[75]]></param>
+            <param name="planId"><![CDATA[2]]></param>
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+            <param name="limitValue"><![CDATA[50]]></param>
+        </customChange>
+    </changeSet>
+    <!-- Pro (plan 3): unlimited -->
+    <changeSet id="pe-bizdir-limit-0001-0001-000000000076" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPlanEntitlement">
+            <param name="id"><![CDATA[76]]></param>
+            <param name="planId"><![CDATA[3]]></param>
+            <param name="featureKey"><![CDATA[business.directory]]></param>
+            <param name="enabled"><![CDATA[true]]></param>
+            <!-- null limit_value = unlimited -->
+        </customChange>
+    </changeSet>
+
+</databaseChangeLog>

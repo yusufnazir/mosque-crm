@@ -22,6 +22,7 @@ public class TenantSettingService {
 
     private static final Logger log = LoggerFactory.getLogger(TenantSettingService.class);
     private static final String TERMS_ENABLED_KEY = "TERMS_ENABLED";
+    public static final String PUBLIC_DIRECTORY_ENABLED_KEY = "BUSINESS_DIRECTORY_PUBLIC_ENABLED";
 
     private final TenantSettingFieldRepository tenantSettingFieldRepository;
     private final ConfigurationService configurationService;
@@ -110,7 +111,8 @@ public class TenantSettingService {
                 .collect(Collectors.toSet());
 
         for (Map.Entry<String, String> entry : fieldValues.entrySet()) {
-            if (editableKeys.contains(entry.getKey()) || TERMS_ENABLED_KEY.equals(entry.getKey())) {
+            if (editableKeys.contains(entry.getKey()) || TERMS_ENABLED_KEY.equals(entry.getKey())
+                    || PUBLIC_DIRECTORY_ENABLED_KEY.equals(entry.getKey())) {
                 configurationService.setTenantValue(entry.getKey(), entry.getValue(), organizationId);
             } else {
                 log.warn("Tenant attempted to update non-editable field: {}", entry.getKey());
@@ -143,6 +145,34 @@ public class TenantSettingService {
         }
         configurationService.setTenantValue(TERMS_ENABLED_KEY, String.valueOf(enabled), organizationId);
         log.info("Updated TERMS_ENABLED={} for organization_id={}", enabled, organizationId);
+    }
+
+    public boolean isPublicDirectoryEnabled(Long organizationId) {
+        if (organizationId == null) {
+            return false;
+        }
+        return "true".equalsIgnoreCase(
+                configurationService.getValueTenantAware(PUBLIC_DIRECTORY_ENABLED_KEY, organizationId)
+                        .orElse("false"));
+    }
+
+    public boolean getPublicDirectoryEnabledForCurrentTenant() {
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        return isPublicDirectoryEnabled(organizationId);
+    }
+
+    @Transactional
+    public void setPublicDirectoryEnabledForCurrentTenant(boolean enabled) {
+        if (!authorizationService.hasPermission("tenant_settings.manage")) {
+            throw new AccessDeniedException("Insufficient permissions to update tenant settings");
+        }
+        Long organizationId = TenantContext.getCurrentOrganizationId();
+        if (organizationId == null) {
+            log.warn("setPublicDirectoryEnabledForCurrentTenant called without tenant context");
+            return;
+        }
+        configurationService.setTenantValue(PUBLIC_DIRECTORY_ENABLED_KEY, String.valueOf(enabled), organizationId);
+        log.info("Updated BUSINESS_DIRECTORY_PUBLIC_ENABLED={} for organization_id={}", enabled, organizationId);
     }
 
     private TenantSettingFieldDTO toDTO(TenantSettingField field, String currentValue) {

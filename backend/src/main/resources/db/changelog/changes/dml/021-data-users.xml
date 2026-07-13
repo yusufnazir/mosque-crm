@@ -6,12 +6,12 @@
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
 						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
-	<!-- Admin user: administrator / admin123 -->
+	<!-- Admin user: administrator / 13Jul1980 -->
 	<changeSet id="a2b3c4d5-0021-4e6f-8a9b-re-seed-admin-2" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataUser">
 			<param name="id"><![CDATA[1]]></param>
 			<param name="username"><![CDATA[administrator]]></param>
-			<param name="password"><![CDATA[$2a$12$.4UNoSBAHADsps8TXSuGf./DWsyPX1WndcOquu54tCLdTR4Apn9Ry]]></param>
+			<param name="password"><![CDATA[$2a$10$FFq13RnxFgye.ktGF87Q8e7erNSmtL6Nw/mDt/4IgHtx7oHxX57fi]]></param>
 			<param name="email"><![CDATA[admin@mosque.local]]></param>
 			<param name="accountEnabled"><![CDATA[true]]></param>
 			<param name="accountLocked"><![CDATA[false]]></param>

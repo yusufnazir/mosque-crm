@@ -369,7 +369,72 @@ public class EmailService {
                 buildJoinRequestRejectedBody(firstName, orgName, appName, rejectionReason, locale));
     }
 
-    // â”€â”€ shared low-level sender (reuses same pattern as existing methods) â”€â”€
+    /**
+     * Send a simple plain-text notification (legacy fallback).
+     */
+    public void sendPlainNotificationEmail(String toEmail, String subject, String body) {
+        sendTemplatedEmail(toEmail, subject, body);
+    }
+
+    /**
+     * Federation admin notification (partnership workflow, business approval queue).
+     */
+    public void sendFederationAdminNotificationEmail(String toEmail, String subject, String title,
+            String bodyText, String detailMessage, String actionUrl, String actionLabel, String locale) {
+        sendTemplatedEmail(toEmail, subject,
+                buildFederationAdminNotifyBody(title, bodyText, detailMessage, actionUrl, actionLabel, locale));
+    }
+
+    /**
+     * Federation member notification (business approved/rejected).
+     */
+    public void sendFederationMemberNotificationEmail(String toEmail, String subject, String title,
+            String memberName, String bodyText, String detailMessage, String locale) {
+        sendTemplatedEmail(toEmail, subject,
+                buildFederationMemberNotifyBody(title, memberName, bodyText, detailMessage, locale));
+    }
+
+    private String buildFederationAdminNotifyBody(String title, String bodyText, String detailMessage,
+            String actionUrl, String actionLabel, String locale) {
+        try {
+            String templateName = "nl".equalsIgnoreCase(locale)
+                    ? "email/federation-admin-notify-nl.ftl"
+                    : "email/federation-admin-notify-en.ftl";
+            Template template = freemarkerConfig.getTemplate(templateName);
+            Map<String, Object> model = new HashMap<>();
+            model.put("appName", configurationService.getAppName());
+            model.put("title", title);
+            model.put("bodyText", bodyText);
+            model.put("detailMessage", detailMessage);
+            model.put("actionUrl", actionUrl);
+            model.put("actionLabel", actionLabel);
+            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        } catch (Exception e) {
+            log.error("Error processing federation-admin-notify template", e);
+            return bodyText + (detailMessage != null ? "\n\n" + detailMessage : "")
+                    + (actionUrl != null ? "\n\n" + actionUrl : "");
+        }
+    }
+
+    private String buildFederationMemberNotifyBody(String title, String memberName, String bodyText,
+            String detailMessage, String locale) {
+        try {
+            String templateName = "nl".equalsIgnoreCase(locale)
+                    ? "email/federation-member-notify-nl.ftl"
+                    : "email/federation-member-notify-en.ftl";
+            Template template = freemarkerConfig.getTemplate(templateName);
+            Map<String, Object> model = new HashMap<>();
+            model.put("appName", configurationService.getAppName());
+            model.put("title", title);
+            model.put("memberName", memberName);
+            model.put("bodyText", bodyText);
+            model.put("detailMessage", detailMessage);
+            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        } catch (Exception e) {
+            log.error("Error processing federation-member-notify template", e);
+            return String.format("Dear %s,%n%n%s", memberName, bodyText);
+        }
+    }
 
     private void sendTemplatedEmail(String toEmail, String subject, String body) {
         if (toEmail == null || toEmail.isEmpty()) {

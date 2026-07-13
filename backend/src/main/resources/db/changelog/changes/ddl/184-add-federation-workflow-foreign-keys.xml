@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+
+
+    <changeSet id="f1a2b3c4-0184-0001-federation-workflow-fks" author="mosque-crm">
+
+        <preConditions onFail="MARK_RAN">
+
+            <tableExists tableName="business_listings"/>
+
+            <columnExists tableName="business_listings" columnName="reviewed_by_user_id"/>
+
+        </preConditions>
+
+        <comment>Foreign keys for business listing approval and federation moderation workflow</comment>
+
+        <addForeignKeyConstraint constraintName="fk_businesslisting_reviewed_by"
+
+            baseTableName="business_listings" baseColumnNames="reviewed_by_user_id"
+
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint constraintName="fk_businesslisting_hidden_by"
+
+            baseTableName="business_listings" baseColumnNames="federation_hidden_by_user_id"
+
+            referencedTableName="users" referencedColumnNames="id"/>
+
+    </changeSet>
+
+
+
+    <changeSet id="f1a2b3c4-0184-0002-general-event-federation-fks" author="mosque-crm">
+
+        <preConditions onFail="MARK_RAN">
+
+            <tableExists tableName="org_general_events"/>
+
+            <columnExists tableName="org_general_events" columnName="federation_hidden_by_user_id"/>
+
+        </preConditions>
+
+        <comment>Foreign key for general event federation moderation</comment>
+
+        <addForeignKeyConstraint constraintName="fk_genevents_federation_hidden_by"
+
+            baseTableName="org_general_events" baseColumnNames="federation_hidden_by_user_id"
+
+            referencedTableName="users" referencedColumnNames="id"/>
+
+    </changeSet>
+
+
+
+</databaseChangeLog>
+

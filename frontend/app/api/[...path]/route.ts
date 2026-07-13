@@ -102,8 +102,8 @@ async function proxyRequest(
   const responseText = new TextDecoder().decode(responseBody);
   const upstreamContentType = upstream.headers.get('Content-Type') ?? '';
 
-  // Expired/invalid JWT used to fall through as anonymous → 403; treat opaque 403 as 401
-  if (upstream.status === 403 && token) {
+  // Expired/invalid JWT on /me used to fall through as anonymous → 403; only remap that case.
+  if (upstream.status === 403 && token && targetPath === 'me') {
     const isPlanGate =
       responseText.includes('PLAN_ENTITLEMENT_REQUIRED') ||
       responseText.includes('PLAN_LIMIT_EXCEEDED');

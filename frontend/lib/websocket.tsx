@@ -10,6 +10,7 @@ import { Client } from '@stomp/stompjs';
  * Events dispatched:
  *  - 'inbox:new-message'  CustomEvent with { message, unreadCount } detail
  *  - 'inbox:read'         Generic event to trigger badge re-fetch in Header/Sidebar
+ *  - 'notifications:updated' Refresh in-app notification badge/dropdown
  */
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
@@ -58,6 +59,16 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
                 );
                 // Trigger badge refresh in Header and Sidebar
                 window.dispatchEvent(new Event('inbox:read'));
+              } catch {
+                // ignore parse errors
+              }
+            });
+            client?.subscribe('/user/topic/notifications', (frame) => {
+              try {
+                const payload = JSON.parse(frame.body);
+                window.dispatchEvent(
+                  new CustomEvent('notifications:updated', { detail: payload })
+                );
               } catch {
                 // ignore parse errors
               }

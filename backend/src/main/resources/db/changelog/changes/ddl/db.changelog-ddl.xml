@@ -157,6 +157,23 @@
     <include file="db/changelog/changes/ddl/175-add-parcel-weight-unit-to-org-events.xml"/>
     <include file="db/changelog/changes/ddl/176-add-entitlement-received-to-sacrifice-shares.xml"/>
 
+    <!-- ======================== FEDERATION & BUSINESS DIRECTORY ======================== -->
+    <include file="db/changelog/changes/ddl/177-create-organization-partnerships-table.xml"/>
+    <include file="db/changelog/changes/ddl/178-create-organization-share-settings-table.xml"/>
+    <include file="db/changelog/changes/ddl/179-create-businesses-table.xml"/>
+    <include file="db/changelog/changes/ddl/180-create-business-listings-table.xml"/>
+    <include file="db/changelog/changes/ddl/181-add-business-listing-workflow-fields.xml"/>
+    <include file="db/changelog/changes/ddl/182-add-general-event-federation-fields.xml"/>
+    <include file="db/changelog/changes/ddl/183-add-federation-invite-code.xml"/>
+    <include file="db/changelog/changes/ddl/184-add-federation-workflow-foreign-keys.xml"/>
+    <include file="db/changelog/changes/ddl/185-add-business-listing-public-visible.xml"/>
+    <include file="db/changelog/changes/ddl/186-create-business-categories-table.xml"/>
+    <include file="db/changelog/changes/ddl/187-create-business-category-translations-table.xml"/>
+    <include file="db/changelog/changes/ddl/188-add-business-social-urls.xml"/>
+    <include file="db/changelog/changes/ddl/189-create-user-notifications-table.xml"/>
+    <include file="db/changelog/changes/ddl/190-add-business-listing-suspension-fields.xml"/>
+    <include file="db/changelog/changes/ddl/191-add-business-logo-image-key.xml"/>
+
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>
 

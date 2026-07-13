@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server';
 
 const FEATURE_KEYS = [
   'memberManagement',
-  'familyGenealogy',
+  'businessDirectory',
   'contributionsFinance',
   'eventManagement',
   'multiTenancy',
@@ -20,12 +20,18 @@ const FEATURE_ICONS = [
       d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
     />
   </svg>,
-  <svg key="f" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg key="b" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={1.5}
-      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"
+      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
     />
   </svg>,
   <svg key="c" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

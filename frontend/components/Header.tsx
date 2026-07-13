@@ -8,6 +8,7 @@ import { usePageHeader, BreadcrumbItem } from '@/lib/page-header';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { authApi } from '@/lib/api';
 import { messageApi } from '@/lib/messageApi';
+import { notificationApi, UserNotificationDTO } from '@/lib/notificationApi';
 import { logoutClient } from '@/lib/auth/logout';
 import ChangePasswordModal from './ChangePasswordModal';
 
@@ -57,9 +58,14 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifUnread, setNotifUnread] = useState(0);
+  const [notifications, setNotifications] = useState<UserNotificationDTO[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
 
   // Auto-generate breadcrumbs from pathname when none are set via context
   const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
@@ -96,10 +102,13 @@ export default function Header({ onMenuToggle }: HeaderProps) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
       }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
     }
-    if (menuOpen) document.addEventListener('mousedown', handleClick);
+    if (menuOpen || notifOpen) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
-  }, [menuOpen]);
+  }, [menuOpen, notifOpen]);
 
   // Poll unread message count every 60 seconds + refresh on inbox:read event
   useEffect(() => {
@@ -112,6 +121,38 @@ export default function Header({ onMenuToggle }: HeaderProps) {
     window.addEventListener('inbox:read', fetchUnread);
     return () => { clearInterval(timer); window.removeEventListener('inbox:read', fetchUnread); };
   }, [user]);
+
+  const refreshNotifications = () => {
+    notificationApi.unreadCount()
+      .then((r) => setNotifUnread(r?.count ?? 0))
+      .catch(() => {});
+  };
+
+  const loadNotificationFeed = () => {
+    setNotifLoading(true);
+    notificationApi.list(20)
+      .then((items) => setNotifications(Array.isArray(items) ? items : []))
+      .catch(() => setNotifications([]))
+      .finally(() => setNotifLoading(false));
+    refreshNotifications();
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    refreshNotifications();
+    const timer = setInterval(refreshNotifications, 60_000);
+    const onUpdated = () => {
+      refreshNotifications();
+      if (notifOpen) loadNotificationFeed();
+    };
+    window.addEventListener('notifications:updated', onUpdated);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('notifications:updated', onUpdated);
+    };
+  }, [user, notifOpen]);
+
+  const badgeCount = unreadCount + notifUnread;
 
   const handleLogout = async () => {
     await logoutClient();
@@ -172,21 +213,116 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
         {/* Right: bell icon + user dropdown */}
         <div className="flex items-center gap-2">
-          {/* Bell / Inbox icon */}
-          <Link
-            href="/inbox"
-            className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-            aria-label="Inbox"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
+          {/* Notifications bell */}
+          <div className="relative" ref={notifRef}>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !notifOpen;
+                setNotifOpen(next);
+                setMenuOpen(false);
+                if (next) loadNotificationFeed();
+              }}
+              className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+              aria-label={t('common.notifications')}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {badgeCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white">
+                  {badgeCount > 9 ? '9+' : badgeCount}
+                </span>
+              )}
+            </button>
+
+            {notifOpen && (
+              <div className="absolute right-0 top-full z-50 mt-2 w-80 sm:w-96 rounded-xl border border-gray-100 bg-white shadow-lg overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                  <p className="text-sm font-semibold text-gray-800">{t('common.notifications')}</p>
+                  {notifUnread > 0 && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await notificationApi.markAllRead();
+                          setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+                          setNotifUnread(0);
+                        } catch {
+                          /* ignore */
+                        }
+                      }}
+                      className="text-xs text-emerald-700 hover:underline"
+                    >
+                      {t('common.notifications_mark_all_read')}
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-80 overflow-y-auto">
+                  {notifLoading ? (
+                    <p className="px-4 py-6 text-sm text-gray-400 text-center">{t('common.loading')}</p>
+                  ) : notifications.length === 0 ? (
+                    <p className="px-4 py-6 text-sm text-gray-400 text-center">{t('common.notifications_empty')}</p>
+                  ) : (
+                    notifications.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            if (!item.read) {
+                              await notificationApi.markRead(item.id);
+                              setNotifications((prev) =>
+                                prev.map((n) => (n.id === item.id ? { ...n, read: true } : n))
+                              );
+                              setNotifUnread((c) => Math.max(0, c - 1));
+                            }
+                          } catch {
+                            /* ignore */
+                          }
+                          setNotifOpen(false);
+                          if (item.linkPath) {
+                            router.push(item.linkPath);
+                          }
+                        }}
+                        className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${
+                          item.read ? 'bg-white' : 'bg-emerald-50/60'
+                        }`}
+                      >
+                        <p className={`text-sm ${item.read ? 'font-medium text-gray-700' : 'font-semibold text-gray-900'}`}>
+                          {item.title}
+                        </p>
+                        {item.body && (
+                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.body}</p>
+                        )}
+                        {item.createdAt && (
+                          <p className="text-[11px] text-gray-400 mt-1">
+                            {new Date(item.createdAt).toLocaleString()}
+                          </p>
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+
+                <div className="border-t border-gray-100 px-4 py-2.5 bg-gray-50">
+                  <Link
+                    href="/inbox"
+                    onClick={() => setNotifOpen(false)}
+                    className="flex items-center justify-between text-sm text-emerald-700 hover:underline"
+                  >
+                    <span>{t('common.notifications_view_inbox')}</span>
+                    {unreadCount > 0 && (
+                      <span className="rounded-full bg-red-500 text-white text-[10px] font-semibold px-1.5 py-0.5">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                </div>
+              </div>
             )}
-          </Link>
+          </div>
 
           <div className="relative" ref={menuRef}>
             <button

@@ -108,4 +108,14 @@ public final class FeatureKeys {
     // -------------------------------------------------------------------------
     /** Member search (gated per plan; basic search always available). */
     public static final String MEMBER_SEARCH = "member.search";
+
+    // -------------------------------------------------------------------------
+    // Business directory / federation listings
+    // -------------------------------------------------------------------------
+    /**
+     * Business directory module. Stored as a LIMIT entitlement:
+     * enabled=false → module off (Free); enabled + limit_value → max businesses;
+     * enabled + null limit → unlimited (Pro).
+     */
+    public static final String BUSINESS_DIRECTORY = "business.directory";
 }

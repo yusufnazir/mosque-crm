@@ -6,7 +6,8 @@ import TermsContentRenderer from '@/components/TermsContentRenderer';
 import { useAppName } from '@/lib/AppNameContext';
 import { organizationApi } from '@/lib/organizationApi';
 import { membershipTermsApi, MembershipTermsVersionDTO } from '@/lib/membershipTermsApi';
-import { buildTenantUrl } from '@/lib/auth/AuthContext';
+import { buildTenantUrl, useAuth } from '@/lib/auth/AuthContext';
+import { copyToClipboard } from '@/lib/utils';
 
 interface TenantSettingField {
   id: number;
@@ -44,6 +45,7 @@ const FALLBACK_TERMS_PLACEHOLDERS = [
 export default function TenantSettingsPage() {
   const { t, language } = useTranslation();
   const { setAppName } = useAppName();
+  const { isSuperAdmin, selectedOrganization } = useAuth();
   const [fields, setFields] = useState<TenantSettingField[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -58,6 +60,9 @@ export default function TenantSettingsPage() {
   const [handleMessage, setHandleMessage] = useState('');
   const [orgId, setOrgId] = useState<number | undefined>(undefined);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedDirectoryLink, setCopiedDirectoryLink] = useState(false);
+  const [publicDirectoryEnabled, setPublicDirectoryEnabled] = useState(false);
+  const [publicDirectoryLoading, setPublicDirectoryLoading] = useState(false);
   const handleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [termsVersions, setTermsVersions] = useState<MembershipTermsVersionDTO[]>([]);
   const [termsLoading, setTermsLoading] = useState(true);
@@ -138,12 +143,13 @@ export default function TenantSettingsPage() {
     fetchMyOrganization();
     fetchMembershipTerms();
     fetchTermsEnabled();
-  }, []);
+    fetchPublicDirectoryEnabled();
+  }, [isSuperAdmin, selectedOrganization?.id]);
 
   const tabs: { key: TenantSettingsTab; label: string }[] = [
     { key: 'settings' as const, label: t('settings.title') },
     ...(orgId !== undefined ? [{ key: 'profile' as const, label: t('tenant_settings.org_profile') }] : []),
-    ...(orgId !== undefined && orgHandle ? [{ key: 'registration' as const, label: t('tenant_settings.registration_link_title') }] : []),
+    ...(orgId !== undefined && orgHandle ? [{ key: 'registration' as const, label: t('tenant_settings.public_links_tab') }] : []),
     { key: 'terms' as const, label: t('tenant_settings.terms_title') },
   ];
 
@@ -163,11 +169,17 @@ export default function TenantSettingsPage() {
 
   const fetchMyOrganization = async () => {
     try {
+      if (isSuperAdmin && !selectedOrganization) {
+        setOrgId(undefined);
+        setOrgHandle('');
+        return;
+      }
       const org = await organizationApi.getMyOrganization();
       setOrgHandle(org.handle || '');
       setOrgId(org.id);
     } catch {
-      // Not a tenant admin or no org — silently ignore
+      setOrgId(undefined);
+      setOrgHandle('');
     }
   };
 
@@ -403,6 +415,46 @@ export default function TenantSettingsPage() {
     }
   };
 
+  const fetchPublicDirectoryEnabled = async () => {
+    setPublicDirectoryLoading(true);
+    try {
+      const response = await fetch('/api/tenant-settings/public-directory-enabled', {
+        headers: getOrganizationHeaders(),
+      });
+      if (response.ok) {
+        const data: { enabled: boolean } = await response.json();
+        setPublicDirectoryEnabled(Boolean(data.enabled));
+      }
+    } catch {
+      // keep previous UI state on fetch failure
+    } finally {
+      setPublicDirectoryLoading(false);
+    }
+  };
+
+  const handleTogglePublicDirectory = async () => {
+    const newValue = !publicDirectoryEnabled;
+    setPublicDirectoryLoading(true);
+    try {
+      const response = await fetch('/api/tenant-settings/public-directory-enabled', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getOrganizationHeaders() },
+        body: JSON.stringify({ enabled: newValue }),
+      });
+      if (response.ok) {
+        const data: { enabled: boolean } = await response.json();
+        setPublicDirectoryEnabled(Boolean(data.enabled));
+        setMessage(t('tenant_settings.save_success'));
+      } else {
+        setMessage(t('tenant_settings.save_error'));
+      }
+    } catch {
+      setMessage(t('tenant_settings.save_error'));
+    } finally {
+      setPublicDirectoryLoading(false);
+    }
+  };
+
   const handlePublishTerms = async () => {
     setTermsPublishing(true);
     setTermsMessage('');
@@ -523,6 +575,26 @@ export default function TenantSettingsPage() {
     <div className="p-4 md:p-8">
       <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-6 md:mb-8">{t('tenant_settings.title')}</h1>
 
+      {isSuperAdmin && !selectedOrganization && (
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 max-w-3xl">
+          {t('tenant_settings.super_admin_select_org')}
+        </p>
+      )}
+
+      {orgId !== undefined && !orgHandle && (
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 max-w-3xl">
+          {t('tenant_settings.missing_handle_hint')}{' '}
+          <button
+            type="button"
+            onClick={() => setActiveTab('profile')}
+            className="font-medium text-emerald-800 underline hover:text-emerald-900"
+          >
+            {t('tenant_settings.org_profile')}
+          </button>
+          .
+        </p>
+      )}
+
       <div className="flex gap-1 mb-6 border-b border-stone-200 overflow-x-auto max-w-3xl">
         {tabs.map((tab) => (
           <button
@@ -642,16 +714,93 @@ export default function TenantSettingsPage() {
               onClick={(e) => (e.target as HTMLInputElement).select()}
             />
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(buildTenantUrl(orgHandle, '/register-member'));
-                setCopiedLink(true);
-                setTimeout(() => setCopiedLink(false), 2000);
+              onClick={async () => {
+                const ok = await copyToClipboard(buildTenantUrl(orgHandle, '/register-member'));
+                if (ok) {
+                  setCopiedLink(true);
+                  setTimeout(() => setCopiedLink(false), 2000);
+                }
               }}
               className="px-4 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition text-sm whitespace-nowrap"
             >
               {copiedLink ? t('tenant_settings.registration_link_copied') : t('tenant_settings.registration_link_copy')}
             </button>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'registration' && orgId !== undefined && orgHandle && (
+        <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl mb-6">
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-charcoal">
+                {t('tenant_settings.public_directory_title')}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">{t('tenant_settings.public_directory_description')}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${
+                  publicDirectoryEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {publicDirectoryEnabled
+                  ? t('tenant_settings.public_directory_access_open')
+                  : t('tenant_settings.public_directory_access_closed')}
+              </span>
+              <button
+                type="button"
+                onClick={handleTogglePublicDirectory}
+                disabled={publicDirectoryLoading}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                  publicDirectoryEnabled ? 'bg-emerald-600' : 'bg-gray-300'
+                } ${publicDirectoryLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                aria-label={t('tenant_settings.public_directory_title')}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    publicDirectoryEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+          {!publicDirectoryEnabled && (
+            <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4">
+              {t('tenant_settings.public_directory_closed_hint')}
+            </p>
+          )}
+          {publicDirectoryEnabled && (
+            <>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('tenant_settings.public_directory_link_label')}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={buildTenantUrl(orgHandle, '/directory')}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 text-sm select-all"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <button
+                  onClick={async () => {
+                    const ok = await copyToClipboard(buildTenantUrl(orgHandle, '/directory'));
+                    if (ok) {
+                      setCopiedDirectoryLink(true);
+                      setTimeout(() => setCopiedDirectoryLink(false), 2000);
+                    }
+                  }}
+                  className="px-4 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition text-sm whitespace-nowrap"
+                >
+                  {copiedDirectoryLink
+                    ? t('tenant_settings.registration_link_copied')
+                    : t('tenant_settings.registration_link_copy')}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-3">{t('tenant_settings.public_directory_hint')}</p>
+            </>
+          )}
         </div>
       )}
 

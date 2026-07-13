@@ -841,6 +841,7 @@ export default function GeneralEventDetailPage() {
                 <dd className="font-medium text-stone-800">
                   {event.visibility === 'PUBLIC' ? t('general_events.visibility_public')
                     : event.visibility === 'MEMBERS_ONLY' ? t('general_events.visibility_members_only')
+                    : event.visibility === 'SHARED_WITH_FEDERATION' ? t('general_events.visibility_shared_federation')
                     : event.visibility === 'INTERNAL_ONLY' ? t('general_events.visibility_internal_only')
                     : event.visibility}
                 </dd>

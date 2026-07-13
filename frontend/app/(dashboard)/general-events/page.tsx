@@ -4,15 +4,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useDateFormat } from '@/lib/DateFormatContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 import {
   generalEventApi,
   GeneralEvent,
+  FederatedGeneralEvent,
   GeneralEventStatus,
   GeneralEventType,
 } from '@/lib/generalEventApi';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { ActionButton, RowActions } from '@/components/events/EventResourceRowActions';
+
+type Tab = 'local' | 'federation';
 
 const STATUS_COLORS: Record<GeneralEventStatus, string> = {
   DRAFT: 'bg-stone-100 text-stone-700',
@@ -25,9 +29,14 @@ const STATUS_COLORS: Record<GeneralEventStatus, string> = {
 export default function GeneralEventsPage() {
   const { t } = useTranslation();
   const { formatDate } = useDateFormat();
+  const { can } = useAuth();
   const router = useRouter();
+  const canViewFederation = can('public_events.view');
+  const canModerate = can('public_events.moderate');
 
+  const [tab, setTab] = useState<Tab>('local');
   const [events, setEvents] = useState<GeneralEvent[]>([]);
+  const [federationEvents, setFederationEvents] = useState<FederatedGeneralEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<GeneralEventStatus | ''>('');
@@ -35,18 +44,25 @@ export default function GeneralEventsPage() {
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<GeneralEvent | null>(null);
+  const [hideEventId, setHideEventId] = useState<number | null>(null);
+  const [hideReason, setHideReason] = useState('');
 
   const loadEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await generalEventApi.listEvents();
-      setEvents(data);
+      if (tab === 'local') {
+        const data = await generalEventApi.listEvents();
+        setEvents(data);
+      } else if (canViewFederation) {
+        const data = await generalEventApi.listFederationEvents();
+        setFederationEvents(data);
+      }
     } catch {
       setToast({ message: t('general_events.toast.error'), type: 'error' });
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, tab, canViewFederation]);
 
   useEffect(() => {
     loadEvents();
@@ -62,6 +78,29 @@ export default function GeneralEventsPage() {
     } catch {
       setToast({ message: t('general_events.toast.error'), type: 'error' });
       setDeleteTarget(null);
+    }
+  };
+
+  const hideEvent = async () => {
+    if (!hideEventId) return;
+    try {
+      await generalEventApi.hideFromFederation(hideEventId, hideReason || undefined);
+      setHideEventId(null);
+      setHideReason('');
+      setToast({ message: t('general_events.hide_success'), type: 'success' });
+      loadEvents();
+    } catch {
+      setToast({ message: t('general_events.hide_error'), type: 'error' });
+    }
+  };
+
+  const unhideEvent = async (eventId: number) => {
+    try {
+      await generalEventApi.unhideFromFederation(eventId);
+      setToast({ message: t('general_events.unhide_success'), type: 'success' });
+      loadEvents();
+    } catch {
+      setToast({ message: t('general_events.unhide_error'), type: 'error' });
     }
   };
 
@@ -107,14 +146,35 @@ export default function GeneralEventsPage() {
           <h1 className="text-2xl font-bold text-stone-800">{t('general_events.title')}</h1>
           <p className="text-stone-500 text-sm mt-1">{t('general_events.subtitle')}</p>
         </div>
-        <button
-          onClick={() => router.push('/general-events/new')}
-          className="bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800 transition-colors"
-        >
-          + {t('general_events.create')}
-        </button>
+        {tab === 'local' && (
+          <button
+            onClick={() => router.push('/general-events/new')}
+            className="bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800 transition-colors"
+          >
+            + {t('general_events.create')}
+          </button>
+        )}
       </div>
 
+      {canViewFederation && (
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setTab('local')}
+            className={`px-4 py-2 rounded-lg text-sm ${tab === 'local' ? 'bg-emerald-700 text-white' : 'bg-white border border-stone-300'}`}
+          >
+            {t('general_events.tab_local')}
+          </button>
+          <button
+            onClick={() => setTab('federation')}
+            className={`px-4 py-2 rounded-lg text-sm ${tab === 'federation' ? 'bg-emerald-700 text-white' : 'bg-white border border-stone-300'}`}
+          >
+            {t('general_events.tab_federation')}
+          </button>
+        </div>
+      )}
+
+      {tab === 'local' && (
+      <>
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <input
@@ -227,6 +287,78 @@ export default function GeneralEventsPage() {
               </RowActions>
             </div>
           ))}
+        </div>
+      )}
+      </>
+      )}
+
+      {tab === 'federation' && (
+        loading ? (
+          <div className="flex justify-center py-16">
+            <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : federationEvents.length === 0 ? (
+          <div className="text-center py-16 text-stone-500">{t('general_events.empty_federation')}</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {federationEvents.map(ev => (
+              <div key={ev.id} className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
+                <div className="flex items-start justify-between mb-3">
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[ev.status]}`}>
+                    {t(`general_events.statuses.${ev.status}`)}
+                  </span>
+                  {ev.federationHidden && (
+                    <span className="text-xs bg-red-100 text-red-700 font-semibold px-2.5 py-1 rounded-full">
+                      {t('general_events.hidden_from_federation')}
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-semibold text-stone-800 text-base mb-1 line-clamp-2">{ev.name}</h3>
+                <p className="text-xs text-stone-500 mb-2">
+                  {t('general_events.listed_by', { org: ev.hostedByOrganizationName ?? '' })}
+                </p>
+                <div className="space-y-1.5 text-xs text-stone-500 mb-4">
+                  <div>{formatDate(ev.startDate)}{ev.startTime ? ` · ${ev.startTime}` : ''}</div>
+                  {ev.location && <div className="truncate">{ev.location}</div>}
+                </div>
+                {canModerate && (
+                  <div className="flex gap-2">
+                    {ev.federationHidden ? (
+                      <button onClick={() => unhideEvent(ev.id)} className="px-3 py-1.5 border border-emerald-600 text-emerald-700 rounded-lg text-sm">
+                        {t('general_events.unhide')}
+                      </button>
+                    ) : (
+                      <button onClick={() => setHideEventId(ev.id)} className="px-3 py-1.5 border border-red-300 text-red-700 rounded-lg text-sm">
+                        {t('general_events.hide')}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      )}
+
+      {hideEventId !== null && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+            <h2 className="text-lg font-semibold mb-4">{t('general_events.hide')}</h2>
+            <textarea
+              value={hideReason}
+              onChange={(e) => setHideReason(e.target.value)}
+              placeholder={t('general_events.hide_reason_placeholder')}
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 min-h-[80px] mb-4"
+            />
+            <div className="flex justify-end gap-2">
+              <button onClick={() => { setHideEventId(null); setHideReason(''); }} className="px-4 py-2 border border-stone-300 rounded-lg">
+                {t('common.cancel')}
+              </button>
+              <button onClick={hideEvent} className="px-4 py-2 bg-red-600 text-white rounded-lg">
+                {t('general_events.hide')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

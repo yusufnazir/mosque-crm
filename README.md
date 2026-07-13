@@ -190,8 +190,18 @@ jwt:
 NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ```
 
+## 📚 Architecture & Design Docs
+
+| Document | Description |
+|----------|-------------|
+| [`docs/FEDERATION-ORG-STRUCTURE.md`](docs/FEDERATION-ORG-STRUCTURE.md) | **Planned:** Generic org federation — parent/sub-org partnerships, opt-in sharing (default nothing), business directory module |
+| [`backend/MULTI-TENANT-SECURITY.md`](backend/MULTI-TENANT-SECURITY.md) | Multi-tenant RBAC and authorization model |
+| [`backend/GEDCOM.md`](backend/GEDCOM.md) | Family tree / genealogy module |
+| [`.github/copilot-instructions.md`](.github/copilot-instructions.md) | AI assistant and contributor guidelines |
+
 ## 🎯 Future Enhancements
 
+- **Federation & business directory** — see [`docs/FEDERATION-ORG-STRUCTURE.md`](docs/FEDERATION-ORG-STRUCTURE.md)
 - Event management for mosque activities
 - Prayer time notifications
 - Donation tracking

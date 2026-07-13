@@ -1226,4 +1226,79 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="b1000099-9990-0000-0000-000000000013-1" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="organization_partnerships"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for federation and business directory</comment>
+
+        <addForeignKeyConstraint constraintName="fk_orgpartnership_parent"
+            baseTableName="organization_partnerships" baseColumnNames="parent_organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_orgpartnership_member"
+            baseTableName="organization_partnerships" baseColumnNames="member_organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_orgpartnership_ended_by"
+            baseTableName="organization_partnerships" baseColumnNames="ended_by_user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint constraintName="fk_orgshare_partnership"
+            baseTableName="organization_share_settings" baseColumnNames="partnership_id"
+            referencedTableName="organization_partnerships" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_orgshare_updated_by"
+            baseTableName="organization_share_settings" baseColumnNames="updated_by_user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint constraintName="fk_business_org"
+            baseTableName="businesses" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_business_owner"
+            baseTableName="businesses" baseColumnNames="owner_person_id"
+            referencedTableName="persons" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint constraintName="fk_businesslisting_org"
+            baseTableName="business_listings" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_businesslisting_business"
+            baseTableName="business_listings" baseColumnNames="business_id"
+            referencedTableName="businesses" referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_orgpartnership_parent" tableName="organization_partnerships"><column name="parent_organization_id"/></createIndex>
+        <createIndex indexName="idx_orgpartnership_member" tableName="organization_partnerships"><column name="member_organization_id"/></createIndex>
+        <createIndex indexName="idx_orgpartnership_status" tableName="organization_partnerships"><column name="status"/></createIndex>
+        <createIndex indexName="idx_orgshare_partnership" tableName="organization_share_settings"><column name="partnership_id"/></createIndex>
+        <createIndex indexName="idx_business_org" tableName="businesses"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_businesslisting_org" tableName="business_listings"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_businesslisting_status" tableName="business_listings"><column name="status"/></createIndex>
+    </changeSet>
+
+    <changeSet id="b1000099-9990-0000-0000-000000000014" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="business_category_translations"/>
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_biz_cat_trans_category"/>
+            </not>
+        </preConditions>
+        <comment>Foreign key for business category translations</comment>
+        <addForeignKeyConstraint constraintName="fk_biz_cat_trans_category"
+            baseTableName="business_category_translations" baseColumnNames="category_id"
+            referencedTableName="business_categories" referencedColumnNames="id"/>
+        <createIndex indexName="idx_biz_cat_trans_category" tableName="business_category_translations">
+            <column name="category_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="b1000099-9990-0000-0000-000000000015" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user_notifications"/>
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_user_notif_user"/>
+            </not>
+        </preConditions>
+        <comment>Foreign key for user notifications</comment>
+        <addForeignKeyConstraint constraintName="fk_user_notif_user"
+            baseTableName="user_notifications" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
 </databaseChangeLog>

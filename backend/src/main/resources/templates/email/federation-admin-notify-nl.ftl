@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html style="color-scheme: light;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f5; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <tr>
+                        <td bgcolor="#047857" style="background-color: #047857 !important; padding: 32px 30px; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600; text-align: center;">${appName}</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 36px 30px;">
+                            <h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 22px; font-weight: 600;">${title}</h2>
+                            <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6; white-space: pre-line;">${bodyText}</p>
+                            <#if detailMessage?? && detailMessage?has_content>
+                            <div style="margin: 20px 0; padding: 16px; background-color: #f0fdf4; border-left: 4px solid #047857; border-radius: 4px;">
+                                <p style="margin: 0; color: #4b5563; font-size: 14px; line-height: 1.6; white-space: pre-line;">${detailMessage}</p>
+                            </div>
+                            </#if>
+                            <#if actionUrl?? && actionUrl?has_content>
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 28px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="${actionUrl}" style="display: inline-block; padding: 14px 28px; background-color: #047857; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">${actionLabel!"Bekijken"}</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="margin: 0; color: #6b7280; font-size: 13px; word-break: break-all;">${actionUrl}</p>
+                            </#if>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 24px 30px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
+                            <p style="margin: 0; color: #9ca3af; font-size: 12px;">Dit is een automatisch bericht van ${appName}.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

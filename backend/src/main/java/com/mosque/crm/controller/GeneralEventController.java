@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.mosque.crm.dto.BusinessReviewDTO;
+import com.mosque.crm.dto.FederatedGeneralEventDTO;
 import com.mosque.crm.dto.GeneralEventAttendanceCreateDTO;
 import com.mosque.crm.dto.GeneralEventAttendanceDTO;
 import com.mosque.crm.exception.ActiveResourceAssignmentsException;
@@ -37,6 +39,7 @@ import com.mosque.crm.service.GeneralEventAttendanceService;
 import com.mosque.crm.service.GeneralEventDocumentService;
 import com.mosque.crm.service.GeneralEventService;
 import com.mosque.crm.service.GeneralEventSessionService;
+import com.mosque.crm.service.FederationPublicEventService;
 import com.mosque.crm.service.StorageService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,17 +51,20 @@ import jakarta.validation.Valid;
 public class GeneralEventController {
 
     private final GeneralEventService generalEventService;
+    private final FederationPublicEventService federationPublicEventService;
     private final GeneralEventSessionService sessionService;
     private final GeneralEventAttendanceService attendanceService;
     private final GeneralEventDocumentService documentService;
     private final StorageService storageService;
 
     public GeneralEventController(GeneralEventService generalEventService,
+            FederationPublicEventService federationPublicEventService,
             GeneralEventSessionService sessionService,
             GeneralEventAttendanceService attendanceService,
             GeneralEventDocumentService documentService,
             StorageService storageService) {
         this.generalEventService = generalEventService;
+        this.federationPublicEventService = federationPublicEventService;
         this.sessionService = sessionService;
         this.attendanceService = attendanceService;
         this.documentService = documentService;
@@ -72,6 +78,31 @@ public class GeneralEventController {
     @GetMapping
     public ResponseEntity<List<GeneralEventDTO>> listEvents() {
         return ResponseEntity.ok(generalEventService.listEvents());
+    }
+
+    @GetMapping("/federation")
+    public ResponseEntity<List<FederatedGeneralEventDTO>> listFederationEvents() {
+        return ResponseEntity.ok(federationPublicEventService.listFederationEvents());
+    }
+
+    @PostMapping("/federation/{eventId}/hide")
+    public ResponseEntity<?> hideFromFederation(@PathVariable Long eventId,
+            @RequestBody(required = false) BusinessReviewDTO dto) {
+        try {
+            String reason = dto != null ? dto.getReason() : null;
+            return ResponseEntity.ok(federationPublicEventService.hideFromFederation(eventId, reason));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/federation/{eventId}/unhide")
+    public ResponseEntity<?> unhideFromFederation(@PathVariable Long eventId) {
+        try {
+            return ResponseEntity.ok(federationPublicEventService.unhideFromFederation(eventId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}")

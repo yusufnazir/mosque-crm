@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.hibernate.Session;
@@ -162,6 +163,29 @@ public class AuthorizationService {
                     .getResultStream()
                     .findFirst()
                     .orElse(null);
+        } finally {
+            if (filterWasEnabled) {
+                Long orgId = TenantContext.getCurrentOrganizationId();
+                if (orgId != null) {
+                    session.enableFilter("organizationFilter")
+                            .setParameter("organizationId", orgId);
+                }
+            }
+        }
+    }
+
+    /**
+     * Run an action with the Hibernate organization filter temporarily disabled.
+     * Used for audited cross-tenant federation reads and parent moderation writes.
+     */
+    public <T> T withoutOrganizationFilter(Supplier<T> action) {
+        Session session = entityManager.unwrap(Session.class);
+        boolean filterWasEnabled = session.getEnabledFilter("organizationFilter") != null;
+        if (filterWasEnabled) {
+            session.disableFilter("organizationFilter");
+        }
+        try {
+            return action.get();
         } finally {
             if (filterWasEnabled) {
                 Long orgId = TenantContext.getCurrentOrganizationId();
