@@ -32,8 +32,6 @@ export interface CurrentUser {
   };
 }
 
-import { resolveBaseDomain } from '@/lib/auth/base-domain';
-
 const RUNTIME_BASE_DOMAIN_KEY = 'appBaseDomain';
 
 function readCookie(name: string): string | null {
