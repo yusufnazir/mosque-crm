@@ -297,7 +297,7 @@ export default function MyBusinessesPage() {
         title={t('my_businesses.delete_title')}
         message={t('my_businesses.delete_message')}
         confirmLabel={t('common.delete')}
-        danger
+        variant="danger"
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
       />
