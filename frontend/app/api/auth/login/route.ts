@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-cookies';
+import { clearAuthCookies } from '@/lib/auth/server-cookies';
+import { resolveBaseDomain } from '@/lib/auth/base-domain';
 
 /**
  * BFF login endpoint.
@@ -10,8 +11,8 @@ import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-coo
  * 4. Stores the org handle as a readable cookie for subdomain routing
  * 5. Returns the rest of the user data to the browser (without the token)
  *
- * Cookie domain is resolved from backend runtime configuration (appBaseDomain)
- * and falls back to NEXT_PUBLIC_BASE_DOMAIN when needed.
+ * Cookie domain prefers backend APP_BASE_DOMAIN when it matches the request host
+ * (so demo.memflox.com works under admin.demo.memflox.com), then env, then inference.
  */
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8200/api';
@@ -34,13 +35,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: upstream.status });
   }
 
-  const hostBasedDomain = inferBaseDomainFromHost(request.headers.get('host') || request.nextUrl.hostname);
+  const hostHeader = request.headers.get('host') || request.nextUrl.hostname;
   const configuredBaseDomain = typeof data.appBaseDomain === 'string' && data.appBaseDomain.trim().length > 0
     ? data.appBaseDomain.trim()
     : undefined;
-  // Host header is the most reliable source — it matches the actual browser domain.
-  // The DB-configured domain is only a fallback (it may be stale or for a different env).
-  const effectiveBaseDomain = hostBasedDomain ?? configuredBaseDomain ?? BASE_DOMAIN;
+  const effectiveBaseDomain = resolveBaseDomain(hostHeader, [configuredBaseDomain, BASE_DOMAIN]);
 
   // Extract token — do not send token to browser.
   // organizationHandle IS included in the response so the login page can

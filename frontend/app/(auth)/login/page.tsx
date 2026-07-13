@@ -47,6 +47,8 @@ export default function LoginPage() {
       if (response.memberId) {
         localStorage.setItem('memberId', response.memberId.toString());
       }
+      // Persist base domain before building redirect URLs so nested bases
+      // (e.g. demo.memflox.com) win over naive host inference.
       if (response.appBaseDomain) {
         localStorage.setItem('appBaseDomain', String(response.appBaseDomain));
       }

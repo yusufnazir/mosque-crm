@@ -1,0 +1,47 @@
+# MemberFlow DEMO stack — isolated from production.
+# Does NOT replace /opt/memberflow (prod).
+#
+# Usage:
+#   cd /opt/memberflow-demo
+#   docker compose up -d
+#
+# Hosts (routed by nginx map on *.memflox.com):
+#   https://demo.memflox.com/login
+#   https://demo-baiturrochim.memflox.com/login
+#   https://demo-sis.memflox.com/login
+#   etc.
+
+name: memberflow-demo
+
+services:
+  memberflow-demo-service:
+    image: registry.cxode.com/memberflow-backend:latest
+    container_name: memberflow-demo-service
+    restart: unless-stopped
+    mem_limit: 768m
+    networks:
+      - nginx
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mariadb-prod:3306/memberflow_demo?createDatabaseIfNotExist=false&useSSL=false&&permitMysqlScheme&sslMode=DISABLED&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&nullCatalogMeansCurrent=true
+      SPRING_DATASOURCE_USERNAME: memberflow_demo
+      SPRING_DATASOURCE_PASSWORD: ${DEMO_DB_PASSWORD}
+      JWT_SECRET: ${DEMO_JWT_SECRET}
+      CORS_ALLOWED_ORIGINS: http://memberflow-demo-web:3000
+      JAVA_TOOL_OPTIONS: -Xms256m -Xmx512m
+
+  memberflow-demo-web:
+    image: registry.cxode.com/memberflow-frontend:latest
+    container_name: memberflow-demo-web
+    restart: unless-stopped
+    mem_limit: 512m
+    networks:
+      - nginx
+    depends_on:
+      - memberflow-demo-service
+    environment:
+      BACKEND_URL: http://memberflow-demo-service:8200/api
+      HOSTNAME: "0.0.0.0"
+
+networks:
+  nginx:
+    external: true

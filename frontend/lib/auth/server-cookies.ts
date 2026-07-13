@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
+import { inferBaseDomainFromHost as inferFromHost } from '@/lib/auth/base-domain';
 
+/** @deprecated Prefer resolveBaseDomain from '@/lib/auth/base-domain'. Kept for call-site compatibility. */
 export function inferBaseDomainFromHost(hostname: string): string | undefined {
-  const host = hostname.split(':')[0].trim().toLowerCase();
-  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return undefined;
-  const parts = host.split('.').filter(Boolean);
-  if (parts.length < 3) return undefined;
-  return `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
+  return inferFromHost(hostname);
 }
 
 const SECURE = process.env.NODE_ENV === 'production' ? '; Secure' : '';

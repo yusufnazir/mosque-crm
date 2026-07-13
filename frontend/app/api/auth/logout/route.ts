@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-cookies';
+import { clearAuthCookies } from '@/lib/auth/server-cookies';
+import { resolveBaseDomain } from '@/lib/auth/base-domain';
 
 /**
  * BFF logout endpoint.
@@ -14,16 +15,11 @@ import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-coo
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
 
 function getEffectiveBaseDomain(request: NextRequest): string | undefined {
-  const cookieDomain = request.cookies.get('app_base_domain')?.value?.trim();
-  if (cookieDomain) {
-    return cookieDomain;
-  }
   const hostHeader = request.headers.get('host') || request.nextUrl.hostname;
-  const inferred = inferBaseDomainFromHost(hostHeader);
-  if (inferred) {
-    return inferred;
-  }
-  return BASE_DOMAIN;
+  return resolveBaseDomain(hostHeader, [
+    request.cookies.get('app_base_domain')?.value,
+    BASE_DOMAIN,
+  ]);
 }
 
 export async function POST(request: NextRequest) {

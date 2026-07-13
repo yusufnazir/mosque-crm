@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { resolveBaseDomain } from '@/lib/auth/base-domain';
 
 /**
  * Next.js proxy for route protection and subdomain-based multi-tenancy.
@@ -14,22 +15,14 @@ const SUPERADMIN_SUBDOMAIN = process.env.NEXT_PUBLIC_SUPERADMIN_SUBDOMAIN || 'ad
 const RESERVED_SUBDOMAINS = new Set(['www', 'login', 'auth', 'app', 'api', 'mail']);
 const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/register-member', '/complete-registration', '/directory'];
 
-function inferBaseDomainFromHost(hostname: string): string | null {
-  const host = hostname.split(':')[0].trim().toLowerCase();
-  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return null;
-  const parts = host.split('.').filter(Boolean);
-  if (parts.length < 3) return null;
-  return `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
-}
-
 function getEffectiveBaseDomain(request: NextRequest): string | null {
   const hostHeader = request.headers.get('host') || request.nextUrl.hostname;
-  const inferred = inferBaseDomainFromHost(hostHeader);
-  if (inferred) return inferred;
-
-  const cookieDomain = request.cookies.get('app_base_domain')?.value?.trim();
-  if (cookieDomain) return cookieDomain;
-  return BASE_DOMAIN ?? null;
+  return (
+    resolveBaseDomain(hostHeader, [
+      request.cookies.get('app_base_domain')?.value,
+      BASE_DOMAIN,
+    ]) ?? null
+  );
 }
 
 function getSubdomain(hostname: string, baseDomain: string | null): string | null {

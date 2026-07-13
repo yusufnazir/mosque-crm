@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-cookies';
+import { clearAuthCookies } from '@/lib/auth/server-cookies';
+import { resolveBaseDomain } from '@/lib/auth/base-domain';
 
 /**
  * BFF (Backend for Frontend) catch-all proxy.
@@ -18,13 +19,11 @@ import { clearAuthCookies, inferBaseDomainFromHost } from '@/lib/auth/server-coo
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8200/api';
 
 function getEffectiveBaseDomain(request: NextRequest): string | undefined {
-  const cookieDomain = request.cookies.get('app_base_domain')?.value?.trim();
-  if (cookieDomain) {
-    return cookieDomain;
-  }
-
   const hostHeader = request.headers.get('host') || request.nextUrl.hostname;
-  return inferBaseDomainFromHost(hostHeader);
+  return resolveBaseDomain(hostHeader, [
+    request.cookies.get('app_base_domain')?.value,
+    process.env.NEXT_PUBLIC_BASE_DOMAIN,
+  ]);
 }
 
 async function proxyRequest(
