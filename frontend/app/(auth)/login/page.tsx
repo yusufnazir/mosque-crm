@@ -10,7 +10,7 @@ import { useAppName } from '@/lib/AppNameContext';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { syncLanguageWithBackend, t } = useTranslation();
+  const { t } = useTranslation();
   const { appName } = useAppName();
   const { user, loading: authLoading } = useAuth();
   const [username, setUsername] = useState('');
@@ -52,18 +52,17 @@ export default function LoginPage() {
       if (response.appBaseDomain) {
         localStorage.setItem('appBaseDomain', String(response.appBaseDomain));
       }
-      
-      // Initialize language from backend preferences
+
+      // Language from login payload — avoid awaiting preferences (delays redirect
+      // and widens the window where a /login remount can flash empty fields).
       if (response.preferences?.language) {
         localStorage.setItem('lang', response.preferences.language);
       }
-      
-      // Sync language preference from backend (DB is source of truth after login)
-      await syncLanguageWithBackend();
-      
+
       // Check if user must set their password on first login
       if (response.mustChangePassword) {
         // Hard navigation — AuthContext will re-hydrate on the new page automatically.
+        // Keep loading=true until unload so the form does not flash idle.
         window.location.href = '/set-password';
         return;
       }
@@ -83,7 +82,6 @@ export default function LoginPage() {
       const translated = t(translationKey);
       const message = translated !== translationKey ? translated : (err.message || t('login.errors.login_failed'));
       setError({ code, message });
-    } finally {
       setLoading(false);
     }
   };

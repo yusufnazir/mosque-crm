@@ -120,7 +120,14 @@ export function proxy(request: NextRequest) {
 
     if (isAuthSubdomain) {
       if (token && orgHandle) {
-        const targetPath = pathname === '/' ? '/dashboard' : `${pathname}${request.nextUrl.search}`;
+        // Already signed in: send auth-host /login (and /) to the tenant dashboard.
+        // Preserving /login caused a remount of an empty login form on the org
+        // subdomain before the client effect redirected — felt like a field clear.
+        // /login must go to dashboard — do not preserve the path onto the tenant host.
+        const targetPath =
+          pathname === '/' || pathname === '/login'
+            ? '/dashboard'
+            : `${pathname}${request.nextUrl.search}`;
         const dest = buildUrl(orgHandle, request, targetPath, effectiveBaseDomain);
         const redirectResponse = NextResponse.redirect(dest);
         withSameDomainCors(
@@ -149,7 +156,7 @@ export function proxy(request: NextRequest) {
         return NextResponse.redirect(dest);
       }
 
-      if (token && pathname === '/') {
+      if (token && (pathname === '/' || pathname === '/login')) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
       }
 
