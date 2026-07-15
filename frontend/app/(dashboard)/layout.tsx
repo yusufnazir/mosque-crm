@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="flex items-center justify-between px-6 py-4 border-b border-emerald-100 bg-white/90 backdrop-blur">
           <img src="/memberflow-logo.svg" alt="MemberFlow" className="h-7" />
           <div className="flex items-center gap-4">
-            <LanguageSelector />
+            <LanguageSelector variant="public" />
             <Link href={buildAuthUrl('/login')} className="text-sm font-medium text-emerald-700 hover:underline">
               {t('directory.login')}
             </Link>

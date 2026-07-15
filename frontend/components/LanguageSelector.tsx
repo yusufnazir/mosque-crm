@@ -4,10 +4,50 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 interface LanguageSelectorProps {
   className?: string;
+  /** Compact text toggle for public/marketing headers */
+  variant?: 'default' | 'public';
 }
 
-export default function LanguageSelector({ className = '' }: LanguageSelectorProps) {
+export default function LanguageSelector({ className = '', variant = 'default' }: LanguageSelectorProps) {
   const { language, setLanguage } = useTranslation();
+
+  if (variant === 'public') {
+    return (
+      <div
+        className={`inline-flex items-center gap-1.5 text-sm ${className}`}
+        role="group"
+        aria-label="Language"
+      >
+        <button
+          type="button"
+          onClick={() => setLanguage('en')}
+          className={`font-medium transition-colors ${
+            language === 'en'
+              ? 'text-emerald-800 underline underline-offset-4 decoration-emerald-600/60'
+              : 'text-stone-400 hover:text-stone-600'
+          }`}
+          aria-pressed={language === 'en'}
+        >
+          EN
+        </button>
+        <span className="text-stone-300 select-none" aria-hidden>
+          ·
+        </span>
+        <button
+          type="button"
+          onClick={() => setLanguage('nl')}
+          className={`font-medium transition-colors ${
+            language === 'nl'
+              ? 'text-emerald-800 underline underline-offset-4 decoration-emerald-600/60'
+              : 'text-stone-400 hover:text-stone-600'
+          }`}
+          aria-pressed={language === 'nl'}
+        >
+          NL
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative ${className}`}>
