@@ -17,6 +17,9 @@ public class MemberDTO {
     private String country;
     private String postalCode;
     private String idNumber;
+    /** Person lifecycle status (ACTIVE / INACTIVE / DECEASED). Preferred by the UI. */
+    private String status;
+    private LocalDate dateOfDeath;
     private String membershipStatus;
     private LocalDate memberSince;
     private String partnerId; // Kept for backward compatibility with frontend
@@ -78,6 +81,10 @@ public class MemberDTO {
     public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
     public String getIdNumber() { return idNumber; }
     public void setIdNumber(String idNumber) { this.idNumber = idNumber; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public LocalDate getDateOfDeath() { return dateOfDeath; }
+    public void setDateOfDeath(LocalDate dateOfDeath) { this.dateOfDeath = dateOfDeath; }
     public String getMembershipStatus() { return membershipStatus; }
     public void setMembershipStatus(String membershipStatus) { this.membershipStatus = membershipStatus; }
     public LocalDate getMemberSince() { return memberSince; }

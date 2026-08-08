@@ -440,6 +440,10 @@ export default function MemberDetailPage() {
       let memberData: any = await memberApi.getById(memberId);
       // Always map id to personId
       if (memberData.id) memberData.personId = memberData.id;
+      // Detail API historically returned membershipStatus only; normalize for UI fields.
+      if (!memberData.status && memberData.membershipStatus) {
+        memberData.status = memberData.membershipStatus;
+      }
       setMember(memberData);
 
       console.log('fetchMemberDetails: about to call relationshipApi.getRelationships, function ref:', relationshipApi.getRelationships);

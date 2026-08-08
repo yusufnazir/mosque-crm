@@ -28,6 +28,9 @@ import {
 } from '@/lib/generalEventApi';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { buildTenantUrl } from '@/lib/auth/AuthContext';
+import { organizationApi } from '@/lib/organizationApi';
+import { copyToClipboard } from '@/lib/utils';
 import EventResourcesTab from '@/components/events/EventResourcesTab';
 import EventMemberGroupsTab from '@/components/events/EventMemberGroupsTab';
 import ScrollableTabs from '@/components/ScrollableTabs';
@@ -94,6 +97,8 @@ export default function GeneralEventDetailPage() {
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showDeleteEvent, setShowDeleteEvent] = useState(false);
+  const [orgHandle, setOrgHandle] = useState('');
+  const [copiedPublicLink, setCopiedPublicLink] = useState(false);
 
   // Registration form state
   const [showRegForm, setShowRegForm] = useState(false);
@@ -176,6 +181,12 @@ export default function GeneralEventDetailPage() {
       setLoading(false);
     }
   }, [id, t]);
+
+  useEffect(() => {
+    organizationApi.getMyOrganization()
+      .then((org) => setOrgHandle(org.handle || ''))
+      .catch(() => setOrgHandle(''));
+  }, []);
 
   const loadReport = useCallback(async () => {
     try {
@@ -897,6 +908,53 @@ export default function GeneralEventDetailPage() {
             <div className="bg-white border border-stone-200 rounded-xl p-5 md:col-span-2">
               <h3 className="font-semibold text-stone-700 mb-2 text-sm uppercase tracking-wide">{t('general_events.description')}</h3>
               <p className="text-stone-600 text-sm whitespace-pre-wrap">{event.description}</p>
+            </div>
+          )}
+
+          {event.requiresRegistration && orgHandle && (
+            <div className="bg-white border border-stone-200 rounded-xl p-5 md:col-span-2">
+              <h3 className="font-semibold text-stone-700 mb-2 text-sm uppercase tracking-wide">
+                {t('general_events.public_link.title')}
+              </h3>
+              <p className="text-sm text-stone-500 mb-4">{t('general_events.public_link.description')}</p>
+              {event.visibility === 'PUBLIC' && (event.status === 'PUBLISHED' || event.status === 'ACTIVE') ? (
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    readOnly
+                    value={buildTenantUrl(orgHandle, `/event-register/${event.id}`)}
+                    className="flex-1 px-3 py-2 border border-stone-300 rounded-lg bg-stone-50 text-stone-700 text-sm select-all"
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const ok = await copyToClipboard(buildTenantUrl(orgHandle, `/event-register/${event.id}`));
+                        if (ok) {
+                          setCopiedPublicLink(true);
+                          setToast({ message: t('general_events.toast.link_copied'), type: 'success' });
+                          setTimeout(() => setCopiedPublicLink(false), 2000);
+                        }
+                      }}
+                      className="px-4 py-2 bg-emerald-700 text-white rounded-lg text-sm font-medium hover:bg-emerald-800"
+                    >
+                      {copiedPublicLink ? t('general_events.public_link.copied') : t('general_events.public_link.copy')}
+                    </button>
+                    <a
+                      href={buildTenantUrl(orgHandle, `/event-register/${event.id}`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 border border-stone-300 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-50"
+                    >
+                      {t('general_events.public_link.open')}
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                  {t('general_events.public_link.not_public_hint')}
+                </p>
+              )}
             </div>
           )}
         </div>

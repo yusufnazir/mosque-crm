@@ -2,6 +2,7 @@ package com.mosque.crm.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,8 @@ public interface GeneralEventRepository extends JpaRepository<GeneralEvent, Long
     List<GeneralEvent> findAllByOrderByStartDateDescCreatedAtDesc();
 
     List<GeneralEvent> findByStatusOrderByStartDateDesc(GeneralEventStatus status);
+
+    Optional<GeneralEvent> findByIdAndOrganizationId(Long id, Long organizationId);
 
     @Query("""
             SELECT e FROM GeneralEvent e

@@ -51,6 +51,9 @@ public class SecurityConfig {
                 .requestMatchers("/join-requests/apply", "/join-requests/validate-token", "/join-requests/complete-registration").permitAll()
                 // Public business directory on org subdomain
                 .requestMatchers(HttpMethod.GET, "/business-directory/public/**").permitAll()
+                // Public general-event details and self-registration (optional JWT for member opt-in)
+                .requestMatchers(HttpMethod.GET, "/general-events/public/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/general-events/public/**").permitAll()
                 // Public country reference list for registration form
                 .requestMatchers("/countries/**").permitAll()
                 // Public business category vocabulary for directory forms/filters

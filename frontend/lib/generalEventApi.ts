@@ -69,6 +69,12 @@ export const generalEventApi = {
     `/api/general-events/${eventId}/documents/${docId}/download`,
   deleteDocument: (eventId: number, docId: number): Promise<void> =>
     ApiClient.delete(`/general-events/${eventId}/documents/${docId}`),
+
+  // Public self-registration (anonymous or optional JWT)
+  getPublicEvent: (orgHandle: string, eventId: number): Promise<PublicGeneralEvent> =>
+    ApiClient.get(`/general-events/public/${encodeURIComponent(orgHandle)}/${eventId}`),
+  selfRegister: (orgHandle: string, eventId: number, data: PublicGeneralEventSelfRegister): Promise<GeneralEventRegistration> =>
+    ApiClient.post(`/general-events/public/${encodeURIComponent(orgHandle)}/${eventId}/register`, data),
 };
 
 // Types
@@ -296,4 +302,44 @@ export interface GeneralEventDocument {
   description: string | null;
   uploadedBy: number | null;
   createdAt: string;
+}
+
+export interface PublicGeneralEvent {
+  id: number;
+  name: string;
+  description: string | null;
+  generalEventType: GeneralEventType;
+  customTypeLabel: string | null;
+  location: string | null;
+  online: boolean;
+  startDate: string;
+  endDate: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  requiresRegistration: boolean;
+  registrationOpenDate: string | null;
+  registrationCloseDate: string | null;
+  acceptNonMembers: boolean;
+  waitlistEnabled: boolean;
+  ticketingType: 'NONE' | 'SINGLE_PRICE';
+  ticketPrice: number | null;
+  currency: string | null;
+  status: GeneralEventStatus;
+  organizationName: string;
+  organizationHandle: string;
+  registrationOpen: boolean;
+  alreadyRegistered: boolean;
+  canOptIn: boolean;
+  optInDisplayName: string | null;
+  optInEmail: string | null;
+  spotsRemaining: number | null;
+}
+
+export interface PublicGeneralEventSelfRegister {
+  optIn?: boolean;
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  partySize?: number;
+  specialRequests?: string;
 }

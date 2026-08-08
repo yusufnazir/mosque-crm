@@ -281,7 +281,11 @@ public class MemberService {
         String firstName = coalesce(person.getFirstName(), individual.getGivenName());
         String lastName = coalesce(person.getLastName(), individual.getSurname());
         String gender = coalesce(person.getGender(), individual.getSex() != null ? individual.getSex().name() : null);
-    return new MemberDTO(
+        String personStatus = mapStatus(person.getStatus());
+        if (person.getDateOfDeath() != null && person.getStatus() != PersonStatus.DECEASED) {
+            personStatus = PersonStatus.DECEASED.name();
+        }
+        MemberDTO dto = new MemberDTO(
                     person.getId() != null ? person.getId().toString() : null,
                     firstName,
                     lastName,
@@ -293,7 +297,7 @@ public class MemberService {
                     person.getCity(),
                     person.getCountry(),
                     person.getPostalCode(),
-                    mapStatus(person.getStatus()),
+                    personStatus,
                     null, // memberSince
                     null, // partnerId
                     null, // partnerName
@@ -303,16 +307,17 @@ public class MemberService {
                     null, // roles
                     false // accountEnabled
                 );
+        dto.setStatus(personStatus);
+        dto.setDateOfDeath(person.getDateOfDeath());
+        return dto;
     }
 
     private String mapStatus(PersonStatus status) {
         if (status == null) {
 			return "INACTIVE";
 		}
-        return switch (status) {
-            case ACTIVE -> "ACTIVE";
-            case INACTIVE, DECEASED -> "INACTIVE";
-        };
+        // Preserve DECEASED so detail/list UIs can show it (do not collapse to INACTIVE).
+        return status.name();
     }
 
     private String coalesce(String a, String b) {
@@ -328,11 +333,21 @@ public class MemberService {
         dto.setPhone(person.getPhone());
         dto.setGender(person.getGender());
         dto.setDateOfBirth(person.getDateOfBirth());
+        dto.setDateOfDeath(person.getDateOfDeath());
         dto.setAddress(person.getAddress());
         dto.setCity(person.getCity());
         dto.setCountry(person.getCountry());
         dto.setPostalCode(person.getPostalCode());
-        dto.setMembershipStatus(person.getStatus() != null ? person.getStatus().name() : null);
+        dto.setIdNumber(person.getIdNumber());
+
+        String personStatus = mapStatus(person.getStatus());
+        // Defensive: date of death implies deceased even if status was not updated
+        if (person.getDateOfDeath() != null && person.getStatus() != PersonStatus.DECEASED) {
+            personStatus = PersonStatus.DECEASED.name();
+        }
+        dto.setStatus(personStatus);
+        dto.setMembershipStatus(personStatus);
+
         // Add account info if linked
         if (person.getUserLink() != null && person.getUserLink().getUser() != null) {
             User user = person.getUserLink().getUser();
