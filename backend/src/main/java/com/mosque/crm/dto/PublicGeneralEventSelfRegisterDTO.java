@@ -4,14 +4,17 @@ package com.mosque.crm.dto;
  * Self-registration payload for a public general event.
  * <p>
  * When {@code optIn} is true, the server uses the authenticated user's linked person
- * and ignores name/email/phone. When false, the guest form fields are used and the
- * server may match an existing org member by email or phone.
+ * and ignores form fields. When false, the guest form fields are used and the
+ * server may match an existing org member by email, phone, or unique first+last name.
  */
 public class PublicGeneralEventSelfRegisterDTO {
 
     /** Logged-in member shortcut — register without filling the form. */
     private boolean optIn;
 
+    private String firstName;
+    private String lastName;
+    /** @deprecated Prefer firstName + lastName; still accepted as a fallback. */
     private String name;
     private String email;
     private String phoneNumber;
@@ -23,6 +26,12 @@ public class PublicGeneralEventSelfRegisterDTO {
 
     public boolean isOptIn() { return optIn; }
     public void setOptIn(boolean optIn) { this.optIn = optIn; }
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

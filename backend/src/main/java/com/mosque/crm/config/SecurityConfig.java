@@ -24,6 +24,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.mosque.crm.security.JwtRequestFilter;
 
+import jakarta.servlet.DispatcherType;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -41,6 +43,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
+                // Allow ERROR/FORWARD dispatches so real 400s aren't rewritten as blank 403s
+                .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                 // Public endpoints (login, password reset)
                 .requestMatchers("/auth/**").permitAll()
                 // WebSocket endpoint (STOMP-level auth via StompAuthChannelInterceptor)

@@ -28,6 +28,14 @@ public interface PersonRepository extends JpaRepository<Person, Long>, JpaSpecif
 	List<Person> findByPhoneAndOrganizationId(
 			@Param("phone") String phone, @Param("organizationId") Long organizationId);
 
+	@Query("SELECT p FROM Person p WHERE p.organizationId = :organizationId "
+			+ "AND LOWER(p.firstName) = LOWER(:firstName) "
+			+ "AND LOWER(p.lastName) = LOWER(:lastName)")
+	List<Person> findByOrganizationIdAndFirstNameAndLastNameIgnoreCase(
+			@Param("organizationId") Long organizationId,
+			@Param("firstName") String firstName,
+			@Param("lastName") String lastName);
+
 	/**
 	 * Returns a list of gender and count of persons for each gender.
 	 */

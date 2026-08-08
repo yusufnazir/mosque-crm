@@ -173,6 +173,7 @@
     <include file="db/changelog/changes/ddl/189-create-user-notifications-table.xml"/>
     <include file="db/changelog/changes/ddl/190-add-business-listing-suspension-fields.xml"/>
     <include file="db/changelog/changes/ddl/191-add-business-logo-image-key.xml"/>
+    <include file="db/changelog/changes/ddl/192-add-general-event-public-form-fields.xml"/>
 
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>

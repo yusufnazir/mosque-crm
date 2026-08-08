@@ -49,6 +49,12 @@ public class GeneralEventCreateDTO {
 
     private boolean waitlistEnabled = false;
 
+    private boolean publicFormShowPhone = true;
+
+    private boolean publicFormShowPartySize = false;
+
+    private boolean publicFormShowSpecialRequests = true;
+
     private String ticketingType = "NONE";
 
     private BigDecimal ticketPrice;
@@ -119,6 +125,19 @@ public class GeneralEventCreateDTO {
 
     public boolean isWaitlistEnabled() { return waitlistEnabled; }
     public void setWaitlistEnabled(boolean waitlistEnabled) { this.waitlistEnabled = waitlistEnabled; }
+
+    public boolean isPublicFormShowPhone() { return publicFormShowPhone; }
+    public void setPublicFormShowPhone(boolean publicFormShowPhone) { this.publicFormShowPhone = publicFormShowPhone; }
+
+    public boolean isPublicFormShowPartySize() { return publicFormShowPartySize; }
+    public void setPublicFormShowPartySize(boolean publicFormShowPartySize) {
+        this.publicFormShowPartySize = publicFormShowPartySize;
+    }
+
+    public boolean isPublicFormShowSpecialRequests() { return publicFormShowSpecialRequests; }
+    public void setPublicFormShowSpecialRequests(boolean publicFormShowSpecialRequests) {
+        this.publicFormShowSpecialRequests = publicFormShowSpecialRequests;
+    }
 
     public String getTicketingType() { return ticketingType; }
     public void setTicketingType(String ticketingType) { this.ticketingType = ticketingType; }

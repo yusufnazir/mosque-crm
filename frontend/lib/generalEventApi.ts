@@ -1,5 +1,26 @@
 import { ApiClient } from './api';
 
+/** DateInput emits yyyy-MM-dd; backend registration fields are LocalDateTime. */
+function toLocalDateTimePayload(value?: string | null): string | undefined {
+  if (!value) return undefined;
+  const date = value.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return undefined;
+  // Already a datetime — keep time component if present
+  if (value.length > 10 && value.includes('T')) return value;
+  return `${date}T00:00:00`;
+}
+
+function normalizeGeneralEventPayload(data: GeneralEventCreate): GeneralEventCreate {
+  return {
+    ...data,
+    endDate: data.endDate || undefined,
+    startTime: data.startTime || undefined,
+    endTime: data.endTime || undefined,
+    registrationOpenDate: toLocalDateTimePayload(data.registrationOpenDate),
+    registrationCloseDate: toLocalDateTimePayload(data.registrationCloseDate),
+  };
+}
+
 export const generalEventApi = {
   // Events
   listEvents: (): Promise<GeneralEvent[]> => ApiClient.get('/general-events'),
@@ -9,8 +30,10 @@ export const generalEventApi = {
   unhideFromFederation: (eventId: number) =>
     ApiClient.post<FederatedGeneralEvent>(`/general-events/federation/${eventId}/unhide`, {}),
   getEvent: (id: number): Promise<GeneralEvent> => ApiClient.get(`/general-events/${id}`),
-  createEvent: (data: GeneralEventCreate): Promise<GeneralEvent> => ApiClient.post('/general-events', data),
-  updateEvent: (id: number, data: GeneralEventCreate): Promise<GeneralEvent> => ApiClient.put(`/general-events/${id}`, data),
+  createEvent: (data: GeneralEventCreate): Promise<GeneralEvent> =>
+    ApiClient.post('/general-events', normalizeGeneralEventPayload(data)),
+  updateEvent: (id: number, data: GeneralEventCreate): Promise<GeneralEvent> =>
+    ApiClient.put(`/general-events/${id}`, normalizeGeneralEventPayload(data)),
   updateEventStatus: (id: number, status: string): Promise<GeneralEvent> => ApiClient.put(`/general-events/${id}/status`, { status }),
   deleteEvent: (id: number): Promise<void> => ApiClient.delete(`/general-events/${id}`),
   getReport: (id: number): Promise<GeneralEventReport> => ApiClient.get(`/general-events/${id}/report`),
@@ -116,6 +139,9 @@ export interface GeneralEvent {
   nonMemberCapacity: number;
   acceptNonMembers: boolean;
   waitlistEnabled: boolean;
+  publicFormShowPhone: boolean;
+  publicFormShowPartySize: boolean;
+  publicFormShowSpecialRequests: boolean;
   ticketingType: 'NONE' | 'SINGLE_PRICE';
   ticketPrice: number | null;
   currency: string;
@@ -156,6 +182,9 @@ export interface GeneralEventCreate {
   nonMemberCapacity?: number;
   acceptNonMembers?: boolean;
   waitlistEnabled?: boolean;
+  publicFormShowPhone?: boolean;
+  publicFormShowPartySize?: boolean;
+  publicFormShowSpecialRequests?: boolean;
   ticketingType?: 'NONE' | 'SINGLE_PRICE';
   ticketPrice?: number;
   currency?: string;
@@ -321,6 +350,9 @@ export interface PublicGeneralEvent {
   registrationCloseDate: string | null;
   acceptNonMembers: boolean;
   waitlistEnabled: boolean;
+  publicFormShowPhone: boolean;
+  publicFormShowPartySize: boolean;
+  publicFormShowSpecialRequests: boolean;
   ticketingType: 'NONE' | 'SINGLE_PRICE';
   ticketPrice: number | null;
   currency: string | null;
@@ -337,6 +369,8 @@ export interface PublicGeneralEvent {
 
 export interface PublicGeneralEventSelfRegister {
   optIn?: boolean;
+  firstName?: string;
+  lastName?: string;
   name?: string;
   email?: string;
   phoneNumber?: string;

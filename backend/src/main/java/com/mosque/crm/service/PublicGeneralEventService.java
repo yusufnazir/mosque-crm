@@ -121,13 +121,33 @@ public class PublicGeneralEventService {
 
     private GeneralEventRegistrationDTO registerGuest(GeneralEvent event, Organization org,
             PublicGeneralEventSelfRegisterDTO dto, Person linkedPerson) {
-        String name = trimToNull(dto.getName());
+        String firstName = trimToNull(dto.getFirstName());
+        String lastName = trimToNull(dto.getLastName());
+        if (firstName == null || lastName == null) {
+            String legacyName = trimToNull(dto.getName());
+            if (legacyName != null) {
+                String[] parts = legacyName.split("\\s+", 2);
+                if (firstName == null) {
+                    firstName = parts[0];
+                }
+                if (lastName == null && parts.length > 1) {
+                    lastName = parts[1];
+                }
+            }
+        }
+        String name = composeDisplayName(firstName, lastName, null);
         String email = normalizeEmail(dto.getEmail());
-        String phone = trimToNull(dto.getPhoneNumber());
-        int partySize = dto.getPartySize() > 0 ? dto.getPartySize() : 1;
+        String phone = event.isPublicFormShowPhone() ? trimToNull(dto.getPhoneNumber()) : null;
+        int partySize = event.isPublicFormShowPartySize() && dto.getPartySize() > 0 ? dto.getPartySize() : 1;
+        String specialRequests = event.isPublicFormShowSpecialRequests()
+                ? trimToNull(dto.getSpecialRequests())
+                : null;
 
-        if (name == null) {
-            throw new IllegalArgumentException("Name is required");
+        if (firstName == null) {
+            throw new IllegalArgumentException("First name is required");
+        }
+        if (lastName == null) {
+            throw new IllegalArgumentException("Last name is required");
         }
         if (email == null) {
             throw new IllegalArgumentException("Email is required");
@@ -137,7 +157,7 @@ public class PublicGeneralEventService {
             throw new IllegalArgumentException("This email is already registered for this event");
         }
 
-        Person matched = matchPerson(org.getId(), email, phone);
+        Person matched = matchPerson(org.getId(), email, phone, firstName, lastName);
         // Prefer the logged-in linked person when their email matches the form
         if (linkedPerson != null && emailEquals(linkedPerson.getEmail(), email)) {
             matched = linkedPerson;
@@ -160,7 +180,7 @@ public class PublicGeneralEventService {
         RsvpStatus rsvp = resolveRsvpStatus(event, type);
         String phoneToStore = phone != null ? phone : (matched != null ? matched.getPhone() : null);
         return saveRegistration(event, org, type, matched, name, email, phoneToStore, partySize,
-                trimToNull(dto.getSpecialRequests()), rsvp);
+                specialRequests, rsvp);
     }
 
     private GeneralEventRegistrationDTO saveRegistration(
@@ -234,7 +254,8 @@ public class PublicGeneralEventService {
         return RsvpStatus.CONFIRMED;
     }
 
-    private Person matchPerson(Long organizationId, String email, String phone) {
+    private Person matchPerson(Long organizationId, String email, String phone,
+            String firstName, String lastName) {
         Optional<Person> byEmail = personRepository.findByEmailIgnoreCaseAndOrganizationId(email, organizationId);
         if (byEmail.isPresent()) {
             return byEmail.get();
@@ -247,7 +268,22 @@ public class PublicGeneralEventService {
                 }
             }
         }
+        // Only match on name when exactly one person in the org has this first+last
+        if (firstName != null && lastName != null) {
+            List<Person> byName = personRepository.findByOrganizationIdAndFirstNameAndLastNameIgnoreCase(
+                    organizationId, firstName, lastName);
+            if (byName.size() == 1) {
+                return byName.get(0);
+            }
+        }
         return null;
+    }
+
+    private static String composeDisplayName(String firstName, String lastName, String legacyName) {
+        if (firstName != null || lastName != null) {
+            return ((firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "")).trim();
+        }
+        return legacyName;
     }
 
     private Organization resolveOrganization(String orgHandle) {
@@ -290,6 +326,9 @@ public class PublicGeneralEventService {
         dto.setRegistrationCloseDate(event.getRegistrationCloseDate());
         dto.setAcceptNonMembers(event.isAcceptNonMembers());
         dto.setWaitlistEnabled(event.isWaitlistEnabled());
+        dto.setPublicFormShowPhone(event.isPublicFormShowPhone());
+        dto.setPublicFormShowPartySize(event.isPublicFormShowPartySize());
+        dto.setPublicFormShowSpecialRequests(event.isPublicFormShowSpecialRequests());
         dto.setTicketingType(event.getTicketingType());
         dto.setTicketPrice(event.getTicketPrice());
         dto.setCurrency(event.getCurrency());

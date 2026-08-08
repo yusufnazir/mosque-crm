@@ -97,6 +97,18 @@ public class GeneralEvent implements OrganizationAware {
     @Column(name = "waitlist_enabled", nullable = false)
     private boolean waitlistEnabled = false;
 
+    /** Whether the public self-registration form shows the phone field. */
+    @Column(name = "public_form_show_phone", nullable = false)
+    private boolean publicFormShowPhone = true;
+
+    /** Whether the public self-registration form shows party size. */
+    @Column(name = "public_form_show_party_size", nullable = false)
+    private boolean publicFormShowPartySize = false;
+
+    /** Whether the public self-registration form shows special requests. */
+    @Column(name = "public_form_show_special_requests", nullable = false)
+    private boolean publicFormShowSpecialRequests = true;
+
     @Column(name = "ticketing_type", nullable = false, length = 20)
     private String ticketingType = "NONE";
 
@@ -213,6 +225,19 @@ public class GeneralEvent implements OrganizationAware {
 
     public boolean isWaitlistEnabled() { return waitlistEnabled; }
     public void setWaitlistEnabled(boolean waitlistEnabled) { this.waitlistEnabled = waitlistEnabled; }
+
+    public boolean isPublicFormShowPhone() { return publicFormShowPhone; }
+    public void setPublicFormShowPhone(boolean publicFormShowPhone) { this.publicFormShowPhone = publicFormShowPhone; }
+
+    public boolean isPublicFormShowPartySize() { return publicFormShowPartySize; }
+    public void setPublicFormShowPartySize(boolean publicFormShowPartySize) {
+        this.publicFormShowPartySize = publicFormShowPartySize;
+    }
+
+    public boolean isPublicFormShowSpecialRequests() { return publicFormShowSpecialRequests; }
+    public void setPublicFormShowSpecialRequests(boolean publicFormShowSpecialRequests) {
+        this.publicFormShowSpecialRequests = publicFormShowSpecialRequests;
+    }
 
     public String getTicketingType() { return ticketingType; }
     public void setTicketingType(String ticketingType) { this.ticketingType = ticketingType; }

@@ -319,6 +319,9 @@ public class GeneralEventService {
         event.setNonMemberCapacity(dto.getNonMemberCapacity());
         event.setAcceptNonMembers(dto.isAcceptNonMembers());
         event.setWaitlistEnabled(dto.isWaitlistEnabled());
+        event.setPublicFormShowPhone(dto.isPublicFormShowPhone());
+        event.setPublicFormShowPartySize(dto.isPublicFormShowPartySize());
+        event.setPublicFormShowSpecialRequests(dto.isPublicFormShowSpecialRequests());
         event.setTicketingType(dto.getTicketingType() != null ? dto.getTicketingType() : "NONE");
         event.setTicketPrice(dto.getTicketPrice());
         event.setCurrency(dto.getCurrency());
@@ -349,6 +352,9 @@ public class GeneralEventService {
         dto.setNonMemberCapacity(event.getNonMemberCapacity());
         dto.setAcceptNonMembers(event.isAcceptNonMembers());
         dto.setWaitlistEnabled(event.isWaitlistEnabled());
+        dto.setPublicFormShowPhone(event.isPublicFormShowPhone());
+        dto.setPublicFormShowPartySize(event.isPublicFormShowPartySize());
+        dto.setPublicFormShowSpecialRequests(event.isPublicFormShowSpecialRequests());
         dto.setTicketingType(event.getTicketingType());
         dto.setTicketPrice(event.getTicketPrice());
         dto.setCurrency(event.getCurrency());

@@ -40,12 +40,16 @@ export default function EditGeneralEventPage() {
         startTime: ev.startTime ?? '',
         endTime: ev.endTime ?? '',
         requiresRegistration: ev.requiresRegistration,
-        registrationOpenDate: ev.registrationOpenDate ?? '',
-        registrationCloseDate: ev.registrationCloseDate ?? '',
+        // DateInput expects yyyy-MM-dd (API returns LocalDateTime)
+        registrationOpenDate: ev.registrationOpenDate ? ev.registrationOpenDate.slice(0, 10) : '',
+        registrationCloseDate: ev.registrationCloseDate ? ev.registrationCloseDate.slice(0, 10) : '',
         memberCapacity: ev.memberCapacity,
         nonMemberCapacity: ev.nonMemberCapacity,
         acceptNonMembers: ev.acceptNonMembers,
         waitlistEnabled: ev.waitlistEnabled,
+        publicFormShowPhone: ev.publicFormShowPhone ?? true,
+        publicFormShowPartySize: ev.publicFormShowPartySize ?? false,
+        publicFormShowSpecialRequests: ev.publicFormShowSpecialRequests ?? true,
         ticketingType: ev.ticketingType,
         ticketPrice: ev.ticketPrice ?? undefined,
         currency: ev.currency,
@@ -320,6 +324,43 @@ export default function EditGeneralEventPage() {
                     className="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
                   />
                   <label htmlFor="waitlist_enabled" className="text-sm text-stone-700">{t('general_events.waitlist_enabled')}</label>
+                </div>
+
+                <div className="pt-2 border-t border-stone-100">
+                  <p className="text-sm font-medium text-stone-600 mb-2">{t('general_events.public_form_fields')}</p>
+                  <p className="text-xs text-stone-400 mb-3">{t('general_events.public_form_fields_hint')}</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="public_form_show_phone"
+                        checked={form.publicFormShowPhone ?? true}
+                        onChange={e => set('publicFormShowPhone', e.target.checked)}
+                        className="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <label htmlFor="public_form_show_phone" className="text-sm text-stone-700">{t('general_events.public_form_show_phone')}</label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="public_form_show_party_size"
+                        checked={form.publicFormShowPartySize ?? false}
+                        onChange={e => set('publicFormShowPartySize', e.target.checked)}
+                        className="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <label htmlFor="public_form_show_party_size" className="text-sm text-stone-700">{t('general_events.public_form_show_party_size')}</label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="public_form_show_special_requests"
+                        checked={form.publicFormShowSpecialRequests ?? true}
+                        onChange={e => set('publicFormShowSpecialRequests', e.target.checked)}
+                        className="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <label htmlFor="public_form_show_special_requests" className="text-sm text-stone-700">{t('general_events.public_form_show_special_requests')}</label>
+                    </div>
+                  </div>
                 </div>
               </>
             )}

@@ -39,14 +39,20 @@ export default function EventRegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<GeneralEventRegistration | null>(null);
+  // Avoid SSR/client mismatch: buildAuthUrl() needs window (auth.lvh.me vs /login)
+  const [mounted, setMounted] = useState(false);
+  const [loginHref, setLoginHref] = useState('/login');
 
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [partySize, setPartySize] = useState(1);
   const [specialRequests, setSpecialRequests] = useState('');
 
   useEffect(() => {
+    setMounted(true);
+    setLoginHref(buildAuthUrl('/login'));
     setOrgHandle(extractOrgHandle());
   }, []);
 
@@ -83,6 +89,8 @@ export default function EventRegisterPage() {
     if (msg.includes('full')) return t('general_events.public_registration.error_full');
     if (msg.includes('members only')) return t('general_events.public_registration.error_members_only');
     if (msg.includes('logged in')) return t('general_events.public_registration.error_login_required');
+    if (msg.includes('first name is required')) return t('general_events.public_registration.error_first_name');
+    if (msg.includes('last name is required')) return t('general_events.public_registration.error_last_name');
     if (msg.includes('name is required')) return t('general_events.public_registration.error_name');
     if (msg.includes('email is required')) return t('general_events.public_registration.error_email');
     return body?.error || t('general_events.public_registration.error_generic');
@@ -110,11 +118,14 @@ export default function EventRegisterPage() {
     try {
       const reg = await generalEventApi.selfRegister(orgHandle, eventId, {
         optIn: false,
-        name: name.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phoneNumber: event?.publicFormShowPhone !== false ? (phoneNumber.trim() || undefined) : undefined,
+        partySize: event?.publicFormShowPartySize === true ? partySize : 1,
+        specialRequests: event?.publicFormShowSpecialRequests !== false
+          ? (specialRequests.trim() || undefined)
+          : undefined,
         email: email.trim(),
-        phoneNumber: phoneNumber.trim() || undefined,
-        partySize,
-        specialRequests: specialRequests.trim() || undefined,
       });
       setResult(reg);
     } catch (err) {
@@ -179,8 +190,8 @@ export default function EventRegisterPage() {
           </div>
           <div className="flex items-center gap-3">
             <LanguageSelector variant="public" />
-            {!user && (
-              <Link href={buildAuthUrl('/login')} className="text-sm font-medium text-emerald-700 hover:underline">
+            {mounted && !user && (
+              <Link href={loginHref} className="text-sm font-medium text-emerald-700 hover:underline">
                 {t('general_events.public_registration.login')}
               </Link>
             )}
@@ -281,16 +292,31 @@ export default function EventRegisterPage() {
                   )}
 
                   <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">
-                        {t('general_events.registrations.name')} *
-                      </label>
-                      <input
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-1">
+                          {t('general_events.registrations.first_name')} *
+                        </label>
+                        <input
+                          required
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          autoComplete="given-name"
+                          className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-1">
+                          {t('general_events.registrations.last_name')} *
+                        </label>
+                        <input
+                          required
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          autoComplete="family-name"
+                          className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-stone-700 mb-1">
@@ -301,44 +327,51 @@ export default function EventRegisterPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        autoComplete="email"
                         className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">
-                        {t('general_events.registrations.phone')}
-                      </label>
-                      <input
-                        type="tel"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">
-                        {t('general_events.registrations.party_size')}
-                      </label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={50}
-                        value={partySize}
-                        onChange={(e) => setPartySize(Math.max(1, Number(e.target.value) || 1))}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">
-                        {t('general_events.registrations.special_requests')}
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={specialRequests}
-                        onChange={(e) => setSpecialRequests(e.target.value)}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      />
-                    </div>
+                    {(event.publicFormShowPhone !== false) && (
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-1">
+                          {t('general_events.registrations.phone')}
+                        </label>
+                        <input
+                          type="tel"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        />
+                      </div>
+                    )}
+                    {event.publicFormShowPartySize === true && (
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-1">
+                          {t('general_events.registrations.party_size')}
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={50}
+                          value={partySize}
+                          onChange={(e) => setPartySize(Math.max(1, Number(e.target.value) || 1))}
+                          className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        />
+                      </div>
+                    )}
+                    {(event.publicFormShowSpecialRequests !== false) && (
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-1">
+                          {t('general_events.registrations.special_requests')}
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={specialRequests}
+                          onChange={(e) => setSpecialRequests(e.target.value)}
+                          className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        />
+                      </div>
+                    )}
                     <button
                       type="submit"
                       disabled={submitting}
