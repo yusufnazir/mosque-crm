@@ -297,6 +297,11 @@ public class GeneralEventController {
     // Attendance
     // ========================
 
+    @GetMapping("/{id}/attendance")
+    public ResponseEntity<List<GeneralEventAttendanceDTO>> listAllAttendance(@PathVariable Long id) {
+        return ResponseEntity.ok(attendanceService.listAllAttendance(id));
+    }
+
     @GetMapping("/{id}/sessions/{sessionId}/attendance")
     public ResponseEntity<List<GeneralEventAttendanceDTO>> listAttendance(
             @PathVariable Long id, @PathVariable Long sessionId) {

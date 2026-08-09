@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useDateFormat } from '@/lib/DateFormatContext';
 import DateInput from '@/components/DateInput';
@@ -46,6 +46,21 @@ import {
 
 type Tab = 'overview' | 'registrations' | 'volunteers' | 'sessions' | 'attendance' | 'documents' | 'report' | 'resources' | 'member_groups';
 
+const VALID_TABS: readonly Tab[] = [
+  'overview',
+  'registrations',
+  'volunteers',
+  'sessions',
+  'attendance',
+  'documents',
+  'resources',
+  'member_groups',
+  'report',
+];
+
+function parseTab(value: string | null): Tab {
+  return VALID_TABS.includes(value as Tab) ? (value as Tab) : 'overview';
+}
 const STATUS_COLORS: Record<GeneralEventStatus, string> = {
   DRAFT: 'bg-stone-100 text-stone-700',
   PUBLISHED: 'bg-blue-100 text-blue-700',
@@ -82,17 +97,49 @@ const ATTENDANCE_STATUS_COLORS: Record<AttendanceStatus, string> = {
 };
 
 export default function GeneralEventDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-700" />
+        </div>
+      }
+    >
+      <GeneralEventDetailPageInner />
+    </Suspense>
+  );
+}
+
+function GeneralEventDetailPageInner() {
   const { t } = useTranslation();
   const { formatDate } = useDateFormat();
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = Number(params.id);
+
+  const activeTab = parseTab(searchParams.get('tab'));
+  const setActiveTab = useCallback(
+    (tab: Tab) => {
+      const next = new URLSearchParams(searchParams.toString());
+      if (tab === 'overview') {
+        next.delete('tab');
+      } else {
+        next.set('tab', tab);
+      }
+      const qs = next.toString();
+      router.replace(qs ? `/general-events/${id}?${qs}` : `/general-events/${id}`, { scroll: false });
+    },
+    [id, router, searchParams]
+  );
 
   const [event, setEvent] = useState<GeneralEvent | null>(null);
   const [registrations, setRegistrations] = useState<GeneralEventRegistration[]>([]);
   const [volunteers, setVolunteers] = useState<GeneralEventVolunteer[]>([]);
   const [report, setReport] = useState<GeneralEventReport | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [reportAttendance, setReportAttendance] = useState<GeneralEventAttendance[]>([]);
+  const [loadingReportDetails, setLoadingReportDetails] = useState(false);
+  const [exportingReport, setExportingReport] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -189,13 +236,189 @@ export default function GeneralEventDetailPage() {
   }, []);
 
   const loadReport = useCallback(async () => {
+    setLoadingReportDetails(true);
     try {
-      const r = await generalEventApi.getReport(id);
+      const [r, allAttendance] = await Promise.all([
+        generalEventApi.getReport(id),
+        generalEventApi.listAllAttendance(id),
+      ]);
       setReport(r);
+      setReportAttendance(allAttendance);
     } catch {
       setToast({ message: t('general_events.toast.error'), type: 'error' });
+    } finally {
+      setLoadingReportDetails(false);
     }
   }, [id, t]);
+
+  const slugify = (value: string) =>
+    value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'event';
+
+  const registrationExportHeaders = () => [
+    t('general_events.registrations.name'),
+    t('general_events.registrations.email'),
+    t('general_events.registrations.phone'),
+    t('general_events.registrations.registrant_type'),
+    t('general_events.registrations.rsvp_status'),
+    t('general_events.registrations.check_in_status'),
+    t('general_events.registrations.party_size'),
+    t('general_events.registrations.special_requests'),
+    t('general_events.registrations.registered_at'),
+    'Source',
+  ];
+
+  const registrationExportRows = () =>
+    registrations.map(reg => [
+      reg.name || '',
+      reg.email || '',
+      reg.phoneNumber || '',
+      reg.registrantType === 'MEMBER'
+        ? t('general_events.report.members')
+        : t('general_events.report.non_members'),
+      reg.rsvpStatus?.replace(/_/g, ' ') || '',
+      reg.checkInStatus?.replace(/_/g, ' ') || '',
+      String(reg.partySize ?? 1),
+      reg.specialRequests || '',
+      reg.registeredAt ? formatDate(reg.registeredAt.slice(0, 10)) : '',
+      reg.source || '',
+    ]);
+
+  const attendanceExportHeaders = () => [
+    t('general_events.sessions.name'),
+    t('general_events.attendance.person'),
+    t('general_events.attendance.type'),
+    t('general_events.attendance.status'),
+    t('general_events.attendance.checked_in_at'),
+    t('general_events.attendance.notes'),
+  ];
+
+  const attendanceExportRows = () =>
+    reportAttendance.map(row => [
+      row.sessionName || '',
+      row.personName || row.walkInName || '',
+      row.walkInName && !row.registrationId
+        ? t('general_events.report.walk_in')
+        : t('general_events.report.registered'),
+      row.status?.replace(/_/g, ' ') || '',
+      row.checkedInAt ? formatDate(row.checkedInAt.slice(0, 10)) : '',
+      row.notes || '',
+    ]);
+
+  const addPdfFooter = (
+    doc: { getNumberOfPages: () => number; setPage: (n: number) => void; setFontSize: (n: number) => void; setTextColor: (r: number, g: number, b: number) => void; text: (text: string, x: number, y: number) => void; internal: { pageSize: { height: number; width: number } } },
+    subtitle: string
+  ) => {
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text(
+        `${t('reports.generated_on')} ${new Date().toLocaleDateString()} — ${subtitle}`,
+        14,
+        doc.internal.pageSize.height - 10
+      );
+      doc.text(`${i} / ${pageCount}`, doc.internal.pageSize.width - 25, doc.internal.pageSize.height - 10);
+    }
+  };
+
+  const exportRegistrationsExcel = async () => {
+    if (!event) return;
+    setExportingReport('registrations-excel');
+    try {
+      const XLSX = await import('xlsx');
+      const headers = registrationExportHeaders();
+      const rows = registrationExportRows();
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+      ws['!cols'] = headers.map((h, i) => ({
+        wch: Math.min(40, Math.max(h.length, ...rows.map(r => String(r[i] || '').length)) + 2),
+      }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, t('general_events.report.registrations_sheet'));
+      XLSX.writeFile(wb, `${slugify(event.name)}-registrations.xlsx`);
+    } catch {
+      setToast({ message: t('general_events.toast.error'), type: 'error' });
+    } finally {
+      setExportingReport(null);
+    }
+  };
+
+  const exportRegistrationsPdf = async () => {
+    if (!event) return;
+    setExportingReport('registrations-pdf');
+    try {
+      const { jsPDF } = await import('jspdf');
+      const autoTable = (await import('jspdf-autotable')).default;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      doc.setFontSize(16);
+      doc.setTextColor(4, 120, 87);
+      doc.text(`${t('general_events.report.registrations_title')} — ${event.name}`, 14, 18);
+      autoTable(doc, {
+        startY: 25,
+        head: [registrationExportHeaders()],
+        body: registrationExportRows(),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [4, 120, 87], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 245, 244] },
+        margin: { left: 14, right: 14 },
+      });
+      addPdfFooter(doc, t('general_events.report.registrations_count', { count: String(registrations.length) }));
+      doc.save(`${slugify(event.name)}-registrations.pdf`);
+    } catch {
+      setToast({ message: t('general_events.toast.error'), type: 'error' });
+    } finally {
+      setExportingReport(null);
+    }
+  };
+
+  const exportAttendanceExcel = async () => {
+    if (!event) return;
+    setExportingReport('attendance-excel');
+    try {
+      const XLSX = await import('xlsx');
+      const headers = attendanceExportHeaders();
+      const rows = attendanceExportRows();
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+      ws['!cols'] = headers.map((h, i) => ({
+        wch: Math.min(40, Math.max(h.length, ...rows.map(r => String(r[i] || '').length)) + 2),
+      }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, t('general_events.report.attendance_sheet'));
+      XLSX.writeFile(wb, `${slugify(event.name)}-attendance.xlsx`);
+    } catch {
+      setToast({ message: t('general_events.toast.error'), type: 'error' });
+    } finally {
+      setExportingReport(null);
+    }
+  };
+
+  const exportAttendancePdf = async () => {
+    if (!event) return;
+    setExportingReport('attendance-pdf');
+    try {
+      const { jsPDF } = await import('jspdf');
+      const autoTable = (await import('jspdf-autotable')).default;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      doc.setFontSize(16);
+      doc.setTextColor(4, 120, 87);
+      doc.text(`${t('general_events.report.attendance_title')} — ${event.name}`, 14, 18);
+      autoTable(doc, {
+        startY: 25,
+        head: [attendanceExportHeaders()],
+        body: attendanceExportRows(),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [4, 120, 87], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 245, 244] },
+        margin: { left: 14, right: 14 },
+      });
+      addPdfFooter(doc, t('general_events.report.attendance_count', { count: String(reportAttendance.length) }));
+      doc.save(`${slugify(event.name)}-attendance.pdf`);
+    } catch {
+      setToast({ message: t('general_events.toast.error'), type: 'error' });
+    } finally {
+      setExportingReport(null);
+    }
+  };
 
   const loadSessions = useCallback(async () => {
     setLoadingSessions(true);
@@ -1909,37 +2132,205 @@ export default function GeneralEventDetailPage() {
 
       {/* Report Tab */}
       {activeTab === 'report' && (
-        <div>
-          {!report ? (
+        <div className="space-y-8">
+          {loadingReportDetails && !report ? (
             <div className="flex justify-center py-8">
               <div className="w-6 h-6 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
             </div>
+          ) : report ? (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                {[
+                  { label: t('general_events.report.total_registrations'), value: report.totalRegistrations },
+                  { label: t('general_events.report.confirmed'), value: report.confirmedRegistrations },
+                  { label: t('general_events.report.declined'), value: report.declinedRegistrations },
+                  { label: t('general_events.report.waitlist'), value: report.waitlistRegistrations },
+                  { label: t('general_events.report.checked_in'), value: report.checkedInCount },
+                  { label: t('general_events.report.absent'), value: report.absentCount },
+                  { label: t('general_events.report.members'), value: report.memberRegistrations },
+                  { label: t('general_events.report.non_members'), value: report.nonMemberRegistrations },
+                  { label: t('general_events.report.total_party_size'), value: report.totalPartySize },
+                  { label: t('general_events.report.volunteers'), value: report.volunteerCount },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-white border border-stone-200 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-emerald-700">{value ?? 0}</div>
+                    <div className="text-xs text-stone-500 mt-1">{label}</div>
+                  </div>
+                ))}
+                {report.totalRevenue > 0 && (
+                  <div className="bg-white border border-stone-200 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-amber-600">{report.totalRevenue.toFixed(2)}</div>
+                    <div className="text-xs text-stone-500 mt-1">{t('general_events.report.total_revenue')}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Registrations report */}
+              <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-stone-100">
+                  <div>
+                    <h3 className="font-semibold text-stone-800">{t('general_events.report.registrations_title')}</h3>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      {t('general_events.report.registrations_count', { count: String(registrations.length) })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={exportRegistrationsExcel}
+                      disabled={registrations.length === 0 || !!exportingReport}
+                      className="px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                    >
+                      {exportingReport === 'registrations-excel'
+                        ? t('reports.exporting')
+                        : t('reports.export_excel')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={exportRegistrationsPdf}
+                      disabled={registrations.length === 0 || !!exportingReport}
+                      className="px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                    >
+                      {exportingReport === 'registrations-pdf'
+                        ? t('reports.exporting')
+                        : t('reports.export_pdf')}
+                    </button>
+                  </div>
+                </div>
+                {registrations.length === 0 ? (
+                  <p className="text-sm text-stone-400 text-center py-8">{t('general_events.registrations.no_registrations')}</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-stone-100 bg-stone-50/80">
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.name')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.email')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.phone')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.registrant_type')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.rsvp_status')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.check_in_status')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.party_size')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.registrations.registered_at')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {registrations.map(reg => (
+                          <tr key={reg.id} className="border-b border-stone-50 hover:bg-stone-50/50">
+                            <td className="py-3 px-4 font-medium text-stone-800">{reg.name}</td>
+                            <td className="py-3 px-4 text-stone-600">{reg.email || '—'}</td>
+                            <td className="py-3 px-4 text-stone-600">{reg.phoneNumber || '—'}</td>
+                            <td className="py-3 px-4 text-stone-600">
+                              {reg.registrantType === 'MEMBER'
+                                ? t('general_events.report.members')
+                                : t('general_events.report.non_members')}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${RSVP_COLORS[reg.rsvpStatus]}`}>
+                                {reg.rsvpStatus}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${CHECKIN_COLORS[reg.checkInStatus]}`}>
+                                {reg.checkInStatus.replace(/_/g, ' ')}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-stone-600">{reg.partySize}</td>
+                            <td className="py-3 px-4 text-stone-600">
+                              {reg.registeredAt ? formatDate(reg.registeredAt.slice(0, 10)) : '—'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Attendance report */}
+              <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-stone-100">
+                  <div>
+                    <h3 className="font-semibold text-stone-800">{t('general_events.report.attendance_title')}</h3>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      {t('general_events.report.attendance_count', { count: String(reportAttendance.length) })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={exportAttendanceExcel}
+                      disabled={reportAttendance.length === 0 || !!exportingReport}
+                      className="px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                    >
+                      {exportingReport === 'attendance-excel'
+                        ? t('reports.exporting')
+                        : t('reports.export_excel')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={exportAttendancePdf}
+                      disabled={reportAttendance.length === 0 || !!exportingReport}
+                      className="px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                    >
+                      {exportingReport === 'attendance-pdf'
+                        ? t('reports.exporting')
+                        : t('reports.export_pdf')}
+                    </button>
+                  </div>
+                </div>
+                {loadingReportDetails ? (
+                  <div className="flex justify-center py-8">
+                    <div className="w-6 h-6 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : reportAttendance.length === 0 ? (
+                  <p className="text-sm text-stone-400 text-center py-8 px-4">
+                    {t('general_events.report.attendance_empty')}
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-stone-100 bg-stone-50/80">
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.sessions.name')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.person')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.type')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.status')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.checked_in_at')}</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-stone-500 uppercase tracking-wide">{t('general_events.attendance.notes')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reportAttendance.map(row => (
+                          <tr key={row.id} className="border-b border-stone-50 hover:bg-stone-50/50">
+                            <td className="py-3 px-4 text-stone-600">{row.sessionName || '—'}</td>
+                            <td className="py-3 px-4 font-medium text-stone-800">
+                              {row.personName || row.walkInName || '—'}
+                            </td>
+                            <td className="py-3 px-4 text-stone-600">
+                              {row.walkInName && !row.registrationId
+                                ? t('general_events.report.walk_in')
+                                : t('general_events.report.registered')}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ATTENDANCE_STATUS_COLORS[row.status]}`}>
+                                {row.status}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-stone-600">
+                              {row.checkedInAt ? formatDate(row.checkedInAt.slice(0, 10)) : '—'}
+                            </td>
+                            <td className="py-3 px-4 text-stone-600">{row.notes || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              {[
-                { label: t('general_events.report.total_registrations'), value: report.totalRegistrations },
-                { label: t('general_events.report.confirmed'), value: report.confirmed },
-                { label: t('general_events.report.declined'), value: report.declined },
-                { label: t('general_events.report.waitlist'), value: report.waitlist },
-                { label: t('general_events.report.checked_in'), value: report.checkedIn },
-                { label: t('general_events.report.absent'), value: report.absent },
-                { label: t('general_events.report.members'), value: report.memberCount },
-                { label: t('general_events.report.non_members'), value: report.nonMemberCount },
-                { label: t('general_events.report.total_party_size'), value: report.totalPartySize },
-                { label: t('general_events.report.volunteers'), value: report.volunteerCount },
-              ].map(({ label, value }) => (
-                <div key={label} className="bg-white border border-stone-200 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-emerald-700">{value}</div>
-                  <div className="text-xs text-stone-500 mt-1">{label}</div>
-                </div>
-              ))}
-              {report.totalRevenue > 0 && (
-                <div className="bg-white border border-stone-200 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-amber-600">{report.totalRevenue.toFixed(2)}</div>
-                  <div className="text-xs text-stone-500 mt-1">{t('general_events.report.total_revenue')}</div>
-                </div>
-              )}
-            </div>
+            <p className="text-sm text-stone-400 text-center py-8">{t('general_events.toast.error')}</p>
           )}
         </div>
       )}

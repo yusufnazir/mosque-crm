@@ -70,6 +70,8 @@ export const generalEventApi = {
   // Attendance
   listAttendance: (eventId: number, sessionId: number): Promise<GeneralEventAttendance[]> =>
     ApiClient.get(`/general-events/${eventId}/sessions/${sessionId}/attendance`),
+  listAllAttendance: (eventId: number): Promise<GeneralEventAttendance[]> =>
+    ApiClient.get(`/general-events/${eventId}/attendance`),
   prepopulateAttendance: (eventId: number, sessionId: number): Promise<{ created: number }> =>
     ApiClient.post(`/general-events/${eventId}/sessions/${sessionId}/attendance/prepopulate`, {}),
   markAttendance: (eventId: number, sessionId: number, data: GeneralEventAttendanceCreate): Promise<GeneralEventAttendance> =>
@@ -307,14 +309,16 @@ export interface GeneralEventAttendanceCreate {
 }
 
 export interface GeneralEventReport {
+  eventId?: number;
+  eventName?: string;
   totalRegistrations: number;
-  confirmed: number;
-  declined: number;
-  waitlist: number;
-  checkedIn: number;
-  absent: number;
-  memberCount: number;
-  nonMemberCount: number;
+  confirmedRegistrations: number;
+  declinedRegistrations: number;
+  waitlistRegistrations: number;
+  checkedInCount: number;
+  absentCount: number;
+  memberRegistrations: number;
+  nonMemberRegistrations: number;
   totalPartySize: number;
   totalRevenue: number;
   volunteerCount: number;

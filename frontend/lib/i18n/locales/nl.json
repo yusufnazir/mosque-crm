@@ -1856,7 +1856,16 @@
       "non_members": "Niet-leden",
       "total_party_size": "Totaal aanwezigen (incl. gezelschap)",
       "total_revenue": "Totale omzet",
-      "volunteers": "Vrijwilligers"
+      "volunteers": "Vrijwilligers",
+      "registrations_title": "Alle registraties",
+      "registrations_count": "{{count}} registratie(s)",
+      "registrations_sheet": "Registraties",
+      "attendance_title": "Alle aanwezigheid",
+      "attendance_count": "{{count}} aanwezigheidsrecord(s)",
+      "attendance_sheet": "Aanwezigheid",
+      "attendance_empty": "Nog geen aanwezigheidsrecords. Voeg sessies toe en markeer aanwezigheid om ze hier te zien.",
+      "walk_in": "Walk-in",
+      "registered": "Geregistreerd"
     },
     "toast": {
       "created": "Evenement succesvol aangemaakt",

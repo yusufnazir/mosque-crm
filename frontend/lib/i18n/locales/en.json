@@ -1857,7 +1857,16 @@
       "non_members": "Non-Members",
       "total_party_size": "Total Attendees (incl. party)",
       "total_revenue": "Total Revenue",
-      "volunteers": "Volunteers"
+      "volunteers": "Volunteers",
+      "registrations_title": "All registrations",
+      "registrations_count": "{{count}} registration(s)",
+      "registrations_sheet": "Registrations",
+      "attendance_title": "All attendance",
+      "attendance_count": "{{count}} attendance record(s)",
+      "attendance_sheet": "Attendance",
+      "attendance_empty": "No attendance records yet. Add sessions and mark attendance to see them here.",
+      "walk_in": "Walk-in",
+      "registered": "Registered"
     },
     "toast": {
       "created": "Event created successfully",

@@ -54,6 +54,11 @@ public class GeneralEventAttendanceService {
                 .stream().map(this::toDTO).collect(Collectors.toList());
     }
 
+    public List<GeneralEventAttendanceDTO> listAllAttendance(Long eventId) {
+        return attendanceRepository.findByGeneralEventIdOrderBySessionIdAscCreatedAtAsc(eventId)
+                .stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
     /**
      * Pre-populate attendance rows from all confirmed registrations for this session.
      * Each registration gets an ABSENT row. Idempotent — skips if row already exists.
