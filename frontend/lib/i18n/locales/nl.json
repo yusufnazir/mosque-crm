@@ -1803,7 +1803,10 @@
       "registrant_type": "Type",
       "special_requests": "Bijzondere verzoeken",
       "amount_paid": "Betaald bedrag",
-      "registered_at": "Geregistreerd op"
+      "registered_at": "Geregistreerd op",
+      "reassess": "Opnieuw beoordelen",
+      "reassess_all": "Lidmaatschap opnieuw beoordelen",
+      "reassessing": "Beoordelen..."
     },
     "volunteers": {
       "title": "Vrijwilligers",
@@ -1876,6 +1879,8 @@
       "registration_updated": "Registratie bijgewerkt",
       "registration_deleted": "Registratie verwijderd",
       "checked_in": "Succesvol ingecheckt",
+      "registration_reassessed": "Lidmaatschap van registratie opnieuw beoordeeld",
+      "reassessed": "{{updated}} registratie(s) opnieuw beoordeeld; {{members}} gemarkeerd als lid",
       "volunteer_added": "Vrijwilliger toegevoegd",
       "volunteer_updated": "Vrijwilliger bijgewerkt",
       "volunteer_deleted": "Vrijwilliger verwijderd",

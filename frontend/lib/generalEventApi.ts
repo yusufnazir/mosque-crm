@@ -46,6 +46,14 @@ export const generalEventApi = {
     ApiClient.put(`/general-events/${eventId}/registrations/${regId}`, data),
   checkIn: (eventId: number, regId: number): Promise<GeneralEventRegistration> =>
     ApiClient.put(`/general-events/${eventId}/registrations/${regId}/check-in`, {}),
+  reassessRegistration: (eventId: number, regId: number): Promise<GeneralEventRegistration> =>
+    ApiClient.post(`/general-events/${eventId}/registrations/${regId}/reassess`, {}),
+  reassessAllRegistrations: (eventId: number): Promise<{
+    total: number;
+    updated: number;
+    members: number;
+    nonMembers: number;
+  }> => ApiClient.post(`/general-events/${eventId}/registrations/reassess`, {}),
   deleteRegistration: (eventId: number, regId: number): Promise<void> =>
     ApiClient.delete(`/general-events/${eventId}/registrations/${regId}`),
 

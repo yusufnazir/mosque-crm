@@ -2,7 +2,11 @@ package com.mosque.crm.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,6 +38,7 @@ import com.mosque.crm.repository.GeneralEventRegistrationRepository;
 import com.mosque.crm.repository.GeneralEventRepository;
 import com.mosque.crm.repository.DistributionEventRepository;
 import com.mosque.crm.repository.GeneralEventVolunteerRepository;
+import com.mosque.crm.repository.MembershipRepository;
 import com.mosque.crm.repository.PersonRepository;
 import com.mosque.crm.subscription.FeatureKeys;
 import com.mosque.crm.subscription.PlanLimitExceededException;
@@ -48,6 +53,7 @@ public class GeneralEventService {
     private final GeneralEventRegistrationRepository registrationRepository;
     private final GeneralEventVolunteerRepository volunteerRepository;
     private final PersonRepository personRepository;
+    private final MembershipRepository membershipRepository;
     private final OrganizationSubscriptionService organizationSubscriptionService;
     private final EventResourceAssignmentService eventResourceAssignmentService;
     private final EventFeatureCleanupService eventFeatureCleanupService;
@@ -58,6 +64,7 @@ public class GeneralEventService {
             GeneralEventRegistrationRepository registrationRepository,
             GeneralEventVolunteerRepository volunteerRepository,
             PersonRepository personRepository,
+            MembershipRepository membershipRepository,
             OrganizationSubscriptionService organizationSubscriptionService,
             EventResourceAssignmentService eventResourceAssignmentService,
             EventFeatureCleanupService eventFeatureCleanupService) {
@@ -66,6 +73,7 @@ public class GeneralEventService {
         this.registrationRepository = registrationRepository;
         this.volunteerRepository = volunteerRepository;
         this.personRepository = personRepository;
+        this.membershipRepository = membershipRepository;
         this.organizationSubscriptionService = organizationSubscriptionService;
         this.eventResourceAssignmentService = eventResourceAssignmentService;
         this.eventFeatureCleanupService = eventFeatureCleanupService;
@@ -213,6 +221,9 @@ public class GeneralEventService {
     public GeneralEventRegistrationDTO updateRegistration(Long id, GeneralEventRegistrationCreateDTO dto) {
         GeneralEventRegistration reg = registrationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Registration not found: " + id));
+        if (dto.getRegistrantType() != null) {
+            reg.setRegistrantType(RegistrantType.valueOf(dto.getRegistrantType()));
+        }
         reg.setName(dto.getName());
         reg.setEmail(dto.getEmail());
         reg.setPhoneNumber(dto.getPhoneNumber());
@@ -220,8 +231,160 @@ public class GeneralEventService {
         reg.setRsvpStatus(dto.getRsvpStatus() != null ? RsvpStatus.valueOf(dto.getRsvpStatus()) : reg.getRsvpStatus());
         reg.setSpecialRequests(dto.getSpecialRequests());
         reg.setAmountPaid(dto.getAmountPaid());
+        if (dto.getPersonId() != null) {
+            Person person = personRepository.findById(dto.getPersonId())
+                    .orElseThrow(() -> new RuntimeException("Person not found: " + dto.getPersonId()));
+            reg.setPerson(person);
+        } else if (dto.getRegistrantType() != null
+                && RegistrantType.NON_MEMBER.name().equals(dto.getRegistrantType())) {
+            reg.setPerson(null);
+        }
         reg = registrationRepository.save(reg);
         return toRegistrationDTO(reg);
+    }
+
+    /**
+     * Re-match a registration against the org directory by email/phone/name and
+     * update registrantType + person link from current active membership.
+     */
+    @Transactional
+    public GeneralEventRegistrationDTO reassessRegistration(Long eventId, Long registrationId) {
+        GeneralEventRegistration reg = registrationRepository.findById(registrationId)
+                .orElseThrow(() -> new RuntimeException("Registration not found: " + registrationId));
+        if (reg.getGeneralEvent() == null || !eventId.equals(reg.getGeneralEvent().getId())) {
+            throw new RuntimeException("Registration does not belong to this event");
+        }
+        applyMembershipMatch(reg);
+        reg = registrationRepository.save(reg);
+        log.info("Reassessed registration id={} type={} personId={}",
+                reg.getId(), reg.getRegistrantType(),
+                reg.getPerson() != null ? reg.getPerson().getId() : null);
+        return toRegistrationDTO(reg);
+    }
+
+    /**
+     * Reassess all registrations for an event. Returns counts of changes.
+     */
+    @Transactional
+    public Map<String, Integer> reassessAllRegistrations(Long eventId) {
+        List<GeneralEventRegistration> regs =
+                registrationRepository.findByGeneralEventIdOrderByRegisteredAtDesc(eventId);
+        int updated = 0;
+        int nowMembers = 0;
+        int nowNonMembers = 0;
+        for (GeneralEventRegistration reg : regs) {
+            RegistrantType before = reg.getRegistrantType();
+            Long beforePersonId = reg.getPerson() != null ? reg.getPerson().getId() : null;
+            applyMembershipMatch(reg);
+            Long afterPersonId = reg.getPerson() != null ? reg.getPerson().getId() : null;
+            boolean changed = before != reg.getRegistrantType()
+                    || (beforePersonId == null ? afterPersonId != null : !beforePersonId.equals(afterPersonId));
+            if (changed) {
+                registrationRepository.save(reg);
+                updated++;
+            }
+            if (reg.getRegistrantType() == RegistrantType.MEMBER) {
+                nowMembers++;
+            } else {
+                nowNonMembers++;
+            }
+        }
+        Map<String, Integer> result = new HashMap<>();
+        result.put("total", regs.size());
+        result.put("updated", updated);
+        result.put("members", nowMembers);
+        result.put("nonMembers", nowNonMembers);
+        log.info("Reassessed registrations for eventId={}: total={} updated={} members={}",
+                eventId, regs.size(), updated, nowMembers);
+        return result;
+    }
+
+    private void applyMembershipMatch(GeneralEventRegistration reg) {
+        Long orgId = reg.getOrganizationId();
+        if (orgId == null && reg.getGeneralEvent() != null) {
+            orgId = reg.getGeneralEvent().getOrganizationId();
+        }
+        String email = normalizeEmail(reg.getEmail());
+        String phone = trimToNull(reg.getPhoneNumber());
+        String[] nameParts = splitName(reg.getName());
+        Person matched = matchPerson(orgId, email, phone, nameParts[0], nameParts[1]);
+
+        if (matched != null) {
+            reg.setPerson(matched);
+            boolean isMember = membershipRepository.findActiveMembershipByPerson(matched).isPresent();
+            reg.setRegistrantType(isMember ? RegistrantType.MEMBER : RegistrantType.NON_MEMBER);
+            // Prefer directory contact details when registration left them blank
+            if (trimToNull(reg.getEmail()) == null && matched.getEmail() != null) {
+                reg.setEmail(matched.getEmail());
+            }
+            if (trimToNull(reg.getPhoneNumber()) == null && matched.getPhone() != null) {
+                reg.setPhoneNumber(matched.getPhone());
+            }
+        } else {
+            reg.setPerson(null);
+            reg.setRegistrantType(RegistrantType.NON_MEMBER);
+        }
+    }
+
+    private Person matchPerson(Long organizationId, String email, String phone,
+            String firstName, String lastName) {
+        if (organizationId == null) {
+            return null;
+        }
+        if (email != null) {
+            Optional<Person> byEmail = personRepository.findByEmailIgnoreCaseAndOrganizationId(email, organizationId);
+            if (byEmail.isPresent()) {
+                return byEmail.get();
+            }
+        }
+        if (phone != null) {
+            for (String variant : phoneVariants(phone)) {
+                List<Person> found = personRepository.findByPhoneAndOrganizationId(variant, organizationId);
+                if (found.size() == 1) {
+                    return found.get(0);
+                }
+            }
+        }
+        if (firstName != null && lastName != null) {
+            List<Person> byName = personRepository.findByOrganizationIdAndFirstNameAndLastNameIgnoreCase(
+                    organizationId, firstName, lastName);
+            if (byName.size() == 1) {
+                return byName.get(0);
+            }
+        }
+        return null;
+    }
+
+    private static String[] splitName(String fullName) {
+        String trimmed = trimToNull(fullName);
+        if (trimmed == null) {
+            return new String[] { null, null };
+        }
+        String[] parts = trimmed.split("\\s+", 2);
+        return new String[] {
+                parts[0],
+                parts.length > 1 ? parts[1] : null
+        };
+    }
+
+    private static String normalizeEmail(String email) {
+        String trimmed = trimToNull(email);
+        return trimmed != null ? trimmed.toLowerCase(Locale.ROOT) : null;
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static List<String> phoneVariants(String phone) {
+        String trimmed = phone.trim();
+        String noSpaces = trimmed.replace(" ", "");
+        String digits = trimmed.replaceAll("\\D", "");
+        return List.of(trimmed, noSpaces, digits).stream().distinct().toList();
     }
 
     @Transactional

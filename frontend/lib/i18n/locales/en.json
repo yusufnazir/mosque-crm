@@ -1804,7 +1804,10 @@
       "registrant_type": "Type",
       "special_requests": "Special Requests",
       "amount_paid": "Amount Paid",
-      "registered_at": "Registered At"
+      "registered_at": "Registered At",
+      "reassess": "Reassess",
+      "reassess_all": "Reassess membership",
+      "reassessing": "Reassessing..."
     },
     "volunteers": {
       "title": "Volunteers",
@@ -1877,6 +1880,8 @@
       "registration_updated": "Registration updated",
       "registration_deleted": "Registration deleted",
       "checked_in": "Checked in successfully",
+      "registration_reassessed": "Registration membership reassessed",
+      "reassessed": "Reassessed {{updated}} registration(s); {{members}} marked as members",
       "volunteer_added": "Volunteer added",
       "volunteer_updated": "Volunteer updated",
       "volunteer_deleted": "Volunteer removed",

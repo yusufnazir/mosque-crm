@@ -204,6 +204,24 @@ public class GeneralEventController {
         }
     }
 
+    @PostMapping("/{id}/registrations/{regId}/reassess")
+    public ResponseEntity<?> reassessRegistration(@PathVariable Long id, @PathVariable Long regId) {
+        try {
+            return ResponseEntity.ok(generalEventService.reassessRegistration(id, regId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/registrations/reassess")
+    public ResponseEntity<?> reassessAllRegistrations(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(generalEventService.reassessAllRegistrations(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @DeleteMapping("/{id}/registrations/{regId}")
     public ResponseEntity<?> deleteRegistration(@PathVariable Long id, @PathVariable Long regId) {
         try {

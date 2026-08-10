@@ -158,6 +158,7 @@ function GeneralEventDetailPageInner() {
     partySize: 1,
   });
   const [deleteRegTarget, setDeleteRegTarget] = useState<GeneralEventRegistration | null>(null);
+  const [reassessing, setReassessing] = useState(false);
 
   // Member autocomplete state (for registration form)
   const [memberQuery, setMemberQuery] = useState('');
@@ -575,6 +576,7 @@ function GeneralEventDetailPageInner() {
     setEditReg(reg);
     setRegForm({
       registrantType: reg.registrantType,
+      personId: reg.personId ?? undefined,
       name: reg.name,
       email: reg.email ?? '',
       phoneNumber: reg.phoneNumber ?? '',
@@ -592,15 +594,49 @@ function GeneralEventDetailPageInner() {
 
   const handleSaveReg = async () => {
     try {
+      const payload = {
+        ...regForm,
+        personId: selectedMember ? Number(selectedMember.id) : regForm.personId,
+        name: regForm.name || memberQuery,
+      };
       if (editReg) {
-        await generalEventApi.updateRegistration(id, editReg.id, regForm);
+        await generalEventApi.updateRegistration(id, editReg.id, payload);
         setToast({ message: t('general_events.toast.registration_updated'), type: 'success' });
       } else {
-        await generalEventApi.addRegistration(id, regForm);
+        await generalEventApi.addRegistration(id, payload);
         setToast({ message: t('general_events.toast.registration_added'), type: 'success' });
       }
       setShowRegForm(false);
       loadData();
+    } catch {
+      setToast({ message: t('general_events.toast.error'), type: 'error' });
+    }
+  };
+
+  const handleReassessAll = async () => {
+    setReassessing(true);
+    try {
+      const result = await generalEventApi.reassessAllRegistrations(id);
+      setToast({
+        message: t('general_events.toast.reassessed', {
+          updated: String(result.updated),
+          members: String(result.members),
+        }),
+        type: 'success',
+      });
+      await loadData();
+    } catch {
+      setToast({ message: t('general_events.toast.error'), type: 'error' });
+    } finally {
+      setReassessing(false);
+    }
+  };
+
+  const handleReassessOne = async (regId: number) => {
+    try {
+      await generalEventApi.reassessRegistration(id, regId);
+      setToast({ message: t('general_events.toast.registration_reassessed'), type: 'success' });
+      await loadData();
     } catch {
       setToast({ message: t('general_events.toast.error'), type: 'error' });
     }
@@ -1189,12 +1225,26 @@ function GeneralEventDetailPageInner() {
           <TabSectionHeader
             title={t('general_events.tabs.registrations')}
             action={
-              <button
-                onClick={openAddReg}
-                className="w-full sm:w-auto bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
-              >
-                + {t('general_events.registrations.add')}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {registrations.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleReassessAll}
+                    disabled={reassessing}
+                    className="w-full sm:w-auto border border-stone-300 text-stone-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-stone-50 disabled:opacity-50"
+                  >
+                    {reassessing
+                      ? t('general_events.registrations.reassessing')
+                      : t('general_events.registrations.reassess_all')}
+                  </button>
+                )}
+                <button
+                  onClick={openAddReg}
+                  className="w-full sm:w-auto bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800"
+                >
+                  + {t('general_events.registrations.add')}
+                </button>
+              </div>
             }
           />
 
@@ -1358,6 +1408,9 @@ function GeneralEventDetailPageInner() {
                       {event.requiresCheckIn && reg.checkInStatus === 'NOT_CHECKED_IN' && (
                         <ActionButton variant="primary" onClick={() => handleCheckIn(reg.id)}>{t('general_events.registrations.check_in')}</ActionButton>
                       )}
+                      <ActionButton variant="default" onClick={() => handleReassessOne(reg.id)}>
+                        {t('general_events.registrations.reassess')}
+                      </ActionButton>
                       <ActionButton variant="default" onClick={() => openEditReg(reg)}>{t('common.edit')}</ActionButton>
                       <ActionButton variant="danger" onClick={() => setDeleteRegTarget(reg)}>{t('common.delete')}</ActionButton>
                     </RowActions>
@@ -1396,6 +1449,9 @@ function GeneralEventDetailPageInner() {
                             {event.requiresCheckIn && reg.checkInStatus === 'NOT_CHECKED_IN' && (
                               <button onClick={() => handleCheckIn(reg.id)} className="text-xs text-emerald-700 hover:underline font-medium">{t('general_events.registrations.check_in')}</button>
                             )}
+                            <button onClick={() => handleReassessOne(reg.id)} className="text-xs text-stone-500 hover:text-stone-700">
+                              {t('general_events.registrations.reassess')}
+                            </button>
                             <button onClick={() => openEditReg(reg)} className="text-xs text-stone-500 hover:text-stone-700">{t('common.edit')}</button>
                             <button onClick={() => setDeleteRegTarget(reg)} className="text-xs text-red-500 hover:text-red-700">{t('common.delete')}</button>
                           </div>
