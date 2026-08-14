@@ -30,3 +30,7 @@ backend/target/
 .env
 .env.local
 .env.*.local
+
+# Shared platform/operations clones (workspace references, not part of this repo)
+platform/
+operations/
