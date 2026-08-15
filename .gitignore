@@ -34,3 +34,6 @@ backend/target/
 # Shared platform/operations clones (workspace references, not part of this repo)
 platform/
 operations/
+
+# Local secrets
+.jenkins.env
