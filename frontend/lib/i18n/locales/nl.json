@@ -1808,6 +1808,28 @@
       "reassess_all": "Lidmaatschap opnieuw beoordelen",
       "reassessing": "Beoordelen..."
     },
+    "questions": {
+      "title": "Registratievragen",
+      "hint": "Optionele vragen die deelnemers beantwoorden bij het registreren (bijv. 'Hoe reis je?').",
+      "add_question": "Vraag toevoegen",
+      "empty_hint": "Nog geen vragen. Voeg optionele vragen toe die deelnemers bij hun registratie beantwoorden.",
+      "label": "Vraag",
+      "label_placeholder": "bijv. Hoe reis je?",
+      "type": "Antwoordtype",
+      "type_SINGLE_CHOICE": "Enkele keuze",
+      "type_MULTI_CHOICE": "Meerdere keuzes",
+      "type_FREE_TEXT": "Vrije tekst",
+      "required": "Verplicht",
+      "options": "Opties",
+      "option_placeholder": "Optie {{n}}",
+      "add_option": "Optie toevoegen",
+      "answer_heading": "Registratievragen",
+      "answer_placeholder": "Jouw antwoord",
+      "tally_title": "Antwoordenoverzicht",
+      "answered_count": "{{count}} beantwoord",
+      "free_text_tally_hint": "Vrije-tekstantwoorden verschijnen in de registratielijst en exports.",
+      "export_column": "Antwoorden"
+    },
     "volunteers": {
       "title": "Vrijwilligers",
       "add": "Vrijwilliger toevoegen",
@@ -1887,6 +1909,7 @@
       "document_uploaded": "Document geüpload",
       "document_deleted": "Document verwijderd",
       "error": "Er is een fout opgetreden. Probeer het opnieuw.",
+      "required_questions": "Beantwoord de verplichte vragen: {{questions}}",
       "link_copied": "Registratielink gekopieerd"
     },
     "public_link": {
@@ -1925,7 +1948,8 @@
       "error_name": "Naam is verplicht.",
       "error_first_name": "Voornaam is verplicht.",
       "error_last_name": "Achternaam is verplicht.",
-      "error_email": "E-mail is verplicht."
+      "error_email": "E-mail is verplicht.",
+      "error_required_questions": "Beantwoord de verplichte vragen: {{questions}}"
     },
     "documents": {
       "title": "Documenten",

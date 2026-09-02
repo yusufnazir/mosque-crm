@@ -166,6 +166,9 @@ public class GeneralEvent implements OrganizationAware {
     @OneToMany(mappedBy = "generalEvent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<GeneralEventSession> sessions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "generalEvent", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<GeneralEventQuestion> questions = new ArrayList<>();
+
     public GeneralEvent() {
     }
 
@@ -298,4 +301,7 @@ public class GeneralEvent implements OrganizationAware {
 
     public List<GeneralEventSession> getSessions() { return sessions; }
     public void setSessions(List<GeneralEventSession> sessions) { this.sessions = sessions; }
+
+    public List<GeneralEventQuestion> getQuestions() { return questions; }
+    public void setQuestions(List<GeneralEventQuestion> questions) { this.questions = questions; }
 }

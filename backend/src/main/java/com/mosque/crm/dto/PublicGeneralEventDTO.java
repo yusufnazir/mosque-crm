@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Public-safe view of a general event for anonymous / self-registration pages.
@@ -47,6 +49,9 @@ public class PublicGeneralEventDTO {
     private String optInEmail;
     /** Null means unlimited. */
     private Integer spotsRemaining;
+
+    /** Questions the registrant must answer on the public self-registration form. */
+    private List<GeneralEventQuestionDTO> registrationQuestions = new ArrayList<>();
 
     public PublicGeneralEventDTO() {
     }
@@ -147,4 +152,9 @@ public class PublicGeneralEventDTO {
 
     public Integer getSpotsRemaining() { return spotsRemaining; }
     public void setSpotsRemaining(Integer spotsRemaining) { this.spotsRemaining = spotsRemaining; }
+
+    public List<GeneralEventQuestionDTO> getRegistrationQuestions() { return registrationQuestions; }
+    public void setRegistrationQuestions(List<GeneralEventQuestionDTO> registrationQuestions) {
+        this.registrationQuestions = registrationQuestions != null ? registrationQuestions : new ArrayList<>();
+    }
 }

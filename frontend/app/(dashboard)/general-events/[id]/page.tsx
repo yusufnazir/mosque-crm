@@ -25,9 +25,16 @@ import {
   GeneralEventAttendanceCreate,
   AttendanceStatus,
   GeneralEventDocument,
+  GeneralEventQuestionAnswer,
+  GeneralEventQuestionSummary,
 } from '@/lib/generalEventApi';
 import ToastNotification from '@/components/ToastNotification';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import RegistrationQuestionAnswers, {
+  createAnswersForQuestions,
+  answersFromRegistration,
+  missingRequiredAnswers,
+} from '@/components/RegistrationQuestionAnswers';
 import { buildTenantUrl } from '@/lib/auth/AuthContext';
 import { organizationApi } from '@/lib/organizationApi';
 import { copyToClipboard } from '@/lib/utils';
@@ -157,6 +164,8 @@ function GeneralEventDetailPageInner() {
     phoneNumber: '',
     partySize: 1,
   });
+  const [regQuestionAnswers, setRegQuestionAnswers] = useState<GeneralEventQuestionAnswer[]>([]);
+  const [questionSummaries, setQuestionSummaries] = useState<GeneralEventQuestionSummary[]>([]);
   const [deleteRegTarget, setDeleteRegTarget] = useState<GeneralEventRegistration | null>(null);
   const [reassessing, setReassessing] = useState(false);
 
@@ -223,6 +232,11 @@ function GeneralEventDetailPageInner() {
       setEvent(ev);
       setRegistrations(regs);
       setVolunteers(vols);
+      if (ev.registrationQuestions && ev.registrationQuestions.length > 0) {
+        generalEventApi.getRegistrationQuestionSummary(id).then(setQuestionSummaries).catch(() => {});
+      } else {
+        setQuestionSummaries([]);
+      }
     } catch {
       setToast({ message: t('general_events.toast.error'), type: 'error' });
     } finally {
@@ -264,6 +278,7 @@ function GeneralEventDetailPageInner() {
     t('general_events.registrations.check_in_status'),
     t('general_events.registrations.party_size'),
     t('general_events.registrations.special_requests'),
+    t('general_events.questions.export_column'),
     t('general_events.registrations.registered_at'),
     'Source',
   ];
@@ -280,6 +295,9 @@ function GeneralEventDetailPageInner() {
       reg.checkInStatus?.replace(/_/g, ' ') || '',
       String(reg.partySize ?? 1),
       reg.specialRequests || '',
+      (reg.answers && reg.answers.length
+        ? reg.answers.map(a => `${a.questionLabel}: ${a.values.join(', ')}`).join(' | ')
+        : ''),
       reg.registeredAt ? formatDate(reg.registeredAt.slice(0, 10)) : '',
       reg.source || '',
     ]);
@@ -569,6 +587,7 @@ function GeneralEventDetailPageInner() {
     setEditReg(null);
     setRegForm({ registrantType: 'MEMBER', name: '', email: '', phoneNumber: '', partySize: 1 });
     resetMemberSearch();
+    setRegQuestionAnswers(createAnswersForQuestions(event?.registrationQuestions ?? []));
     setShowRegForm(true);
   };
 
@@ -589,15 +608,26 @@ function GeneralEventDetailPageInner() {
     if (reg.registrantType === 'MEMBER') {
       setMemberQuery(reg.name);
     }
+    setRegQuestionAnswers(answersFromRegistration(event?.registrationQuestions ?? [], reg.answers ?? []));
     setShowRegForm(true);
   };
 
   const handleSaveReg = async () => {
     try {
+      const questions = event?.registrationQuestions ?? [];
+      const missing = missingRequiredAnswers(questions, regQuestionAnswers);
+      if (missing.length > 0) {
+        setToast({
+          message: t('general_events.toast.required_questions', { questions: missing.join(', ') }),
+          type: 'error',
+        });
+        return;
+      }
       const payload = {
         ...regForm,
         personId: selectedMember ? Number(selectedMember.id) : regForm.personId,
         name: regForm.name || memberQuery,
+        answers: regQuestionAnswers,
       };
       if (editReg) {
         await generalEventApi.updateRegistration(id, editReg.id, payload);
@@ -888,6 +918,21 @@ function GeneralEventDetailPageInner() {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Readable answer summary for a registration (used in tables & mobile cards)
+  const registrationAnswerSummary = (reg: GeneralEventRegistration) => {
+    if (!reg.answers || reg.answers.length === 0) return null;
+    return (
+      <div className="mt-1.5 space-y-0.5 text-xs text-stone-500">
+        {reg.answers.map(a => (
+          <div key={a.questionId}>
+            <span className="font-medium text-stone-500">{a.questionLabel}:</span>{' '}
+            <span className="text-stone-600">{a.values.join(', ') || '—'}</span>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   if (loading) {
@@ -1248,10 +1293,52 @@ function GeneralEventDetailPageInner() {
             }
           />
 
+          {/* Registration questions tally */}
+          {questionSummaries.length > 0 && (
+            <div className="bg-white border border-stone-200 rounded-xl p-5 mb-6">
+              <h3 className="font-semibold text-stone-700 mb-4 text-sm uppercase tracking-wide">
+                {t('general_events.questions.tally_title')}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                {questionSummaries.map(s => {
+                  const maxCount = Math.max(1, ...s.totals.map(o => o.count));
+                  return (
+                    <div key={s.questionId}>
+                      <div className="flex items-baseline justify-between gap-3 mb-2">
+                        <p className="text-sm font-medium text-stone-700">{s.questionLabel}</p>
+                        <span className="text-xs text-stone-400 shrink-0">
+                          {t('general_events.questions.answered_count', { count: String(s.answeredCount) })}
+                        </span>
+                      </div>
+                      {s.inputType === 'FREE_TEXT' ? (
+                        <p className="text-xs text-stone-400">{t('general_events.questions.free_text_tally_hint')}</p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {s.totals.map(o => (
+                            <div key={o.optionId} className="flex items-center gap-2">
+                              <span className="text-xs text-stone-600 w-40 truncate">{o.optionLabel}</span>
+                              <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-emerald-600 rounded-full"
+                                  style={{ width: `${Math.round((o.count / maxCount) * 100)}%` }}
+                                />
+                              </div>
+                              <span className="text-xs font-semibold text-stone-700 w-8 text-right">{o.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Registration Form Modal */}
           {showRegForm && (
             <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg mx-4">
+              <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
                 <h3 className="font-semibold text-stone-800 mb-4">
                   {editReg ? t('general_events.registrations.edit') : t('general_events.registrations.add')}
                 </h3>
@@ -1373,6 +1460,18 @@ function GeneralEventDetailPageInner() {
                       className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
+                  {event.registrationQuestions && event.registrationQuestions.length > 0 && (
+                    <div className="rounded-lg border border-stone-200 p-3">
+                      <p className="text-xs font-semibold text-stone-600 mb-3">
+                        {t('general_events.questions.answer_heading')}
+                      </p>
+                      <RegistrationQuestionAnswers
+                        questions={event.registrationQuestions}
+                        answers={regQuestionAnswers}
+                        onChange={setRegQuestionAnswers}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-end gap-3 mt-5">
                   <button onClick={() => { setShowRegForm(false); resetMemberSearch(); }} className="text-sm text-stone-600 hover:text-stone-800 px-4 py-2">Cancel</button>
@@ -1400,6 +1499,7 @@ function GeneralEventDetailPageInner() {
                     <p className="text-sm text-stone-600 mt-1">
                       {reg.registrantType === 'MEMBER' ? 'Member' : 'Non-Member'} · {t('general_events.registrations.party_size')}: {reg.partySize}
                     </p>
+                    {registrationAnswerSummary(reg)}
                     <div className="flex flex-wrap gap-2 mt-2">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${RSVP_COLORS[reg.rsvpStatus]}`}>{reg.rsvpStatus}</span>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${CHECKIN_COLORS[reg.checkInStatus]}`}>{reg.checkInStatus.replace('_', ' ')}</span>
@@ -1435,6 +1535,7 @@ function GeneralEventDetailPageInner() {
                         <td className="py-3 px-4">
                           <div className="font-medium text-stone-800">{reg.name}</div>
                           {reg.email && <div className="text-xs text-stone-400">{reg.email}</div>}
+                          {registrationAnswerSummary(reg)}
                         </td>
                         <td className="py-3 px-4 text-stone-600">{reg.registrantType === 'MEMBER' ? 'Member' : 'Non-Member'}</td>
                         <td className="py-3 px-4 text-stone-600">{reg.partySize}</td>

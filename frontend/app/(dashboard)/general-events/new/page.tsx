@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import DateInput from '@/components/DateInput';
+import RegistrationQuestionsBuilder from '@/components/RegistrationQuestionsBuilder';
 import { generalEventApi, GeneralEventCreate, GeneralEventType, GeneralEventStatus } from '@/lib/generalEventApi';
 import { distributionApi, DistributionEventCreate } from '@/lib/distributionApi';
 import { isPlanRestriction, parsePlanRestrictionFromError } from '@/lib/api';
@@ -80,7 +81,13 @@ export default function NewGeneralEventPage() {
       setDistForm(f => ({ ...f, name: form.name }));
     } else {
       setEventCategory('GENERAL');
-      setForm(f => ({ ...f, generalEventType: value as GeneralEventType, name: distForm.name || f.name }));
+      setForm(f => ({
+        ...f,
+        generalEventType: value as GeneralEventType,
+        name: distForm.name || f.name,
+        // Questions are only supported on OTHER-type events
+        registrationQuestions: value === 'OTHER' ? f.registrationQuestions : [],
+      }));
     }
   };
 
@@ -462,6 +469,13 @@ export default function NewGeneralEventPage() {
             )}
           </div>
         </div>
+
+        {form.generalEventType === 'OTHER' && form.requiresRegistration && (
+          <RegistrationQuestionsBuilder
+            questions={form.registrationQuestions ?? []}
+            onChange={next => set('registrationQuestions', next)}
+          />
+        )}
 
         {/* Ticketing */}
         <div className="bg-white border border-stone-200 rounded-xl p-6">

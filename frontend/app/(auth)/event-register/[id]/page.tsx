@@ -7,10 +7,15 @@ import LanguageSelector from '@/components/LanguageSelector';
 import { buildAuthUrl, useAuth } from '@/lib/auth/AuthContext';
 import { useAppName } from '@/lib/AppNameContext';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import RegistrationQuestionAnswers, {
+  createAnswersForQuestions,
+  missingRequiredAnswers,
+} from '@/components/RegistrationQuestionAnswers';
 import {
   generalEventApi,
   PublicGeneralEvent,
   GeneralEventRegistration,
+  GeneralEventQuestionAnswer,
 } from '@/lib/generalEventApi';
 import { parseApiErrorBody } from '@/lib/api';
 
@@ -49,6 +54,7 @@ export default function EventRegisterPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [partySize, setPartySize] = useState(1);
   const [specialRequests, setSpecialRequests] = useState('');
+  const [questionAnswers, setQuestionAnswers] = useState<GeneralEventQuestionAnswer[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -64,7 +70,13 @@ export default function EventRegisterPage() {
     generalEventApi
       .getPublicEvent(orgHandle, eventId)
       .then((data) => {
-        if (!cancelled) setEvent(data);
+        if (cancelled) return;
+        setEvent(data);
+        setQuestionAnswers(
+          data.registrationQuestions && data.registrationQuestions.length
+            ? createAnswersForQuestions(data.registrationQuestions)
+            : []
+        );
       })
       .catch((err) => {
         if (cancelled) return;
@@ -113,6 +125,14 @@ export default function EventRegisterPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!orgHandle || !eventId) return;
+    const questions = event?.registrationQuestions ?? [];
+    const missing = missingRequiredAnswers(questions, questionAnswers);
+    if (missing.length > 0) {
+      setError(t('general_events.public_registration.error_required_questions', {
+        questions: missing.join(', '),
+      }));
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
@@ -126,6 +146,7 @@ export default function EventRegisterPage() {
           ? (specialRequests.trim() || undefined)
           : undefined,
         email: email.trim(),
+        answers: questionAnswers,
       });
       setResult(reg);
     } catch (err) {
@@ -265,7 +286,7 @@ export default function EventRegisterPage() {
                 </div>
               ) : (
                 <>
-                  {event.canOptIn && (
+                  {event.canOptIn && !(event.registrationQuestions && event.registrationQuestions.length > 0) && (
                     <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
                       <p className="text-sm text-stone-700 mb-1">
                         {t('general_events.public_registration.opt_in_greeting', {
@@ -369,6 +390,18 @@ export default function EventRegisterPage() {
                           value={specialRequests}
                           onChange={(e) => setSpecialRequests(e.target.value)}
                           className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        />
+                      </div>
+                    )}
+                    {event.registrationQuestions && event.registrationQuestions.length > 0 && (
+                      <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-4">
+                        <p className="text-sm font-semibold text-stone-700 mb-3">
+                          {t('general_events.questions.answer_heading')}
+                        </p>
+                        <RegistrationQuestionAnswers
+                          questions={event.registrationQuestions}
+                          answers={questionAnswers}
+                          onChange={setQuestionAnswers}
                         />
                       </div>
                     )}

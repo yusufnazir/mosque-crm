@@ -2,6 +2,8 @@ package com.mosque.crm.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GeneralEventRegistrationDTO {
 
@@ -22,6 +24,9 @@ public class GeneralEventRegistrationDTO {
     private String source;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    /** Answers to the event's registration questions (labels as entered). */
+    private List<GeneralEventRegistrationAnswerDTO> answers = new ArrayList<>();
 
     public GeneralEventRegistrationDTO() {
     }
@@ -76,4 +81,9 @@ public class GeneralEventRegistrationDTO {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public List<GeneralEventRegistrationAnswerDTO> getAnswers() { return answers; }
+    public void setAnswers(List<GeneralEventRegistrationAnswerDTO> answers) {
+        this.answers = answers != null ? answers : new ArrayList<>();
+    }
 }

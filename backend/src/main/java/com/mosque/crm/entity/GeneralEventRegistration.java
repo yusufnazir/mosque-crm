@@ -2,6 +2,8 @@ package com.mosque.crm.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
@@ -13,6 +15,7 @@ import com.mosque.crm.enums.RsvpStatus;
 import com.mosque.crm.multitenancy.OrganizationAware;
 import com.mosque.crm.multitenancy.OrganizationEntityListener;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -24,6 +27,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
@@ -97,6 +101,9 @@ public class GeneralEventRegistration implements OrganizationAware {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "registration", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<GeneralEventRegistrationAnswer> answers = new ArrayList<>();
+
     public GeneralEventRegistration() {
     }
 
@@ -155,4 +162,7 @@ public class GeneralEventRegistration implements OrganizationAware {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public List<GeneralEventRegistrationAnswer> getAnswers() { return answers; }
+    public void setAnswers(List<GeneralEventRegistrationAnswer> answers) { this.answers = answers; }
 }

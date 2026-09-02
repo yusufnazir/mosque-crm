@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GeneralEventDTO {
 
@@ -37,6 +39,7 @@ public class GeneralEventDTO {
     private boolean featured;
     private boolean requiresCheckIn;
     private String checkInCode;
+    private List<GeneralEventQuestionDTO> registrationQuestions = new ArrayList<>();
     private int totalRegistrations;
     private int totalVolunteers;
     private LocalDateTime createdAt;
@@ -150,4 +153,9 @@ public class GeneralEventDTO {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public List<GeneralEventQuestionDTO> getRegistrationQuestions() { return registrationQuestions; }
+    public void setRegistrationQuestions(List<GeneralEventQuestionDTO> registrationQuestions) {
+        this.registrationQuestions = registrationQuestions != null ? registrationQuestions : new ArrayList<>();
+    }
 }

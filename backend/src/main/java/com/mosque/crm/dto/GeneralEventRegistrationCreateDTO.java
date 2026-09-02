@@ -1,6 +1,8 @@
 package com.mosque.crm.dto;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -30,6 +32,9 @@ public class GeneralEventRegistrationCreateDTO {
     private BigDecimal amountPaid;
 
     private String source = "ADMIN_MANUAL";
+
+    /** Answers to the event's registration questions (optional). */
+    private List<GeneralEventQuestionAnswerDTO> answers = new ArrayList<>();
 
     public GeneralEventRegistrationCreateDTO() {
     }
@@ -66,4 +71,9 @@ public class GeneralEventRegistrationCreateDTO {
 
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+
+    public List<GeneralEventQuestionAnswerDTO> getAnswers() { return answers; }
+    public void setAnswers(List<GeneralEventQuestionAnswerDTO> answers) {
+        this.answers = answers != null ? answers : new ArrayList<>();
+    }
 }

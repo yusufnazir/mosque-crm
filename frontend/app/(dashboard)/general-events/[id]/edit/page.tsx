@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import DateInput from '@/components/DateInput';
+import RegistrationQuestionsBuilder from '@/components/RegistrationQuestionsBuilder';
 import { generalEventApi, GeneralEventCreate, GeneralEventType, GeneralEventStatus } from '@/lib/generalEventApi';
 import ToastNotification from '@/components/ToastNotification';
 
@@ -57,6 +58,7 @@ export default function EditGeneralEventPage() {
         visibility: ev.visibility,
         featured: ev.featured,
         requiresCheckIn: ev.requiresCheckIn,
+        registrationQuestions: ev.registrationQuestions ?? [],
       });
       setLoading(false);
     }).catch(() => {
@@ -366,6 +368,13 @@ export default function EditGeneralEventPage() {
             )}
           </div>
         </div>
+
+        {form.generalEventType === 'OTHER' && form.requiresRegistration && (
+          <RegistrationQuestionsBuilder
+            questions={form.registrationQuestions ?? []}
+            onChange={next => set('registrationQuestions', next)}
+          />
+        )}
 
         {/* Ticketing */}
         <div className="bg-white border border-stone-200 rounded-xl p-6">

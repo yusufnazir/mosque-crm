@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mosque.crm.dto.GeneralEventQuestionAnswerDTO;
 import com.mosque.crm.dto.GeneralEventRegistrationDTO;
 import com.mosque.crm.dto.PublicGeneralEventDTO;
 import com.mosque.crm.dto.PublicGeneralEventSelfRegisterDTO;
@@ -43,6 +44,7 @@ public class PublicGeneralEventService {
     private final MembershipRepository membershipRepository;
     private final UserMemberLinkRepository userMemberLinkRepository;
     private final AuthorizationService authorizationService;
+    private final GeneralEventQuestionService questionService;
 
     public PublicGeneralEventService(
             OrganizationRepository organizationRepository,
@@ -51,7 +53,8 @@ public class PublicGeneralEventService {
             PersonRepository personRepository,
             MembershipRepository membershipRepository,
             UserMemberLinkRepository userMemberLinkRepository,
-            AuthorizationService authorizationService) {
+            AuthorizationService authorizationService,
+            GeneralEventQuestionService questionService) {
         this.organizationRepository = organizationRepository;
         this.generalEventRepository = generalEventRepository;
         this.registrationRepository = registrationRepository;
@@ -59,6 +62,7 @@ public class PublicGeneralEventService {
         this.membershipRepository = membershipRepository;
         this.userMemberLinkRepository = userMemberLinkRepository;
         this.authorizationService = authorizationService;
+        this.questionService = questionService;
     }
 
     public PublicGeneralEventDTO getPublicEvent(String orgHandle, Long eventId) {
@@ -116,7 +120,8 @@ public class PublicGeneralEventService {
                 linkedPerson.getPhone(),
                 1,
                 null,
-                rsvp);
+                rsvp,
+                List.of());
     }
 
     private GeneralEventRegistrationDTO registerGuest(GeneralEvent event, Organization org,
@@ -180,7 +185,7 @@ public class PublicGeneralEventService {
         RsvpStatus rsvp = resolveRsvpStatus(event, type);
         String phoneToStore = phone != null ? phone : (matched != null ? matched.getPhone() : null);
         return saveRegistration(event, org, type, matched, name, email, phoneToStore, partySize,
-                specialRequests, rsvp);
+                specialRequests, rsvp, dto.getAnswers());
     }
 
     private GeneralEventRegistrationDTO saveRegistration(
@@ -193,7 +198,8 @@ public class PublicGeneralEventService {
             String phone,
             int partySize,
             String specialRequests,
-            RsvpStatus rsvpStatus) {
+            RsvpStatus rsvpStatus,
+            List<GeneralEventQuestionAnswerDTO> answers) {
 
         GeneralEventRegistration reg = new GeneralEventRegistration();
         reg.setGeneralEvent(event);
@@ -211,6 +217,7 @@ public class PublicGeneralEventService {
         reg.setOrganizationId(org.getId());
 
         reg = registrationRepository.save(reg);
+        questionService.saveAnswers(event, reg, answers);
         log.info("Public self-registration id={} eventId={} type={} source=SELF",
                 reg.getId(), event.getId(), type);
         return toRegistrationDTO(reg);
@@ -235,6 +242,7 @@ public class PublicGeneralEventService {
         dto.setSource(reg.getSource());
         dto.setCreatedAt(reg.getCreatedAt());
         dto.setUpdatedAt(reg.getUpdatedAt());
+        dto.setAnswers(questionService.toAnswerDTOs(reg));
         return dto;
     }
 
@@ -337,6 +345,7 @@ public class PublicGeneralEventService {
         dto.setOrganizationHandle(org.getHandle());
         dto.setRegistrationOpen(event.isRequiresRegistration() && isRegistrationWindowOpen(event));
         dto.setSpotsRemaining(computeSpotsRemaining(event));
+        dto.setRegistrationQuestions(questionService.toQuestionDTOs(event.getQuestions()));
 
         Person linked = resolveLinkedPersonForOrg(org.getId());
         if (linked != null) {

@@ -37,6 +37,7 @@ import com.mosque.crm.dto.GeneralEventVolunteerDTO;
 import com.mosque.crm.entity.GeneralEventDocument;
 import com.mosque.crm.service.GeneralEventAttendanceService;
 import com.mosque.crm.service.GeneralEventDocumentService;
+import com.mosque.crm.service.GeneralEventQuestionService;
 import com.mosque.crm.service.GeneralEventService;
 import com.mosque.crm.service.GeneralEventSessionService;
 import com.mosque.crm.service.FederationPublicEventService;
@@ -55,6 +56,7 @@ public class GeneralEventController {
     private final GeneralEventSessionService sessionService;
     private final GeneralEventAttendanceService attendanceService;
     private final GeneralEventDocumentService documentService;
+    private final GeneralEventQuestionService questionService;
     private final StorageService storageService;
 
     public GeneralEventController(GeneralEventService generalEventService,
@@ -62,12 +64,14 @@ public class GeneralEventController {
             GeneralEventSessionService sessionService,
             GeneralEventAttendanceService attendanceService,
             GeneralEventDocumentService documentService,
+            GeneralEventQuestionService questionService,
             StorageService storageService) {
         this.generalEventService = generalEventService;
         this.federationPublicEventService = federationPublicEventService;
         this.sessionService = sessionService;
         this.attendanceService = attendanceService;
         this.documentService = documentService;
+        this.questionService = questionService;
         this.storageService = storageService;
     }
 
@@ -160,6 +164,15 @@ public class GeneralEventController {
         try {
             GeneralEventReportDTO result = generalEventService.getReport(id);
             return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{id}/registration-questions/summary")
+    public ResponseEntity<?> getRegistrationQuestionSummary(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(questionService.getSummary(id));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

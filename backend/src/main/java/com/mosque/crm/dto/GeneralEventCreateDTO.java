@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -68,6 +70,9 @@ public class GeneralEventCreateDTO {
     private boolean featured = false;
 
     private boolean requiresCheckIn = false;
+
+    /** Optional configurable registration questions (e.g. transport choice). */
+    private List<GeneralEventQuestionDTO> registrationQuestions = new ArrayList<>();
 
     public GeneralEventCreateDTO() {
     }
@@ -159,4 +164,9 @@ public class GeneralEventCreateDTO {
 
     public boolean isRequiresCheckIn() { return requiresCheckIn; }
     public void setRequiresCheckIn(boolean requiresCheckIn) { this.requiresCheckIn = requiresCheckIn; }
+
+    public List<GeneralEventQuestionDTO> getRegistrationQuestions() { return registrationQuestions; }
+    public void setRegistrationQuestions(List<GeneralEventQuestionDTO> registrationQuestions) {
+        this.registrationQuestions = registrationQuestions != null ? registrationQuestions : new ArrayList<>();
+    }
 }

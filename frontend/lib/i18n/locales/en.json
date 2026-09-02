@@ -1809,6 +1809,28 @@
       "reassess_all": "Reassess membership",
       "reassessing": "Reassessing..."
     },
+    "questions": {
+      "title": "Registration Questions",
+      "hint": "Optional questions registrants answer on the registration form (e.g. 'How will you travel?').",
+      "add_question": "Add Question",
+      "empty_hint": "No questions yet. Add optional questions attendees answer when they register.",
+      "label": "Question",
+      "label_placeholder": "e.g. How will you travel?",
+      "type": "Answer Type",
+      "type_SINGLE_CHOICE": "Single choice",
+      "type_MULTI_CHOICE": "Multiple choice",
+      "type_FREE_TEXT": "Free text",
+      "required": "Required",
+      "options": "Options",
+      "option_placeholder": "Option {{n}}",
+      "add_option": "Add option",
+      "answer_heading": "Registration questions",
+      "answer_placeholder": "Your answer",
+      "tally_title": "Answers Summary",
+      "answered_count": "{{count}} answered",
+      "free_text_tally_hint": "Free-text answers appear in the registration list and exports.",
+      "export_column": "Answers"
+    },
     "volunteers": {
       "title": "Volunteers",
       "add": "Add Volunteer",
@@ -1888,6 +1910,7 @@
       "document_uploaded": "Document uploaded",
       "document_deleted": "Document deleted",
       "error": "An error occurred. Please try again.",
+      "required_questions": "Please answer the required questions: {{questions}}",
       "link_copied": "Registration link copied"
     },
     "public_link": {
@@ -1926,7 +1949,8 @@
       "error_name": "Name is required.",
       "error_first_name": "First name is required.",
       "error_last_name": "Last name is required.",
-      "error_email": "Email is required."
+      "error_email": "Email is required.",
+      "error_required_questions": "Please answer the required questions: {{questions}}"
     },
     "documents": {
       "title": "Documents",

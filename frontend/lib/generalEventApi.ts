@@ -37,6 +37,8 @@ export const generalEventApi = {
   updateEventStatus: (id: number, status: string): Promise<GeneralEvent> => ApiClient.put(`/general-events/${id}/status`, { status }),
   deleteEvent: (id: number): Promise<void> => ApiClient.delete(`/general-events/${id}`),
   getReport: (id: number): Promise<GeneralEventReport> => ApiClient.get(`/general-events/${id}/report`),
+  getRegistrationQuestionSummary: (eventId: number): Promise<GeneralEventQuestionSummary[]> =>
+    ApiClient.get(`/general-events/${eventId}/registration-questions/summary`),
 
   // Registrations
   listRegistrations: (eventId: number): Promise<GeneralEventRegistration[]> => ApiClient.get(`/general-events/${eventId}/registrations`),
@@ -162,6 +164,7 @@ export interface GeneralEvent {
   checkInCode: string | null;
   totalRegistrations: number;
   totalVolunteers: number;
+  registrationQuestions: GeneralEventQuestion[];
   createdAt: string;
   updatedAt: string;
 }
@@ -202,6 +205,8 @@ export interface GeneralEventCreate {
   visibility?: string;
   featured?: boolean;
   requiresCheckIn?: boolean;
+  /** Optional configurable registration questions (only shown in UI for OTHER events). */
+  registrationQuestions?: GeneralEventQuestion[];
 }
 
 export interface GeneralEventRegistration {
@@ -222,6 +227,7 @@ export interface GeneralEventRegistration {
   source: string | null;
   createdAt: string;
   updatedAt: string;
+  answers: GeneralEventRegistrationAnswer[];
 }
 
 export interface GeneralEventRegistrationCreate {
@@ -236,6 +242,8 @@ export interface GeneralEventRegistrationCreate {
   specialRequests?: string;
   amountPaid?: number;
   source?: string;
+  /** Answers to the event's registration questions. */
+  answers?: GeneralEventQuestionAnswer[];
 }
 
 export interface GeneralEventVolunteer {
@@ -377,6 +385,7 @@ export interface PublicGeneralEvent {
   optInDisplayName: string | null;
   optInEmail: string | null;
   spotsRemaining: number | null;
+  registrationQuestions: GeneralEventQuestion[];
 }
 
 export interface PublicGeneralEventSelfRegister {
@@ -388,4 +397,54 @@ export interface PublicGeneralEventSelfRegister {
   phoneNumber?: string;
   partySize?: number;
   specialRequests?: string;
+  /** Answers to the event's registration questions. */
+  answers?: GeneralEventQuestionAnswer[];
+}
+
+export type GeneralEventQuestionType = 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'FREE_TEXT';
+
+export interface GeneralEventQuestionOption {
+  id?: number;
+  label: string;
+  sortOrder?: number;
+}
+
+export interface GeneralEventQuestion {
+  id?: number;
+  label: string;
+  inputType: GeneralEventQuestionType;
+  required: boolean;
+  sortOrder?: number;
+  options: GeneralEventQuestionOption[];
+}
+
+/** Payload: an answer submitted when registering. */
+export interface GeneralEventQuestionAnswer {
+  questionId: number;
+  optionIds?: number[];
+  freeText?: string;
+}
+
+/** Read-model: a registration's answers to one question (chosen labels / text). */
+export interface GeneralEventRegistrationAnswer {
+  questionId: number;
+  questionLabel: string;
+  inputType: GeneralEventQuestionType;
+  optionIds: number[];
+  freeText: string | null;
+  values: string[];
+}
+
+export interface GeneralEventQuestionTotal {
+  optionId: number;
+  optionLabel: string;
+  count: number;
+}
+
+export interface GeneralEventQuestionSummary {
+  questionId: number;
+  questionLabel: string;
+  inputType: GeneralEventQuestionType;
+  answeredCount: number;
+  totals: GeneralEventQuestionTotal[];
 }

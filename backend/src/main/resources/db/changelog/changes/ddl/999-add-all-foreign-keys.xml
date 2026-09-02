@@ -862,6 +862,62 @@
 
     </changeSet>
 
+    <changeSet id="b1000099-9990-0000-0000-000000000006-2" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_general_event_questions"/>
+        </preConditions>
+        <comment>Foreign keys and indexes for org_general_event_questions, org_general_event_question_options, org_general_event_registration_answers</comment>
+
+        <!-- org_general_event_questions → org_general_events, organizations -->
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_questions" baseColumnNames="general_event_id"
+            referencedTableName="org_general_events" referencedColumnNames="id"
+            constraintName="fk_genevtquestion_event"/>
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_questions" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            constraintName="fk_genevtquestion_org"/>
+
+        <!-- org_general_event_question_options → org_general_event_questions, organizations -->
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_question_options" baseColumnNames="question_id"
+            referencedTableName="org_general_event_questions" referencedColumnNames="id"
+            constraintName="fk_genevtqoption_question"/>
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_question_options" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            constraintName="fk_genevtqoption_org"/>
+
+        <!-- org_general_event_registration_answers → registrations, questions, options, organizations -->
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_registration_answers" baseColumnNames="registration_id"
+            referencedTableName="org_general_event_registrations" referencedColumnNames="id"
+            constraintName="fk_genevtanswer_registration"/>
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_registration_answers" baseColumnNames="question_id"
+            referencedTableName="org_general_event_questions" referencedColumnNames="id"
+            constraintName="fk_genevtanswer_question"/>
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_registration_answers" baseColumnNames="option_id"
+            referencedTableName="org_general_event_question_options" referencedColumnNames="id"
+            constraintName="fk_genevtanswer_option"/>
+        <addForeignKeyConstraint
+            baseTableName="org_general_event_registration_answers" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            constraintName="fk_genevtanswer_org"/>
+
+        <!-- indexes -->
+        <createIndex indexName="idx_fk_genevtquestion_event" tableName="org_general_event_questions"><column name="general_event_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtquestion_org" tableName="org_general_event_questions"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtqoption_question" tableName="org_general_event_question_options"><column name="question_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtqoption_org" tableName="org_general_event_question_options"><column name="organization_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtanswer_registration" tableName="org_general_event_registration_answers"><column name="registration_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtanswer_question" tableName="org_general_event_registration_answers"><column name="question_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtanswer_option" tableName="org_general_event_registration_answers"><column name="option_id"/></createIndex>
+        <createIndex indexName="idx_fk_genevtanswer_org" tableName="org_general_event_registration_answers"><column name="organization_id"/></createIndex>
+
+    </changeSet>
+
     <changeSet id="b1000099-9990-0000-0000-000000000007-1" author="mosque-crm" runAlways="false">
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="communication_messages"/>

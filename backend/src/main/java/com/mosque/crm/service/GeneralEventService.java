@@ -57,6 +57,7 @@ public class GeneralEventService {
     private final OrganizationSubscriptionService organizationSubscriptionService;
     private final EventResourceAssignmentService eventResourceAssignmentService;
     private final EventFeatureCleanupService eventFeatureCleanupService;
+    private final GeneralEventQuestionService questionService;
 
     public GeneralEventService(
             GeneralEventRepository generalEventRepository,
@@ -67,7 +68,8 @@ public class GeneralEventService {
             MembershipRepository membershipRepository,
             OrganizationSubscriptionService organizationSubscriptionService,
             EventResourceAssignmentService eventResourceAssignmentService,
-            EventFeatureCleanupService eventFeatureCleanupService) {
+            EventFeatureCleanupService eventFeatureCleanupService,
+            GeneralEventQuestionService questionService) {
         this.generalEventRepository = generalEventRepository;
         this.distributionEventRepository = distributionEventRepository;
         this.registrationRepository = registrationRepository;
@@ -77,6 +79,7 @@ public class GeneralEventService {
         this.organizationSubscriptionService = organizationSubscriptionService;
         this.eventResourceAssignmentService = eventResourceAssignmentService;
         this.eventFeatureCleanupService = eventFeatureCleanupService;
+        this.questionService = questionService;
     }
 
     // ========================
@@ -108,6 +111,9 @@ public class GeneralEventService {
             event.setCheckInCode(generateCheckInCode());
         }
         event = generalEventRepository.save(event);
+        if (dto.getRegistrationQuestions() != null) {
+            questionService.replaceQuestionsForEvent(event, dto.getRegistrationQuestions());
+        }
         log.info("Created general event: {} (id={})", event.getName(), event.getId());
         return toEventDTO(event);
     }
@@ -121,6 +127,9 @@ public class GeneralEventService {
             event.setCheckInCode(generateCheckInCode());
         }
         event = generalEventRepository.save(event);
+        if (dto.getRegistrationQuestions() != null) {
+            questionService.replaceQuestionsForEvent(event, dto.getRegistrationQuestions());
+        }
         log.info("Updated general event: {} (id={})", event.getName(), event.getId());
         return toEventDTO(event);
     }
@@ -153,6 +162,7 @@ public class GeneralEventService {
     public void deleteEvent(Long id) {
         GeneralEvent event = generalEventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("General event not found: " + id));
+        questionService.deleteAllAnswersForEvent(id);
         eventFeatureCleanupService.deleteAllForEvent(EventKind.GENERAL, id);
         generalEventRepository.delete(event);
         log.info("Deleted general event id={}", id);
@@ -213,6 +223,7 @@ public class GeneralEventService {
         }
 
         reg = registrationRepository.save(reg);
+        questionService.saveAnswers(event, reg, dto.getAnswers());
         log.info("Added registration {} to general event {}", reg.getId(), event.getId());
         return toRegistrationDTO(reg);
     }
@@ -240,6 +251,7 @@ public class GeneralEventService {
             reg.setPerson(null);
         }
         reg = registrationRepository.save(reg);
+        questionService.saveAnswers(reg.getGeneralEvent(), reg, dto.getAnswers());
         return toRegistrationDTO(reg);
     }
 
@@ -528,6 +540,7 @@ public class GeneralEventService {
         dto.setCheckInCode(event.getCheckInCode());
         dto.setTotalRegistrations(event.getRegistrations().size());
         dto.setTotalVolunteers(event.getVolunteers().size());
+        dto.setRegistrationQuestions(questionService.toQuestionDTOs(event.getQuestions()));
         dto.setCreatedAt(event.getCreatedAt());
         dto.setUpdatedAt(event.getUpdatedAt());
         return dto;
@@ -552,6 +565,7 @@ public class GeneralEventService {
         dto.setSource(reg.getSource());
         dto.setCreatedAt(reg.getCreatedAt());
         dto.setUpdatedAt(reg.getUpdatedAt());
+        dto.setAnswers(questionService.toAnswerDTOs(reg));
         return dto;
     }
 

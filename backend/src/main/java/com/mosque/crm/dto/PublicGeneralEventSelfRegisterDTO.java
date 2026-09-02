@@ -1,5 +1,8 @@
 package com.mosque.crm.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Self-registration payload for a public general event.
  * <p>
@@ -20,6 +23,9 @@ public class PublicGeneralEventSelfRegisterDTO {
     private String phoneNumber;
     private int partySize = 1;
     private String specialRequests;
+
+    /** Answers to the event's registration questions (optional). */
+    private List<GeneralEventQuestionAnswerDTO> answers = new ArrayList<>();
 
     public PublicGeneralEventSelfRegisterDTO() {
     }
@@ -47,4 +53,9 @@ public class PublicGeneralEventSelfRegisterDTO {
 
     public String getSpecialRequests() { return specialRequests; }
     public void setSpecialRequests(String specialRequests) { this.specialRequests = specialRequests; }
+
+    public List<GeneralEventQuestionAnswerDTO> getAnswers() { return answers; }
+    public void setAnswers(List<GeneralEventQuestionAnswerDTO> answers) {
+        this.answers = answers != null ? answers : new ArrayList<>();
+    }
 }
