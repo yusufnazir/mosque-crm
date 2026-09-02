@@ -18,7 +18,7 @@ const inputClass =
 
 /** One empty entry per question, used to seed the answers form. */
 export function createAnswersForQuestions(questions: GeneralEventQuestion[]): GeneralEventQuestionAnswer[] {
-  return questions.map(q => ({ questionId: q.id!, optionIds: [], freeText: '' }));
+  return questions.map(q => ({ questionId: q.id!, optionIds: [], freeText: '', numericValue: undefined }));
 }
 
 /** Convert read-model registration answers back into editable answer entries (admin edit). */
@@ -29,9 +29,14 @@ export function answersFromRegistration(
   return questions.map(q => {
     const found = (regAnswers || []).find(a => a.questionId === q.id);
     if (!found) {
-      return { questionId: q.id!, optionIds: [], freeText: '' };
+      return { questionId: q.id!, optionIds: [], freeText: '', numericValue: undefined };
     }
-    return { questionId: q.id!, optionIds: found.optionIds || [], freeText: found.freeText || '' };
+    return {
+      questionId: q.id!,
+      optionIds: found.optionIds || [],
+      freeText: found.freeText || '',
+      numericValue: found.numericValue ?? undefined,
+    };
   });
 }
 
@@ -50,7 +55,8 @@ export function missingRequiredAnswers(
     const a = answered.get(q.id!);
     const hasOption = (a?.optionIds?.length ?? 0) > 0;
     const hasText = !!a?.freeText && a.freeText.trim().length > 0;
-    if (!hasOption && !hasText) {
+    const hasNumber = a?.numericValue !== undefined && a?.numericValue !== null;
+    if (!hasOption && !hasText && !hasNumber) {
       missing.push(q.label);
     }
   }
@@ -69,7 +75,12 @@ export default function RegistrationQuestionAnswers({
   const { t } = useTranslation();
 
   const current = (q: GeneralEventQuestion): GeneralEventQuestionAnswer =>
-    (answers || []).find(a => a.questionId === q.id) ?? { questionId: q.id!, optionIds: [], freeText: '' };
+    (answers || []).find(a => a.questionId === q.id) ?? {
+      questionId: q.id!,
+      optionIds: [],
+      freeText: '',
+      numericValue: undefined,
+    };
 
   const setAnswer = (q: GeneralEventQuestion, patch: Partial<GeneralEventQuestionAnswer>) => {
     const prev = current(q);
@@ -77,9 +88,13 @@ export default function RegistrationQuestionAnswers({
       questionId: q.id!,
       optionIds: patch.optionIds ?? prev.optionIds ?? [],
       freeText: patch.freeText !== undefined ? patch.freeText : prev.freeText ?? '',
+      numericValue: patch.numericValue !== undefined ? patch.numericValue : prev.numericValue,
     };
     let list = (answers || []).filter(a => a.questionId !== q.id);
-    const hasContent = (nextEntry.optionIds?.length ?? 0) > 0 || (nextEntry.freeText ?? '').trim().length > 0;
+    const hasContent =
+      (nextEntry.optionIds?.length ?? 0) > 0 ||
+      (nextEntry.freeText ?? '').trim().length > 0 ||
+      (nextEntry.numericValue !== undefined && nextEntry.numericValue !== null);
     if (hasContent) {
       list = [...list, nextEntry];
     }
@@ -122,7 +137,21 @@ export default function RegistrationQuestionAnswers({
               />
             )}
 
-            {q.inputType !== 'FREE_TEXT' && (
+            {q.inputType === 'NUMBER' && (
+              <input
+                type="number"
+                step="any"
+                value={value.numericValue === undefined || value.numericValue === null ? '' : String(value.numericValue)}
+                onChange={e => {
+                  const raw = e.target.value.trim();
+                  setAnswer(q, { numericValue: raw === '' ? undefined : Number(raw) });
+                }}
+                placeholder={t('general_events.questions.answer_placeholder')}
+                className={inputClass}
+              />
+            )}
+
+            {(q.inputType === 'SINGLE_CHOICE' || q.inputType === 'MULTI_CHOICE') && (
               <div className="space-y-2">
                 {q.options.map(opt => {
                   const checked = (value.optionIds ?? []).includes(opt.id!);

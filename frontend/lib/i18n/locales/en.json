@@ -1829,6 +1829,9 @@
       "tally_title": "Answers Summary",
       "answered_count": "{{count}} answered",
       "free_text_tally_hint": "Free-text answers appear in the registration list and exports.",
+      "type_NUMBER": "Number",
+      "sum": "Total",
+      "average": "Average",
       "export_column": "Answers"
     },
     "volunteers": {

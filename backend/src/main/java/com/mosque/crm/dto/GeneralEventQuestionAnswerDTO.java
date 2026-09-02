@@ -1,5 +1,6 @@
 package com.mosque.crm.dto;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import java.util.List;
  *   <li>SINGLE_CHOICE → {@code optionIds} contains exactly one id</li>
  *   <li>MULTI_CHOICE → {@code optionIds} contains the selected ids</li>
  *   <li>FREE_TEXT → {@code freeText} holds the answer text</li>
+ *   <li>NUMBER → {@code numericValue} holds the numeric value</li>
  * </ul>
  */
 public class GeneralEventQuestionAnswerDTO {
@@ -16,6 +18,7 @@ public class GeneralEventQuestionAnswerDTO {
     private Long questionId;
     private List<Long> optionIds = new ArrayList<>();
     private String freeText;
+    private BigDecimal numericValue;
 
     public GeneralEventQuestionAnswerDTO() {
     }
@@ -28,4 +31,7 @@ public class GeneralEventQuestionAnswerDTO {
 
     public String getFreeText() { return freeText; }
     public void setFreeText(String freeText) { this.freeText = freeText; }
+
+    public BigDecimal getNumericValue() { return numericValue; }
+    public void setNumericValue(BigDecimal numericValue) { this.numericValue = numericValue; }
 }

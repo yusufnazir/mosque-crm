@@ -401,7 +401,7 @@ export interface PublicGeneralEventSelfRegister {
   answers?: GeneralEventQuestionAnswer[];
 }
 
-export type GeneralEventQuestionType = 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'FREE_TEXT';
+export type GeneralEventQuestionType = 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'FREE_TEXT' | 'NUMBER';
 
 export interface GeneralEventQuestionOption {
   id?: number;
@@ -423,6 +423,7 @@ export interface GeneralEventQuestionAnswer {
   questionId: number;
   optionIds?: number[];
   freeText?: string;
+  numericValue?: number;
 }
 
 /** Read-model: a registration's answers to one question (chosen labels / text). */
@@ -432,6 +433,7 @@ export interface GeneralEventRegistrationAnswer {
   inputType: GeneralEventQuestionType;
   optionIds: number[];
   freeText: string | null;
+  numericValue: number | null;
   values: string[];
 }
 
@@ -446,5 +448,7 @@ export interface GeneralEventQuestionSummary {
   questionLabel: string;
   inputType: GeneralEventQuestionType;
   answeredCount: number;
+  numericSum: number | null;
+  numericAverage: number | null;
   totals: GeneralEventQuestionTotal[];
 }

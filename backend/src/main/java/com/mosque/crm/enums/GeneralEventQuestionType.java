@@ -6,10 +6,12 @@ package com.mosque.crm.enums;
  *   <li>{@code SINGLE_CHOICE} — radio buttons, exactly one option selected</li>
  *   <li>{@code MULTI_CHOICE} — checkboxes, any number of options selected</li>
  *   <li>{@code FREE_TEXT} — a short free-form answer (no options)</li>
+ *   <li>{@code NUMBER} — a numeric value (e.g. party size, quantity)</li>
  * </ul>
  */
 public enum GeneralEventQuestionType {
     SINGLE_CHOICE,
     MULTI_CHOICE,
-    FREE_TEXT
+    FREE_TEXT,
+    NUMBER
 }

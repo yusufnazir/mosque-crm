@@ -1,5 +1,7 @@
 package com.mosque.crm.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -125,8 +127,8 @@ public class GeneralEventQuestionService {
 
     private void syncOptions(GeneralEventQuestion q, GeneralEventQuestionType type,
             List<GeneralEventQuestionOptionDTO> optionDtos) {
-        // Free-text questions never carry options
-        if (type == GeneralEventQuestionType.FREE_TEXT) {
+        // Free-text and numeric questions never carry options
+        if (type == GeneralEventQuestionType.FREE_TEXT || type == GeneralEventQuestionType.NUMBER) {
             q.getOptions().clear();
             return;
         }
@@ -219,7 +221,17 @@ public class GeneralEventQuestionService {
                                 "A required question was not answered: " + q.getLabel());
                     }
                     if (text != null) {
-                        newAnswers.add(buildAnswer(reg, q, null, text));
+                        newAnswers.add(buildAnswer(reg, q, null, text, null));
+                    }
+                }
+                case NUMBER -> {
+                    BigDecimal value = answer != null ? answer.getNumericValue() : null;
+                    if (q.isRequired() && value == null) {
+                        throw new IllegalArgumentException(
+                                "A required question was not answered: " + q.getLabel());
+                    }
+                    if (value != null) {
+                        newAnswers.add(buildAnswer(reg, q, null, null, value));
                     }
                 }
                 case SINGLE_CHOICE -> {
@@ -233,7 +245,7 @@ public class GeneralEventQuestionService {
                                 "A required question was not answered: " + q.getLabel());
                     }
                     if (!ids.isEmpty()) {
-                        newAnswers.add(buildAnswer(reg, q, resolveOption(q, ids.get(0)), null));
+                        newAnswers.add(buildAnswer(reg, q, resolveOption(q, ids.get(0)), null, null));
                     }
                 }
                 case MULTI_CHOICE -> {
@@ -243,7 +255,7 @@ public class GeneralEventQuestionService {
                                 "A required question was not answered: " + q.getLabel());
                     }
                     for (Long optionId : ids) {
-                        newAnswers.add(buildAnswer(reg, q, resolveOption(q, optionId), null));
+                        newAnswers.add(buildAnswer(reg, q, resolveOption(q, optionId), null, null));
                     }
                 }
             }
@@ -255,12 +267,13 @@ public class GeneralEventQuestionService {
     }
 
     private GeneralEventRegistrationAnswer buildAnswer(GeneralEventRegistration reg,
-            GeneralEventQuestion q, GeneralEventQuestionOption option, String freeText) {
+            GeneralEventQuestion q, GeneralEventQuestionOption option, String freeText, BigDecimal numericValue) {
         GeneralEventRegistrationAnswer a = new GeneralEventRegistrationAnswer();
         a.setRegistration(reg);
         a.setQuestion(q);
         a.setOption(option);
         a.setFreeText(freeText);
+        a.setNumericValue(numericValue);
         a.setOrganizationId(reg.getOrganizationId());
         return a;
     }
@@ -346,6 +359,9 @@ public class GeneralEventQuestionService {
             } else if (trimToNull(a.getFreeText()) != null) {
                 dto.setFreeText(a.getFreeText());
                 dto.getValues().add(a.getFreeText());
+            } else if (a.getNumericValue() != null) {
+                dto.setNumericValue(a.getNumericValue());
+                dto.getValues().add(a.getNumericValue().stripTrailingZeros().toPlainString());
             }
         }
         List<GeneralEventRegistrationAnswerDTO> out = new ArrayList<>(byQuestion.values());
@@ -372,13 +388,24 @@ public class GeneralEventQuestionService {
             List<GeneralEventRegistrationAnswer> answers = answerRepository.findByQuestionId(q.getId());
             Map<Long, Long> byOption = new HashMap<>();
             Set<Long> answeredRegistrations = new HashSet<>();
+            BigDecimal numericSum = BigDecimal.ZERO;
+            long numericCount = 0;
             for (GeneralEventRegistrationAnswer a : answers) {
                 if (a.getOption() != null) {
                     byOption.merge(a.getOption().getId(), 1L, Long::sum);
                     answeredRegistrations.add(a.getRegistration() != null ? a.getRegistration().getId() : -1L);
                 } else if (trimToNull(a.getFreeText()) != null) {
                     answeredRegistrations.add(a.getRegistration() != null ? a.getRegistration().getId() : -1L);
+                } else if (a.getNumericValue() != null) {
+                    numericSum = numericSum.add(a.getNumericValue());
+                    numericCount++;
+                    answeredRegistrations.add(a.getRegistration() != null ? a.getRegistration().getId() : -1L);
                 }
+            }
+
+            if (q.getInputType() == GeneralEventQuestionType.NUMBER && numericCount > 0) {
+                summary.setNumericSum(numericSum);
+                summary.setNumericAverage(numericSum.divide(BigDecimal.valueOf(numericCount), 2, RoundingMode.HALF_UP));
             }
 
             List<GeneralEventQuestionTotalDTO> totals = new ArrayList<>();

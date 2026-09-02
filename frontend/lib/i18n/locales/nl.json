@@ -1828,6 +1828,9 @@
       "tally_title": "Antwoordenoverzicht",
       "answered_count": "{{count}} beantwoord",
       "free_text_tally_hint": "Vrije-tekstantwoorden verschijnen in de registratielijst en exports.",
+      "type_NUMBER": "Getal",
+      "sum": "Totaal",
+      "average": "Gemiddelde",
       "export_column": "Antwoorden"
     },
     "volunteers": {

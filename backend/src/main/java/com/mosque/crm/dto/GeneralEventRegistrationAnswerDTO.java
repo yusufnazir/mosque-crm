@@ -1,5 +1,6 @@
 package com.mosque.crm.dto;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +17,9 @@ public class GeneralEventRegistrationAnswerDTO {
     private List<Long> optionIds = new ArrayList<>();
     /** The raw free-text answer (FREE_TEXT questions). */
     private String freeText;
-    /** Chosen option labels or free-text value, for display/export. */
+    /** The numeric answer value (NUMBER questions). */
+    private BigDecimal numericValue;
+    /** Chosen option labels, free-text value or number, for display/export. */
     private List<String> values = new ArrayList<>();
 
     public GeneralEventRegistrationAnswerDTO() {
@@ -36,6 +39,9 @@ public class GeneralEventRegistrationAnswerDTO {
 
     public String getFreeText() { return freeText; }
     public void setFreeText(String freeText) { this.freeText = freeText; }
+
+    public BigDecimal getNumericValue() { return numericValue; }
+    public void setNumericValue(BigDecimal numericValue) { this.numericValue = numericValue; }
 
     public List<String> getValues() { return values; }
     public void setValues(List<String> values) { this.values = values; }

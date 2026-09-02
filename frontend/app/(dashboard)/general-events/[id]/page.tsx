@@ -1312,6 +1312,21 @@ function GeneralEventDetailPageInner() {
                       </div>
                       {s.inputType === 'FREE_TEXT' ? (
                         <p className="text-xs text-stone-400">{t('general_events.questions.free_text_tally_hint')}</p>
+                      ) : s.inputType === 'NUMBER' ? (
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-stone-700">
+                          {s.numericSum != null && (
+                            <span>
+                              <span className="text-xs text-stone-400 font-normal mr-1">{t('general_events.questions.sum')}:</span>
+                              <span className="font-semibold">{String(s.numericSum)}</span>
+                            </span>
+                          )}
+                          {s.numericAverage != null && (
+                            <span>
+                              <span className="text-xs text-stone-400 font-normal mr-1">{t('general_events.questions.average')}:</span>
+                              <span className="font-semibold">{String(s.numericAverage)}</span>
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <div className="space-y-1.5">
                           {s.totals.map(o => (

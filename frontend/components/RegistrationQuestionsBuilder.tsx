@@ -8,7 +8,7 @@ interface RegistrationQuestionsBuilderProps {
   onChange: (questions: GeneralEventQuestion[]) => void;
 }
 
-const QUESTION_TYPES: GeneralEventQuestionType[] = ['SINGLE_CHOICE', 'MULTI_CHOICE', 'FREE_TEXT'];
+const QUESTION_TYPES: GeneralEventQuestionType[] = ['SINGLE_CHOICE', 'MULTI_CHOICE', 'FREE_TEXT', 'NUMBER'];
 
 /**
  * Admin editor for the optional registration questions of a general event.
@@ -139,7 +139,7 @@ export default function RegistrationQuestionsBuilder({ questions, onChange }: Re
               </div>
             </div>
 
-            {q.inputType !== 'FREE_TEXT' && (
+            {(q.inputType === 'SINGLE_CHOICE' || q.inputType === 'MULTI_CHOICE') && (
               <div className="mt-4 pl-1">
                 <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">{t('general_events.questions.options')}</p>
                 <div className="space-y-2">

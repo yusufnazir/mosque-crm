@@ -1,5 +1,6 @@
 package com.mosque.crm.dto;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,10 @@ public class GeneralEventQuestionSummaryDTO {
     private String inputType;
     /** Number of registrations that answered (non-blank). */
     private long answeredCount;
+    /** Sum of numeric answers (NUMBER questions). */
+    private BigDecimal numericSum;
+    /** Average of numeric answers (NUMBER questions). */
+    private BigDecimal numericAverage;
     private List<GeneralEventQuestionTotalDTO> totals = new ArrayList<>();
 
     public GeneralEventQuestionSummaryDTO() {
@@ -27,6 +32,12 @@ public class GeneralEventQuestionSummaryDTO {
 
     public long getAnsweredCount() { return answeredCount; }
     public void setAnsweredCount(long answeredCount) { this.answeredCount = answeredCount; }
+
+    public BigDecimal getNumericSum() { return numericSum; }
+    public void setNumericSum(BigDecimal numericSum) { this.numericSum = numericSum; }
+
+    public BigDecimal getNumericAverage() { return numericAverage; }
+    public void setNumericAverage(BigDecimal numericAverage) { this.numericAverage = numericAverage; }
 
     public List<GeneralEventQuestionTotalDTO> getTotals() { return totals; }
     public void setTotals(List<GeneralEventQuestionTotalDTO> totals) { this.totals = totals; }

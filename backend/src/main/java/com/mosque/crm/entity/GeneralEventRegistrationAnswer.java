@@ -1,5 +1,6 @@
 package com.mosque.crm.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -57,6 +58,10 @@ public class GeneralEventRegistrationAnswer implements OrganizationAware {
     @Column(name = "free_text", length = 1000)
     private String freeText;
 
+    /** Numeric value for {@code NUMBER} questions (e.g. party size). */
+    @Column(name = "numeric_value", precision = 12, scale = 2)
+    private BigDecimal numericValue;
+
     @Column(name = "organization_id")
     private Long organizationId;
 
@@ -85,6 +90,9 @@ public class GeneralEventRegistrationAnswer implements OrganizationAware {
 
     public String getFreeText() { return freeText; }
     public void setFreeText(String freeText) { this.freeText = freeText; }
+
+    public BigDecimal getNumericValue() { return numericValue; }
+    public void setNumericValue(BigDecimal numericValue) { this.numericValue = numericValue; }
 
     @Override
     public Long getOrganizationId() { return organizationId; }
