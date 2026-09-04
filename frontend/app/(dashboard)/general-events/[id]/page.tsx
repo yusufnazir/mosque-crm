@@ -694,6 +694,19 @@ function GeneralEventDetailPageInner() {
     }
   };
 
+  const copyRegistrationLink = async (reg: GeneralEventRegistration) => {
+    if (!reg.editToken) {
+      setToast({ message: t('general_events.toast.error'), type: 'error' });
+      return;
+    }
+    const link = buildTenantUrl(orgHandle, `/registration/${reg.editToken}`);
+    const ok = await copyToClipboard(link);
+    setToast({
+      message: ok ? t('general_events.registrations.link_copied') : t('general_events.toast.error'),
+      type: ok ? 'success' : 'error',
+    });
+  };
+
   // Volunteer CRUD
   const openAddVol = () => {
     setEditVol(null);
@@ -1526,6 +1539,11 @@ function GeneralEventDetailPageInner() {
                       <ActionButton variant="default" onClick={() => handleReassessOne(reg.id)}>
                         {t('general_events.registrations.reassess')}
                       </ActionButton>
+                      {reg.editToken && (
+                        <ActionButton variant="default" onClick={() => copyRegistrationLink(reg)}>
+                          {t('general_events.registrations.copy_link')}
+                        </ActionButton>
+                      )}
                       <ActionButton variant="default" onClick={() => openEditReg(reg)}>{t('common.edit')}</ActionButton>
                       <ActionButton variant="danger" onClick={() => setDeleteRegTarget(reg)}>{t('common.delete')}</ActionButton>
                     </RowActions>
@@ -1568,6 +1586,11 @@ function GeneralEventDetailPageInner() {
                             <button onClick={() => handleReassessOne(reg.id)} className="text-xs text-stone-500 hover:text-stone-700">
                               {t('general_events.registrations.reassess')}
                             </button>
+                            {reg.editToken && (
+                              <button onClick={() => copyRegistrationLink(reg)} className="text-xs text-emerald-700 hover:underline font-medium">
+                                {t('general_events.registrations.copy_link')}
+                              </button>
+                            )}
                             <button onClick={() => openEditReg(reg)} className="text-xs text-stone-500 hover:text-stone-700">{t('common.edit')}</button>
                             <button onClick={() => setDeleteRegTarget(reg)} className="text-xs text-red-500 hover:text-red-700">{t('common.delete')}</button>
                           </div>

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,8 @@ import com.mosque.crm.dto.GeneralEventQuestionAnswerDTO;
 import com.mosque.crm.dto.GeneralEventRegistrationDTO;
 import com.mosque.crm.dto.PublicGeneralEventDTO;
 import com.mosque.crm.dto.PublicGeneralEventSelfRegisterDTO;
+import com.mosque.crm.dto.PublicRegistrationManageDTO;
+import com.mosque.crm.dto.PublicRegistrationUpdateDTO;
 import com.mosque.crm.entity.GeneralEvent;
 import com.mosque.crm.entity.GeneralEventRegistration;
 import com.mosque.crm.entity.Organization;
@@ -94,6 +97,110 @@ public class PublicGeneralEventService {
             }
             return registerGuest(event, org, dto, linkedPerson);
         });
+    }
+
+    // ========================
+    // Manage my registration (per-registration bearer link)
+    // ========================
+
+    public PublicRegistrationManageDTO getRegistrationManage(String token) {
+        return authorizationService.withoutOrganizationFilter(() -> {
+            GeneralEventRegistration reg = loadByToken(token);
+            Organization org = resolveOrganizationFor(reg);
+            return toManageDto(org, reg);
+        });
+    }
+
+    @Transactional
+    public PublicRegistrationManageDTO updateRegistrationManage(String token, PublicRegistrationUpdateDTO dto) {
+        return authorizationService.withoutOrganizationFilter(() -> {
+            GeneralEventRegistration reg = loadByToken(token);
+            GeneralEvent event = reg.getGeneralEvent();
+            if (event == null) {
+                throw new IllegalArgumentException("Registration not found");
+            }
+            if (!canManage(event)) {
+                throw new IllegalArgumentException(
+                        "This registration can no longer be edited because the event is closed");
+            }
+
+            String name = trimToNull(dto.getName());
+            String email = normalizeEmail(dto.getEmail());
+            if (name == null) {
+                throw new IllegalArgumentException("Name is required");
+            }
+            if (email == null) {
+                throw new IllegalArgumentException("Email is required");
+            }
+
+            String currentEmail = normalizeEmail(reg.getEmail());
+            if (!email.equalsIgnoreCase(currentEmail == null ? "" : currentEmail)
+                    && registrationRepository.existsActiveByEventIdAndEmailExcluding(
+                            event.getId(), email, reg.getId())) {
+                throw new IllegalArgumentException("This email is already registered for this event");
+            }
+
+            reg.setName(name);
+            reg.setEmail(email);
+            // Preserve hidden fields rather than wiping them when the event doesn't expose them
+            reg.setPhoneNumber(event.isPublicFormShowPhone()
+                    ? trimToNull(dto.getPhoneNumber())
+                    : reg.getPhoneNumber());
+            reg.setPartySize(event.isPublicFormShowPartySize() && dto.getPartySize() > 0
+                    ? dto.getPartySize()
+                    : reg.getPartySize());
+            reg.setSpecialRequests(event.isPublicFormShowSpecialRequests()
+                    ? trimToNull(dto.getSpecialRequests())
+                    : reg.getSpecialRequests());
+
+            reg = registrationRepository.save(reg);
+            questionService.saveAnswers(event, reg, dto.getAnswers());
+
+            Organization org = resolveOrganizationFor(reg);
+            log.info("Public registration updated via manage link: id={} eventId={}",
+                    reg.getId(), event.getId());
+            return toManageDto(org, reg);
+        });
+    }
+
+    private GeneralEventRegistration loadByToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Registration not found");
+        }
+        return registrationRepository.findByEditToken(token.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
+    }
+
+    private Organization resolveOrganizationFor(GeneralEventRegistration reg) {
+        Long orgId = reg.getOrganizationId();
+        if (orgId == null && reg.getGeneralEvent() != null) {
+            orgId = reg.getGeneralEvent().getOrganizationId();
+        }
+        if (orgId == null) {
+            throw new IllegalArgumentException("Organization not found");
+        }
+        return organizationRepository.findById(orgId)
+                .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
+    }
+
+    private boolean canManage(GeneralEvent event) {
+        return event.getStatus() != GeneralEventStatus.CLOSED
+                && event.getStatus() != GeneralEventStatus.CANCELLED;
+    }
+
+    private PublicRegistrationManageDTO toManageDto(Organization org, GeneralEventRegistration reg) {
+        GeneralEvent event = reg.getGeneralEvent();
+        PublicRegistrationManageDTO dto = new PublicRegistrationManageDTO();
+        dto.setEvent(toPublicDto(org, event));
+        dto.setRegistrationId(reg.getId());
+        dto.setName(reg.getName());
+        dto.setEmail(reg.getEmail());
+        dto.setPhoneNumber(reg.getPhoneNumber());
+        dto.setPartySize(reg.getPartySize());
+        dto.setSpecialRequests(reg.getSpecialRequests());
+        dto.setAnswers(questionService.toAnswerDTOs(reg));
+        dto.setCanEdit(canManage(event));
+        return dto;
     }
 
     private GeneralEventRegistrationDTO registerOptIn(GeneralEvent event, Organization org, Person linkedPerson) {
@@ -215,6 +322,7 @@ public class PublicGeneralEventService {
         reg.setRegisteredAt(LocalDateTime.now());
         reg.setSource(SOURCE_SELF);
         reg.setOrganizationId(org.getId());
+        reg.setEditToken(generateEditToken());
 
         reg = registrationRepository.save(reg);
         questionService.saveAnswers(event, reg, answers);
@@ -240,10 +348,15 @@ public class PublicGeneralEventService {
         dto.setAmountPaid(reg.getAmountPaid());
         dto.setRegisteredAt(reg.getRegisteredAt());
         dto.setSource(reg.getSource());
+        dto.setEditToken(reg.getEditToken());
         dto.setCreatedAt(reg.getCreatedAt());
         dto.setUpdatedAt(reg.getUpdatedAt());
         dto.setAnswers(questionService.toAnswerDTOs(reg));
         return dto;
+    }
+
+    private static String generateEditToken() {
+        return UUID.randomUUID().toString();
     }
 
     private RsvpStatus resolveRsvpStatus(GeneralEvent event, RegistrantType type) {

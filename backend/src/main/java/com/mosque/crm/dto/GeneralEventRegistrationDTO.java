@@ -22,6 +22,8 @@ public class GeneralEventRegistrationDTO {
     private BigDecimal amountPaid;
     private LocalDateTime registeredAt;
     private String source;
+    /** Public bearer token for the per-registration manage link (admin view). */
+    private String editToken;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -75,6 +77,9 @@ public class GeneralEventRegistrationDTO {
 
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+
+    public String getEditToken() { return editToken; }
+    public void setEditToken(String editToken) { this.editToken = editToken; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -63,4 +63,7 @@
     <include file="db/changelog/changes/dml/225-data-business-directory-listing-limits.xml"/>
     <include file="db/changelog/changes/dml/226-update-administrator-password.xml"/>
 
+    <!-- Backfill edit_token so existing general-event registrations have a manage link -->
+    <include file="db/changelog/changes/dml/227-data-general-event-registration-tokens.xml"/>
+
 </databaseChangeLog>

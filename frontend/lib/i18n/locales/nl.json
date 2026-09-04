@@ -1806,7 +1806,9 @@
       "registered_at": "Geregistreerd op",
       "reassess": "Opnieuw beoordelen",
       "reassess_all": "Lidmaatschap opnieuw beoordelen",
-      "reassessing": "Beoordelen..."
+      "reassessing": "Beoordelen...",
+      "copy_link": "Registratielink kopiëren",
+      "link_copied": "Registratielink gekopieerd"
     },
     "questions": {
       "title": "Registratievragen",
@@ -1953,6 +1955,18 @@
       "error_last_name": "Achternaam is verplicht.",
       "error_email": "E-mail is verplicht.",
       "error_required_questions": "Beantwoord de verplichte vragen: {{questions}}"
+    },
+    "manage_registration": {
+      "not_found": "Registratie niet gevonden",
+      "not_found_hint": "Deze link is ongeldig of de registratie bestaat niet meer.",
+      "cannot_edit": "Deze registratie kan niet meer worden bewerkt omdat het evenement is afgesloten.",
+      "closed_error": "Deze registratie kan niet meer worden bewerkt omdat het evenement is afgesloten.",
+      "updated": "Je wijzigingen zijn opgeslagen.",
+      "save_button": "Wijzigingen opslaan",
+      "saving": "Opslaan…",
+      "save_link_hint": "Bewaar deze link — je kunt hem later gebruiken om je registratie te bekijken of te wijzigen.",
+      "copy_button": "Kopiëren",
+      "error_generic": "Je registratie kon niet worden bijgewerkt. Probeer het opnieuw."
     },
     "documents": {
       "title": "Documenten",

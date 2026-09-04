@@ -18,6 +18,7 @@ import {
   GeneralEventQuestionAnswer,
 } from '@/lib/generalEventApi';
 import { parseApiErrorBody } from '@/lib/api';
+import { copyToClipboard } from '@/lib/utils';
 
 function extractOrgHandle(): string {
   if (typeof window === 'undefined') return '';
@@ -55,6 +56,7 @@ export default function EventRegisterPage() {
   const [partySize, setPartySize] = useState(1);
   const [specialRequests, setSpecialRequests] = useState('');
   const [questionAnswers, setQuestionAnswers] = useState<GeneralEventQuestionAnswer[]>([]);
+  const [copiedManageLink, setCopiedManageLink] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -193,7 +195,34 @@ export default function EventRegisterPage() {
               {t('general_events.public_registration.flagged_member')}
             </p>
           )}
-          {event && <p className="text-sm text-stone-500">{event.name}</p>}
+          {event && <p className="text-sm text-stone-500 mb-4">{event.name}</p>}
+          {result.editToken && (
+            <div className="rounded-xl bg-stone-50 border border-stone-200 p-4 text-left">
+              <p className="text-xs text-stone-600 mb-2">{t('general_events.manage_registration.save_link_hint')}</p>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={`${window.location.origin}/registration/${result.editToken}`}
+                  className="flex-1 min-w-0 px-3 py-2 border border-stone-300 rounded-lg bg-white text-stone-700 text-xs select-all"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await copyToClipboard(`${window.location.origin}/registration/${result.editToken}`);
+                    if (ok) {
+                      setCopiedManageLink(true);
+                      setTimeout(() => setCopiedManageLink(false), 2000);
+                    }
+                  }}
+                  className="shrink-0 px-3 py-2 bg-emerald-700 text-white rounded-lg text-xs font-medium hover:bg-emerald-800"
+                >
+                  {copiedManageLink
+                    ? t('general_events.public_link.copied')
+                    : t('general_events.manage_registration.copy_button')}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

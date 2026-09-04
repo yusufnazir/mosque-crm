@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="c1950001-0195-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_general_event_registrations"/>
+            <not><columnExists tableName="org_general_event_registrations" columnName="edit_token"/></not>
+        </preConditions>
+        <comment>Add edit_token column for per-registration manage links</comment>
+        <addColumn tableName="org_general_event_registrations">
+            <column name="edit_token" type="VARCHAR(36)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="c1950002-0195-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_general_event_registrations"/>
+            <columnExists tableName="org_general_event_registrations" columnName="edit_token"/>
+        </preConditions>
+        <comment>Unique index on edit_token (nullable)</comment>
+        <createIndex indexName="uq_genevtreg_edit_token" tableName="org_general_event_registrations" unique="true">
+            <column name="edit_token"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

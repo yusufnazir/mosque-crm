@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="c2270001-0227-0000-0000-000000000001-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="org_general_event_registrations"/>
+            <columnExists tableName="org_general_event_registrations" columnName="edit_token"/>
+        </preConditions>
+        <comment>Backfill edit_token for existing general-event registrations so manage links work for historical data</comment>
+        <sql>UPDATE org_general_event_registrations SET edit_token = UUID() WHERE edit_token IS NULL OR edit_token = ''</sql>
+    </changeSet>
+
+</databaseChangeLog>

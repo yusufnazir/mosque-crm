@@ -90,6 +90,10 @@ public class GeneralEventRegistration implements OrganizationAware {
     @Column(name = "source", nullable = false, length = 30)
     private String source = "ADMIN_MANUAL";
 
+    /** Public bearer token used in the per-registration manage link. */
+    @Column(name = "edit_token", length = 36)
+    private String editToken;
+
     @Column(name = "organization_id")
     private Long organizationId;
 
@@ -151,6 +155,9 @@ public class GeneralEventRegistration implements OrganizationAware {
 
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+
+    public String getEditToken() { return editToken; }
+    public void setEditToken(String editToken) { this.editToken = editToken; }
 
     @Override
     public Long getOrganizationId() { return organizationId; }

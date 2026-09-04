@@ -110,6 +110,10 @@ export const generalEventApi = {
     ApiClient.get(`/general-events/public/${encodeURIComponent(orgHandle)}/${eventId}`),
   selfRegister: (orgHandle: string, eventId: number, data: PublicGeneralEventSelfRegister): Promise<GeneralEventRegistration> =>
     ApiClient.post(`/general-events/public/${encodeURIComponent(orgHandle)}/${eventId}/register`, data),
+  getRegistrationManage: (token: string): Promise<PublicRegistrationManage> =>
+    ApiClient.get(`/general-events/public/registration/${encodeURIComponent(token)}`),
+  updateRegistrationManage: (token: string, data: PublicRegistrationUpdate): Promise<PublicRegistrationManage> =>
+    ApiClient.put(`/general-events/public/registration/${encodeURIComponent(token)}`, data),
 };
 
 // Types
@@ -228,6 +232,8 @@ export interface GeneralEventRegistration {
   createdAt: string;
   updatedAt: string;
   answers: GeneralEventRegistrationAnswer[];
+  /** Public bearer token for the per-registration manage link (admins only). */
+  editToken?: string | null;
 }
 
 export interface GeneralEventRegistrationCreate {
@@ -451,4 +457,26 @@ export interface GeneralEventQuestionSummary {
   numericSum: number | null;
   numericAverage: number | null;
   totals: GeneralEventQuestionTotal[];
+}
+
+/** Data for the public 'manage my registration' page (per-registration bearer link). */
+export interface PublicRegistrationManage {
+  event: PublicGeneralEvent;
+  registrationId: number;
+  name: string;
+  email: string | null;
+  phoneNumber: string | null;
+  partySize: number;
+  specialRequests: string | null;
+  answers: GeneralEventRegistrationAnswer[];
+  canEdit: boolean;
+}
+
+export interface PublicRegistrationUpdate {
+  name: string;
+  email: string;
+  phoneNumber?: string;
+  partySize?: number;
+  specialRequests?: string;
+  answers?: GeneralEventQuestionAnswer[];
 }

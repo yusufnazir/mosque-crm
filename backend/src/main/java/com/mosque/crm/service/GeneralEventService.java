@@ -215,6 +215,9 @@ public class GeneralEventService {
         reg.setAmountPaid(dto.getAmountPaid());
         reg.setRegisteredAt(LocalDateTime.now());
         reg.setSource(dto.getSource() != null ? dto.getSource() : "ADMIN_MANUAL");
+        if (reg.getEditToken() == null) {
+            reg.setEditToken(UUID.randomUUID().toString());
+        }
 
         if (dto.getPersonId() != null) {
             Person person = personRepository.findById(dto.getPersonId())
@@ -563,6 +566,7 @@ public class GeneralEventService {
         dto.setAmountPaid(reg.getAmountPaid());
         dto.setRegisteredAt(reg.getRegisteredAt());
         dto.setSource(reg.getSource());
+        dto.setEditToken(reg.getEditToken());
         dto.setCreatedAt(reg.getCreatedAt());
         dto.setUpdatedAt(reg.getUpdatedAt());
         dto.setAnswers(questionService.toAnswerDTOs(reg));

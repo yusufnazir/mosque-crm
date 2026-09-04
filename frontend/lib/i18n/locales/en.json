@@ -1807,7 +1807,9 @@
       "registered_at": "Registered At",
       "reassess": "Reassess",
       "reassess_all": "Reassess membership",
-      "reassessing": "Reassessing..."
+      "reassessing": "Reassessing...",
+      "copy_link": "Copy registration link",
+      "link_copied": "Registration link copied"
     },
     "questions": {
       "title": "Registration Questions",
@@ -1954,6 +1956,18 @@
       "error_last_name": "Last name is required.",
       "error_email": "Email is required.",
       "error_required_questions": "Please answer the required questions: {{questions}}"
+    },
+    "manage_registration": {
+      "not_found": "Registration not found",
+      "not_found_hint": "This link is invalid or the registration no longer exists.",
+      "cannot_edit": "This registration can no longer be edited because the event is closed.",
+      "closed_error": "This registration can no longer be edited because the event is closed.",
+      "updated": "Your changes have been saved.",
+      "save_button": "Save changes",
+      "saving": "Saving…",
+      "save_link_hint": "Save this link — you can use it later to view or change your registration.",
+      "copy_button": "Copy",
+      "error_generic": "Could not update your registration. Please try again."
     },
     "documents": {
       "title": "Documents",
