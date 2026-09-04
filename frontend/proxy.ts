@@ -13,7 +13,7 @@ import { resolveBaseDomain } from '@/lib/auth/base-domain';
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN;
 const SUPERADMIN_SUBDOMAIN = process.env.NEXT_PUBLIC_SUPERADMIN_SUBDOMAIN || 'admin';
 const RESERVED_SUBDOMAINS = new Set(['www', 'login', 'auth', 'app', 'api', 'mail']);
-const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/register-member', '/complete-registration', '/directory', '/event-register'];
+const PUBLIC_PATHS = ['/login', '/register', '/registration', '/forgot-password', '/reset-password', '/register-member', '/complete-registration', '/directory', '/event-register'];
 
 function getEffectiveBaseDomain(request: NextRequest): string | null {
   const hostHeader = request.headers.get('host') || request.nextUrl.hostname;
