@@ -58,6 +58,8 @@ public class SecurityConfig {
                 // Public general-event details and self-registration (optional JWT for member opt-in)
                 .requestMatchers(HttpMethod.GET, "/general-events/public/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/general-events/public/**").permitAll()
+                // Per-registration manage link (edit contact + answers without login)
+                .requestMatchers(HttpMethod.PUT, "/general-events/public/**").permitAll()
                 // Public country reference list for registration form
                 .requestMatchers("/countries/**").permitAll()
                 // Public business category vocabulary for directory forms/filters
