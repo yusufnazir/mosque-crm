@@ -1142,6 +1142,7 @@
     "notes": "Opmerkingen",
     "export_pdf": "Exporteren naar PDF",
     "export_excel": "Exporteren naar Excel",
+    "export_csv": "Exporteren naar CSV",
     "pdf_generated": "PDF-rapport",
     "all_payments": "Alle betalingen"
   },
@@ -1833,7 +1834,10 @@
       "type_NUMBER": "Getal",
       "sum": "Totaal",
       "average": "Gemiddelde",
-      "export_column": "Antwoorden"
+      "answer_column": "Antwoord",
+      "count_column": "Aantal",
+      "answered_column": "Beantwoord",
+      "share_column": "Aandeel"
     },
     "volunteers": {
       "title": "Vrijwilligers",
@@ -1895,7 +1899,12 @@
       "attendance_sheet": "Aanwezigheid",
       "attendance_empty": "Nog geen aanwezigheidsrecords. Voeg sessies toe en markeer aanwezigheid om ze hier te zien.",
       "walk_in": "Walk-in",
-      "registered": "Geregistreerd"
+      "registered": "Geregistreerd",
+      "questions_title": "Registratievragen",
+      "questions_count": "{{count}} vraag/vragen",
+      "questions_empty": "Dit evenement heeft geen registratievragen. Voeg ze toe op het bewerkscherm van het evenement om antwoorden te verzamelen.",
+      "no_answers": "Nog geen antwoorden",
+      "more_answers": "+{{count}} meer antwoord(en) — zie de CSV-export voor de volledige lijst"
     },
     "toast": {
       "created": "Evenement succesvol aangemaakt",

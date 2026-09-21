@@ -31,6 +31,9 @@ The feature is **optional**: an event with no questions behaves exactly as today
 - Questions rendered on the **public self-registration** form
 - Questions rendered in the **admin add/edit registration** modal
 - Answers visible in the **registrations list**, **Excel/PDF export**, and a per-question **tally**
+- Event **report tab** prints the questions and their answers (per-option counts with share, free-text /
+  numeric answers) and exports them as **CSV** — both the per-registration matrix (one column per
+  question) and the per-question tally
 - Backend model is generic (not OTHER-only) so the UI can be widened later without schema change
 
 ### Out of scope (v1)
@@ -159,9 +162,32 @@ No `031-data-role-permissions.xml` change required.
   when `generalEventType === 'OTHER'`
 - `app/(dashboard)/general-events/[id]/edit/page.tsx` — same builder prefilled from the event
 - `app/(dashboard)/general-events/[id]/page.tsx` — admin add/edit registration modal renders
-  questions; registrations table shows answers; tally card; Excel/PDF export includes answers
+  questions; registrations table shows answers; tally card; Excel/PDF export includes answers;
+  report tab prints the questions report and offers CSV exports
+- `lib/reportExport.ts` — `downloadCsv` / `buildCsv` / `escapeCsvField` (RFC 4180 escaping, UTF-8 BOM,
+  `,` delimiter; `;` for the nl locale so Excel splits the columns)
+- `lib/generalEventReport.ts` — `buildAnswerReportRows` (the answers CSV body), `collectAnswerOccurrences`
+  and `answerShare`; pure functions so the export shape stays unit-testable
 - `app/(auth)/event-register/[id]/page.tsx` — public form renders questions + submits answers
 - `lib/i18n/locales/en.json` + `lib/i18n/locales/nl.json` — new keys (both locales)
+
+### Report tab (organizers)
+
+Alongside the registration KPI tiles and the "All registrations" table, the report tab has a
+**Registration questions** card:
+
+- One block per question: label, answer type, answered count
+- SINGLE/MULTI choice → one bar row per option with count and share of answered
+- NUMBER → total and average
+- FREE_TEXT → distinct answers with how often each was given (up to 20 rows inline)
+- Questions that a later edit removed from the event are still printed while answers exist
+- **Export CSV** writes one row per registrant answer, so the file shows who answered what:
+  `name, email, phone, registrant type, party size, question, answer type, answer, count, answered, share`
+  (`MULTI_CHOICE` → one row per chosen option; `NUMBER` also gets a trailing total/average row)
+
+The registrations report exports both a **CSV** (new) and Excel/PDF. All three now carry
+**one column per question** (header = question label) instead of a single merged "Answers" column,
+so each answer is printed in its own column.
 
 ### Questions builder (admin, OTHER only)
 - "Optional registration questions" panel with "Add question"
@@ -187,6 +213,11 @@ Add keys (en + nl) under a new `general_events.questions` section:
 `title`, `add_question`, `label`, `type`, `single_choice`, `multi_choice`, `free_text`,
 `required`, `add_option`, `remove`, `empty_hint`, `answer` plus UI strings on the public
 register form and registration table/export columns.
+
+Report-specific keys: `general_events.report.questions_title` / `questions_count` /
+`questions_empty` / `no_answers` / `more_answers` (card copy) and
+`general_events.questions.answer_column` / `count_column` / `answered_column` / `share_column`
+(CSV headers), plus `reports.export_csv`.
 
 ## Migration/Changelog summary
 - New Liquibase DDL file registered in `ddl/db.changelog-ddl.xml` (after `192-...`)

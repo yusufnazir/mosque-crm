@@ -1143,6 +1143,7 @@
     "notes": "Notes",
     "export_pdf": "Export PDF",
     "export_excel": "Export Excel",
+    "export_csv": "Export CSV",
     "pdf_generated": "PDF Report",
     "all_payments": "All Payments"
   },
@@ -1834,7 +1835,10 @@
       "type_NUMBER": "Number",
       "sum": "Total",
       "average": "Average",
-      "export_column": "Answers"
+      "answer_column": "Answer",
+      "count_column": "Count",
+      "answered_column": "Answered",
+      "share_column": "Share"
     },
     "volunteers": {
       "title": "Volunteers",
@@ -1896,7 +1900,12 @@
       "attendance_sheet": "Attendance",
       "attendance_empty": "No attendance records yet. Add sessions and mark attendance to see them here.",
       "walk_in": "Walk-in",
-      "registered": "Registered"
+      "registered": "Registered",
+      "questions_title": "Registration questions",
+      "questions_count": "{{count}} question(s)",
+      "questions_empty": "This event has no registration questions. Add them on the event edit screen to collect answers.",
+      "no_answers": "No answers yet",
+      "more_answers": "+{{count}} more answer(s) — see the CSV export for the full list"
     },
     "toast": {
       "created": "Event created successfully",

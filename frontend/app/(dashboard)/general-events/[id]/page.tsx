@@ -38,6 +38,9 @@ import RegistrationQuestionAnswers, {
 import { buildTenantUrl } from '@/lib/auth/AuthContext';
 import { organizationApi } from '@/lib/organizationApi';
 import { copyToClipboard } from '@/lib/utils';
+import { downloadCsv } from '@/lib/reportExport';
+import { answerShare, buildAnswerReportRows, collectAnswerOccurrences } from '@/lib/generalEventReport';
+import type { EventReportQuestion } from '@/lib/generalEventReport';
 import EventResourcesTab from '@/components/events/EventResourcesTab';
 import EventMemberGroupsTab from '@/components/events/EventMemberGroupsTab';
 import ScrollableTabs from '@/components/ScrollableTabs';
@@ -68,6 +71,10 @@ const VALID_TABS: readonly Tab[] = [
 function parseTab(value: string | null): Tab {
   return VALID_TABS.includes(value as Tab) ? (value as Tab) : 'overview';
 }
+
+/** Free-text / numeric answers listed inline in the report before deferring to the CSV. */
+const MAX_REPORT_ANSWERS = 20;
+
 const STATUS_COLORS: Record<GeneralEventStatus, string> = {
   DRAFT: 'bg-stone-100 text-stone-700',
   PUBLISHED: 'bg-blue-100 text-blue-700',
@@ -118,7 +125,7 @@ export default function GeneralEventDetailPage() {
 }
 
 function GeneralEventDetailPageInner() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { formatDate } = useDateFormat();
   const params = useParams();
   const router = useRouter();
@@ -269,6 +276,35 @@ function GeneralEventDetailPageInner() {
   const slugify = (value: string) =>
     value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'event';
 
+  /** Excel splits CSV columns on the OS list separator; nl uses a comma as decimal sign. */
+  const csvDelimiter = () => (language === 'nl' ? ';' : ',');
+
+  /**
+   * Question columns for the registration exports: the event's current questions in their
+   * configured order, followed by any question that only survives on registrations
+   * (e.g. removed from the event after answers were collected).
+   */
+  const registrationQuestionColumns = () => {
+    const columns: { id: number; label: string }[] = (event?.registrationQuestions ?? [])
+      .filter(q => q.id != null)
+      .map(q => ({ id: q.id as number, label: q.label }));
+    const seen = new Set(columns.map(c => c.id));
+    for (const reg of registrations) {
+      for (const a of reg.answers ?? []) {
+        if (!seen.has(a.questionId)) {
+          seen.add(a.questionId);
+          columns.push({ id: a.questionId, label: a.questionLabel });
+        }
+      }
+    }
+    return columns;
+  };
+
+  const registrationAnswerValue = (reg: GeneralEventRegistration, questionId: number) => {
+    const answer = (reg.answers ?? []).find(a => a.questionId === questionId);
+    return answer ? answer.values.join(', ') : '';
+  };
+
   const registrationExportHeaders = () => [
     t('general_events.registrations.name'),
     t('general_events.registrations.email'),
@@ -278,7 +314,7 @@ function GeneralEventDetailPageInner() {
     t('general_events.registrations.check_in_status'),
     t('general_events.registrations.party_size'),
     t('general_events.registrations.special_requests'),
-    t('general_events.questions.export_column'),
+    ...registrationQuestionColumns().map(c => c.label),
     t('general_events.registrations.registered_at'),
     'Source',
   ];
@@ -295,12 +331,136 @@ function GeneralEventDetailPageInner() {
       reg.checkInStatus?.replace(/_/g, ' ') || '',
       String(reg.partySize ?? 1),
       reg.specialRequests || '',
-      (reg.answers && reg.answers.length
-        ? reg.answers.map(a => `${a.questionLabel}: ${a.values.join(', ')}`).join(' | ')
-        : ''),
+      ...registrationQuestionColumns().map(c => registrationAnswerValue(reg, c.id)),
       reg.registeredAt ? formatDate(reg.registeredAt.slice(0, 10)) : '',
       reg.source || '',
     ]);
+
+  /** Localized label for a question's answer type (falls back to the raw enum). */
+  const questionTypeLabel = (inputType: string | null | undefined) => {
+    if (!inputType) return '';
+    const key = `general_events.questions.type_${inputType}`;
+    const label = t(key);
+    return label === key ? inputType : label;
+  };
+
+  /** Distinct answers given to a question, most frequent first (used for free text / numbers). */
+  const answerOccurrences = (questionId: number) =>
+    collectAnswerOccurrences(registrations, questionId);
+
+  const share = answerShare;
+
+  /**
+   * Questions to print in the report: the event's configured questions (with their tally),
+   * plus any question that only survives on registrations (removed from the event later).
+   */
+  const reportQuestions = (): EventReportQuestion[] => {
+    const merged: EventReportQuestion[] = [];
+
+    for (const q of event?.registrationQuestions ?? []) {
+      if (q.id == null) continue;
+      const summary = questionSummaries.find(s => s.questionId === q.id);
+      merged.push({
+        questionId: q.id,
+        label: q.label,
+        inputType: q.inputType,
+        typeLabel: questionTypeLabel(q.inputType),
+        answeredCount: summary?.answeredCount ?? 0,
+        totals:
+          summary?.totals ??
+          (q.options ?? []).map((o, index) => ({
+            optionId: o.id ?? -(index + 1),
+            optionLabel: o.label,
+            count: 0,
+          })),
+        numericSum: summary?.numericSum ?? null,
+        numericAverage: summary?.numericAverage ?? null,
+      });
+    }
+
+    const seen = new Set(merged.map(m => m.questionId));
+    for (const reg of registrations) {
+      for (const a of reg.answers ?? []) {
+        if (seen.has(a.questionId)) continue;
+        seen.add(a.questionId);
+        merged.push({
+          questionId: a.questionId,
+          label: a.questionLabel,
+          inputType: a.inputType,
+          typeLabel: questionTypeLabel(a.inputType),
+          answeredCount: registrations.filter(
+            r => (r.answers ?? []).some(x => x.questionId === a.questionId)
+          ).length,
+          totals: [],
+          numericSum: null,
+          numericAverage: null,
+        });
+      }
+    }
+
+    return merged;
+  };
+
+  const questionReportHeaders = () => [
+    t('general_events.registrations.name'),
+    t('general_events.registrations.email'),
+    t('general_events.registrations.phone'),
+    t('general_events.registrations.registrant_type'),
+    t('general_events.registrations.party_size'),
+    t('general_events.questions.label'),
+    t('general_events.questions.type'),
+    t('general_events.questions.answer_column'),
+    t('general_events.questions.count_column'),
+    t('general_events.questions.answered_column'),
+    t('general_events.questions.share_column'),
+  ];
+
+  /**
+   * Answers CSV: one row per registrant answer — who answered what, how many gave the same
+   * answer and what share of the respondents that is. Logic lives in
+   * {@link buildAnswerReportRows} so it stays unit-testable.
+   */
+  const questionReportRows = () =>
+    buildAnswerReportRows(reportQuestions(), registrations, {
+      member: t('general_events.report.members'),
+      nonMember: t('general_events.report.non_members'),
+      sum: t('general_events.questions.sum'),
+      average: t('general_events.questions.average'),
+    });
+
+  const exportQuestionReportCsv = () => {
+    if (!event) return;
+    setExportingReport('questions-csv');
+    try {
+      downloadCsv(
+        `${slugify(event.name)}-registration-questions.csv`,
+        questionReportHeaders(),
+        questionReportRows(),
+        { delimiter: csvDelimiter() }
+      );
+    } catch {
+      setToast({ message: t('general_events.toast.error'), type: 'error' });
+    } finally {
+      setExportingReport(null);
+    }
+  };
+
+  const exportRegistrationsCsv = () => {
+    if (!event) return;
+    setExportingReport('registrations-csv');
+    try {
+      downloadCsv(
+        `${slugify(event.name)}-registrations.csv`,
+        registrationExportHeaders(),
+        registrationExportRows(),
+        { delimiter: csvDelimiter() }
+      );
+    } catch {
+      setToast({ message: t('general_events.toast.error'), type: 'error' });
+    } finally {
+      setExportingReport(null);
+    }
+  };
 
   const attendanceExportHeaders = () => [
     t('general_events.sessions.name'),
@@ -2372,6 +2532,16 @@ function GeneralEventDetailPageInner() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      onClick={exportRegistrationsCsv}
+                      disabled={registrations.length === 0 || !!exportingReport}
+                      className="px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                    >
+                      {exportingReport === 'registrations-csv'
+                        ? t('reports.exporting')
+                        : t('reports.export_csv')}
+                    </button>
+                    <button
+                      type="button"
                       onClick={exportRegistrationsExcel}
                       disabled={registrations.length === 0 || !!exportingReport}
                       className="px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-50 disabled:opacity-50"
@@ -2438,6 +2608,107 @@ function GeneralEventDetailPageInner() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Registration questions report */}
+              <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-stone-100">
+                  <div>
+                    <h3 className="font-semibold text-stone-800">{t('general_events.report.questions_title')}</h3>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      {t('general_events.report.questions_count', { count: String(reportQuestions().length) })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={exportQuestionReportCsv}
+                      disabled={reportQuestions().length === 0 || !!exportingReport}
+                      className="px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                    >
+                      {exportingReport === 'questions-csv'
+                        ? t('reports.exporting')
+                        : t('reports.export_csv')}
+                    </button>
+                  </div>
+                </div>
+                {reportQuestions().length === 0 ? (
+                  <p className="text-sm text-stone-400 text-center py-8">
+                    {t('general_events.report.questions_empty')}
+                  </p>
+                ) : (
+                  <div className="divide-y divide-stone-100">
+                    {reportQuestions().map(q => {
+                      const maxCount = Math.max(1, ...q.totals.map(o => o.count));
+                      const occurrences = q.totals.length === 0 ? answerOccurrences(q.questionId) : [];
+                      return (
+                        <div key={q.questionId} className="px-4 py-4">
+                          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+                            <p className="text-sm font-medium text-stone-800">{q.label}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">
+                                {questionTypeLabel(q.inputType)}
+                              </span>
+                              <span className="text-xs text-stone-400">
+                                {t('general_events.questions.answered_count', { count: String(q.answeredCount) })}
+                              </span>
+                            </div>
+                          </div>
+                          {q.totals.length > 0 ? (
+                            <div className="space-y-1.5">
+                              {q.totals.map(o => (
+                                <div key={o.optionId} className="flex items-center gap-2">
+                                  <span className="text-xs text-stone-600 w-40 truncate" title={o.optionLabel}>{o.optionLabel}</span>
+                                  <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-emerald-600 rounded-full"
+                                      style={{ width: `${Math.round((o.count / maxCount) * 100)}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs font-semibold text-stone-700 w-8 text-right">{o.count}</span>
+                                  <span className="text-xs text-stone-400 w-10 text-right">{share(o.count, q.answeredCount)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : q.inputType === 'NUMBER' && (q.numericSum != null || q.numericAverage != null) ? (
+                            <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-stone-700">
+                              {q.numericSum != null && (
+                                <span>
+                                  <span className="text-xs text-stone-400 font-normal mr-1">{t('general_events.questions.sum')}:</span>
+                                  <span className="font-semibold">{String(q.numericSum)}</span>
+                                </span>
+                              )}
+                              {q.numericAverage != null && (
+                                <span>
+                                  <span className="text-xs text-stone-400 font-normal mr-1">{t('general_events.questions.average')}:</span>
+                                  <span className="font-semibold">{String(q.numericAverage)}</span>
+                                </span>
+                              )}
+                            </div>
+                          ) : occurrences.length === 0 ? (
+                            <p className="text-xs text-stone-400">{t('general_events.report.no_answers')}</p>
+                          ) : (
+                            <div className="space-y-1">
+                              {occurrences.slice(0, MAX_REPORT_ANSWERS).map(([value, count]) => (
+                                <div key={value} className="flex items-start gap-3 text-sm">
+                                  <span className="text-xs font-semibold text-stone-700 w-8 text-right shrink-0 pt-0.5">{count}×</span>
+                                  <span className="text-stone-600 break-words">{value}</span>
+                                </div>
+                              ))}
+                              {occurrences.length > MAX_REPORT_ANSWERS && (
+                                <p className="text-xs text-stone-400 pt-1">
+                                  {t('general_events.report.more_answers', {
+                                    count: String(occurrences.length - MAX_REPORT_ANSWERS),
+                                  })}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
