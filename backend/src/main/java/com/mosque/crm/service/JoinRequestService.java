@@ -54,6 +54,8 @@ public class JoinRequestService {
     private final EmailService emailService;
     private final ConfigurationService configurationService;
     private final MembershipTermsVersionRepository membershipTermsVersionRepository;
+    private final AccountActivationNotifier accountActivationNotifier;
+    private final MessageLanguageService messageLanguageService;
 
     public JoinRequestService(
             JoinRequestRepository joinRequestRepository,
@@ -66,7 +68,9 @@ public class JoinRequestService {
             PasswordEncoder passwordEncoder,
             EmailService emailService,
             ConfigurationService configurationService,
-            MembershipTermsVersionRepository membershipTermsVersionRepository) {
+            MembershipTermsVersionRepository membershipTermsVersionRepository,
+            AccountActivationNotifier accountActivationNotifier,
+            MessageLanguageService messageLanguageService) {
         this.joinRequestRepository = joinRequestRepository;
         this.organizationRepository = organizationRepository;
         this.personRepository = personRepository;
@@ -78,6 +82,8 @@ public class JoinRequestService {
         this.emailService = emailService;
         this.configurationService = configurationService;
         this.membershipTermsVersionRepository = membershipTermsVersionRepository;
+        this.accountActivationNotifier = accountActivationNotifier;
+        this.messageLanguageService = messageLanguageService;
     }
 
     /**
@@ -88,13 +94,23 @@ public class JoinRequestService {
                 .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + dto.getOrgHandle()));
 
         String normalizedEmail = normalizeEmail(dto.getEmail());
+        String normalizedPhone = normalizePhone(dto.getPhone());
 
-        if (joinRequestRepository.existsByEmailIgnoreCaseAndOrganizationId(normalizedEmail, org.getId())) {
-            throw new IllegalStateException("This email already has a registration request in this organization.");
+        // Either an email address or a phone number is needed — it becomes the login.
+        if (normalizedEmail == null && normalizedPhone == null) {
+            throw new IllegalArgumentException("Please provide either an email address or a phone number.");
         }
 
-        if (userRepository.existsByEmailIgnoreCaseAndOrganizationId(normalizedEmail, org.getId())) {
-            throw new IllegalStateException("This email is already registered in this organization.");
+        if (normalizedEmail != null) {
+            if (joinRequestRepository.existsByEmailIgnoreCaseAndOrganizationId(normalizedEmail, org.getId())) {
+                throw new IllegalStateException("This email already has a registration request in this organization.");
+            }
+
+            if (userRepository.existsByEmailIgnoreCaseAndOrganizationId(normalizedEmail, org.getId())) {
+                throw new IllegalStateException("This email is already registered in this organization.");
+            }
+        } else if (joinRequestRepository.existsByPhoneAndOrganizationId(normalizedPhone, org.getId())) {
+            throw new IllegalStateException("This phone number already has a registration request in this organization.");
         }
 
         Optional<MembershipTermsVersion> activeTerms = membershipTermsVersionRepository
@@ -112,7 +128,7 @@ public class JoinRequestService {
         request.setFirstName(dto.getFirstName());
         request.setLastName(dto.getLastName());
         request.setEmail(normalizedEmail);
-        request.setPhone(dto.getPhone());
+        request.setPhone(normalizedPhone);
         request.setGender(dto.getGender());
         request.setDateOfBirth(dto.getDateOfBirth());
         request.setAddress(dto.getAddress());
@@ -131,12 +147,15 @@ public class JoinRequestService {
 
         JoinRequest saved = joinRequestRepository.save(request);
 
-        // Notify the registrant
-        try {
-            String appName = configurationService.getAppName();
-            emailService.sendJoinRequestReceivedEmail(dto.getEmail(), dto.getFirstName(), org.getName(), appName, "en");
-        } catch (Exception e) {
-            log.warn("Failed to send join request received email: {}", e.getMessage());
+        // Notify the registrant (only possible when an email address was supplied)
+        if (normalizedEmail != null) {
+            try {
+                String appName = configurationService.getAppName();
+                emailService.sendJoinRequestReceivedEmail(normalizedEmail, dto.getFirstName(), org.getName(), appName,
+                        messageLanguageService.organizationLanguage(org.getId()));
+            } catch (Exception e) {
+                log.warn("Failed to send join request received email: {}", e.getMessage());
+            }
         }
 
         // Notify all org admins
@@ -144,6 +163,7 @@ public class JoinRequestService {
             String adminUrl = buildOrgUrl(org.getHandle(), "/member-requests");
             String appName = configurationService.getAppName();
             String requesterName = dto.getFirstName() + " " + dto.getLastName();
+            String requesterContact = normalizedEmail != null ? normalizedEmail : normalizedPhone;
             List<User> admins = userRepository.findAdminUsersWithEmail(org.getId());
             if (admins.isEmpty()) {
                 log.warn("No admin recipients with email found for organization {}. Join request id={}", org.getId(), saved.getId());
@@ -151,8 +171,9 @@ public class JoinRequestService {
             for (User admin : admins) {
                 try {
                     emailService.sendJoinRequestAdminNotification(
-                            admin.getEmail(), requesterName, dto.getEmail(),
-                            org.getName(), appName, adminUrl, "en");
+                            admin.getEmail(), requesterName, requesterContact,
+                            org.getName(), appName, adminUrl,
+                            messageLanguageService.resolve(admin.getId(), org.getId()));
                 } catch (Exception e) {
                     log.warn("Failed to send admin notification to {}: {}", admin.getEmail(), e.getMessage());
                 }
@@ -164,15 +185,53 @@ public class JoinRequestService {
         return toDTO(saved);
     }
 
+    /**
+     * Normalizes an email address. Returns {@code null} when no email was supplied —
+     * applicants may register with only a phone number.
+     */
     private String normalizeEmail(String email) {
         if (email == null) {
-            throw new IllegalArgumentException("Email is required.");
+            return null;
         }
         String normalized = email.trim().toLowerCase(Locale.ROOT);
-        if (normalized.isEmpty()) {
-            throw new IllegalArgumentException("Email is required.");
+        return normalized.isEmpty() ? null : normalized;
+    }
+
+    /**
+     * Normalizes a phone number. Values sent by the registration form are already in
+     * E.164 format ({@code +31612345678}); anything else is kept as typed so the admin
+     * can still see what the applicant entered.
+     */
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return null;
         }
-        return normalized;
+        String trimmed = phone.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        if (trimmed.startsWith("+")) {
+            String digits = trimmed.substring(1).replaceAll("[^0-9]", "");
+            return digits.isEmpty() ? null : "+" + digits;
+        }
+        return trimmed;
+    }
+
+    /**
+     * Login identifier for the member account: the email address when present,
+     * otherwise the phone number.
+     */
+    private String resolveLoginIdentifier(JoinRequest request) {
+        String email = normalizeEmail(request.getEmail());
+        if (email != null) {
+            return email;
+        }
+        String phone = normalizePhone(request.getPhone());
+        if (phone == null) {
+            throw new IllegalStateException(
+                    "This application has no email address or phone number, so a member account cannot be created.");
+        }
+        return phone;
     }
 
     public List<JoinRequestDTO> getAll() {
@@ -230,34 +289,58 @@ public class JoinRequestService {
         Organization org = organizationRepository.findById(request.getOrganizationId())
             .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
 
+        // Login identifier is the email address, or the phone number when no email was given.
+        String loginIdentifier = resolveLoginIdentifier(request);
+
         // Create person + user immediately when approved
         if (request.getPersonId() == null) {
             Person savedPerson = createPersonFromRequest(request, org);
-            User user = createMemberUserFromRequest(request, org);
+            User user = createMemberUserFromRequest(request, org, loginIdentifier);
             createUserMemberLink(org, user, savedPerson);
             request.setPersonId(savedPerson.getId());
         }
 
         joinRequestRepository.save(request);
 
-        User user = userRepository.findByUsername(request.getEmail())
+        User user = userRepository.findByUsername(loginIdentifier)
             .orElseThrow(() -> new IllegalStateException("Approved member user not found"));
         String setupToken = UUID.randomUUID().toString();
         PasswordResetToken resetToken = new PasswordResetToken(user, setupToken,
             LocalDateTime.now().plusHours(APPROVAL_TOKEN_HOURS));
         passwordResetTokenRepository.save(resetToken);
 
-        // Send approval email with password setup link
-        try {
-            String completionUrl = buildOrgUrl(org.getHandle(), "/reset-password?token=" + setupToken);
-            String appName = configurationService.getAppName();
-            emailService.sendJoinRequestApprovedEmail(
-                    request.getEmail(), request.getFirstName(), org.getName(), appName, completionUrl, "en");
-        } catch (Exception e) {
-            log.warn("Failed to send approval email: {}", e.getMessage());
+        String activationUrl = buildOrgUrl(org.getHandle(), "/reset-password?token=" + setupToken);
+        String language = messageLanguageService.resolve(user.getId(), org.getId());
+
+        // Send approval email with password setup link (only when an email address exists)
+        boolean emailed = false;
+        if (normalizeEmail(request.getEmail()) != null) {
+            try {
+                String appName = configurationService.getAppName();
+                emailService.sendJoinRequestApprovedEmail(
+                        request.getEmail(), request.getFirstName(), org.getName(), appName, activationUrl, language);
+                emailed = true;
+            } catch (Exception e) {
+                log.warn("Failed to send approval email: {}", e.getMessage());
+            }
         }
 
-        return toDTO(request);
+        // No email (or the email failed): try WhatsApp before asking the admin to share the link by hand
+        String displayName = ((request.getFirstName() == null ? "" : request.getFirstName().trim()) + " "
+                + (request.getLastName() == null ? "" : request.getLastName().trim())).trim();
+        accountActivationNotifier.deliver(
+                displayName.isEmpty() ? null : displayName,
+                request.getPhone(),
+                loginIdentifier,
+                activationUrl,
+                emailed, language, org.getId());
+
+        JoinRequestDTO dto = toDTO(request);
+        if (normalizeEmail(request.getEmail()) == null) {
+            // No email on file — hand the set-password link back to the admin.
+            dto.setActivationUrl(activationUrl);
+        }
+        return dto;
     }
 
     private Person createPersonFromRequest(JoinRequest request, Organization org) {
@@ -277,13 +360,13 @@ public class JoinRequestService {
         return personRepository.save(person);
     }
 
-    private User createMemberUserFromRequest(JoinRequest request, Organization org) {
-        String username = request.getEmail();
+    private User createMemberUserFromRequest(JoinRequest request, Organization org, String loginIdentifier) {
+        String username = loginIdentifier;
         User existing = userRepository.findByUsername(username).orElse(null);
         if (existing != null) {
             if (existing.getOrganizationId() == null || !existing.getOrganizationId().equals(org.getId())) {
                 throw new IllegalStateException(
-                        "This email is already used by an account in another organization.");
+                        "This email or phone number is already used by an account in another organization.");
             }
             return existing;
         }
@@ -337,7 +420,8 @@ public class JoinRequestService {
                     .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
             String appName = configurationService.getAppName();
             emailService.sendJoinRequestRejectedEmail(
-                    request.getEmail(), request.getFirstName(), org.getName(), appName, rejectionReason, "en");
+                    request.getEmail(), request.getFirstName(), org.getName(), appName, rejectionReason,
+                    messageLanguageService.organizationLanguage(org.getId()));
         } catch (Exception e) {
             log.warn("Failed to send rejection email: {}", e.getMessage());
         }
@@ -401,8 +485,8 @@ public class JoinRequestService {
         person.setIdNumber(request.getIdNumber());
         Person savedPerson = personRepository.save(person);
 
-        // Create User (email = username)
-        String username = request.getEmail();
+        // Create User (username = email address, or phone number when no email was given)
+        String username = resolveLoginIdentifier(request);
         User user = userRepository.findByUsername(username).orElse(null);
         if (user == null) {
             user = new User();
@@ -443,7 +527,7 @@ public class JoinRequestService {
     /**
      * Send a membership invitation email to the given address for the current tenant.
      */
-    public void sendInvite(String email, String locale) {
+    public void sendInvite(String email) {
         Long orgId = TenantContext.getCurrentOrganizationId();
         if (orgId == null) {
             throw new IllegalStateException("No organization context found.");
@@ -458,8 +542,10 @@ public class JoinRequestService {
         }
         String registrationUrl = buildOrgUrl(org.getHandle(), "/register-member?email=" + encodedEmail);
         String appName = configurationService.getAppName();
+        Long recipientId = userRepository.findByEmailIgnoreCaseAndOrganizationId(email, orgId)
+                .map(User::getId).orElse(null);
         emailService.sendMemberInviteEmail(email, org.getName(), appName, registrationUrl,
-                locale != null ? locale : "en");
+                messageLanguageService.resolve(recipientId, orgId));
     }
 
     private String buildOrgUrl(String orgHandle, String path) {

@@ -2,6 +2,7 @@ package com.mosque.crm.dto;
 
 public class UserPreferencesDTO {
     private String language;
+    private String preferredLanguage;
     private String theme;
     private String timezone;
     private String calendar;
@@ -24,6 +25,14 @@ public class UserPreferencesDTO {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
     }
 
     public String getTheme() {

@@ -17,12 +17,22 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByEmailIgnoreCaseAndOrganizationId(String email, Long organizationId);
+
     @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE LOWER(u.email) = LOWER(:email) AND u.organizationId = :organizationId")
     boolean existsByEmailIgnoreCaseAndOrganizationId(@Param("email") String email, @Param("organizationId") Long organizationId);
 
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
+
+    /**
+     * Users whose phone-number username ends with the given national significant number,
+     * e.g. {@code 612345678} matches {@code +31612345678}.
+     * Used by {@link com.mosque.crm.service.LoginIdentifierResolver} for national-format logins.
+     */
+    @Query("SELECT u FROM User u WHERE u.username LIKE CONCAT('+%', :nationalNumber)")
+    List<User> findPhoneUsersByNationalNumber(@Param("nationalNumber") String nationalNumber);
 
     long countByOrganizationId(Long organizationId);
 

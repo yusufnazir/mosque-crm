@@ -537,12 +537,26 @@ export default function TenantSettingsPage() {
             ? t(`tenant_settings.fields.${field.fieldKey}`)
             : field.label}
         </label>
-        <input
-          type={isPassword ? 'password' : field.fieldKey.includes('URL') ? 'url' : 'text'}
-          value={values[field.fieldKey] || ''}
-          onChange={(e) => setValues(prev => ({ ...prev, [field.fieldKey]: e.target.value }))}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-        />
+        {field.fieldKey === 'DEFAULT_LANGUAGE' ? (
+          <>
+            <select
+              value={values[field.fieldKey] || 'en'}
+              onChange={(e) => setValues(prev => ({ ...prev, [field.fieldKey]: e.target.value }))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+            >
+              <option value="en">English</option>
+              <option value="nl">Nederlands</option>
+            </select>
+            <p className="mt-1 text-sm text-gray-500">{t('tenant_settings.language_hint')}</p>
+          </>
+        ) : (
+          <input
+            type={isPassword ? 'password' : field.fieldKey.includes('URL') ? 'url' : 'text'}
+            value={values[field.fieldKey] || ''}
+            onChange={(e) => setValues(prev => ({ ...prev, [field.fieldKey]: e.target.value }))}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+          />
+        )}
       </div>
     );
   };

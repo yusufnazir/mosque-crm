@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
-import { authApi, portalApi, profileImageApi } from '@/lib/api';
+import { authApi, portalApi, preferencesApi, profileImageApi } from '@/lib/api';
+import ToastNotification from '@/components/ToastNotification';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { Member } from '@/types';
 import { getStatusColor } from '@/lib/utils';
@@ -18,7 +19,7 @@ interface UserProfile {
 }
 
 export default function AccountPage() {
-  const { t } = useTranslation();
+  const { t, language, syncLanguageWithBackend } = useTranslation();
   const { formatDate } = useDateFormat();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [memberProfile, setMemberProfile] = useState<Member | null>(null);
@@ -29,12 +30,40 @@ export default function AccountPage() {
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [preferredLanguage, setPreferredLanguage] = useState<'en' | 'nl' | null>(null);
+  const [languageLoading, setLanguageLoading] = useState(true);
+  const [languageSaving, setLanguageSaving] = useState(false);
+  const [languageToast, setLanguageToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchProfile();
     fetchMemberProfile();
   }, []);
+
+  useEffect(() => {
+    preferencesApi.get().then((preferences) => {
+      setPreferredLanguage(preferences.preferredLanguage);
+    }).catch(() => {
+      setLanguageToast({ message: 'account.language_load_error', type: 'error' });
+    }).finally(() => setLanguageLoading(false));
+  }, [language]);
+
+  const handleLanguageChange = async (value: string) => {
+    if (value !== '' && value !== 'en' && value !== 'nl') return;
+    const preference = value === '' ? null : value;
+    setLanguageSaving(true);
+    try {
+      await preferencesApi.updateLanguage(preference);
+      setPreferredLanguage(preference);
+      await syncLanguageWithBackend();
+      setLanguageToast({ message: 'account.language_saved', type: 'success' });
+    } catch {
+      setLanguageToast({ message: 'account.language_save_error', type: 'error' });
+    } finally {
+      setLanguageSaving(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -136,6 +165,10 @@ export default function AccountPage() {
   if (!profile) {
     return (
       <div className="p-4 md:p-8">
+        {languageToast && (
+          <ToastNotification key={languageToast.message} message={t(languageToast.message)}
+            type={languageToast.type} onClose={() => setLanguageToast(null)} />
+        )}
         <div className="text-center text-red-600">Failed to load profile</div>
       </div>
     );
@@ -260,6 +293,24 @@ export default function AccountPage() {
                 disabled
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
               />
+            </div>
+
+            <div>
+              <label htmlFor="account-language" className="block text-sm font-medium text-gray-700 mb-2">
+                {t('account.language')}
+              </label>
+              <select
+                id="account-language"
+                value={preferredLanguage ?? ''}
+                onChange={(event) => handleLanguageChange(event.target.value)}
+                disabled={languageLoading || languageSaving}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg disabled:opacity-50"
+              >
+                <option value="">{t('account.language_organization')}</option>
+                <option value="en">English</option>
+                <option value="nl">Nederlands</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500">{t('account.language_hint')}</p>
             </div>
 
             {message && (

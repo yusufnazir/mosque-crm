@@ -50,7 +50,11 @@ public class JoinRequest implements OrganizationAware {
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
-    @Column(name = "email", nullable = false, length = 255)
+    /**
+     * Optional: applicants without an email address use their phone number as login
+     * identifier instead (see {@code JoinRequestService#resolveLoginIdentifier}).
+     */
+    @Column(name = "email", length = 255)
     private String email;
 
     @Column(name = "phone", length = 50)

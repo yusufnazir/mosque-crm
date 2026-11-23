@@ -28,8 +28,8 @@ public class UserPreferences {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(nullable = false, length = 10)
-    private String language = "en";
+    @Column(length = 10)
+    private String language;
 
     @Column(length = 20)
     private String theme;
@@ -63,7 +63,6 @@ public class UserPreferences {
 
     public UserPreferences(User user) {
         this.user = user;
-        this.language = "en";
     }
 
     // Getters and Setters

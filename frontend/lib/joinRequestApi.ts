@@ -6,7 +6,7 @@ export interface JoinRequestDTO {
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string | null;
   phone?: string;
   gender?: string;
   dateOfBirth?: string;
@@ -24,13 +24,15 @@ export interface JoinRequestDTO {
   termsVersionNumber?: number;
   termsTitle?: string;
   termsAcceptedAt?: string;
+  /** Only present right after approving a request that has no email address. */
+  activationUrl?: string | null;
 }
 
 export interface JoinRequestCreateDTO {
   orgHandle: string;
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string;
   phone?: string;
   gender?: string;
   dateOfBirth?: string;
@@ -45,7 +47,10 @@ export interface JoinRequestCreateDTO {
 export interface ValidateTokenResponse {
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string | null;
+  phone?: string | null;
+  /** Email address, or the phone number when the applicant has no email. */
+  username?: string | null;
 }
 
 export interface CompleteRegistrationRequest {
@@ -86,8 +91,8 @@ export const joinRequestApi = {
     ApiClient.delete(`/join-requests/${id}`),
 
   /** Admin — send a membership invitation email to a prospective member. */
-  invite: (email: string, locale = 'en') =>
-    ApiClient.post<{ message: string }>('/join-requests/invite', { email, locale }),
+  invite: (email: string) =>
+    ApiClient.post<{ message: string }>('/join-requests/invite', { email }),
 
   /** Admin — get the count of pending join requests. */
   getPendingCount: () =>

@@ -71,6 +71,12 @@ public class MemberService {
     @Autowired
     private AuthorizationService authorizationService;
 
+    @Autowired
+    private AccountActivationNotifier accountActivationNotifier;
+
+    @Autowired
+    private MessageLanguageService messageLanguageService;
+
     public List<MemberDTO> getAllMembers() {
         if (!authorizationService.hasPermission("member.view") && !authorizationService.hasPermission("member.create")) {
             throw new AccessDeniedException("Insufficient permissions to view members");
@@ -156,13 +162,18 @@ public class MemberService {
 
                 // --- ACCOUNT MANAGEMENT LOGIC ---
                 if (memberDTO.isAccountEnabled()) {
-                    // Use email as username if provided, otherwise fall back to explicit username
+                    // Login identifier: the email when present, else an explicit username, else the phone number
                     String username = StringUtils.isNotBlank(memberDTO.getEmail())
                             ? memberDTO.getEmail()
                             : memberDTO.getUsername();
 
                     if (StringUtils.isBlank(username)) {
-                        throw new IllegalArgumentException("Email is required to create a user account");
+                        username = accountActivationNotifier.normalizePhone(memberDTO.getPhone());
+                    }
+
+                    if (StringUtils.isBlank(username)) {
+                        throw new IllegalArgumentException(
+                                "An email address, a username or a valid phone number is required to create a user account");
                     }
 
                     User user = userRepository.findByUsername(username).orElse(null);
@@ -213,7 +224,12 @@ public class MemberService {
                     userRepository.save(user);
 
                     // Create or update UserMemberLink (robust pattern)
-                    UserMemberLink userLink = userMemberLinkRepository.findByUser(user).orElse(null);
+                    // A person may only have ONE link (uk_user_member_link_person), so look it up by
+                    // person first: when the login changes a new user row is created and the existing
+                    // link has to be re-pointed instead of inserting a second one.
+                    final User linkedUser = user;
+                    UserMemberLink userLink = userMemberLinkRepository.findByPerson(updatedPerson)
+                            .orElseGet(() -> userMemberLinkRepository.findByUser(linkedUser).orElse(null));
                     if (userLink == null) {
                         userLink = new UserMemberLink();
                         userLink.setUser(user);
@@ -222,31 +238,41 @@ public class MemberService {
                         user.setMemberLink(userLink);
                         userRepository.save(user);
                     } else {
+                        userLink.setUser(user);
                         userLink.setPerson(updatedPerson);
                         userMemberLinkRepository.save(userLink);
                     }
 
-                    // Send welcome email with password setup link for new users
-                    if (isNewUser && StringUtils.isNotBlank(memberDTO.getEmail())) {
-                        try {
-                            // Generate a password setup token (reuses password reset token mechanism)
-                            String setupToken = java.util.UUID.randomUUID().toString();
-                            java.time.LocalDateTime expiresAt = java.time.LocalDateTime.now().plusHours(72); // 72 hours for new accounts
-                            PasswordResetToken resetToken = new PasswordResetToken(user, setupToken, expiresAt);
-                            passwordResetTokenRepository.save(resetToken);
+                    // Deliver the password setup link: email first, WhatsApp when no email could be used
+                    if (isNewUser) {
+                        String setupToken = java.util.UUID.randomUUID().toString();
+                        java.time.LocalDateTime expiresAt = java.time.LocalDateTime.now().plusHours(72); // 72 hours for new accounts
+                        PasswordResetToken resetToken = new PasswordResetToken(user, setupToken, expiresAt);
+                        passwordResetTokenRepository.save(resetToken);
 
-                            String appName = configurationService.getAppName();
-                            emailService.sendWelcomeEmail(
-                                    memberDTO.getEmail(),
-                                    updatedPerson.getFirstName(),
-                                    username,
-                                    appName,
-                                    setupToken,
-                                    "en" // default language
-                            );
-                        } catch (Exception e) {
-                            log.warn("Failed to send welcome email to {}: {}", memberDTO.getEmail(), e.getMessage());
+                        String activationUrl = configurationService.getAppBaseUrl()
+                                + "/reset-password?token=" + setupToken;
+                        String language = messageLanguageService.resolve(user.getId(), user.getOrganizationId());
+                        boolean emailed = false;
+                        if (StringUtils.isNotBlank(memberDTO.getEmail())) {
+                            try {
+                                String appName = configurationService.getAppName();
+                                emailService.sendWelcomeEmail(
+                                        memberDTO.getEmail(),
+                                        updatedPerson.getFirstName(),
+                                        username,
+                                        appName,
+                                        setupToken,
+                                        language
+                                );
+                                emailed = true;
+                            } catch (Exception e) {
+                                log.warn("Failed to send welcome email to {}: {}", memberDTO.getEmail(), e.getMessage());
+                            }
                         }
+                        accountActivationNotifier.deliver(
+                                displayName(updatedPerson), memberDTO.getPhone(), username, activationUrl, emailed,
+                                language, user.getOrganizationId());
                     }
                 }
 
@@ -322,6 +348,14 @@ public class MemberService {
 
     private String coalesce(String a, String b) {
         return (a != null && !a.isBlank()) ? a : b;
+    }
+
+    /** "First Last" for messages and logs; {@code null} when the person has no name at all. */
+    private String displayName(Person person) {
+        String first = person.getFirstName() == null ? "" : person.getFirstName().trim();
+        String last = person.getLastName() == null ? "" : person.getLastName().trim();
+        String name = (first + " " + last).trim();
+        return name.isEmpty() ? null : name;
     }
 
     private MemberDTO convertPersonToDTO(Person person) {

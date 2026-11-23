@@ -113,7 +113,8 @@ public class AuthController {
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
 
-        User user = userRepository.findByUsername(loginRequest.getUsername())
+        // Use the resolved username: a phone number may have been typed in another format
+        User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Super admins must have null organizationId in the JWT so the tenant filter

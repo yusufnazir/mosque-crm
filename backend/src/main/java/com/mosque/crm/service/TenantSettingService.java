@@ -87,6 +87,13 @@ public class TenantSettingService {
             configurationService.getValueTenantAware(TERMS_ENABLED_KEY, organizationId).orElse("false")
         ));
 
+        result.add(new TenantSettingFieldDTO(
+            -2L, MessageLanguageService.ORGANIZATION_LANGUAGE_KEY, "Default language",
+            "general", true, Integer.MAX_VALUE - 1,
+            configurationService.getValueTenantAware(MessageLanguageService.ORGANIZATION_LANGUAGE_KEY, organizationId)
+                    .orElse("en")
+        ));
+
         return result;
     }
 
@@ -101,8 +108,7 @@ public class TenantSettingService {
         }
         Long organizationId = TenantContext.getCurrentOrganizationId();
         if (organizationId == null) {
-            log.warn("updateTenantSettings called without tenant context — aborting to prevent global config pollution");
-            return;
+            throw new IllegalStateException("Select an organization before updating its settings");
         }
 
         Set<String> editableKeys = tenantSettingFieldRepository.findByTenantEditableTrue()
@@ -111,8 +117,13 @@ public class TenantSettingService {
                 .collect(Collectors.toSet());
 
         for (Map.Entry<String, String> entry : fieldValues.entrySet()) {
+            if (MessageLanguageService.ORGANIZATION_LANGUAGE_KEY.equals(entry.getKey())
+                    && !MessageLanguageService.isSupported(entry.getValue())) {
+                throw new IllegalArgumentException("Unsupported organization language: " + entry.getValue());
+            }
             if (editableKeys.contains(entry.getKey()) || TERMS_ENABLED_KEY.equals(entry.getKey())
-                    || PUBLIC_DIRECTORY_ENABLED_KEY.equals(entry.getKey())) {
+                    || PUBLIC_DIRECTORY_ENABLED_KEY.equals(entry.getKey())
+                    || MessageLanguageService.ORGANIZATION_LANGUAGE_KEY.equals(entry.getKey())) {
                 configurationService.setTenantValue(entry.getKey(), entry.getValue(), organizationId);
             } else {
                 log.warn("Tenant attempted to update non-editable field: {}", entry.getKey());

@@ -89,12 +89,13 @@ export default function AddMemberPage() {
     // Convert partnerId and parentId to numbers if they have values
     if (name === 'partnerId' || name === 'parentId') {
       setFormData((prev) => ({ ...prev, [name]: value ? Number(value) : undefined }));
-    } else if (name === 'email') {
-      // When email changes, update username if account is enabled
+    } else if (name === 'email' || name === 'phone') {
       setFormData((prev) => ({
         ...prev,
-        email: value,
-        username: prev.needsAccount ? (value || prev.username) : prev.username,
+        [name]: value,
+        username: prev.needsAccount
+          ? (name === 'email' ? value.trim() || prev.phone.trim() : prev.email.trim() || value.trim())
+          : prev.username,
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -353,7 +354,7 @@ export default function AddMemberPage() {
                           setFormData((prev) => ({
                             ...prev,
                             needsAccount: checked,
-                            username: checked ? (prev.email || prev.username) : '',
+                            username: checked ? (prev.email.trim() || prev.phone.trim()) : '',
                           }));
                         }}
                         className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"

@@ -122,7 +122,7 @@ function CompleteRegistrationContent() {
                 </div>
                 <div className="flex gap-2">
                   <span className="font-medium text-gray-700 w-24">{t('complete_registration.email')}:</span>
-                  <span className="text-gray-900">{tokenData.email}</span>
+                  <span className="text-gray-900">{tokenData.email || tokenData.username || tokenData.phone}</span>
                 </div>
               </div>
 

@@ -1,7 +1,5 @@
 package com.mosque.crm.service;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 import org.slf4j.Logger;
@@ -19,12 +17,12 @@ import com.mosque.crm.repository.UserPreferencesRepository;
 public class UserPreferencesService {
 
     private static final Logger log = LoggerFactory.getLogger(UserPreferencesService.class);
-    private static final List<String> SUPPORTED_LANGUAGES = Arrays.asList("en", "nl");
-
     private final UserPreferencesRepository repository;
+    private final MessageLanguageService messageLanguageService;
 
-    public UserPreferencesService(UserPreferencesRepository repository) {
+    public UserPreferencesService(UserPreferencesRepository repository, MessageLanguageService messageLanguageService) {
         this.repository = repository;
+        this.messageLanguageService = messageLanguageService;
     }
 
     /**
@@ -52,7 +50,7 @@ public class UserPreferencesService {
     @Transactional
     public UserPreferences updateLanguage(User user, String language) {
         // Validate language code
-        if (!SUPPORTED_LANGUAGES.contains(language)) {
+        if (language != null && !MessageLanguageService.isSupported(language)) {
             throw new IllegalArgumentException("Unsupported language: " + language);
         }
 
@@ -61,7 +59,8 @@ public class UserPreferencesService {
         UserPreferences saved = repository.save(prefs);
 
         // Apply locale immediately for current request
-        LocaleContextHolder.setLocale(Locale.forLanguageTag(language));
+        LocaleContextHolder.setLocale(Locale.forLanguageTag(
+                messageLanguageService.resolve(user.getId(), user.getOrganizationId())));
 
         log.info("Updated language preference for user {} to: {}", user.getUsername(), language);
         return saved;
@@ -71,19 +70,22 @@ public class UserPreferencesService {
      * Apply user's language preference to current context
      */
     public void applyLanguagePreference(User user) {
-        UserPreferences prefs = getOrCreate(user);
-        LocaleContextHolder.setLocale(Locale.forLanguageTag(prefs.getLanguage()));
+        getOrCreate(user);
+        LocaleContextHolder.setLocale(Locale.forLanguageTag(
+                messageLanguageService.resolve(user.getId(), user.getOrganizationId())));
     }
 
     /**
      * Convert entity to DTO
      */
     public UserPreferencesDTO toDTO(UserPreferences prefs) {
-        return new UserPreferencesDTO(
-                prefs.getLanguage(),
+        UserPreferencesDTO dto = new UserPreferencesDTO(
+                messageLanguageService.resolve(prefs.getUser().getId(), prefs.getUser().getOrganizationId()),
                 prefs.getTheme(),
                 prefs.getTimezone(),
                 prefs.getCalendar()
         );
+        dto.setPreferredLanguage(prefs.getLanguage());
+        return dto;
     }
 }

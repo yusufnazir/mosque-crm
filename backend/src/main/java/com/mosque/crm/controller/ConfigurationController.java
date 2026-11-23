@@ -17,13 +17,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import com.mosque.crm.config.BillingSchedulerConfig;
 import com.mosque.crm.dto.BillingSchedulerConfigDTO;
 import com.mosque.crm.dto.ConfigurationDTO;
 import com.mosque.crm.dto.MailServerConfigDTO;
 import com.mosque.crm.dto.MinioConfigDTO;
+import com.mosque.crm.dto.ScheduledJobDTO;
 import com.mosque.crm.entity.Configuration;
 import com.mosque.crm.multitenancy.TenantContext;
+import com.mosque.crm.scheduler.BillingDailyJob;
+import com.mosque.crm.scheduler.SchedulerService;
 import com.mosque.crm.service.BillingService;
 import com.mosque.crm.service.ConfigurationService;
 import com.mosque.crm.service.MinioStorageService;
@@ -37,12 +39,14 @@ public class ConfigurationController {
     private final MinioStorageService minioStorageService;
     private final RestTemplate restTemplate;
     private final BillingService billingService;
+    private final SchedulerService schedulerService;
 
-    public ConfigurationController(ConfigurationService configurationService, MinioStorageService minioStorageService, RestTemplate restTemplate, BillingService billingService) {
+    public ConfigurationController(ConfigurationService configurationService, MinioStorageService minioStorageService, RestTemplate restTemplate, BillingService billingService, SchedulerService schedulerService) {
         this.configurationService = configurationService;
         this.minioStorageService = minioStorageService;
         this.restTemplate = restTemplate;
         this.billingService = billingService;
+        this.schedulerService = schedulerService;
     }
 
     @GetMapping
@@ -227,20 +231,22 @@ public class ConfigurationController {
     }
 
     // Billing Scheduler configuration endpoints
+    // Kept for backwards compatibility: they now read and write the scheduled job registry
+    // (job 'billing.daily'), which is the single source of truth.
     @GetMapping("/billing-scheduler")
     public ResponseEntity<BillingSchedulerConfigDTO> getBillingSchedulerConfig() {
-        boolean enabled = !"false".equalsIgnoreCase(
-                configurationService.getValue(BillingSchedulerConfig.KEY_ENABLED).orElse("true"));
-        String cron = configurationService.getValue(BillingSchedulerConfig.KEY_CRON)
-                .orElse(BillingSchedulerConfig.DEFAULT_CRON);
-        return ResponseEntity.ok(new BillingSchedulerConfigDTO(enabled, cron));
+        ScheduledJobDTO job = schedulerService.get(BillingDailyJob.KEY);
+        return ResponseEntity.ok(new BillingSchedulerConfigDTO(job.isEnabled(), job.getCronExpression()));
     }
 
     @PostMapping("/billing-scheduler")
     public ResponseEntity<Map<String, String>> saveBillingSchedulerConfig(@RequestBody BillingSchedulerConfigDTO dto) {
-        configurationService.setValue(BillingSchedulerConfig.KEY_ENABLED, String.valueOf(dto.isEnabled()));
-        configurationService.setValue(BillingSchedulerConfig.KEY_CRON,
-                dto.getCron() != null && !dto.getCron().isBlank() ? dto.getCron() : BillingSchedulerConfig.DEFAULT_CRON);
+        ScheduledJobDTO job = schedulerService.get(BillingDailyJob.KEY);
+        job.setEnabled(dto.isEnabled());
+        job.setTriggerType(com.mosque.crm.entity.ScheduledJobConfig.TriggerType.CRON);
+        job.setCronExpression(dto.getCron() != null && !dto.getCron().isBlank()
+                ? dto.getCron() : BillingDailyJob.DEFAULT_CRON);
+        schedulerService.update(BillingDailyJob.KEY, job, "configuration-api");
         log.info("Billing scheduler configuration updated: enabled={}, cron={}", dto.isEnabled(), dto.getCron());
         Map<String, String> response = new HashMap<>();
         response.put("message", "Billing scheduler configuration saved successfully");

@@ -14,11 +14,14 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, loading } = useAuth();
+  const { user, loading, isSuperAdmin } = useAuth();
   const pathname = usePathname();
   const { t } = useTranslation();
   const isPublicDirectoryRoute =
     pathname === '/directory' || pathname.startsWith('/directory/');
+  const isPlatformAdminRoute = ['/schedulers', '/whatsapp'].some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 
   useEffect(() => {
     if (!loading && !user && !isPublicDirectoryRoute && typeof window !== 'undefined') {
@@ -82,7 +85,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header onMenuToggle={() => setSidebarOpen(true)} />
           <SubscriptionBanner />
-          <main className="flex-1 overflow-x-hidden overflow-y-auto w-full min-w-0">{children}</main>
+          <main className="flex-1 overflow-x-hidden overflow-y-auto w-full min-w-0">
+            {isPlatformAdminRoute && !isSuperAdmin
+              ? <div className="p-8 text-red-600" role="alert">{t('common.access_denied')}</div>
+              : children}
+          </main>
         </div>
       </div>
     </PageHeaderProvider>

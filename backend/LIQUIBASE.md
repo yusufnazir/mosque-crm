@@ -13,6 +13,37 @@ Both use **UUID-based changeset IDs** for consistency and to enable updates.
 
 ## Folder Organization Rule
 
+### One-time Suriname phone backfill
+
+DML changesets 230-237 use `DataBackfillSurinamePhones` to update contact phones
+across all organizations: `persons`, `organizations`, `businesses`, `join_requests`,
+`org_event_recipients`, legacy `non_member_recipients`,
+`org_general_event_registrations`, and `org_distribution_registrations`.
+Usernames and WhatsApp history, queue, and opt-out identifiers are not changed.
+
+- Unprefixed 6/7-digit numbers starting with a nonzero digit receive `+597`;
+  spaces, parentheses, dots and hyphens are removed during conversion.
+- Bare `597` followed by a 6/7-digit national number receives only `+`.
+- Existing explicit `+` or `00` international numbers remain exactly as stored.
+- Blank values remain unchanged. Malformed numbers, extensions, slash-separated
+  numbers, leading zeros, other lengths and repeated-digit local placeholders
+  are skipped with a warning identifying the table, record ID and reason.
+  Summary logs show updated, unchanged and skipped counts without phone values.
+  Checks establish plausibility, not assigned-number validity or reachability.
+
+Take a database backup before deploying. These changes run automatically **once
+per table on backend startup** and are recorded in `DATABASECHANGELOG`; do not
+restart a shared backend merely to test them. Each table is transactional:
+database errors or concurrent changes fail the changeset rather than silently
+marking it complete. Earlier successful table changesets remain applied.
+Skipped rows need manual review; they are not retried on subsequent startups.
+No automatic rollback is provided because the original formatting is not retained.
+
+After production **and every other intended environment** have run the backfill,
+it can be removed by deleting all eight XML files, their consolidation includes,
+the Java class and its tests together. Keep the `DATABASECHANGELOG` records.
+New installations after removal will not run this historical cleanup.
+
 **CRITICAL:** Each folder (ddl, dml) MUST have its own consolidation changelog file that includes all files in that folder.
 
 ### Structure

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- ══════════════ OUTBOUND QUEUE ══════════════ -->
+    <changeSet id="b1000005-0197-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="whatsapp_outbound_messages"/></not>
+        </preConditions>
+        <comment>
+            Database-backed send queue. The dispatcher sends at most one message per poll and
+            respects next_attempt_at (jitter), hourly/daily caps and quiet hours.
+        </comment>
+        <createTable tableName="whatsapp_outbound_messages">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="campaign_id" type="VARCHAR(64)"/>
+            <column name="recipient_phone" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recipient_name" type="VARCHAR(255)"/>
+            <column name="rendered_body" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="profile" type="VARCHAR(20)" defaultValue="COLD">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="QUEUED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attempt_count" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="next_attempt_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_error" type="VARCHAR(2000)"/>
+            <column name="wa_message_id" type="VARCHAR(128)"/>
+            <column name="created_by" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sent_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="whatsapp_outbound_messages" indexName="idx_wa_out_status_next">
+            <column name="status"/>
+            <column name="next_attempt_at"/>
+        </createIndex>
+        <createIndex tableName="whatsapp_outbound_messages" indexName="idx_wa_out_org">
+            <column name="organization_id"/>
+        </createIndex>
+        <createIndex tableName="whatsapp_outbound_messages" indexName="idx_wa_out_phone">
+            <column name="recipient_phone"/>
+        </createIndex>
+        <createIndex tableName="whatsapp_outbound_messages" indexName="idx_wa_out_campaign">
+            <column name="campaign_id"/>
+        </createIndex>
+        <createIndex tableName="whatsapp_outbound_messages" indexName="idx_wa_out_sent">
+            <column name="status"/>
+            <column name="sent_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="91311ef5-b3cb-4951-940d-84a8c2199a62-1" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="whatsapp_outbound_messages" columnName="deleted_at"/></not>
+        </preConditions>
+        <addColumn tableName="whatsapp_outbound_messages">
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ══════════════ INBOUND MESSAGES (webhook) ══════════════ -->
+    <changeSet id="b1000005-0197-0000-0000-000000000002" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="whatsapp_inbound_messages"/></not>
+        </preConditions>
+        <comment>Replies received on the shared WhatsApp session (used for opt-out and conversation detection)</comment>
+        <createTable tableName="whatsapp_inbound_messages">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="wa_message_id" type="VARCHAR(128)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_wa_inbound_wa_message_id"/>
+            </column>
+            <column name="from_phone" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="contact_name" type="VARCHAR(255)"/>
+            <column name="body" type="TEXT"/>
+            <column name="is_opt_out" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="received_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="whatsapp_inbound_messages" indexName="idx_wa_in_phone_received">
+            <column name="from_phone"/>
+            <column name="received_at"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ══════════════ OPT-OUTS ══════════════ -->
+    <changeSet id="b1000005-0197-0000-0000-000000000003" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="whatsapp_opt_outs"/></not>
+        </preConditions>
+        <comment>
+            Global do-not-message list. One shared WhatsApp number means one shared reputation,
+            so an opt-out applies to every organisation.
+        </comment>
+        <createTable tableName="whatsapp_opt_outs">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="phone_e164" type="VARCHAR(32)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_wa_optout_phone"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="keyword" type="VARCHAR(50)"/>
+            <column name="reason" type="VARCHAR(255)"/>
+            <column name="source" type="VARCHAR(20)" defaultValue="REPLY">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

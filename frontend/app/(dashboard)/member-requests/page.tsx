@@ -102,8 +102,18 @@ export default function MemberRequestsPage() {
     if (!pendingApproveId) return;
     setActionLoading(true);
     try {
-      await joinRequestApi.review(pendingApproveId, 'approve');
-      setToast({ message: t('member_requests.approved_success'), type: 'success' });
+      const result = await joinRequestApi.review(pendingApproveId, 'approve');
+      if (result?.activationUrl) {
+        // No email on file — hand the set-password link to the admin instead
+        try {
+          await navigator.clipboard.writeText(result.activationUrl);
+        } catch {
+          // clipboard unavailable (e.g. insecure context) — the link is also in the request detail
+        }
+        setToast({ message: t('member_requests.activation_link_copied'), type: 'success' });
+      } else {
+        setToast({ message: t('member_requests.approved_success'), type: 'success' });
+      }
       setShowApproveConfirm(false);
       window.dispatchEvent(new Event('requests:updated'));
       fetchRequests();
@@ -232,7 +242,7 @@ export default function MemberRequestsPage() {
                 {requests.map((req) => (
                   <tr key={req.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => openDetail(req)}>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{req.firstName} {req.lastName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{req.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{req.email || req.phone}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{new Date(req.submittedAt).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[req.status] || 'bg-gray-100 text-gray-700'}`}>
@@ -284,7 +294,7 @@ export default function MemberRequestsPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-medium text-gray-900">{req.firstName} {req.lastName}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">{req.email}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{req.email || req.phone}</p>
                     <p className="text-xs text-gray-400 mt-1">{new Date(req.submittedAt).toLocaleDateString()}</p>
                   </div>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[req.status] || 'bg-gray-100 text-gray-700'}`}>

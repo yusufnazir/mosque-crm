@@ -1,11 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import Button from '@/components/Button';
 import DateInput from '@/components/DateInput';
+import CountrySelectWithFlags from '@/components/CountrySelectWithFlags';
+import PhoneInput, { isValidPhoneNumber, parsePhoneNumber } from 'react-phone-number-input';
+import type { Country, Labels } from 'react-phone-number-input';
+import phoneLabelsEn from 'react-phone-number-input/locale/en.json';
+import phoneLabelsNl from 'react-phone-number-input/locale/nl.json';
 import { memberApi, ApiClient, profileImageApi } from '@/lib/api';
+import { countryApi, CountryDTO } from '@/lib/countryApi';
 import { Member } from '@/types';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 
@@ -28,9 +34,21 @@ interface MemberFormData {
   parentId?: number;
 }
 
+function phoneForEditing(raw: string): string {
+  const phone = raw.trim();
+  if (!phone) return '';
+  if (!/^[\d+()./\s-]+$/.test(phone)) return phone;
+
+  const compact = phone.replace(/[()./\s-]/g, '');
+  const international = compact.startsWith('00') ? `+${compact.slice(2)}`
+    : compact.startsWith('+') ? compact : undefined;
+  const parsed = international ? parsePhoneNumber(international) : undefined;
+  return parsed?.isValid() ? parsed.number : phone;
+}
+
 
 export default function EditMemberPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const router = useRouter();
   const params = useParams();
   const memberId = params.id as string;
@@ -39,6 +57,7 @@ export default function EditMemberPage() {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
   const [headMembers, setHeadMembers] = useState<Member[]>([]);
+  const [countries, setCountries] = useState<CountryDTO[]>([]);
   const [formData, setFormData] = useState<MemberFormData>({
     firstName: '',
     lastName: '',
@@ -70,6 +89,28 @@ export default function EditMemberPage() {
     fetchAvailableRoles();
   }, [memberId]);
 
+  useEffect(() => {
+    countryApi.getAll(language)
+      .then(setCountries)
+      .catch((error) => console.error('Failed to fetch countries:', error));
+  }, [language]);
+
+  const phoneLabels = useMemo<Labels>(() => {
+    const labels: Record<string, string> = {
+      ...(language === 'nl' ? phoneLabelsNl : phoneLabelsEn),
+      country: t('register_member.country_select'),
+      phone: t('member_detail.phone'),
+      ZZ: t('register_member.country_select'),
+    };
+    countries.forEach((country) => { labels[country.isoCode] = country.name; });
+    return labels as Labels;
+  }, [countries, language, t]);
+
+  const defaultPhoneCountry = useMemo<Country | undefined>(() => {
+    const match = countries.find((country) => country.name === formData.country);
+    return match ? (match.isoCode as Country) : undefined;
+  }, [formData.country, countries]);
+
   const fetchAvailableRoles = async () => {
     try {
       const rolesData = await ApiClient.get<{id: number; name: string; description: string}[]>('/admin/roles/assignable');
@@ -87,7 +128,7 @@ export default function EditMemberPage() {
         firstName: data.firstName || '',
         lastName: data.lastName || '',
         email: data.email || '',
-        phone: data.phone || '',
+        phone: phoneForEditing(data.phone || ''),
         dateOfBirth: data.dateOfBirth || '',
         gender: data.gender || 'MALE',
         address: data.address || '',
@@ -96,7 +137,7 @@ export default function EditMemberPage() {
         postalCode: data.postalCode || '',
         idNumber: data.idNumber || '',
         membershipStatus: data.membershipStatus || 'ACTIVE',
-        username: data.username || data.email || '',
+        username: data.username || data.email?.trim() || phoneForEditing(data.phone || ''),
         roles: data.roles || ['MEMBER'],
         partnerId: data.partnerId,
         parentId: data.parentId,
@@ -159,14 +200,16 @@ export default function EditMemberPage() {
       if (!checked) {
         setFormData((prev) => ({ ...prev, username: '', roles: ['MEMBER'] }));
       } else {
-        // Auto-set username from email when enabling account
-        setFormData((prev) => ({ ...prev, username: prev.email || prev.username }));
+        setFormData((prev) => ({ ...prev, username: prev.email.trim() || prev.phone.trim() }));
       }
       return;
     }
-    // When email changes, update username if account is enabled
-    if (name === 'email' && accountEnabled) {
-      setFormData((prev) => ({ ...prev, email: value, username: value || prev.username }));
+    if ((name === 'email' || name === 'phone') && accountEnabled) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        username: name === 'email' ? value.trim() || prev.phone.trim() : prev.email.trim() ? prev.username : value.trim(),
+      }));
       return;
     }
     // Convert partnerId and parentId to numbers if they have values
@@ -179,9 +222,14 @@ export default function EditMemberPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
+    if (formData.phone && !isValidPhoneNumber(formData.phone)) {
+      setError(t('register_member.phone_invalid'));
+      return;
+    }
+
+    setLoading(true);
     try {
       // Clean up form data - remove empty strings
       const cleanData: any = {};
@@ -295,13 +343,41 @@ export default function EditMemberPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {t('member_detail.phone')}
                     </label>
-                    <input
-                      type="tel"
+                    <PhoneInput
+                      international
                       name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      value={/^\+\d+$/.test(formData.phone) ? formData.phone : undefined}
+                      onChange={(value) => setFormData((prev) => ({
+                        ...prev,
+                        phone: value ?? '',
+                        username: accountEnabled && !prev.email.trim() ? value ?? '' : prev.username,
+                      }))}
+                      defaultCountry={defaultPhoneCountry}
+                      labels={phoneLabels}
+                      countrySelectComponent={CountrySelectWithFlags}
+                      countrySelectProps={{
+                        searchPlaceholder: t('register_member.phone_country_search'),
+                        noResultsLabel: t('register_member.phone_country_empty'),
+                      }}
+                      placeholder={t('register_member.phone_placeholder')}
+                      className="phone-field w-full px-4 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500"
                     />
+                    {formData.phone && !/^\+\d+$/.test(formData.phone) && (
+                      <div className="mt-1 text-xs text-red-600">
+                        <p>{t('member_edit.legacy_phone', { phone: formData.phone })}</p>
+                        <button
+                          type="button"
+                          className="mt-1 underline"
+                          onClick={() => setFormData((prev) => ({
+                            ...prev,
+                            phone: '',
+                            username: accountEnabled && !prev.email.trim() ? '' : prev.username,
+                          }))}
+                        >
+                          {t('member_edit.clear_phone')}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div>

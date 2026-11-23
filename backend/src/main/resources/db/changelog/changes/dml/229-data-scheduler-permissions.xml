@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Platform-admin-only: no role is granted these, only superadmin.manage implies them. -->
+    <changeSet id="a1b2c3d4-0081-4sch-aaaa-schedulerview081" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[81]]></param>
+            <param name="code"><![CDATA[scheduler.view]]></param>
+            <param name="description"><![CDATA[View the platform scheduler runtime and job history]]></param>
+            <param name="category"><![CDATA[scheduler]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="b2c3d4e5-0082-4sch-bbbb-schedulermanage082" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[82]]></param>
+            <param name="code"><![CDATA[scheduler.manage]]></param>
+            <param name="description"><![CDATA[Start, stop, run and reconfigure platform schedulers]]></param>
+            <param name="category"><![CDATA[scheduler]]></param>
+        </customChange>
+    </changeSet>
+
+    <!-- Make them assignable (same "sync all" pool as 035) so a role template can grant them later -->
+    <changeSet id="c3d4e5f6-0229-4sch-cccc-schedassignall" author="mosque-crm">
+        <comment>Re-sync the assignable permission pool for scheduler.view (81) and scheduler.manage (82)</comment>
+        <sql>
+            INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+            SELECT r.id, p.id
+            FROM roles r
+            CROSS JOIN permissions p
+            WHERE r.name != 'SUPER_ADMIN'
+              AND p.category != 'superadmin';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

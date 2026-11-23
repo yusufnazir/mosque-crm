@@ -278,6 +278,9 @@ export default function LoginPage() {
                 placeholder={t('login.username_placeholder')}
                 required
               />
+              <p className="mt-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                {t('login.username_hint')}
+              </p>
             </div>
 
             <div>

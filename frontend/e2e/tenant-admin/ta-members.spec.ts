@@ -59,6 +59,53 @@ test.describe('Members — UI CRUD', () => {
     await expect(page.locator('input[name="lastName"]')).toBeVisible({ timeout: 30_000 });
   });
 
+  test('account username follows email or phone when editing a member', async ({ page }) => {
+    await loginAs(page, TENANT_ADMIN_USER.username, TENANT_ADMIN_USER.password);
+
+    let submitted: Record<string, unknown> | undefined;
+    await page.route('**/api/admin/members/987654321', async (route) => {
+      if (route.request().method() === 'PUT') {
+        submitted = route.request().postDataJSON();
+        await route.fulfill({ json: submitted });
+      } else {
+        await route.fulfill({ json: {
+          id: '987654321',
+          firstName: 'Test',
+          lastName: 'Member',
+          phone: '8542222',
+          dateOfBirth: '1990-01-01',
+          gender: 'MALE',
+          membershipStatus: 'ACTIVE',
+        } });
+      }
+    });
+
+    await page.goto('/members/987654321/edit', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByText('Saved phone number: 8542222. Please re-enter it with a country code.')).toBeVisible();
+    await page.locator('input[name="phone"]').fill('+5978542222');
+    await page.locator('#accountEnabled').check();
+    const username = page.locator('input[name="username"]');
+    await expect(username).toHaveValue('+5978542222');
+    await page.locator('input[name="phone"]').fill('+5978552222');
+    await expect(username).toHaveValue('+5978552222');
+    await page.locator('input[name="email"]').fill('member@example.invalid');
+    await expect(username).toHaveValue('member@example.invalid');
+    await page.locator('input[name="email"]').clear();
+    await expect(username).toHaveValue('+5978552222');
+
+    await page.locator('input[name="phone"]').fill('+5971');
+    await page.getByRole('button', { name: /update member/i }).click();
+    await expect(page.getByText('Please enter a valid phone number for the selected country.')).toBeVisible();
+    expect(submitted).toBeUndefined();
+    await page.locator('input[name="phone"]').fill('+5978552222');
+    await page.getByRole('button', { name: /update member/i }).click();
+    await expect.poll(() => submitted).toMatchObject({
+      accountEnabled: true,
+      phone: '+5978552222',
+      username: '+5978552222',
+    });
+  });
+
   test('admin can create a member and they appear in the list', async ({ page }) => {
     const ts = Date.now();
 

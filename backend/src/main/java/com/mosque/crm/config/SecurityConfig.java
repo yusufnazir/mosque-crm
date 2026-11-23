@@ -53,6 +53,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/membership-terms/public/*/current").permitAll()
                 // Public membership application and registration completion
                 .requestMatchers("/join-requests/apply", "/join-requests/validate-token", "/join-requests/complete-registration").permitAll()
+                // WAHA inbound webhook — authenticated with a shared secret inside the handler
+                .requestMatchers(HttpMethod.POST, "/whatsapp/webhook").permitAll()
+                // Scheduler and WhatsApp management are platform-wide.
+                .requestMatchers("/schedulers", "/schedulers/**", "/whatsapp", "/whatsapp/**")
+                    .hasAuthority("SUPER_ADMIN")
                 // Public business directory on org subdomain
                 .requestMatchers(HttpMethod.GET, "/business-directory/public/**").permitAll()
                 // Public general-event details and self-registration (optional JWT for member opt-in)

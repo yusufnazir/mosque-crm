@@ -338,7 +338,7 @@ public class EmailService {
      * Notify a registrant that their application was received and is under review.
      */
     public void sendJoinRequestReceivedEmail(String toEmail, String firstName, String orgName, String appName, String locale) {
-        sendTemplatedEmail(toEmail, appName + " - Membership Application Received",
+        sendTemplatedEmail(toEmail, appName + ("nl".equals(locale) ? " - Lidmaatschapsaanvraag ontvangen" : " - Membership Application Received"),
                 buildJoinRequestReceivedBody(firstName, orgName, appName, locale));
     }
 
@@ -347,7 +347,7 @@ public class EmailService {
      */
     public void sendJoinRequestAdminNotification(String toEmail, String requesterName, String requesterEmail,
             String orgName, String appName, String adminUrl, String locale) {
-        sendTemplatedEmail(toEmail, appName + " - New Membership Application",
+        sendTemplatedEmail(toEmail, appName + ("nl".equals(locale) ? " - Nieuwe lidmaatschapsaanvraag" : " - New Membership Application"),
                 buildJoinRequestAdminNotifyBody(requesterName, requesterEmail, orgName, appName, adminUrl, locale));
     }
 
@@ -356,7 +356,7 @@ public class EmailService {
      */
     public void sendJoinRequestApprovedEmail(String toEmail, String firstName, String orgName, String appName,
             String completionUrl, String locale) {
-        sendTemplatedEmail(toEmail, appName + " - Membership Application Approved",
+        sendTemplatedEmail(toEmail, appName + ("nl".equals(locale) ? " - Lidmaatschapsaanvraag goedgekeurd" : " - Membership Application Approved"),
                 buildJoinRequestApprovedBody(firstName, orgName, appName, completionUrl, locale));
     }
 
@@ -365,7 +365,7 @@ public class EmailService {
      */
     public void sendJoinRequestRejectedEmail(String toEmail, String firstName, String orgName, String appName,
             String rejectionReason, String locale) {
-        sendTemplatedEmail(toEmail, appName + " - Membership Application Rejected",
+        sendTemplatedEmail(toEmail, appName + ("nl".equals(locale) ? " - Lidmaatschapsaanvraag afgewezen" : " - Membership Application Rejected"),
                 buildJoinRequestRejectedBody(firstName, orgName, appName, rejectionReason, locale));
     }
 
@@ -567,7 +567,7 @@ public class EmailService {
      * Send a membership invitation to a prospective member with the registration link.
      */
     public void sendMemberInviteEmail(String toEmail, String orgName, String appName, String registrationUrl, String locale) {
-        sendTemplatedEmail(toEmail, appName + " - Invitation to Join " + orgName,
+        sendTemplatedEmail(toEmail, appName + ("nl".equals(locale) ? " - Uitnodiging voor " : " - Invitation to Join ") + orgName,
                 buildMemberInviteBody(orgName, appName, registrationUrl, locale));
     }
 

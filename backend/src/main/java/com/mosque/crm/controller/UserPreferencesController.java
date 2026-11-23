@@ -70,7 +70,7 @@ public class UserPreferencesController {
     ) {
         try {
             String language = request.get("language");
-            if (language == null || language.trim().isEmpty()) {
+            if (!request.containsKey("language") || (language != null && language.trim().isEmpty())) {
                 return ResponseEntity.badRequest().build();
             }
 

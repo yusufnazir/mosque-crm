@@ -28,6 +28,11 @@ public class JoinRequestDTO {
     private Integer termsVersionNumber;
     private String termsTitle;
     private LocalDateTime termsAcceptedAt;
+    /**
+     * Only returned right after an approval that could not be emailed because the
+     * applicant has no email address. Admins share this set-password link manually.
+     */
+    private String activationUrl;
 
     public JoinRequestDTO() {}
 
@@ -96,6 +101,9 @@ public class JoinRequestDTO {
 
     public String getTermsTitle() { return termsTitle; }
     public void setTermsTitle(String termsTitle) { this.termsTitle = termsTitle; }
+
+    public String getActivationUrl() { return activationUrl; }
+    public void setActivationUrl(String activationUrl) { this.activationUrl = activationUrl; }
 
     public LocalDateTime getTermsAcceptedAt() { return termsAcceptedAt; }
     public void setTermsAcceptedAt(LocalDateTime termsAcceptedAt) { this.termsAcceptedAt = termsAcceptedAt; }

@@ -21,6 +21,8 @@ interface NavItem {
   permission?: string;
   /** Any one of these permissions grants visibility (OR). */
   permissionAny?: string[];
+  /** Platform administrators only, regardless of tenant permissions. */
+  superAdminOnly?: boolean;
   /** Subscription entitlement key. If the feature is disabled on the plan, the item is hidden. */
   entitlement?: string;
   /** If true, show a divider above this item */
@@ -92,6 +94,17 @@ const allNavItems: NavItem[] = [
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    )
+  },
+  {
+    name: 'WhatsApp',
+    href: '/whatsapp',
+    permission: 'whatsapp.view',
+    superAdminOnly: true,
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
       </svg>
     )
   },
@@ -322,6 +335,17 @@ const allNavItems: NavItem[] = [
     ) 
   },
   { 
+    name: 'Schedulers', 
+    href: '/schedulers', 
+    permission: 'scheduler.view',
+    superAdminOnly: true,
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ) 
+  },
+  { 
     name: 'Tenant Settings', 
     href: '/tenant-settings', 
     permission: 'tenant_settings.view',
@@ -342,9 +366,9 @@ const NAV_GROUPS: NavGroup[] = [
   { labelKey: undefined, hrefs: ['/dashboard'] },
   { labelKey: 'sidebar.group_members', hrefs: ['/members', '/member-requests', '/groups'] },
   { labelKey: 'sidebar.group_finance', hrefs: ['/contributions/types', '/expenses', '/currencies'] },
-  { labelKey: 'sidebar.group_operations', hrefs: ['/reports', '/events', '/directory', '/import', '/export', '/communications', '/documents'] },
+  { labelKey: 'sidebar.group_operations', hrefs: ['/reports', '/events', '/directory', '/import', '/export', '/communications', '/whatsapp', '/documents'] },
   { labelKey: 'sidebar.group_personal', hrefs: ['/profile', '/my-businesses', '/inbox'] },
-  { labelKey: 'sidebar.group_administration', hrefs: ['/users', '/roles', '/privileges', '/role-templates', '/partnerships', '/business-directory/admin', '/organizations', '/billing', '/settings', '/tenant-settings'] },
+  { labelKey: 'sidebar.group_administration', hrefs: ['/users', '/roles', '/privileges', '/role-templates', '/partnerships', '/business-directory/admin', '/organizations', '/billing', '/settings', '/schedulers', '/tenant-settings'] },
 ];
 
 interface SidebarProps {
@@ -427,6 +451,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   // Super admins see all items.
   const filteredItems = allNavItems.filter((item) => {
     if (isSuperAdmin) return true;
+    if (item.superAdminOnly) return false;
     if (item.permissionAny) {
       if (!canAny(...item.permissionAny)) return false;
     } else if (item.permission) {

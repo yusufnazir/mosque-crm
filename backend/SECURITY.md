@@ -12,6 +12,10 @@ The Mosque CRM uses a **separated security architecture** where authentication/a
 
 ## Key Principle: Users ≠ Members
 
+WhatsApp management and scheduler management are platform-wide and require the
+`SUPER_ADMIN` role, even if a tenant role has the corresponding permissions.
+The WhatsApp inbound webhook remains public and is authenticated by its shared secret.
+
 **Users are authentication entities** that can log in to the system. They have:
 - Username and password
 - Roles (ADMIN, MEMBER, TREASURER, IMAM)
@@ -108,6 +112,15 @@ Many-to-many relationship between users and roles.
 - A member needs portal access to view their own data
 - An admin wants to associate a staff member with their member profile
 - Member registration creates both user account and member profile simultaneously
+
+## Language preferences
+
+Organization settings provide an English or Dutch default for automatic messages.
+Users can choose a language in Account or select the organization default. Their
+saved choice takes precedence; users without a choice inherit the receiving
+organization's language, falling back to English. Existing saved preferences
+are preserved. The same preference controls the interface language. Messages
+written manually by an administrator are not translated automatically.
 
 ## Entity Classes
 

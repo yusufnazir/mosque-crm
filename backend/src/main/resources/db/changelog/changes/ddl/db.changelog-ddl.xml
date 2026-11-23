@@ -178,6 +178,15 @@
     <include file="db/changelog/changes/ddl/194-add-numeric-value-to-registration-answers.xml"/>
     <include file="db/changelog/changes/ddl/195-add-edit-token-to-general-event-registrations.xml"/>
 
+    <!-- ======================== MEMBER JOIN REQUESTS ======================== -->
+    <include file="db/changelog/changes/ddl/196-make-join-request-email-optional.xml"/>
+
+    <!-- ======================== WHATSAPP (WAHA) ======================== -->
+    <include file="db/changelog/changes/ddl/197-create-whatsapp-messaging-tables.xml"/>
+
+    <!-- ======================== PLATFORM SCHEDULERS ======================== -->
+    <include file="db/changelog/changes/ddl/198-create-scheduler-job-configs.xml"/>
+
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>
 

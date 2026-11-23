@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    <changeSet id="614eba3c-90d1-4841-a5c7-608e7ce91f22-1" author="mosque-crm">
+        <customChange class="com.mosque.crm.liquibase.DataBackfillSurinamePhones">
+            <param name="tableName" value="org_event_recipients"/>
+        </customChange>
+    </changeSet>
+</databaseChangeLog>

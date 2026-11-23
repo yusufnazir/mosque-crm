@@ -66,6 +66,8 @@ public class JoinRequestController {
             result.put("firstName", dto.getFirstName());
             result.put("lastName", dto.getLastName());
             result.put("email", dto.getEmail());
+            result.put("phone", dto.getPhone());
+            result.put("username", dto.getEmail() != null ? dto.getEmail() : dto.getPhone());
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException | IllegalStateException e) {
             Map<String, String> error = new HashMap<>();
@@ -104,14 +106,13 @@ public class JoinRequestController {
     @PostMapping("/invite")
     public ResponseEntity<?> invite(@RequestBody Map<String, String> body) {
         String email = body.get("email");
-        String locale = body.getOrDefault("locale", "en");
         if (email == null || email.isBlank()) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "email is required");
             return ResponseEntity.badRequest().body(error);
         }
         try {
-            joinRequestService.sendInvite(email, locale);
+            joinRequestService.sendInvite(email);
             Map<String, String> result = new HashMap<>();
             result.put("message", "Invitation sent to " + email);
             return ResponseEntity.ok(result);

@@ -26,6 +26,9 @@ export default function MemberRequestDetailPage() {
 
   // Approve confirm
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+  // Set-password link returned when the applicant has no email address
+  const [activationUrl, setActivationUrl] = useState<string | null>(null);
+  const [activationCopied, setActivationCopied] = useState(false);
 
   // Reject flow
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
@@ -50,7 +53,9 @@ export default function MemberRequestDetailPage() {
   const handleApprove = async () => {
     setActionLoading(true);
     try {
-      await joinRequestApi.review(id, 'approve');
+      const result = await joinRequestApi.review(id, 'approve');
+      setActivationUrl(result?.activationUrl ?? null);
+      setActivationCopied(false);
       setToast({ message: t('member_requests.approved_success'), type: 'success' });
       setShowApproveConfirm(false);
       window.dispatchEvent(new Event('requests:updated'));
@@ -59,6 +64,16 @@ export default function MemberRequestDetailPage() {
       setToast({ message: t('member_requests.approve_error'), type: 'error' });
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const copyActivationUrl = async () => {
+    if (!activationUrl) return;
+    try {
+      await navigator.clipboard.writeText(activationUrl);
+      setActivationCopied(true);
+    } catch {
+      setActivationCopied(false);
     }
   };
 
@@ -122,7 +137,7 @@ export default function MemberRequestDetailPage() {
                 {t(`member_requests.status_${request.status.toLowerCase()}`)}
               </span>
             </div>
-            <p className="text-sm text-gray-500 mt-0.5">{request.email}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{request.email || request.phone}</p>
           </div>
         </div>
 
@@ -154,7 +169,7 @@ export default function MemberRequestDetailPage() {
                 <div className="border-t border-gray-100" />
               </div>
               <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
-                <DetailField label={t('member_requests.col_email')} value={request.email} />
+                {request.email && <DetailField label={t('member_requests.col_email')} value={request.email} />}
                 {request.phone && <DetailField label={t('register_member.phone')} value={request.phone} />}
               </div>
             </div>
@@ -225,6 +240,28 @@ export default function MemberRequestDetailPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             {t('member_requests.reject')}
           </button>
+        </div>
+      )}
+
+      {/* Manual activation link (applicant has no email address) */}
+      {activationUrl && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-4">
+          <h3 className="text-sm font-semibold text-amber-900 mb-1">{t('member_requests.activation_link_title')}</h3>
+          <p className="text-sm text-amber-800 mb-3">{t('member_requests.activation_link_hint')}</p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              readOnly
+              value={activationUrl}
+              onFocus={(e) => e.currentTarget.select()}
+              className="flex-1 min-w-0 px-3 py-2 text-xs bg-white border border-amber-200 rounded-lg text-gray-700"
+            />
+            <button
+              onClick={copyActivationUrl}
+              className="px-4 py-2 text-sm font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition"
+            >
+              {activationCopied ? t('common.copied') : t('common.copy')}
+            </button>
+          </div>
         </div>
       )}
 

@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.mosque.crm.entity.PasswordResetToken;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.repository.PasswordResetTokenRepository;
-import com.mosque.crm.repository.UserPreferencesRepository;
 import com.mosque.crm.repository.UserRepository;
 
 @Service
@@ -26,20 +25,23 @@ public class PasswordResetService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
-    private final UserPreferencesRepository userPreferencesRepository;
+    private final MessageLanguageService messageLanguageService;
+    private final LoginIdentifierResolver loginIdentifierResolver;
 
     public PasswordResetService(
             PasswordResetTokenRepository tokenRepository,
             UserRepository userRepository,
             EmailService emailService,
             PasswordEncoder passwordEncoder,
-            UserPreferencesRepository userPreferencesRepository
+            MessageLanguageService messageLanguageService,
+            LoginIdentifierResolver loginIdentifierResolver
     ) {
         this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
-        this.userPreferencesRepository = userPreferencesRepository;
+        this.messageLanguageService = messageLanguageService;
+        this.loginIdentifierResolver = loginIdentifierResolver;
     }
 
     /**
@@ -49,7 +51,8 @@ public class PasswordResetService {
     @Transactional
     public void requestPasswordReset(String username) {
         try {
-            Optional<User> userOpt = userRepository.findByUsername(username);
+            // Accepts an email address, username or phone number in any common notation
+            Optional<User> userOpt = loginIdentifierResolver.resolve(username);
 
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
@@ -66,10 +69,7 @@ public class PasswordResetService {
 
                 // Send email (if user has email)
                 if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                    // Get user's language preference (default to "en" if not set)
-                    String language = userPreferencesRepository.findByUserId(user.getId())
-                            .map(prefs -> prefs.getLanguage())
-                            .orElse("en");
+                    String language = messageLanguageService.resolve(user.getId(), user.getOrganizationId());
                     emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), token, language);
                 } else {
                     log.warn("User {} has no email address. Password reset link: token={}", username, token);

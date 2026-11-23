@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAppName } from '@/lib/AppNameContext';
 import { useDateFormat, DATE_FORMAT_PRESETS, DEFAULT_DATE_FORMAT } from '@/lib/DateFormatContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 interface MailServerConfig {
   host: string;
@@ -24,11 +25,77 @@ interface MinioConfig {
   useSsl: boolean;
 }
 
+interface WahaSettings {
+  baseUrl: string;
+  apiKey: string;
+  session: string;
+  webhookSecret: string;
+  configured: boolean;
+  apiKeyConfigured: boolean;
+  webhookSecretConfigured: boolean;
+  webhookPath: string;
+  sessionStatus?: string;
+  coldDelayMinSeconds?: number;
+  coldDelayMaxSeconds?: number;
+  conversationDelayMinSeconds?: number;
+  conversationDelayMaxSeconds?: number;
+  typingMinSeconds?: number;
+  typingMaxSeconds?: number;
+  maxPerHour?: number;
+  maxPerDay?: number;
+  warmupStartPerDay?: number;
+  warmupStepPerDay?: number;
+  maxAttempts?: number;
+  quietHoursStart?: number;
+  quietHoursEnd?: number;
+  timezone?: string;
+  conversationWindowHours?: number;
+  defaultCountryCode?: string;
+  workerPollMillis?: number;
+  connectTimeoutMillis?: number;
+  readTimeoutMillis?: number;
+}
+
+/** Small labelled number input used by the WhatsApp safety section. */
+function NumberField({
+  label,
+  value,
+  min,
+  max,
+  suffix,
+  onChange,
+}: {
+  label: string;
+  value?: number;
+  min: number;
+  max: number;
+  suffix?: string;
+  onChange: (value?: number) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          min={min}
+          max={max}
+          value={value ?? ''}
+          onChange={(e) => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+        />
+        {suffix && <span className="shrink-0 text-xs text-gray-500">{suffix}</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const { t } = useTranslation();
+  const { isSuperAdmin } = useAuth();
   const { appName, setAppName, refreshAppName } = useAppName();
   const { setDateFormat } = useDateFormat();
-  const [activeTab, setActiveTab] = useState<'general' | 'mail' | 'document' | 'billing' | 'demo'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'mail' | 'document' | 'demo' | 'waha'>('general');
   const [config, setConfig] = useState<MailServerConfig>({
     host: '',
     username: '',
@@ -52,8 +119,6 @@ export default function SettingsPage() {
     useSsl: false,
   });
   const [showMinioSecret, setShowMinioSecret] = useState(false);
-  const [billingScheduler, setBillingScheduler] = useState({ enabled: true, cron: '0 0 2 * * *' });
-  const [runningBillingJob, setRunningBillingJob] = useState(false);
   const [superAdminSubdomain, setSuperAdminSubdomain] = useState('admin');
   const [superAdminSubdomainError, setSuperAdminSubdomainError] = useState('');
   const [dateFormatInput, setDateFormatInput] = useState(DEFAULT_DATE_FORMAT);
@@ -72,17 +137,131 @@ export default function SettingsPage() {
   } | null>(null);
   const [seedingDemo, setSeedingDemo] = useState(false);
 
+  const [wahaSettings, setWahaSettings] = useState<WahaSettings>({
+    baseUrl: '',
+    apiKey: '',
+    session: 'default',
+    webhookSecret: '',
+    configured: false,
+    apiKeyConfigured: false,
+    webhookSecretConfigured: false,
+    webhookPath: '/api/whatsapp/webhook',
+    sessionStatus: undefined,
+    coldDelayMinSeconds: 15,
+    coldDelayMaxSeconds: 45,
+    conversationDelayMinSeconds: 5,
+    conversationDelayMaxSeconds: 15,
+    typingMinSeconds: 2,
+    typingMaxSeconds: 4,
+    maxPerHour: 20,
+    maxPerDay: 100,
+    warmupStartPerDay: 20,
+    warmupStepPerDay: 20,
+    maxAttempts: 3,
+    quietHoursStart: 20,
+    quietHoursEnd: 9,
+    timezone: 'Europe/Amsterdam',
+    conversationWindowHours: 24,
+    defaultCountryCode: '31',
+  });
+  const [showWahaApiKey, setShowWahaApiKey] = useState(false);
+  const [showWahaWebhookSecret, setShowWahaWebhookSecret] = useState(false);
+  const [testingWaha, setTestingWaha] = useState(false);
+
   useEffect(() => {
     fetchMailServerConfig();
     fetchAppBaseUrl();
     fetchAppBaseDomain();
     fetchTenantFieldConfig();
     fetchMinioConfig();
-    fetchBillingSchedulerConfig();
     fetchSuperAdminSubdomain();
     fetchDateFormat();
     fetchDemoStatus();
   }, []);
+
+  useEffect(() => {
+    if (isSuperAdmin) fetchWahaSettings();
+  }, [isSuperAdmin]);
+
+  const fetchWahaSettings = async () => {
+    try {
+      const response = await fetch('/api/whatsapp/settings');
+      if (response.ok) {
+        setWahaSettings(await response.json());
+      }
+    } catch (error) {
+      console.error('Failed to fetch WAHA settings:', error);
+    }
+  };
+
+  const handleSaveWaha = async () => {
+    setLoading(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/whatsapp/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseUrl: wahaSettings.baseUrl,
+          apiKey: wahaSettings.apiKey,
+          session: wahaSettings.session,
+          webhookSecret: wahaSettings.webhookSecret,
+          coldDelayMinSeconds: wahaSettings.coldDelayMinSeconds,
+          coldDelayMaxSeconds: wahaSettings.coldDelayMaxSeconds,
+          conversationDelayMinSeconds: wahaSettings.conversationDelayMinSeconds,
+          conversationDelayMaxSeconds: wahaSettings.conversationDelayMaxSeconds,
+          typingMinSeconds: wahaSettings.typingMinSeconds,
+          typingMaxSeconds: wahaSettings.typingMaxSeconds,
+          maxPerHour: wahaSettings.maxPerHour,
+          maxPerDay: wahaSettings.maxPerDay,
+          warmupStartPerDay: wahaSettings.warmupStartPerDay,
+          warmupStepPerDay: wahaSettings.warmupStepPerDay,
+          maxAttempts: wahaSettings.maxAttempts,
+          quietHoursStart: wahaSettings.quietHoursStart,
+          quietHoursEnd: wahaSettings.quietHoursEnd,
+          timezone: wahaSettings.timezone,
+          conversationWindowHours: wahaSettings.conversationWindowHours,
+          defaultCountryCode: wahaSettings.defaultCountryCode,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok) {
+        setWahaSettings(data);
+        setMessage(t('settings.waha_saved'));
+      } else {
+        setMessage(data.error || t('settings.config_saved_error'));
+      }
+    } catch {
+      setMessage(t('settings.config_saved_error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTestWaha = async () => {
+    setTestingWaha(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/whatsapp/settings/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseUrl: wahaSettings.baseUrl,
+          apiKey: wahaSettings.apiKey,
+          session: wahaSettings.session,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      setMessage(data.message || t('settings.waha_test_failed'));
+      if (data.status) {
+        setWahaSettings(prev => ({ ...prev, sessionStatus: data.status }));
+      }
+    } catch {
+      setMessage(t('settings.waha_test_failed'));
+    } finally {
+      setTestingWaha(false);
+    }
+  };
 
   const fetchDemoStatus = async () => {
     try {
@@ -414,58 +593,6 @@ export default function SettingsPage() {
     }
   };
 
-  const fetchBillingSchedulerConfig = async () => {
-    try {
-      const response = await fetch('/api/configurations/billing-scheduler');
-      if (response.ok) {
-        const data = await response.json();
-        setBillingScheduler({ enabled: data.enabled, cron: data.cron || '0 0 2 * * *' });
-      }
-    } catch (error) {
-      console.error('Failed to fetch billing scheduler config:', error);
-    }
-  };
-
-  const handleSaveBillingScheduler = async () => {
-    setLoading(true);
-    setMessage('');
-    try {
-      const response = await fetch('/api/configurations/billing-scheduler', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(billingScheduler),
-      });
-      if (response.ok) {
-        setMessage(t('settings.config_saved_success'));
-      } else {
-        setMessage(t('settings.config_saved_error'));
-      }
-    } catch {
-      setMessage(t('settings.config_saved_error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRunBillingNow = async () => {
-    setRunningBillingJob(true);
-    setMessage('');
-    try {
-      const response = await fetch('/api/configurations/billing-scheduler/run', {
-        method: 'POST',
-      });
-      if (response.ok) {
-        setMessage(t('settings.billing_run_success'));
-      } else {
-        setMessage(t('settings.billing_run_error'));
-      }
-    } catch {
-      setMessage(t('settings.billing_run_error'));
-    } finally {
-      setRunningBillingJob(false);
-    }
-  };
-
   const handleSaveMinio = async () => {
     setLoading(true);
     setMessage('');
@@ -550,18 +677,6 @@ export default function SettingsPage() {
         </button>
         <button
           role="tab"
-          aria-selected={activeTab === 'billing'}
-          onClick={() => setActiveTab('billing')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            activeTab === 'billing'
-              ? 'bg-emerald-700 text-white'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          {t('settings.billing_scheduler')}
-        </button>
-        <button
-          role="tab"
           aria-selected={activeTab === 'demo'}
           onClick={() => setActiveTab('demo')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
@@ -572,6 +687,18 @@ export default function SettingsPage() {
         >
           {t('settings.demo_data')}
         </button>
+        {isSuperAdmin && <button
+          role="tab"
+          aria-selected={activeTab === 'waha'}
+          onClick={() => setActiveTab('waha')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            activeTab === 'waha'
+              ? 'bg-emerald-700 text-white'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          {t('settings.waha')}
+        </button>}
       </div>
 
       {/* Tenant Editable Controls Banner */}
@@ -1055,120 +1182,6 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
-      {activeTab === 'billing' && (
-        <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl">
-          <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-2">{t('settings.billing_scheduler_title')}</h2>
-          <p className="text-sm text-gray-500 mb-6">{t('settings.billing_scheduler_description')}</p>
-
-          <div className="space-y-6">
-            {/* Enable / disable toggle */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div>
-                <p className="text-sm font-medium text-gray-700">{t('settings.billing_scheduler_enabled_label')}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{t('settings.billing_scheduler_enabled_description')}</p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={billingScheduler.enabled}
-                onClick={() => setBillingScheduler(prev => ({ ...prev, enabled: !prev.enabled }))}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-                  billingScheduler.enabled ? 'bg-emerald-600' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
-                    billingScheduler.enabled ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Cron expression */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.billing_scheduler_cron_label')}</label>
-              <p className="text-xs text-gray-500 mb-2">{t('settings.billing_scheduler_cron_description')}</p>
-              <input
-                type="text"
-                value={billingScheduler.cron}
-                onChange={(e) => setBillingScheduler(prev => ({ ...prev, cron: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition font-mono text-sm"
-                placeholder="0 0 2 * * *"
-              />
-            </div>
-
-            {/* Preset shortcuts */}
-            <div>
-              <p className="text-xs font-medium text-gray-600 mb-2">{t('settings.billing_scheduler_presets')}</p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { label: t('settings.billing_preset_daily_2am'), cron: '0 0 2 * * *' },
-                  { label: t('settings.billing_preset_daily_midnight'), cron: '0 0 0 * * *' },
-                  { label: t('settings.billing_preset_weekly_monday'), cron: '0 0 2 * * MON' },
-                  { label: t('settings.billing_preset_monthly_1st'), cron: '0 0 2 1 * *' },
-                ].map(preset => (
-                  <button
-                    key={preset.cron}
-                    type="button"
-                    onClick={() => setBillingScheduler(prev => ({ ...prev, cron: preset.cron }))}
-                    className={`px-3 py-1.5 text-xs rounded-md border transition ${
-                      billingScheduler.cron === preset.cron
-                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold'
-                        : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {message && (
-              <div className={`p-4 rounded-lg ${
-                message.includes('success') || message.includes('successfully') || message.includes('succesvol')
-                  ? 'bg-emerald-50 text-emerald-700'
-                  : 'bg-red-50 text-red-700'
-              }`}>
-                {message}
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={handleSaveBillingScheduler}
-                disabled={loading || runningBillingJob}
-                className="px-6 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? t('settings.saving') : t('settings.save')}
-              </button>
-              <button
-                onClick={handleRunBillingNow}
-                disabled={loading || runningBillingJob}
-                className="px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {runningBillingJob ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                    </svg>
-                    {t('settings.billing_running')}
-                  </>
-                ) : (
-                  <>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {t('settings.billing_run_now')}
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {activeTab === 'demo' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 max-w-4xl">
           <h2 className="text-xl font-semibold text-charcoal mb-2">{t('settings.demo_title')}</h2>
@@ -1230,6 +1243,341 @@ export default function SettingsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {isSuperAdmin && activeTab === 'waha' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 max-w-3xl">
+          <h2 className="text-xl font-semibold text-charcoal mb-2">{t('settings.waha_title')}</h2>
+          <p className="text-sm text-gray-600 mb-6">{t('settings.waha_description')}</p>
+
+          {/* Connection status */}
+          <div className={`mb-6 flex flex-wrap items-center gap-3 rounded-lg p-4 text-sm ${
+            wahaSettings.sessionStatus === 'WORKING'
+              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+              : wahaSettings.sessionStatus === 'SCAN_QR_CODE' || wahaSettings.sessionStatus === 'STARTING'
+                ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                : 'bg-red-50 text-red-800 border border-red-200'
+          }`}>
+            <span className={`h-2.5 w-2.5 rounded-full ${
+              wahaSettings.sessionStatus === 'WORKING' ? 'bg-emerald-500' : 'bg-red-500'
+            }`} />
+            <span className="font-medium">
+              {wahaSettings.sessionStatus === 'WORKING'
+                ? t('settings.waha_status_working')
+                : wahaSettings.sessionStatus === 'SCAN_QR_CODE'
+                  ? t('settings.waha_status_qr')
+                  : wahaSettings.sessionStatus === 'STARTING'
+                    ? t('settings.waha_status_starting')
+                    : wahaSettings.sessionStatus === 'STOPPED'
+                      ? t('settings.waha_status_stopped')
+                      : wahaSettings.sessionStatus === 'UNREACHABLE'
+                        ? t('settings.waha_status_unreachable')
+                        : t('settings.waha_status_not_configured')}
+            </span>
+            {wahaSettings.sessionStatus && (
+              <span className="font-mono text-xs opacity-70">{wahaSettings.sessionStatus}</span>
+            )}
+          </div>
+
+          {message && activeTab === 'waha' && (
+            <div className={`mb-6 p-4 rounded-lg text-sm ${
+              message.includes(t('settings.waha_saved')) || message.startsWith('Connected')
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-red-50 text-red-700'
+            }`}>
+              {message}
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.waha_base_url')}
+              </label>
+              <input
+                type="text"
+                value={wahaSettings.baseUrl}
+                onChange={(e) => setWahaSettings({ ...wahaSettings, baseUrl: e.target.value })}
+                placeholder="http://localhost:3000"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+              <p className="mt-1 text-xs text-gray-500">{t('settings.waha_base_url_hint')}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.waha_api_key')}
+              </label>
+              <div className="relative">
+                <input
+                  type={showWahaApiKey ? 'text' : 'password'}
+                  value={wahaSettings.apiKey}
+                  onChange={(e) => setWahaSettings({ ...wahaSettings, apiKey: e.target.value })}
+                  placeholder={t('settings.waha_api_key_placeholder')}
+                  className="w-full px-4 py-2.5 pr-16 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowWahaApiKey(!showWahaApiKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-emerald-700"
+                >
+                  {showWahaApiKey ? t('settings.hide') : t('settings.show')}
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">{t('settings.waha_api_key_hint')}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.waha_session')}
+              </label>
+              <input
+                type="text"
+                value={wahaSettings.session}
+                onChange={(e) => setWahaSettings({ ...wahaSettings, session: e.target.value })}
+                placeholder="default"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+              <p className="mt-1 text-xs text-gray-500">{t('settings.waha_session_hint')}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.waha_webhook_secret')}
+              </label>
+              <div className="relative">
+                <input
+                  type={showWahaWebhookSecret ? 'text' : 'password'}
+                  value={wahaSettings.webhookSecret}
+                  onChange={(e) => setWahaSettings({ ...wahaSettings, webhookSecret: e.target.value })}
+                  placeholder={t('settings.waha_webhook_secret_placeholder')}
+                  className="w-full px-4 py-2.5 pr-16 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowWahaWebhookSecret(!showWahaWebhookSecret)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-emerald-700"
+                >
+                  {showWahaWebhookSecret ? t('settings.hide') : t('settings.show')}
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">{t('settings.waha_webhook_secret_hint')}</p>
+              {typeof window !== 'undefined' && (
+                <p className="mt-2 break-all rounded-lg bg-gray-50 p-2 font-mono text-xs text-gray-600">
+                  {`${window.location.origin}${wahaSettings.webhookPath}?token=`}
+                  <span className="text-gray-400">
+                    {wahaSettings.webhookSecretConfigured ? t('settings.waha_webhook_secret_set') : '<secret>'}
+                  </span>
+                </p>
+              )}
+            </div>
+
+            {/* ─── Sending safety ─── */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-base font-semibold text-charcoal mb-1">{t('settings.waha_safety_title')}</h3>
+              <p className="mb-4 text-xs text-gray-500">{t('settings.waha_safety_description')}</p>
+
+              <div className="space-y-5">
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t('settings.waha_section_delays')}
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <NumberField
+                      label={t('settings.waha_cold_delay_min')}
+                      value={wahaSettings.coldDelayMinSeconds}
+                      min={1}
+                      max={600}
+                      suffix={t('settings.waha_seconds')}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, coldDelayMinSeconds: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_cold_delay_max')}
+                      value={wahaSettings.coldDelayMaxSeconds}
+                      min={1}
+                      max={600}
+                      suffix={t('settings.waha_seconds')}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, coldDelayMaxSeconds: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_conversation_delay_min')}
+                      value={wahaSettings.conversationDelayMinSeconds}
+                      min={1}
+                      max={600}
+                      suffix={t('settings.waha_seconds')}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, conversationDelayMinSeconds: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_conversation_delay_max')}
+                      value={wahaSettings.conversationDelayMaxSeconds}
+                      min={1}
+                      max={600}
+                      suffix={t('settings.waha_seconds')}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, conversationDelayMaxSeconds: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_typing_min')}
+                      value={wahaSettings.typingMinSeconds}
+                      min={0}
+                      max={60}
+                      suffix={t('settings.waha_seconds')}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, typingMinSeconds: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_typing_max')}
+                      value={wahaSettings.typingMaxSeconds}
+                      min={0}
+                      max={60}
+                      suffix={t('settings.waha_seconds')}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, typingMaxSeconds: value })}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">{t('settings.waha_delays_hint')}</p>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t('settings.waha_section_caps')}
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <NumberField
+                      label={t('settings.waha_max_per_hour')}
+                      value={wahaSettings.maxPerHour}
+                      min={1}
+                      max={1000}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, maxPerHour: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_max_per_day')}
+                      value={wahaSettings.maxPerDay}
+                      min={1}
+                      max={10000}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, maxPerDay: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_warmup_start')}
+                      value={wahaSettings.warmupStartPerDay}
+                      min={1}
+                      max={10000}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, warmupStartPerDay: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_warmup_step')}
+                      value={wahaSettings.warmupStepPerDay}
+                      min={0}
+                      max={10000}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, warmupStepPerDay: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_max_attempts')}
+                      value={wahaSettings.maxAttempts}
+                      min={1}
+                      max={10}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, maxAttempts: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_conversation_window')}
+                      value={wahaSettings.conversationWindowHours}
+                      min={0}
+                      max={720}
+                      suffix={t('settings.waha_hours')}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, conversationWindowHours: value })}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">{t('settings.waha_caps_hint')}</p>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t('settings.waha_section_quiet')}
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <NumberField
+                      label={t('settings.waha_quiet_start')}
+                      value={wahaSettings.quietHoursStart}
+                      min={0}
+                      max={23}
+                      suffix={t('settings.waha_hour')}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, quietHoursStart: value })}
+                    />
+                    <NumberField
+                      label={t('settings.waha_quiet_end')}
+                      value={wahaSettings.quietHoursEnd}
+                      min={0}
+                      max={23}
+                      suffix={t('settings.waha_hour')}
+                      onChange={(value) => setWahaSettings({ ...wahaSettings, quietHoursEnd: value })}
+                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('settings.waha_timezone')}
+                      </label>
+                      <input
+                        type="text"
+                        value={wahaSettings.timezone ?? ''}
+                        onChange={(e) => setWahaSettings({ ...wahaSettings, timezone: e.target.value })}
+                        placeholder="Europe/Amsterdam"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">{t('settings.waha_quiet_hint')}</p>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('settings.waha_country_code')}
+                    </label>
+                    <input
+                      type="text"
+                      value={wahaSettings.defaultCountryCode ?? ''}
+                      onChange={(e) => setWahaSettings({ ...wahaSettings, defaultCountryCode: e.target.value })}
+                      placeholder="31"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">{t('settings.waha_country_code_hint')}</p>
+                  </div>
+                </div>
+
+                {/* Deployment-only values: shown for transparency, read-only (restart-bound) */}
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t('settings.waha_section_transport')}
+                  </p>
+                  <dl className="grid gap-2 text-xs text-gray-600 sm:grid-cols-2">
+                    <div>
+                      <dt className="font-medium text-gray-700">{t('settings.waha_connect_timeout')}</dt>
+                      <dd>{wahaSettings.connectTimeoutMillis ?? '—'} ms</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-gray-700">{t('settings.waha_read_timeout')}</dt>
+                      <dd>{wahaSettings.readTimeoutMillis ?? '—'} ms</dd>
+                    </div>
+                  </dl>
+                  <p className="mt-2 text-xs text-gray-500">{t('settings.waha_transport_hint')}</p>
+                  <p className="mt-1 text-xs text-gray-500">{t('settings.waha_worker_poll_moved')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleSaveWaha}
+                disabled={loading}
+                className="px-6 py-2.5 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition disabled:opacity-50"
+              >
+                {loading ? t('common.saving') : t('common.save')}
+              </button>
+              <button
+                onClick={handleTestWaha}
+                disabled={testingWaha}
+                className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                {testingWaha ? t('settings.waha_testing') : t('settings.waha_test')}
+              </button>
+            </div>
           </div>
         </div>
       )}

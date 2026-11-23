@@ -28,6 +28,13 @@ public interface PersonRepository extends JpaRepository<Person, Long>, JpaSpecif
 	List<Person> findByPhoneAndOrganizationId(
 			@Param("phone") String phone, @Param("organizationId") Long organizationId);
 
+	/**
+	 * Match a phone number stored in any common notation. Used by the WhatsApp webhook to
+	 * attribute an inbound reply to an organisation (best effort, not used for sending).
+	 */
+	@Query("SELECT p FROM Person p WHERE p.phone IN :candidates")
+	List<Person> findByPhoneCandidates(@Param("candidates") java.util.Collection<String> candidates);
+
 	@Query("SELECT p FROM Person p WHERE p.organizationId = :organizationId "
 			+ "AND LOWER(p.firstName) = LOWER(:firstName) "
 			+ "AND LOWER(p.lastName) = LOWER(:lastName)")

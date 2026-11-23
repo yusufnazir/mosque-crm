@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        Platform-level scheduler registry. One row per code-defined job (the code is the
+        source of truth for what exists; this table stores runtime state and settings).
+        No organization_id: schedulers are managed by the platform admin and work across tenants.
+    -->
+    <changeSet id="b1000005-0198-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="scheduler_job_configs"/></not>
+        </preConditions>
+        <comment>Scheduler runtime: enable/disable, trigger (cron or fixed delay) and last-run info per job</comment>
+        <createTable tableName="scheduler_job_configs">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="job_key" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_scheduler_job_key"/>
+            </column>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trigger_type" type="VARCHAR(20)" defaultValue="CRON">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cron_expression" type="VARCHAR(100)"/>
+            <column name="fixed_delay_seconds" type="INT"/>
+            <column name="timezone" type="VARCHAR(64)" defaultValue="Europe/Amsterdam">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_run_at" type="TIMESTAMP"/>
+            <column name="last_status" type="VARCHAR(20)"/>
+            <column name="last_duration_ms" type="BIGINT"/>
+            <column name="last_error" type="VARCHAR(1000)"/>
+            <column name="updated_by" type="VARCHAR(100)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

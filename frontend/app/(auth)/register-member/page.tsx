@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
 import DateInput from '@/components/DateInput';
 import TermsContentRenderer from '@/components/TermsContentRenderer';
+import CountrySelectWithFlags from '@/components/CountrySelectWithFlags';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import type { Country, Labels } from 'react-phone-number-input';
+import phoneLabelsEn from 'react-phone-number-input/locale/en.json';
+import phoneLabelsNl from 'react-phone-number-input/locale/nl.json';
 import { joinRequestApi, JoinRequestCreateDTO } from '@/lib/joinRequestApi';
 import { membershipTermsApi, MembershipTermsVersionDTO } from '@/lib/membershipTermsApi';
 import { countryApi, CountryDTO } from '@/lib/countryApi';
@@ -85,6 +90,28 @@ function RegisterMemberContent() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Country names for the phone selector: the library's built-in translations,
+  // overlaid with the localized names from our own countries table when available.
+  const phoneLabels = useMemo<Labels>(() => {
+    const labels: Record<string, string> = {
+      ...(language === 'nl' ? phoneLabelsNl : phoneLabelsEn),
+      country: t('register_member.country_select'),
+      phone: t('register_member.phone'),
+      ZZ: t('register_member.country_select'),
+    };
+    countries.forEach((country) => {
+      labels[country.isoCode] = country.name;
+    });
+    return labels as Labels;
+  }, [countries, language, t]);
+
+  // Preselect the dial code from the address country the applicant picked
+  const defaultPhoneCountry = useMemo<Country | undefined>(() => {
+    if (!form.country) return undefined;
+    const match = countries.find((country) => country.name === form.country);
+    return match ? (match.isoCode as Country) : undefined;
+  }, [form.country, countries]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -94,10 +121,24 @@ function RegisterMemberContent() {
       return;
     }
 
+    const phone = form.phone?.trim() ? form.phone : '';
+    const email = form.email?.trim() ? form.email.trim() : '';
+
+    // The phone number doubles as the login when no email is given
+    if (phone && !isValidPhoneNumber(phone)) {
+      setError(t('register_member.phone_invalid'));
+      return;
+    }
+
+    if (!email && !phone) {
+      setError(t('register_member.contact_required'));
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await joinRequestApi.apply({ orgHandle, ...form, acceptedTermsVersionId: terms?.id });
+      await joinRequestApi.apply({ orgHandle, ...form, email, phone, acceptedTermsVersionId: terms?.id });
       setSubmitted(true);
     } catch (err) {
       const rawMessage = err instanceof Error ? err.message : '';
@@ -113,7 +154,9 @@ function RegisterMemberContent() {
       }
 
       const normalized = backendMessage.toLowerCase();
-      if (normalized.includes('already has a registration request')) {
+      if (normalized.includes('either an email address or a phone number')) {
+        setError(t('register_member.contact_required'));
+      } else if (normalized.includes('already has a registration request')) {
         setError(t('register_member.error_email_pending'));
       } else if (normalized.includes('already registered in this organization')) {
         setError(t('register_member.error_email_registered'));
@@ -139,7 +182,11 @@ function RegisterMemberContent() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-charcoal mb-2">{t('register_member.success_title')}</h2>
-          <p className="text-gray-600">{t('register_member.success_message')}</p>
+          <p className="text-gray-600">
+            {form.email?.trim()
+              ? t('register_member.success_message')
+              : t('register_member.success_message_no_email')}
+          </p>
         </div>
       </div>
     );
@@ -191,21 +238,21 @@ function RegisterMemberContent() {
               </div>
             </div>
 
-            {/* Email */}
+            {/* Email (optional) */}
             <div>
               <label className="block text-sm font-medium text-charcoal mb-1">
-                {t('register_member.email')} <span className="text-red-500">*</span>
+                {t('register_member.email')}
               </label>
               <input
                 type="email"
                 name="email"
-                value={form.email}
+                value={form.email ?? ''}
                 onChange={handleChange}
-                required
                 readOnly={!!searchParams.get('email')}
                 className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${searchParams.get('email') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                 placeholder={t('register_member.email_placeholder')}
               />
+              <p className="mt-1 text-xs text-gray-500">{t('register_member.email_hint')}</p>
             </div>
 
             {/* Phone + Gender */}
@@ -214,14 +261,22 @@ function RegisterMemberContent() {
                 <label className="block text-sm font-medium text-charcoal mb-1">
                   {t('register_member.phone')}
                 </label>
-                <input
-                  type="tel"
+                <PhoneInput
+                  international
                   name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                  value={form.phone || undefined}
+                  onChange={(value) => setForm((prev) => ({ ...prev, phone: value ?? '' }))}
+                  defaultCountry={defaultPhoneCountry}
+                  labels={phoneLabels}
+                  countrySelectComponent={CountrySelectWithFlags}
+                  countrySelectProps={{
+                    searchPlaceholder: t('register_member.phone_country_search'),
+                    noResultsLabel: t('register_member.phone_country_empty'),
+                  }}
                   placeholder={t('register_member.phone_placeholder')}
+                  className="phone-field w-full px-4 py-2.5 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent transition"
                 />
+                <p className="mt-1 text-xs text-gray-500">{t('register_member.phone_hint')}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-charcoal mb-1">

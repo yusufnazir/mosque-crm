@@ -367,8 +367,9 @@ export const authApi = {
 
 // User Preferences API
 export const preferencesApi = {
-  get: () => ApiClient.get('/me/preferences'),
-  updateLanguage: (language: string) => ApiClient.put('/me/preferences/language', { language }),
+  get: () => ApiClient.get<{ language: 'en' | 'nl'; preferredLanguage: 'en' | 'nl' | null }>('/me/preferences'),
+  updateLanguage: (language: 'en' | 'nl' | null) =>
+    ApiClient.put('/me/preferences/language', { language }),
 };
 
 // Member API (backed by person+membership domain)

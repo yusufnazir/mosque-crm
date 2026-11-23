@@ -66,4 +66,19 @@
     <!-- Backfill edit_token so existing general-event registrations have a manage link -->
     <include file="db/changelog/changes/dml/227-data-general-event-registration-tokens.xml"/>
 
+    <!-- WhatsApp (WAHA) permissions: whatsapp.view (79) and whatsapp.manage (80) -->
+    <include file="db/changelog/changes/dml/228-data-whatsapp-permissions.xml"/>
+
+    <!-- Platform scheduler permissions: scheduler.view (81) and scheduler.manage (82) -->
+    <include file="db/changelog/changes/dml/229-data-scheduler-permissions.xml"/>
+
+    <!-- One-time Suriname contact phone backfill -->
+    <include file="db/changelog/changes/dml/230-backfill-persons-phone-country-code.xml"/>
+    <include file="db/changelog/changes/dml/231-backfill-organizations-phone-country-code.xml"/>
+    <include file="db/changelog/changes/dml/232-backfill-businesses-phone-country-code.xml"/>
+    <include file="db/changelog/changes/dml/233-backfill-join-requests-phone-country-code.xml"/>
+    <include file="db/changelog/changes/dml/234-backfill-org-event-recipients-phone-country-code.xml"/>
+    <include file="db/changelog/changes/dml/235-backfill-non-member-recipients-phone-country-code.xml"/>
+    <include file="db/changelog/changes/dml/236-backfill-general-event-registrations-phone-country-code.xml"/>
+    <include file="db/changelog/changes/dml/237-backfill-distribution-registrations-phone-country-code.xml"/>
 </databaseChangeLog>

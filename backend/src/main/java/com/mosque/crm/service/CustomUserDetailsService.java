@@ -2,7 +2,6 @@ package com.mosque.crm.service;
 
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,17 +9,20 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.mosque.crm.entity.User;
-import com.mosque.crm.repository.UserRepository;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final LoginIdentifierResolver loginIdentifierResolver;
+
+    public CustomUserDetailsService(LoginIdentifierResolver loginIdentifierResolver) {
+        this.loginIdentifierResolver = loginIdentifierResolver;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        // Accepts the stored username as well as phone numbers typed with or without "+"
+        User user = loginIdentifierResolver.resolve(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
         return org.springframework.security.core.userdetails.User.builder()

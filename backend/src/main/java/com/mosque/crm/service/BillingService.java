@@ -51,7 +51,7 @@ public class BillingService {
     }
 
     // -------------------------------------------------------------------------
-    // Billing job — scheduled via BillingSchedulerConfig (configurable cron)
+    // Billing job — scheduled via the platform Schedulers view (job key 'billing.daily')
     // -------------------------------------------------------------------------
 
     @Transactional

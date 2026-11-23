@@ -21,6 +21,8 @@ public interface JoinRequestRepository extends JpaRepository<JoinRequest, Long> 
 
     boolean existsByEmailIgnoreCaseAndOrganizationId(String email, Long organizationId);
 
+    boolean existsByPhoneAndOrganizationId(String phone, Long organizationId);
+
     long countByStatus(String status);
 
     /**

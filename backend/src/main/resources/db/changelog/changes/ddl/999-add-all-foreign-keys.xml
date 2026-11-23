@@ -1357,4 +1357,19 @@
             referencedTableName="users" referencedColumnNames="id"/>
     </changeSet>
 
+    <changeSet id="b1000099-9990-0000-0000-000000000016" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="whatsapp_outbound_messages"/>
+            <tableExists tableName="organizations"/>
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_wa_out_org"/>
+            </not>
+        </preConditions>
+        <comment>Foreign key for the WhatsApp outbound queue</comment>
+        <addForeignKeyConstraint constraintName="fk_wa_out_org"
+            baseTableName="whatsapp_outbound_messages" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -32,4 +32,8 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="5e535781-0964-4db4-b4b2-f26c9ad0e046" author="mosque-crm">
+        <dropNotNullConstraint tableName="user_preferences" columnName="language" columnDataType="VARCHAR(10)"/>
+        <dropDefaultValue tableName="user_preferences" columnName="language" columnDataType="VARCHAR(10)"/>
+    </changeSet>
 </databaseChangeLog>
