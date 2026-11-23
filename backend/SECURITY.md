@@ -65,6 +65,7 @@ Stores user authentication credentials and account status.
 | username            | VARCHAR(50)  | Unique login identifier               |
 | password            | VARCHAR(255) | BCrypt hashed password                |
 | email               | VARCHAR(100) | User email (optional)                 |
+| phone               | VARCHAR(16)  | Unique international account phone (optional) |
 | account_enabled     | BOOLEAN      | Whether account is active             |
 | account_locked      | BOOLEAN      | Whether account is locked             |
 | credentials_expired | BOOLEAN      | Whether password needs reset          |
@@ -113,6 +114,33 @@ Many-to-many relationship between users and roles.
 - An admin wants to associate a staff member with their member profile
 - Member registration creates both user account and member profile simultaneously
 
+## Email and phone login
+
+Users can sign in with their existing username, account email (case-insensitive),
+or account phone. Account phones are stored in compact E.164 form with a country
+code. Login also accepts formatted international numbers, bare country-code
+digits, `00` prefixes and unambiguous national-number suffixes. Email and phone
+aliases must identify exactly one account; ambiguous aliases fail authentication.
+Existing exact usernames take precedence and remain the JWT subject, so username
+and password logins and existing tokens keep working. Account-enabled/locked and
+password checks are unchanged.
+
+Account contacts can be edited in **Account**, including for administrators
+without member profiles. **Users** also supports adding/editing account phones.
+`PUT /users/me/contacts` replaces the current user's email and phone; blanks clear
+optional contacts. The legacy `/users/me/email` endpoint remains available.
+Contact writes reject another account's username/email/phone globally, rather
+than only within the selected organization. Phones also have a database unique
+constraint. Account contacts do not automatically track subsequent member edits.
+
+New member-linked accounts copy a usable international member phone if it is
+available. Shared/invalid optional member phones are skipped with a warning;
+an existing account phone is never overwritten. The one-time 239 DML migration
+copies unambiguous international phones to existing accounts without changing
+usernames, passwords, links or member data. Conflicts/invalid phones are logged
+for manual review. Password-reset identifiers use the same resolver; this does
+not add SMS or WhatsApp password-reset delivery.
+
 ## Language preferences
 
 Organization settings provide an English or Dutch default for automatic messages.
@@ -121,6 +149,52 @@ saved choice takes precedence; users without a choice inherit the receiving
 organization's language, falling back to English. Existing saved preferences
 are preserved. The same preference controls the interface language. Messages
 written manually by an administrator are not translated automatically.
+
+## Bulk member account creation
+
+The **Member Accounts** sidebar entry opens the dedicated `/member-accounts`
+screen for tenant ADMIN and platform SUPER_ADMIN users. The Members page also
+links to it through **Create member accounts**. Both must work in a selected/current organization; there is
+no all-organizations operation. `member_account.view` controls preview access
+and `member_account.manage` controls creation. New permissions 83/84 are seeded
+for existing ADMIN roles and future ADMIN templates. Central SecurityConfig also
+limits `/admin/members/accounts` and descendants to ADMIN/SUPER_ADMIN.
+
+Administrators can select members or process all eligible members of the current
+organization. Only active, non-deceased persons without any user link qualify.
+Usable email is preferred as the lowercased username; otherwise an international
+phone number is used. Email usernames must fit the existing 50-character column.
+Missing/invalid contacts and contacts already associated with an account are
+skipped; existing accounts are never linked, replaced, enabled or modified.
+Only the MEMBER role is assigned, subject to normal role-governance checks and
+the organization's existing user-count subscription limit.
+
+Preview: `GET /admin/members/accounts/candidates`.
+The preview uses a scalar member/link projection and a batched global
+username/email projection, then evaluates conflicts in memory. It does not load
+User roles or perform account/link/login lookups for each member. Global contact
+data stays internal and is used only to flag conflicts for the current organization.
+Phone suffix matching preserves the login resolver's unique-match rule.
+The screen supports multiple account eligibility/result statuses and name/username
+search filters, rendering 50 rows per page. Statuses match using OR; no selected
+statuses means all statuses. **All eligible** covers matching members
+across all pages, not just the current page. Selections are retained across pages
+and filter changes; **Create selected** includes all selected members, even hidden ones.
+Creation: `POST /admin/members/accounts` with `{"personIds":[123,124]}` (1-10 IDs).
+Every creation rechecks organization, eligibility and authorization. Each account,
+member link and 72-hour password-setup token commits in a separate transaction
+before notifying the member. Organization/person locks serialize bulk creation
+and retries cannot create a second linked account.
+
+The UI processes one member per sequential request with confirmation, progress
+and per-member results. Keep the page open until completion; leaving the page
+stops future requests but does not undo completed accounts. Notifications reuse
+the localized welcome flow: email acceptance first, WhatsApp fallback through
+the existing queue, opt-outs and rate limits. Acceptance/queueing does not prove
+final delivery. Notification failure is shown separately from account creation;
+the existing activation-link log supports manual sharing. Database failures
+are logged and returned per member rather than reported as successful creation.
+No accounts or messages are created by deploying this feature alone.
 
 ## Entity Classes
 

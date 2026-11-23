@@ -3,6 +3,7 @@ package com.mosque.crm.dto;
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
 public class CreateUserRequest {
@@ -16,7 +17,11 @@ public class CreateUserRequest {
     private String password;
 
     @Size(max = 100, message = "Email must not exceed 100 characters")
+    @Email
     private String email;
+
+    @Size(max = 50)
+    private String phone;
 
     private Long organizationId;
 
@@ -48,6 +53,14 @@ public class CreateUserRequest {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public Long getOrganizationId() {

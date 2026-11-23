@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Accepts the stored username as well as phone numbers typed with or without "+"
+        // Aliases resolve to the stored username so JWT subjects remain unchanged.
         User user = loginIdentifierResolver.resolve(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 

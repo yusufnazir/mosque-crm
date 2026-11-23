@@ -402,7 +402,35 @@ export interface MemberFilterCriteria {
   joinedTo?: string;   // ISO date YYYY-MM-DD
 }
 
+export type MemberAccountStatus =
+  | 'ELIGIBLE_EMAIL' | 'ELIGIBLE_WHATSAPP' | 'ALREADY_HAS_ACCOUNT' | 'INACTIVE'
+  | 'NO_VALID_CONTACT' | 'CONTACT_IN_USE' | 'NOT_FOUND'
+  | 'CREATED_EMAIL' | 'CREATED_WHATSAPP' | 'CREATED_NO_NOTIFICATION'
+  | 'PLAN_LIMIT_REACHED' | 'FAILED';
+
+export interface MemberAccountResult {
+  personId: number;
+  name: string | null;
+  username: string | null;
+  status: MemberAccountStatus;
+}
+
+function requireMemberAccountResults(
+  result: MemberAccountResult[] | PlanRestriction | SubscriptionInactive,
+): MemberAccountResult[] {
+  if (isPlanRestriction(result) || isSubscriptionInactive(result)) {
+    throw new Error(result.message);
+  }
+  return result;
+}
+
 export const memberApi = {
+  getAccountCandidates: () =>
+    ApiClient.get<MemberAccountResult[] | PlanRestriction | SubscriptionInactive>('/admin/members/accounts/candidates')
+      .then(requireMemberAccountResults),
+  createAccounts: (personIds: number[]) =>
+    ApiClient.post<MemberAccountResult[] | PlanRestriction | SubscriptionInactive>('/admin/members/accounts', { personIds })
+      .then(requireMemberAccountResults),
   getAll: (queryParams?: string) => {
     const url = queryParams ? `/persons?${queryParams}` : '/persons';
     return ApiClient.get(url);

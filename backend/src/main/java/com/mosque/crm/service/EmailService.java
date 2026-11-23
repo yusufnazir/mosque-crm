@@ -161,11 +161,12 @@ public class EmailService {
 
     /**
      * Send welcome email to a newly created user account with a password setup link
+     * @return true only when the mail service accepted the message, not proof of delivery
      */
-    public void sendWelcomeEmail(String toEmail, String firstName, String username, String appName, String setupToken, String locale) {
+    public boolean sendWelcomeEmail(String toEmail, String firstName, String username, String appName, String setupToken, String locale) {
         if (toEmail == null || toEmail.isEmpty()) {
             log.warn("Cannot send welcome email: no email address provided.");
-            return;
+            return false;
         }
 
         // Get mail server configuration
@@ -185,7 +186,7 @@ public class EmailService {
             log.info("App: {}", appName);
             log.info("Password Setup URL: {}", setupUrl);
             log.info("=============================================================");
-            return;
+            return false;
         }
 
         // Prepare email content
@@ -220,6 +221,7 @@ public class EmailService {
             HttpStatus status = (HttpStatus) response.getStatusCode();
             if (status.is2xxSuccessful()) {
                 log.info("Welcome email sent successfully to: {}", toEmail);
+                return true;
             } else {
                 log.error("Failed to send welcome email. Status: {}", status);
                 fallbackWelcomeLog(toEmail, emailSubject, emailBody, setupUrl);
@@ -228,6 +230,7 @@ public class EmailService {
             log.error("Error sending welcome email to {}: {}", toEmail, e.getMessage());
             fallbackWelcomeLog(toEmail, emailSubject, emailBody, setupUrl);
         }
+        return false;
     }
 
     private String getWelcomeSubject(String locale, String appName) {

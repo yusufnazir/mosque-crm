@@ -46,6 +46,9 @@ public class User implements OrganizationAware {
     @Column(length = 100)
     private String email;
 
+    @Column(length = 16, unique = true)
+    private String phone;
+
     @Column(name = "account_enabled", nullable = false)
     private boolean accountEnabled = true;
 
@@ -136,6 +139,14 @@ public class User implements OrganizationAware {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public boolean isAccountEnabled() {

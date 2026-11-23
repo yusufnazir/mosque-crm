@@ -56,6 +56,7 @@ public class JoinRequestService {
     private final MembershipTermsVersionRepository membershipTermsVersionRepository;
     private final AccountActivationNotifier accountActivationNotifier;
     private final MessageLanguageService messageLanguageService;
+    private final UserContactService userContacts;
 
     public JoinRequestService(
             JoinRequestRepository joinRequestRepository,
@@ -70,7 +71,8 @@ public class JoinRequestService {
             ConfigurationService configurationService,
             MembershipTermsVersionRepository membershipTermsVersionRepository,
             AccountActivationNotifier accountActivationNotifier,
-            MessageLanguageService messageLanguageService) {
+            MessageLanguageService messageLanguageService,
+            UserContactService userContacts) {
         this.joinRequestRepository = joinRequestRepository;
         this.organizationRepository = organizationRepository;
         this.personRepository = personRepository;
@@ -84,6 +86,7 @@ public class JoinRequestService {
         this.membershipTermsVersionRepository = membershipTermsVersionRepository;
         this.accountActivationNotifier = accountActivationNotifier;
         this.messageLanguageService = messageLanguageService;
+        this.userContacts = userContacts;
     }
 
     /**
@@ -373,7 +376,7 @@ public class JoinRequestService {
 
         User user = new User();
         user.setUsername(username);
-        user.setEmail(request.getEmail());
+        userContacts.initializeMemberContacts(user, request.getEmail(), request.getPhone());
         user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
         user.setMustChangePassword(true);
         user.setAccountEnabled(true);
@@ -491,7 +494,7 @@ public class JoinRequestService {
         if (user == null) {
             user = new User();
             user.setUsername(username);
-            user.setEmail(request.getEmail());
+            userContacts.initializeMemberContacts(user, request.getEmail(), request.getPhone());
             user.setPassword(passwordEncoder.encode(password));
             user.setAccountEnabled(true);
             user.setOrganizationId(org.getId());

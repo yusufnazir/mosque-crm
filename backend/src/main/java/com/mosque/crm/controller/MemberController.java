@@ -2,7 +2,6 @@ package com.mosque.crm.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mosque.crm.dto.MemberDTO;
+import com.mosque.crm.dto.BulkMemberAccountRequest;
+import com.mosque.crm.dto.MemberAccountResultDTO;
+import com.mosque.crm.service.BulkMemberAccountService;
 import com.mosque.crm.service.MemberService;
 
 import jakarta.validation.Valid;
@@ -24,8 +26,24 @@ import jakarta.validation.Valid;
 @RequestMapping("/admin/members")
 public class MemberController {
 
-    @Autowired
-    private MemberService memberService;
+    private final MemberService memberService;
+    private final BulkMemberAccountService bulkMemberAccountService;
+
+    public MemberController(MemberService memberService, BulkMemberAccountService bulkMemberAccountService) {
+        this.memberService = memberService;
+        this.bulkMemberAccountService = bulkMemberAccountService;
+    }
+
+    @GetMapping("/accounts/candidates")
+    public ResponseEntity<List<MemberAccountResultDTO>> accountCandidates() {
+        return ResponseEntity.ok(bulkMemberAccountService.candidates());
+    }
+
+    @PostMapping("/accounts")
+    public ResponseEntity<List<MemberAccountResultDTO>> createAccounts(
+            @Valid @RequestBody BulkMemberAccountRequest request) {
+        return ResponseEntity.ok(bulkMemberAccountService.create(request.getPersonIds()));
+    }
 
     @GetMapping
     public ResponseEntity<List<MemberDTO>> getAllMembers() {

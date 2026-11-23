@@ -4,6 +4,7 @@ export interface UserDTO {
   id: number;
   username: string;
   email: string | null;
+  phone: string | null;
   accountEnabled: boolean;
   accountLocked: boolean;
   createdAt: string;
@@ -20,12 +21,14 @@ export interface CreateUserRequest {
   username: string;
   password: string;
   email?: string;
+  phone?: string;
   organizationId?: number | null;
   roles?: string[];
 }
 
 export interface UpdateUserRequest {
   email?: string;
+  phone?: string;
   password?: string;
   accountEnabled?: boolean;
   accountLocked?: boolean;

@@ -81,4 +81,6 @@
     <include file="db/changelog/changes/dml/235-backfill-non-member-recipients-phone-country-code.xml"/>
     <include file="db/changelog/changes/dml/236-backfill-general-event-registrations-phone-country-code.xml"/>
     <include file="db/changelog/changes/dml/237-backfill-distribution-registrations-phone-country-code.xml"/>
+    <include file="db/changelog/changes/dml/238-backfill-member-account-admin-permissions.xml"/>
+    <include file="db/changelog/changes/dml/239-backfill-user-phones.xml"/>
 </databaseChangeLog>

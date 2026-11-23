@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { memberApi, PageResponse, MemberFilterCriteria } from '@/lib/api';
 import FilterPanel from '@/components/FilterPanel';
@@ -12,6 +13,7 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { joinRequestApi } from '@/lib/joinRequestApi';
 import ToastNotification from '@/components/ToastNotification';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -46,6 +48,9 @@ export default function MembersPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { getLimit } = useSubscription();
+  const { user, can, isSuperAdmin } = useAuth();
+  const canCreateAccounts = (isSuperAdmin || user?.roles.includes('ADMIN'))
+    && can('member_account.view') && can('member_account.manage');
   const membersLimit = getLimit('members.max');
 
   // Pagination state
@@ -197,6 +202,12 @@ export default function MembersPage() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {canCreateAccounts && (
+            <Link href="/member-accounts"
+              className="px-4 py-2 border border-emerald-700 text-emerald-700 rounded-lg text-sm font-medium disabled:opacity-50">
+              {t('members.bulk_accounts.title')}
+            </Link>
+          )}
           <button
             onClick={() => { setInviteEmail(''); setShowInviteModal(true); }}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition text-sm font-medium"

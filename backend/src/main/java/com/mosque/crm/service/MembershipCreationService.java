@@ -40,6 +40,7 @@ public class MembershipCreationService {
     private final IndividualRepository individualRepository;
     private final GedcomPersonLinkRepository gedcomPersonLinkRepository;
     private final UserMemberLinkRepository userMemberLinkRepository;
+    private final UserContactService userContacts;
 
     public MembershipCreationService(PersonRepository personRepository,
                                      MembershipRepository membershipRepository,
@@ -48,7 +49,8 @@ public class MembershipCreationService {
                                      PasswordEncoder passwordEncoder,
                                      IndividualRepository individualRepository,
                                      GedcomPersonLinkRepository gedcomPersonLinkRepository,
-                                     UserMemberLinkRepository userMemberLinkRepository) {
+                                     UserMemberLinkRepository userMemberLinkRepository,
+                                     UserContactService userContacts) {
         this.personRepository = personRepository;
         this.membershipRepository = membershipRepository;
         this.userRepository = userRepository;
@@ -57,6 +59,7 @@ public class MembershipCreationService {
         this.individualRepository = individualRepository;
         this.gedcomPersonLinkRepository = gedcomPersonLinkRepository;
         this.userMemberLinkRepository = userMemberLinkRepository;
+        this.userContacts = userContacts;
     }
 
     @Transactional
@@ -107,7 +110,7 @@ public class MembershipCreationService {
             if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
                 user.setPassword(passwordEncoder.encode(dto.getPassword()));
             }
-            user.setEmail(dto.getEmail());
+            userContacts.initializeMemberContacts(user, dto.getEmail(), dto.getPhone());
             user.setAccountEnabled(true);
             // Assign role
             String roleName = dto.getRole() != null ? dto.getRole() : "MEMBER";
@@ -177,7 +180,7 @@ public class MembershipCreationService {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setEmail(dto.getEmail());
+        userContacts.initializeMemberContacts(user, dto.getEmail(), dto.getPhone());
         user.setAccountEnabled(true);
 
         String roleName = dto.getRole() != null ? dto.getRole() : "MEMBER";
@@ -267,7 +270,7 @@ public class MembershipCreationService {
             if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
                 user.setPassword(passwordEncoder.encode(dto.getPassword()));
             }
-            user.setEmail(dto.getEmail());
+            userContacts.initializeMemberContacts(user, dto.getEmail(), dto.getPhone());
             user.setAccountEnabled(true);
             // Assign role
             String roleName = dto.getRole() != null ? dto.getRole() : "MEMBER";

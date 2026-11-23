@@ -13,6 +13,19 @@ Both use **UUID-based changeset IDs** for consistency and to enable updates.
 
 ## Folder Organization Rule
 
+### One-time account phone initialization
+
+DDL 199 adds nullable `users.phone` with a global unique constraint. DML 239
+uses `DataBackfillUserPhones` to copy valid international phones from linked
+members (or an existing international phone username). Existing account phones
+are preserved. Shared numbers, conflicts with another phone username/account
+phone, and invalid member phones are skipped with warnings identifying user IDs.
+Only `users.phone` changes; contact formatting is normalized to E.164 without
+guessing country codes. Username, password, member and WhatsApp data stay intact.
+Take a backup before deployment. Liquibase runs this once on startup and owns
+the transaction; SQL/concurrency failures propagate. No automatic data rollback
+is provided. Do not restart a shared backend merely to exercise the migration.
+
 ### One-time Suriname phone backfill
 
 DML changesets 230-237 use `DataBackfillSurinamePhones` to update contact phones

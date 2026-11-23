@@ -58,6 +58,8 @@ public class SecurityConfig {
                 // Scheduler and WhatsApp management are platform-wide.
                 .requestMatchers("/schedulers", "/schedulers/**", "/whatsapp", "/whatsapp/**")
                     .hasAuthority("SUPER_ADMIN")
+                .requestMatchers("/admin/members/accounts", "/admin/members/accounts/**")
+                    .hasAnyAuthority("ADMIN", "SUPER_ADMIN")
                 // Public business directory on org subdomain
                 .requestMatchers(HttpMethod.GET, "/business-directory/public/**").permitAll()
                 // Public general-event details and self-registration (optional JWT for member opt-in)

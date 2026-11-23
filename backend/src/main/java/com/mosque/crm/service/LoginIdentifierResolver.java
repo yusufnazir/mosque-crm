@@ -11,12 +11,13 @@ import org.springframework.stereotype.Service;
 
 import com.mosque.crm.entity.User;
 import com.mosque.crm.repository.UserRepository;
+import com.mosque.crm.util.PhoneUtils;
 
 /**
  * Resolves what a person types into the login field to a stored {@code users.username}.
  *
- * Members without an email address get their phone number as username, stored in
- * E.164 format ({@code +31612345678}). Requiring people to type the exact E.164 form
+ * Account emails and account phones are aliases for the unchanged stored username.
+ * Existing phone-number usernames are also supported. Requiring people to type the exact E.164 form
  * is poor UX, so this resolver also accepts:
  *
  * <ul>
@@ -69,6 +70,9 @@ public class LoginIdentifierResolver {
             return lowerCase;
         }
 
+        if (trimmed.contains("@")) {
+            return unique(userRepository.findUsersByEmail(trimmed), "email");
+        }
         return resolvePhone(trimmed);
     }
 
@@ -89,6 +93,10 @@ public class LoginIdentifierResolver {
             if (byE164.isPresent()) {
                 return byE164;
             }
+            List<User> byPhone = userRepository.findAllByPhone(e164);
+            if (!byPhone.isEmpty()) {
+                return unique(byPhone, "phone");
+            }
         }
 
         // National format (e.g. 0612345678): match the national significant number
@@ -99,29 +107,20 @@ public class LoginIdentifierResolver {
         }
 
         List<User> candidates = userRepository.findPhoneUsersByNationalNumber(nationalNumber);
+        return unique(candidates, "national phone");
+    }
+
+    private String toE164(String cleaned) {
+        return PhoneUtils.toE164(cleaned, null);
+    }
+
+    private Optional<User> unique(List<User> candidates, String kind) {
         if (candidates.size() == 1) {
             return Optional.of(candidates.get(0));
         }
         if (candidates.size() > 1) {
-            log.warn("Phone login '{}' is ambiguous: {} users share the national number {}",
-                    identifier, candidates.size(), nationalNumber);
+            log.warn("Ambiguous {} login: {} accounts match", kind, candidates.size());
         }
         return Optional.empty();
-    }
-
-    private String toE164(String cleaned) {
-        String digits;
-        if (cleaned.startsWith("+")) {
-            digits = cleaned.substring(1);
-        } else if (cleaned.startsWith("00")) {
-            digits = cleaned.substring(2);
-        } else {
-            digits = cleaned;
-        }
-        digits = digits.replaceAll("[^0-9]", "");
-        if (digits.isEmpty() || digits.length() > 15) {
-            return null;
-        }
-        return "+" + digits;
     }
 }

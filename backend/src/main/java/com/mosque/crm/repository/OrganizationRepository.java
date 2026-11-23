@@ -4,14 +4,20 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.mosque.crm.entity.Organization;
+import jakarta.persistence.LockModeType;
 
 @Repository
 public interface OrganizationRepository extends JpaRepository<Organization, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM Organization o WHERE o.id = :id")
+    Optional<Organization> findForAccountCreation(@Param("id") Long id);
 
     Optional<Organization> findByName(String name);
 

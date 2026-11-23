@@ -36,6 +36,11 @@ import com.mosque.crm.repository.UserRepository;
 public class MemberService {
 
     private static final Logger log = LoggerFactory.getLogger(MemberService.class);
+    private final UserContactService userContacts;
+
+    public MemberService(UserContactService userContacts) {
+        this.userContacts = userContacts;
+    }
 
 
     @Autowired
@@ -57,12 +62,6 @@ public class MemberService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private ConfigurationService configurationService;
-
-    @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Autowired
@@ -73,9 +72,6 @@ public class MemberService {
 
     @Autowired
     private AccountActivationNotifier accountActivationNotifier;
-
-    @Autowired
-    private MessageLanguageService messageLanguageService;
 
     public List<MemberDTO> getAllMembers() {
         if (!authorizationService.hasPermission("member.view") && !authorizationService.hasPermission("member.create")) {
@@ -183,7 +179,7 @@ public class MemberService {
                         user.setUsername(username);
                         isNewUser = true;
                     }
-                    user.setEmail(memberDTO.getEmail());
+                    userContacts.initializeMemberContacts(user, memberDTO.getEmail(), memberDTO.getPhone());
                     user.setAccountEnabled(true);
                     // Assign organization from current tenant context
                     if (user.getOrganizationId() == null) {
@@ -250,29 +246,7 @@ public class MemberService {
                         PasswordResetToken resetToken = new PasswordResetToken(user, setupToken, expiresAt);
                         passwordResetTokenRepository.save(resetToken);
 
-                        String activationUrl = configurationService.getAppBaseUrl()
-                                + "/reset-password?token=" + setupToken;
-                        String language = messageLanguageService.resolve(user.getId(), user.getOrganizationId());
-                        boolean emailed = false;
-                        if (StringUtils.isNotBlank(memberDTO.getEmail())) {
-                            try {
-                                String appName = configurationService.getAppName();
-                                emailService.sendWelcomeEmail(
-                                        memberDTO.getEmail(),
-                                        updatedPerson.getFirstName(),
-                                        username,
-                                        appName,
-                                        setupToken,
-                                        language
-                                );
-                                emailed = true;
-                            } catch (Exception e) {
-                                log.warn("Failed to send welcome email to {}: {}", memberDTO.getEmail(), e.getMessage());
-                            }
-                        }
-                        accountActivationNotifier.deliver(
-                                displayName(updatedPerson), memberDTO.getPhone(), username, activationUrl, emailed,
-                                language, user.getOrganizationId());
+                        accountActivationNotifier.deliverWelcome(updatedPerson, user, setupToken, memberDTO.getPhone());
                     }
                 }
 
@@ -348,14 +322,6 @@ public class MemberService {
 
     private String coalesce(String a, String b) {
         return (a != null && !a.isBlank()) ? a : b;
-    }
-
-    /** "First Last" for messages and logs; {@code null} when the person has no name at all. */
-    private String displayName(Person person) {
-        String first = person.getFirstName() == null ? "" : person.getFirstName().trim();
-        String last = person.getLastName() == null ? "" : person.getLastName().trim();
-        String name = (first + " " + last).trim();
-        return name.isEmpty() ? null : name;
     }
 
     private MemberDTO convertPersonToDTO(Person person) {

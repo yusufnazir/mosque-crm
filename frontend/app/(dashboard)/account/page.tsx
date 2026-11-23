@@ -9,11 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
 import { Member } from '@/types';
 import { getStatusColor } from '@/lib/utils';
 import { useDateFormat } from '@/lib/DateFormatContext';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import phoneLabelsEn from 'react-phone-number-input/locale/en.json';
+import phoneLabelsNl from 'react-phone-number-input/locale/nl.json';
+import CountrySelectWithFlags from '@/components/CountrySelectWithFlags';
 
 interface UserProfile {
   id: number;
   username: string;
-  email: string;
+  email: string | null;
+  phone: string | null;
   role: string;
   memberId?: number;
 }
@@ -24,6 +29,8 @@ export default function AccountPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [memberProfile, setMemberProfile] = useState<Member | null>(null);
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [contactsToast, setContactsToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -73,6 +80,7 @@ export default function AccountPage() {
         const data = await response.json();
         setProfile(data);
         setEmail(data.email || '');
+        setPhone(data.phone || '');
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -102,25 +110,35 @@ export default function AccountPage() {
     }
   };
 
-  const handleSaveEmail = async () => {
+  const handleSaveContacts = async () => {
+    if (phone && !isValidPhoneNumber(phone)) {
+      setContactsToast({ message: t('register_member.phone_invalid'), type: 'error' });
+      return;
+    }
     setSaving(true);
-    setMessage('');
+    setContactsToast(null);
 
     try {
-      const response = await fetch('/api/users/me/email', {
+      const response = await fetch('/api/users/me/contacts', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, phone }),
       });
 
       if (response.ok) {
-        setMessage('Email updated successfully');
-        fetchProfile();
+        setContactsToast({ message: t('account.contacts_saved'), type: 'success' });
+        await fetchProfile();
       } else {
-        setMessage('Failed to update email');
+        const detail = response.headers.get('content-type')?.includes('json')
+          ? await response.json() : { message: await response.text() };
+        throw new Error(detail.message || t('account.contacts_save_error'));
       }
     } catch (error) {
-      setMessage('An error occurred');
+      console.error('Failed to update account contacts:', error);
+      setContactsToast({
+        message: error instanceof Error ? error.message : t('account.contacts_save_error'),
+        type: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -176,6 +194,7 @@ export default function AccountPage() {
 
   return (
     <div className="p-4 md:p-8">
+      {contactsToast && <ToastNotification {...contactsToast} onClose={() => setContactsToast(null)} />}
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2">{t('account.title')}</h1>
         <p className="text-gray-600">{t('account.subtitle')}</p>
@@ -269,17 +288,35 @@ export default function AccountPage() {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="account-email" className="block text-sm font-medium text-gray-700 mb-2">
                 {t('account.email')}
               </label>
               <input
                 type="email"
+                id="account-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="your.email@example.com"
               />
               <p className="mt-1 text-sm text-gray-500">{t('account.email_required_for_reset')}</p>
+            </div>
+
+            <div>
+              <label htmlFor="account-phone" className="block text-sm font-medium text-gray-700 mb-2">
+                {t('account.phone')}
+              </label>
+              <PhoneInput international id="account-phone" name="phone" value={phone || undefined}
+                onChange={value => setPhone(value ?? '')}
+                labels={language === 'nl' ? phoneLabelsNl : phoneLabelsEn}
+                countrySelectComponent={CountrySelectWithFlags}
+                countrySelectProps={{
+                  searchPlaceholder: t('register_member.phone_country_search'),
+                  noResultsLabel: t('register_member.phone_country_empty'),
+                }}
+                placeholder={t('register_member.phone_placeholder')}
+                className="phone-field w-full px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-emerald-500" />
+              <p className="mt-1 text-sm text-gray-500">{t('account.login_contacts_hint')}</p>
             </div>
 
             {/* Role */}
@@ -326,11 +363,11 @@ export default function AccountPage() {
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4 border-t">
               <button
-                onClick={handleSaveEmail}
-                disabled={saving || email === profile.email}
+                onClick={handleSaveContacts}
+                disabled={saving || (email === (profile.email ?? '') && phone === (profile.phone ?? ''))}
                 className="px-6 py-3 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {saving ? t('account.saving') : t('account.save_email')}
+                {saving ? t('account.saving') : t('account.save_contacts')}
               </button>
               <button
                 onClick={() => setShowChangePasswordModal(true)}

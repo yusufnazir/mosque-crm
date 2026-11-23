@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    <changeSet id="36edc3bd-897a-4029-9981-227794095fd2" author="mosque-crm">
+        <comment>Grant bulk member account permissions to existing ADMIN roles and future ADMIN templates</comment>
+        <sql>
+            INSERT INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.category = 'member_account'
+            WHERE r.name = 'ADMIN'
+              AND NOT EXISTS (SELECT 1 FROM role_permissions rp WHERE rp.role_id = r.id AND rp.permission_id = p.id);
+
+            INSERT INTO role_assignable_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.category = 'member_account'
+            WHERE r.name = 'ADMIN'
+              AND NOT EXISTS (SELECT 1 FROM role_assignable_permissions rp WHERE rp.role_id = r.id AND rp.permission_id = p.id);
+
+            INSERT INTO role_template_permissions (template_id, permission_id)
+            SELECT t.id, p.id FROM role_templates t
+            JOIN permissions p ON p.category = 'member_account'
+            WHERE t.name = 'ADMIN'
+              AND NOT EXISTS (SELECT 1 FROM role_template_permissions tp WHERE tp.template_id = t.id AND tp.permission_id = p.id);
+
+            INSERT INTO role_template_assignable_permissions (template_id, permission_id)
+            SELECT t.id, p.id FROM role_templates t
+            JOIN permissions p ON p.category = 'member_account'
+            WHERE t.name = 'ADMIN'
+              AND NOT EXISTS (SELECT 1 FROM role_template_assignable_permissions tp WHERE tp.template_id = t.id AND tp.permission_id = p.id);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

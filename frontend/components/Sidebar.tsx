@@ -23,6 +23,8 @@ interface NavItem {
   permissionAny?: string[];
   /** Platform administrators only, regardless of tenant permissions. */
   superAdminOnly?: boolean;
+  /** Tenant or platform administrators only, regardless of delegated permissions. */
+  adminOnly?: boolean;
   /** Subscription entitlement key. If the feature is disabled on the plan, the item is hidden. */
   entitlement?: string;
   /** If true, show a divider above this item */
@@ -53,6 +55,17 @@ const allNavItems: NavItem[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
       </svg>
     ) 
+  },
+  {
+    name: 'Member Accounts',
+    href: '/member-accounts',
+    permission: 'member_account.view',
+    adminOnly: true,
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m14-10h6m-3-3v6M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    )
   },
   {
     name: 'Member Requests',
@@ -364,7 +377,7 @@ interface NavGroup {
 
 const NAV_GROUPS: NavGroup[] = [
   { labelKey: undefined, hrefs: ['/dashboard'] },
-  { labelKey: 'sidebar.group_members', hrefs: ['/members', '/member-requests', '/groups'] },
+  { labelKey: 'sidebar.group_members', hrefs: ['/members', '/member-accounts', '/member-requests', '/groups'] },
   { labelKey: 'sidebar.group_finance', hrefs: ['/contributions/types', '/expenses', '/currencies'] },
   { labelKey: 'sidebar.group_operations', hrefs: ['/reports', '/events', '/directory', '/import', '/export', '/communications', '/whatsapp', '/documents'] },
   { labelKey: 'sidebar.group_personal', hrefs: ['/profile', '/my-businesses', '/inbox'] },
@@ -452,6 +465,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   const filteredItems = allNavItems.filter((item) => {
     if (isSuperAdmin) return true;
     if (item.superAdminOnly) return false;
+    if (item.adminOnly && !user?.roles.includes('ADMIN')) return false;
     if (item.permissionAny) {
       if (!canAny(...item.permissionAny)) return false;
     } else if (item.permission) {

@@ -18,11 +18,14 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.mosque.crm.controller.SchedulerController;
 import com.mosque.crm.controller.WhatsAppController;
+import com.mosque.crm.controller.MemberController;
 import com.mosque.crm.multitenancy.TenantInterceptor;
 import com.mosque.crm.scheduler.SchedulerService;
 import com.mosque.crm.security.JwtRequestFilter;
 import com.mosque.crm.security.JwtUtil;
 import com.mosque.crm.service.AuthorizationService;
+import com.mosque.crm.service.MemberService;
+import com.mosque.crm.service.BulkMemberAccountService;
 import com.mosque.crm.service.WahaClient;
 import com.mosque.crm.service.WahaSettingsService;
 import com.mosque.crm.service.WhatsAppOutboundService;
@@ -37,7 +40,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
-        controllers = {SchedulerController.class, WhatsAppController.class},
+        controllers = {SchedulerController.class, WhatsAppController.class, MemberController.class},
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
                 classes = {WebMvcConfig.class, TenantInterceptor.class, SubscriptionEnforcementInterceptor.class}))
 @Import({SecurityConfig.class, JwtRequestFilter.class})
@@ -53,6 +56,40 @@ class PlatformAdminSecurityTest {
     @MockBean private WhatsAppWebhookService webhookService;
     @MockBean private WahaClient wahaClient;
     @MockBean private WahaSettingsService wahaSettingsService;
+    @MockBean private MemberService memberService;
+    @MockBean private BulkMemberAccountService bulkMemberAccountService;
+
+    @Test
+    @WithMockUser(authorities = {"MEMBER", "member_account.view", "member_account.manage"})
+    void ordinaryUsersCannotUseBulkAccountsEvenWithPermissions() throws Exception {
+        mvc.perform(get("/admin/members/accounts/candidates")).andExpect(status().isForbidden());
+        mvc.perform(post("/admin/members/accounts").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"personIds\":[1]}")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void tenantAdminCanUseBulkAccountsAndInputIsValidated() throws Exception {
+        when(bulkMemberAccountService.candidates()).thenReturn(List.of());
+        when(bulkMemberAccountService.create(List.of(1L))).thenReturn(List.of());
+        mvc.perform(get("/admin/members/accounts/candidates")).andExpect(status().isOk());
+        mvc.perform(post("/admin/members/accounts").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"personIds\":[1]}")).andExpect(status().isOk());
+        mvc.perform(post("/admin/members/accounts").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"personIds\":[]}")).andExpect(status().isBadRequest());
+        mvc.perform(post("/admin/members/accounts").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"personIds\":[null,-1]}")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER_ADMIN")
+    void platformAdminCanUseBulkAccounts() throws Exception {
+        when(bulkMemberAccountService.candidates()).thenReturn(List.of());
+        when(bulkMemberAccountService.create(List.of(1L))).thenReturn(List.of());
+        mvc.perform(get("/admin/members/accounts/candidates")).andExpect(status().isOk());
+        mvc.perform(post("/admin/members/accounts").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"personIds\":[1]}")).andExpect(status().isOk());
+    }
 
     @Test
     @WithMockUser(authorities = {"ADMIN", "scheduler.view", "scheduler.manage", "whatsapp.view", "whatsapp.manage"})

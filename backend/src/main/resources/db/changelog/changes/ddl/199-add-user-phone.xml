@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    <changeSet id="915ec15a-b2bf-4d3e-8ea8-b48371067d80" author="mosque-crm">
+        <addColumn tableName="users">
+            <column name="phone" type="VARCHAR(16)"/>
+        </addColumn>
+        <addUniqueConstraint tableName="users" columnNames="phone" constraintName="uk_users_phone"/>
+        <rollback>
+            <dropUniqueConstraint tableName="users" constraintName="uk_users_phone"/>
+            <dropColumn tableName="users" columnName="phone"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

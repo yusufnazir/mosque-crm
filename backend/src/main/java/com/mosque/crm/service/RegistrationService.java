@@ -29,24 +29,28 @@ public class RegistrationService {
     private final PasswordEncoder passwordEncoder;
     private final RoleTemplateService roleTemplateService;
     private final OrganizationSubscriptionService organizationSubscriptionService;
+    private final UserContactService userContacts;
 
     public RegistrationService(UserRepository userRepository,
                                OrganizationRepository organizationRepository,
                                RoleRepository roleRepository,
                                PasswordEncoder passwordEncoder,
                                RoleTemplateService roleTemplateService,
-                               OrganizationSubscriptionService organizationSubscriptionService) {
+                               OrganizationSubscriptionService organizationSubscriptionService,
+                               UserContactService userContacts) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleTemplateService = roleTemplateService;
         this.organizationSubscriptionService = organizationSubscriptionService;
+        this.userContacts = userContacts;
     }
 
     @Transactional
     public User register(RegistrationRequest request) {
         validateRequest(request);
+        userContacts.validateUsername(request.getUsername(), null);
 
         // 1. Resolve handle (user-provided or auto-generated)
         String handle = resolveHandle(request);
@@ -72,7 +76,7 @@ public class RegistrationService {
         User user = new User();
         user.setUsername(request.getUsername().trim());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEmail(request.getEmail() != null ? request.getEmail().trim() : null);
+        userContacts.setEmail(user, request.getEmail());
         user.setOrganizationId(savedOrganization.getId());
         user.setAccountEnabled(true);
         user.setRoles(Collections.singleton(adminRole));

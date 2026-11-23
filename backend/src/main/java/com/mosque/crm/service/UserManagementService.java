@@ -48,6 +48,7 @@ public class UserManagementService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final OrganizationSubscriptionService organizationSubscriptionService;
     private final RoleGovernanceService roleGovernanceService;
+    private final UserContactService userContacts;
 
     public UserManagementService(UserRepository userRepository,
                                   RoleRepository roleRepository,
@@ -57,7 +58,8 @@ public class UserManagementService {
                                   UserPreferencesRepository userPreferencesRepository,
                                   PasswordResetTokenRepository passwordResetTokenRepository,
                                   OrganizationSubscriptionService organizationSubscriptionService,
-                                  RoleGovernanceService roleGovernanceService) {
+                                  RoleGovernanceService roleGovernanceService,
+                                  UserContactService userContacts) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.organizationRepository = organizationRepository;
@@ -67,6 +69,7 @@ public class UserManagementService {
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.organizationSubscriptionService = organizationSubscriptionService;
         this.roleGovernanceService = roleGovernanceService;
+        this.userContacts = userContacts;
     }
 
     /**
@@ -132,12 +135,9 @@ public class UserManagementService {
         if (!authorizationService.hasPermission("user.manage")) {
             throw new AccessDeniedException("Insufficient permissions to manage users");
         }
+        userContacts.validateUsername(request.getUsername(), null);
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists: " + request.getUsername());
-        }
-        if (request.getEmail() != null && !request.getEmail().isBlank()
-                && userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email already exists: " + request.getEmail());
         }
 
         // Plan limit check: enforce max users per organization based on subscription plan.
@@ -163,7 +163,8 @@ public class UserManagementService {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEmail(request.getEmail());
+        userContacts.setEmail(user, request.getEmail());
+        userContacts.setPhone(user, request.getPhone());
         user.setAccountEnabled(true);
         user.setAccountLocked(false);
         user.setCredentialsExpired(false);
@@ -217,15 +218,11 @@ public class UserManagementService {
         }
 
         if (request.getEmail() != null) {
-            // Check email uniqueness (excluding current user)
-            if (!request.getEmail().isBlank()) {
-                userRepository.findByEmail(request.getEmail()).ifPresent(existing -> {
-                    if (!existing.getId().equals(id)) {
-                        throw new IllegalArgumentException("Email already in use by another user");
-                    }
-                });
-            }
-            user.setEmail(request.getEmail());
+            userContacts.setEmail(user, request.getEmail());
+        }
+
+        if (request.getPhone() != null) {
+            userContacts.setPhone(user, request.getPhone());
         }
 
         if (request.getAccountEnabled() != null) {
@@ -385,6 +382,7 @@ public class UserManagementService {
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
         dto.setAccountEnabled(user.isAccountEnabled());
         dto.setAccountLocked(user.isAccountLocked());
         dto.setCreatedAt(user.getCreatedAt());

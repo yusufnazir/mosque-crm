@@ -10,6 +10,8 @@ import com.mosque.crm.dto.WhatsAppEnqueueRequest;
 import com.mosque.crm.dto.WhatsAppEnqueueResultDTO;
 import com.mosque.crm.dto.WhatsAppSkippedRecipientDTO;
 import com.mosque.crm.entity.Organization;
+import com.mosque.crm.entity.Person;
+import com.mosque.crm.entity.User;
 import com.mosque.crm.entity.WhatsAppOutboundMessage;
 import com.mosque.crm.repository.OrganizationRepository;
 import com.mosque.crm.util.PhoneUtils;
@@ -43,15 +45,38 @@ public class AccountActivationNotifier {
     private final WahaClient wahaClient;
     private final WahaSettingsService wahaSettings;
     private final OrganizationRepository organizationRepository;
+    private final EmailService emailService;
+    private final ConfigurationService configurationService;
+    private final MessageLanguageService messageLanguageService;
 
     public AccountActivationNotifier(WhatsAppOutboundService outboundService,
                                      WahaClient wahaClient,
                                      WahaSettingsService wahaSettings,
-                                     OrganizationRepository organizationRepository) {
+                                     OrganizationRepository organizationRepository,
+                                     EmailService emailService,
+                                     ConfigurationService configurationService,
+                                     MessageLanguageService messageLanguageService) {
         this.outboundService = outboundService;
         this.wahaClient = wahaClient;
         this.wahaSettings = wahaSettings;
         this.organizationRepository = organizationRepository;
+        this.emailService = emailService;
+        this.configurationService = configurationService;
+        this.messageLanguageService = messageLanguageService;
+    }
+
+    public Channel deliverWelcome(Person person, User user, String setupToken, String rawPhone) {
+        String language = messageLanguageService.resolve(user.getId(), user.getOrganizationId());
+        boolean emailed = false;
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            emailed = emailService.sendWelcomeEmail(user.getEmail(), person.getFirstName(),
+                    user.getUsername(), configurationService.getAppName(), setupToken, language);
+        }
+        String name = ((person.getFirstName() == null ? "" : person.getFirstName()) + " "
+                + (person.getLastName() == null ? "" : person.getLastName())).trim();
+        return deliver(name, rawPhone, user.getUsername(),
+                configurationService.getAppBaseUrl() + "/reset-password?token=" + setupToken,
+                emailed, language, user.getOrganizationId());
     }
 
     /**

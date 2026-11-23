@@ -9,6 +9,10 @@ import ToastNotification from '@/components/ToastNotification';
 import { useDateFormat } from '@/lib/DateFormatContext';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import { useAuth } from '@/lib/auth/AuthContext';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import phoneLabelsEn from 'react-phone-number-input/locale/en.json';
+import phoneLabelsNl from 'react-phone-number-input/locale/nl.json';
+import CountrySelectWithFlags from '@/components/CountrySelectWithFlags';
 
 interface RoleDTO {
   id: number;
@@ -34,7 +38,7 @@ function PlanUsageBar({ used, limit, label }: { used: number; limit: number; lab
 }
 
 export default function UsersPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { formatDate } = useDateFormat();
   const { getLimit } = useSubscription();
   const { canAny, loading: authLoading } = useAuth();
@@ -55,6 +59,7 @@ export default function UsersPage() {
   const [formUsername, setFormUsername] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formEmail, setFormEmail] = useState('');
+  const [formPhone, setFormPhone] = useState('');
   const [formRoles, setFormRoles] = useState<Set<string>>(new Set());
   const [formEnabled, setFormEnabled] = useState(true);
 
@@ -94,6 +99,7 @@ export default function UsersPage() {
     return (
       u.username.toLowerCase().includes(q) ||
       (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.phone && u.phone.includes(q)) ||
       u.roles.some((r) => r.toLowerCase().includes(q)) ||
       (u.organizationName && u.organizationName.toLowerCase().includes(q))
     );
@@ -105,6 +111,7 @@ export default function UsersPage() {
     setFormUsername('');
     setFormPassword('');
     setFormEmail('');
+    setFormPhone('');
     setFormRoles(new Set());
     setFormEnabled(true);
     setShowModal(true);
@@ -116,6 +123,7 @@ export default function UsersPage() {
     setFormUsername(user.username);
     setFormPassword('');
     setFormEmail(user.email || '');
+    setFormPhone(user.phone || '');
     setFormRoles(new Set(user.roles));
     setFormEnabled(user.accountEnabled);
     setShowModal(true);
@@ -134,12 +142,17 @@ export default function UsersPage() {
   };
 
   const handleSave = async () => {
+    if (formPhone && !isValidPhoneNumber(formPhone)) {
+      setToast({ message: t('register_member.phone_invalid'), type: 'error' });
+      return;
+    }
     try {
       setSaving(true);
       if (editingUser) {
         // Update
         const req: UpdateUserRequest = {
           email: formEmail || undefined,
+          phone: formPhone,
           roles: Array.from(formRoles),
           accountEnabled: formEnabled,
         };
@@ -159,6 +172,7 @@ export default function UsersPage() {
           username: formUsername,
           password: formPassword,
           email: formEmail || undefined,
+          phone: formPhone || undefined,
           roles: Array.from(formRoles),
         };
         await userApi.create(req);
@@ -166,9 +180,9 @@ export default function UsersPage() {
       }
       setShowModal(false);
       loadData();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save user:', err);
-      setToast({ message: err.message || t('users.save_error'), type: 'error' });
+      setToast({ message: err instanceof Error ? err.message : t('users.save_error'), type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -320,6 +334,7 @@ export default function UsersPage() {
                         {user.email && (
                           <div className="text-sm text-gray-500 truncate mt-0.5">{user.email}</div>
                         )}
+                        {user.phone && <div className="text-sm text-gray-500 truncate mt-0.5">{user.phone}</div>}
                         <div className="flex flex-wrap gap-1 mt-1.5">
                           {user.roles.map((role) => (
                             <span
@@ -390,7 +405,7 @@ export default function UsersPage() {
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.username')}</th>
-                      <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.email')}</th>
+                      <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.contacts')}</th>
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.roles')}</th>
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.organization')}</th>
                       <th className="py-3 px-4 text-sm font-semibold text-gray-600">{t('users.status')}</th>
@@ -414,7 +429,10 @@ export default function UsersPage() {
                             <div className="text-xs text-gray-500">{user.personName}</div>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-gray-600">{user.email || '—'}</td>
+                        <td className="py-3 px-4 text-gray-600">
+                          <div>{user.email || '—'}</div>
+                          {user.phone && <div className="text-sm">{user.phone}</div>}
+                        </td>
                         <td className="py-3 px-4">
                           <div className="flex flex-wrap gap-1">
                             {user.roles.map((role) => (
@@ -552,6 +570,23 @@ export default function UsersPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
                   placeholder={t('users.email')}
                 />
+              </div>
+
+              <div>
+                <label htmlFor="user-phone" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('users.phone')}
+                </label>
+                <PhoneInput international id="user-phone" name="phone" value={formPhone || undefined}
+                  onChange={value => setFormPhone(value ?? '')}
+                  labels={language === 'nl' ? phoneLabelsNl : phoneLabelsEn}
+                  countrySelectComponent={CountrySelectWithFlags}
+                  countrySelectProps={{
+                    searchPlaceholder: t('register_member.phone_country_search'),
+                    noResultsLabel: t('register_member.phone_country_empty'),
+                  }}
+                  placeholder={t('register_member.phone_placeholder')}
+                  className="phone-field w-full px-4 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-emerald-500" />
+                <p className="mt-1 text-xs text-gray-500">{t('users.login_contacts_hint')}</p>
               </div>
 
               {/* Roles */}
