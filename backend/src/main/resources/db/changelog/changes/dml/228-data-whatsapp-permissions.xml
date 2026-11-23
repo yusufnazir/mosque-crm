@@ -5,9 +5,10 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
+    <!-- Ids 88/89: 79-87 are already taken in existing installs (79-80 partnership, 81-87 business_directory/public_events). -->
     <changeSet id="a1f2b3c4-0079-4wha-aaaa-whatsappview079" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataPermission">
-            <param name="id"><![CDATA[79]]></param>
+            <param name="id"><![CDATA[88]]></param>
             <param name="code"><![CDATA[whatsapp.view]]></param>
             <param name="description"><![CDATA[View the WhatsApp queue, replies and opt-outs]]></param>
             <param name="category"><![CDATA[whatsapp]]></param>
@@ -16,30 +17,30 @@
 
     <changeSet id="b2a3c4d5-0080-4wha-bbbb-whatsappmana080" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataPermission">
-            <param name="id"><![CDATA[80]]></param>
+            <param name="id"><![CDATA[89]]></param>
             <param name="code"><![CDATA[whatsapp.manage]]></param>
             <param name="description"><![CDATA[Queue WhatsApp messages, cancel them and manage opt-outs]]></param>
             <param name="category"><![CDATA[whatsapp]]></param>
         </customChange>
     </changeSet>
 
-    <!-- ADMIN → whatsapp.view (79) -->
+    <!-- ADMIN → whatsapp.view (88) -->
     <changeSet id="c3b4d5e6-0079-4wha-cccc-whatsadminv079" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataRolePermission">
-            <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[79]]></param>
+            <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[88]]></param>
         </customChange>
     </changeSet>
 
-    <!-- ADMIN → whatsapp.manage (80) -->
+    <!-- ADMIN → whatsapp.manage (89) -->
     <changeSet id="d4c5e6f7-0080-4wha-dddd-whatsadminm080" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataRolePermission">
-            <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[80]]></param>
+            <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[89]]></param>
         </customChange>
     </changeSet>
 
     <!-- Make the new permissions assignable (same "sync all" pool as 035) -->
     <changeSet id="e5d6f7a8-0228-4wha-eeee-whatsassignall" author="mosque-crm">
-        <comment>Re-sync the assignable permission pool so whatsapp.view (79) and whatsapp.manage (80) can be granted</comment>
+        <comment>Re-sync the assignable permission pool so whatsapp.view (88) and whatsapp.manage (89) can be granted</comment>
         <sql>
             INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
             SELECT r.id, p.id

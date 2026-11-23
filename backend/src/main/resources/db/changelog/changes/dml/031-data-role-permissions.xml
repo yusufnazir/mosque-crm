@@ -7,7 +7,7 @@
 						http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
 	<!-- ═══════════════════════════════════════════════════════════
-	     ADMIN (role_id=1) → base permissions plus bulk member accounts (83/84; +2)
+	     ADMIN (role_id=1) → base permissions plus bulk member accounts (92/93; +2)
 	     ═══════════════════════════════════════════════════════════ -->
 	<changeSet id="e368f342-2e54-42b8-9c96-e3251b0d4aff" author="mosque-crm">
 		<customChange class="com.mosque.crm.liquibase.DataRolePermission">
@@ -580,12 +580,12 @@
 
     <changeSet id="5c0d7341-bb5b-419f-a7a3-7d0dba4d8a63" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataRolePermission">
-            <param name="roleId" value="1"/><param name="permissionId" value="83"/>
+            <param name="roleId" value="1"/><param name="permissionId" value="92"/>
         </customChange>
     </changeSet>
     <changeSet id="7e9f7fc7-abfd-4937-9674-897e97b3a71c" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataRolePermission">
-            <param name="roleId" value="1"/><param name="permissionId" value="84"/>
+            <param name="roleId" value="1"/><param name="permissionId" value="93"/>
         </customChange>
     </changeSet>
 </databaseChangeLog>

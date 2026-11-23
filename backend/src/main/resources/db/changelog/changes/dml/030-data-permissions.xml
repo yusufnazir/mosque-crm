@@ -686,10 +686,10 @@
                 </customChange>
         </changeSet>
 
-    <!-- Bulk member accounts (83-84) -->
+    <!-- Bulk member accounts (92-93); ids 79-87 are already taken in existing installs -->
     <changeSet id="1bb68e58-35bd-48d8-a2dd-c36b43bddfa4" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataPermission">
-            <param name="id" value="83"/>
+            <param name="id" value="92"/>
             <param name="code" value="member_account.view"/>
             <param name="description" value="Preview member account eligibility"/>
             <param name="category" value="member_account"/>
@@ -697,7 +697,7 @@
     </changeSet>
     <changeSet id="c8be305e-65c6-41bc-91b6-364c89658f18" author="mosque-crm">
         <customChange class="com.mosque.crm.liquibase.DataPermission">
-            <param name="id" value="84"/>
+            <param name="id" value="93"/>
             <param name="code" value="member_account.manage"/>
             <param name="description" value="Bulk create member accounts and send activation links"/>
             <param name="category" value="member_account"/>
