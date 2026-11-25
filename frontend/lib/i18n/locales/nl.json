@@ -2622,8 +2622,10 @@
       "section_social": "Sociale media",
       "section_social_hint": "Optionele profiellinks — bezoekers openen uw pagina's; wij hosten geen foto's of video's.",
       "section_location": "Locatie",
+      "section_location_hint": "Optioneel — zichtbaar in de detailweergave met een link om het adres in de kaart te openen.",
       "category_hint": "Kies één categorie die het beste bij uw bedrijf past.",
       "description_placeholder": "Korte beschrijving van uw bedrijf",
+      "address_placeholder": "Straat en huisnummer (optioneel)",
       "country_placeholder": "Selecteer een land",
       "name_required": "Bedrijfsnaam is verplicht",
       "email_invalid": "Voer een geldig e-mailadres in"
@@ -2778,6 +2780,7 @@
       "youtube": "YouTube",
       "linkedin": "LinkedIn",
       "whatsapp": "WhatsApp",
+      "address": "Adres",
       "city": "Stad",
       "country": "Land"
     },
@@ -2795,6 +2798,32 @@
       "nonprofit": "Non-profit",
       "other": "Overig"
     }
+  },
+  "business_gallery": {
+    "title": "Foto's",
+    "hint": "Voeg tot 5 foto's toe (max. 5 MB per foto). Foto's worden automatisch verkleind en de eerste foto is de omslagfoto.",
+    "add": "Foto toevoegen",
+    "uploading": "Uploaden…",
+    "empty": "Nog geen foto's.",
+    "cover": "Omslag",
+    "remove": "Foto verwijderen",
+    "move_left": "Naar links",
+    "move_right": "Naar rechts",
+    "count": "{{count}}/{{max}} foto's",
+    "error_type": "Alleen JPEG-, PNG-, WebP-, GIF- of BMP-afbeeldingen zijn toegestaan.",
+    "error_size": "“{{name}}” is groter dan 5 MB.",
+    "error_size_generic": "De foto is groter dan 5 MB.",
+    "error_limit": "Je kunt maximaal 5 foto's toevoegen. Verwijder er eerst een.",
+    "error_empty": "Het bestand is leeg.",
+    "error_unreadable": "Deze foto kon niet worden verwerkt. Probeer een andere foto.",
+    "error_storage": "Foto-opslag is momenteel niet beschikbaar, dus de foto kon niet worden opgeslagen. Probeer het later opnieuw of neem contact op met uw beheerder.",
+    "error_not_found": "Deze foto bestaat niet meer. Vernieuw de pagina.",
+    "error_order": "De volgorde kon niet worden gewijzigd. Vernieuw de pagina en probeer het opnieuw.",
+    "delete_title": "Foto verwijderen",
+    "delete_message": "Weet je zeker dat je deze foto wilt verwijderen?",
+    "upload_failed": "Uploaden mislukt. Probeer het opnieuw.",
+    "delete_failed": "De foto kon niet worden verwijderd.",
+    "reorder_failed": "De volgorde kon niet worden gewijzigd."
   },
   "directory": {
     "title": "Bedrijvengids",
@@ -2818,7 +2847,18 @@
     "public_disabled": "Toegang tot de openbare gids is gesloten voor deze organisatie. Opname-instellingen per vermelding blijven bewaard.",
     "pro_required": "De bedrijvengids is beschikbaar vanaf het Starter-plan.",
     "public_empty": "Er staan nog geen bedrijven in de openbare gids.",
-    "public_no_subdomain": "Open deze pagina op het subdomein van uw organisatie om de openbare gids te bekijken."
+    "public_no_subdomain": "Open deze pagina op het subdomein van uw organisatie om de openbare gids te bekijken.",
+    "card_details": "Details",
+    "member_since": "Lid sinds {{year}}",
+    "detail_about": "Over",
+    "detail_contact": "Contact",
+    "detail_online": "Online",
+    "detail_photos": "Foto's",
+    "detail_open_map": "Open in kaarten",
+    "detail_full_page": "Volledige pagina openen",
+    "member_cta_title": "Bent u lid van {{org}} met een eigen bedrijf?",
+    "member_cta_text": "Log in om uw bedrijf in de gids te vermelden — leden kunnen een bedrijf registreren dat na goedkeuring wordt gepubliceerd.",
+    "member_cta_button": "Log in om uw bedrijf te vermelden"
   },
   "whatsapp": {
     "title": "WhatsApp",

@@ -8,7 +8,8 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import ToastNotification from '@/components/ToastNotification';
 import BusinessLogoEditor from '@/components/BusinessLogoEditor';
-import { businessDirectoryApi } from '@/lib/businessDirectoryApi';
+import BusinessGalleryEditor from '@/components/BusinessGalleryEditor';
+import { businessDirectoryApi, type BusinessImageDTO } from '@/lib/businessDirectoryApi';
 import BusinessForm, { BusinessFormValues } from '../../BusinessForm';
 
 export default function EditBusinessPage() {
@@ -27,6 +28,7 @@ export default function EditBusinessPage() {
   const [saving, setSaving] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [images, setImages] = useState<BusinessImageDTO[]>([]);
   const [wasPublished, setWasPublished] = useState(false);
   const [initial, setInitial] = useState<BusinessFormValues | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -54,6 +56,7 @@ export default function EditBusinessPage() {
       }
       setWasPublished(status === 'PUBLISHED');
       setLogoUrl(business.logoUrl || null);
+      setImages(business.images || []);
       setInitial({
         name: business.name || '',
         category: business.category || '',
@@ -67,6 +70,7 @@ export default function EditBusinessPage() {
         youtubeUrl: business.youtubeUrl || '',
         linkedinUrl: business.linkedinUrl || '',
         whatsappUrl: business.whatsappUrl || '',
+        address: business.address || '',
         city: business.city || '',
         country: business.country || '',
       });
@@ -160,6 +164,21 @@ export default function EditBusinessPage() {
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    const result = await businessDirectoryApi.uploadMyImage(id, file);
+    setImages(result.images);
+  };
+
+  const handleImageDelete = async (imageId: number) => {
+    const result = await businessDirectoryApi.deleteMyImage(id, imageId);
+    setImages(result.images);
+  };
+
+  const handleImageReorder = async (imageIds: number[]) => {
+    const result = await businessDirectoryApi.reorderMyImages(id, imageIds);
+    setImages(result.images);
+  };
+
   return (
     <div className="p-8 max-w-2xl mx-auto">
       {toast && (
@@ -187,6 +206,13 @@ export default function EditBusinessPage() {
             uploading={logoUploading}
             onUpload={handleLogoUpload}
             onDelete={handleLogoDelete}
+          />
+          <BusinessGalleryEditor
+            images={images}
+            disabled={saving}
+            onUpload={handleImageUpload}
+            onDelete={handleImageDelete}
+            onReorder={handleImageReorder}
           />
           <BusinessForm
             initial={initial}

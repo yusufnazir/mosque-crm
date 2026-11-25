@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mosque.crm.exception.BusinessImageException;
 import com.mosque.crm.service.BusinessDirectoryService;
 import com.mosque.crm.service.BusinessDirectoryService.StoredImage;
 
@@ -78,6 +79,35 @@ public class PublicBusinessDirectoryController {
                     .header(HttpHeaders.CACHE_CONTROL, "public, max-age=3600")
                     .body(image.bytes());
         } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Public gallery image variant ({@code variant=thumb|full}). Pre-rendered at upload
+     * time, so it is immutable per image id and safe to cache for a year.
+     */
+    @GetMapping("/public/{orgHandle}/{id}/images/{imageId}")
+    public ResponseEntity<?> getPublicImage(
+            @PathVariable String orgHandle,
+            @PathVariable Long id,
+            @PathVariable Long imageId,
+            @RequestParam(defaultValue = "full") String variant) {
+        try {
+            StoredImage image = businessDirectoryService.getPublicImage(
+                    orgHandle, id, imageId, "thumb".equalsIgnoreCase(variant));
+            if (image == null) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, image.contentType() != null
+                            ? image.contentType()
+                            : MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                    .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000, immutable")
+                    .body(image.bytes());
+        } catch (BusinessImageException | IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         } catch (org.springframework.security.access.AccessDeniedException e) {
             return ResponseEntity.notFound().build();

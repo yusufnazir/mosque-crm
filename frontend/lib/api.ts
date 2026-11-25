@@ -279,6 +279,15 @@ export class ApiClient {
     await this.handleResponse<void>(response);
   }
 
+  /** DELETE that returns the parsed response body (e.g. the updated collection). */
+  static async deleteWithResponse<T>(endpoint: string): Promise<T> {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse<T>(response);
+  }
+
   static async patch<T>(endpoint: string, data?: any): Promise<T> {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PATCH',

@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
-import { useAuth } from '@/lib/auth/AuthContext';
+import { buildAuthUrl, useAuth } from '@/lib/auth/AuthContext';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import BusinessDirectoryCard from '@/components/BusinessDirectoryCard';
+import BusinessDetailDialog, { type DetailBusiness } from '@/components/BusinessDetailDialog';
 import {
   BusinessDTO,
   FederatedBusinessListingDTO,
@@ -37,6 +38,7 @@ type BrowsableBusiness = Pick<
   | 'city'
   | 'country'
   | 'logoUrl'
+  | 'images'
 >;
 
 const PAGE_SIZE_OPTIONS = [12, 24, 48];
@@ -241,9 +243,13 @@ export default function DirectoryBrowseClient() {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [detailBusiness, setDetailBusiness] = useState<DetailBusiness | null>(null);
+  const [loginHref, setLoginHref] = useState('/login');
 
   useEffect(() => {
     setOrgHandle(extractOrgHandle());
+    // buildAuthUrl() needs window (auth.<base> on subdomains)
+    setLoginHref(buildAuthUrl('/login'));
   }, []);
 
   useEffect(() => {
@@ -359,7 +365,12 @@ export default function DirectoryBrowseClient() {
   }, [availableCategoryCodes, categories, isKnown]);
 
   const renderLocalCard = (business: BrowsableBusiness & { id: number }) => (
-    <BusinessDirectoryCard key={business.id} business={business} />
+    <BusinessDirectoryCard
+      key={business.id}
+      business={business}
+      onSelect={setDetailBusiness}
+      detailsLabel={t('directory.card_details')}
+    />
   );
 
   const renderPublicCard = (business: PublicBusinessDTO) => {
@@ -373,6 +384,8 @@ export default function DirectoryBrowseClient() {
         key={`${business.listedByOrganizationHandle || 'local'}-${business.id}`}
         business={business}
         titleHref={businessPublicPath(business.id, business.name)}
+        onSelect={setDetailBusiness}
+        detailsLabel={t('directory.card_details')}
         subtitle={
           listedBy
             ? t('business_directory.listed_by', { org: listedBy })
@@ -386,6 +399,8 @@ export default function DirectoryBrowseClient() {
     <BusinessDirectoryCard
       key={`${business.listingId}-${business.id}`}
       business={business}
+      onSelect={setDetailBusiness}
+      detailsLabel={t('directory.card_details')}
       subtitle={t('business_directory.listed_by', {
         org: business.listedByOrganizationName || business.listedByOrganizationHandle || '',
       })}
@@ -494,6 +509,57 @@ export default function DirectoryBrowseClient() {
             )}
           </>
         )}
+
+        {/* Member CTA — turns the public directory into an engagement funnel */}
+        {orgName && (
+          <div className="mt-10 flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-emerald-900">
+                {t('directory.member_cta_title', { org: orgName })}
+              </p>
+              <p className="mt-0.5 text-sm text-emerald-800/80">{t('directory.member_cta_text')}</p>
+            </div>
+            {user ? (
+              <Link
+                href={canRegister ? '/my-businesses/new' : '/my-businesses'}
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-emerald-700 bg-white px-4 py-2 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-100"
+              >
+                {canRegister ? t('directory.register_business') : t('directory.my_businesses')}
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            ) : (
+              <a
+                href={loginHref}
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-800"
+              >
+                {t('directory.member_cta_button')}
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            )}
+          </div>
+        )}
+
+        <BusinessDetailDialog
+          business={detailBusiness}
+          onClose={() => setDetailBusiness(null)}
+          fullPageHref={
+            detailBusiness ? businessPublicPath(detailBusiness.id, detailBusiness.name) : undefined
+          }
+          subtitle={
+            detailBusiness?.listedByOrganizationHandle &&
+            detailBusiness.listedByOrganizationHandle !== orgHandle
+              ? t('business_directory.listed_by', {
+                  org:
+                    detailBusiness.listedByOrganizationName ||
+                    detailBusiness.listedByOrganizationHandle,
+                })
+              : undefined
+          }
+        />
       </div>
     );
   }
@@ -588,6 +654,21 @@ export default function DirectoryBrowseClient() {
           {pagination}
         </>
       )}
+
+      {/* Signed-in viewers get the same detail view as the public page. */}
+      <BusinessDetailDialog
+        business={detailBusiness}
+        onClose={() => setDetailBusiness(null)}
+        subtitle={
+          detailBusiness?.listedByOrganizationHandle
+            ? t('business_directory.listed_by', {
+                org:
+                  detailBusiness.listedByOrganizationName ||
+                  detailBusiness.listedByOrganizationHandle,
+              })
+            : undefined
+        }
+      />
     </div>
   );
 }

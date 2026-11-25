@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!--
+      Gallery images for a business listing (max 5 per business, enforced in the service layer).
+
+      Two object keys are stored per image so listings never download a full-size photo:
+        image_key  → "full" variant, longest side capped at 1600 px, JPEG q≈0.82
+        thumb_key  → "thumb" variant, longest side capped at  480 px, JPEG q≈0.75
+      Both are produced (and re-encoded, stripping EXIF/GPS metadata) at upload time.
+    -->
+    <changeSet id="f1a2b3c4-0200-0001-business-images" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="businesses"/>
+            <not><tableExists tableName="business_images"/></not>
+        </preConditions>
+        <createTable tableName="business_images">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="business_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_key" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="thumb_key" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_type" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="width" type="INT"/>
+            <column name="height" type="INT"/>
+            <column name="size_bytes" type="BIGINT"/>
+            <column name="thumb_size_bytes" type="BIGINT"/>
+            <column name="sort_order" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

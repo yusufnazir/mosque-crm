@@ -188,6 +188,9 @@
     <include file="db/changelog/changes/ddl/198-create-scheduler-job-configs.xml"/>
     <include file="db/changelog/changes/ddl/199-add-user-phone.xml"/>
 
+    <!-- ======================== BUSINESS DIRECTORY GALLERY ======================== -->
+    <include file="db/changelog/changes/ddl/200-create-business-images-table.xml"/>
+
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>
 

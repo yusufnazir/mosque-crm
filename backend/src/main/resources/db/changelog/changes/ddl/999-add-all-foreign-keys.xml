@@ -1328,6 +1328,31 @@
         <createIndex indexName="idx_businesslisting_status" tableName="business_listings"><column name="status"/></createIndex>
     </changeSet>
 
+    <changeSet id="b1000099-9990-0000-0000-000000000017" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="business_images"/>
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_businessimage_business"/>
+            </not>
+        </preConditions>
+        <comment>Foreign keys and indexes for business gallery images</comment>
+
+        <addForeignKeyConstraint constraintName="fk_businessimage_business"
+            baseTableName="business_images" baseColumnNames="business_id"
+            referencedTableName="businesses" referencedColumnNames="id"
+            onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_businessimage_org"
+            baseTableName="business_images" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_businessimage_business" tableName="business_images">
+            <column name="business_id"/>
+        </createIndex>
+        <createIndex indexName="idx_businessimage_org" tableName="business_images">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
     <changeSet id="b1000099-9990-0000-0000-000000000014" author="mosque-crm" runAlways="false">
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="business_category_translations"/>

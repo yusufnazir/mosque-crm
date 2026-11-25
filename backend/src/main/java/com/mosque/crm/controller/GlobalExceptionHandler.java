@@ -9,8 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.mosque.crm.exception.ActiveResourceAssignmentsException;
+import com.mosque.crm.exception.BusinessImageException;
 import com.mosque.crm.exception.SacrificeShareLimitExceededException;
 import com.mosque.crm.subscription.PlanEntitlementException;
 import com.mosque.crm.subscription.PlanLimitExceededException;
@@ -101,5 +103,39 @@ public class GlobalExceptionHandler {
         body.put("activeCount", String.valueOf(ex.getActiveCount()));
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    /**
+     * Container-level upload cap (spring.servlet.multipart.max-file-size) — anything
+     * bigger never reaches the controller, so translate it into a readable 400 instead
+     * of a bodyless 500.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        log.warn("Upload rejected — exceeds multipart limit: {}", ex.getMessage());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("code", "FILE_TOO_LARGE");
+        body.put("error", "The uploaded file is too large.");
+        body.put("message", "The uploaded file is too large.");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
+     * Business-directory media failures. The response carries a stable {@code code}
+     * (e.g. {@code STORAGE_UNAVAILABLE}) so the frontend can show a translated message;
+     * the English message is only a fallback for other API clients.
+     */
+    @ExceptionHandler(BusinessImageException.class)
+    public ResponseEntity<Map<String, String>> handleBusinessImageException(BusinessImageException ex) {
+        log.warn("Business image rejected — code={}: {}", ex.getCode(), ex.getMessage());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("code", ex.getCode());
+        body.put("error", ex.getMessage());
+        body.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 }

@@ -2621,8 +2621,10 @@
       "section_social": "Social media",
       "section_social_hint": "Optional profile links — visitors open your pages; we do not host photos or videos.",
       "section_location": "Location",
+      "section_location_hint": "Optional — shown in the business detail view with a link to open the address in maps.",
       "category_hint": "Choose one category that best fits your business.",
       "description_placeholder": "Brief description of your business",
+      "address_placeholder": "Street and number (optional)",
       "country_placeholder": "Select a country",
       "name_required": "Business name is required",
       "email_invalid": "Enter a valid email address"
@@ -2777,6 +2779,7 @@
       "youtube": "YouTube",
       "linkedin": "LinkedIn",
       "whatsapp": "WhatsApp",
+      "address": "Address",
       "city": "City",
       "country": "Country"
     },
@@ -2794,6 +2797,32 @@
       "nonprofit": "Nonprofit",
       "other": "Other"
     }
+  },
+  "business_gallery": {
+    "title": "Photos",
+    "hint": "Add up to 5 photos (max. 5 MB each). Photos are resized automatically and the first one is used as the cover.",
+    "add": "Add photo",
+    "uploading": "Uploading…",
+    "empty": "No photos yet.",
+    "cover": "Cover",
+    "remove": "Remove photo",
+    "move_left": "Move left",
+    "move_right": "Move right",
+    "count": "{{count}}/{{max}} photos",
+    "error_type": "Only JPEG, PNG, WebP, GIF or BMP images are allowed.",
+    "error_size": "“{{name}}” is larger than 5 MB.",
+    "error_size_generic": "The photo is larger than 5 MB.",
+    "error_limit": "You can add at most 5 photos. Remove one first.",
+    "error_empty": "The file is empty.",
+    "error_unreadable": "This photo could not be processed. Please try another photo.",
+    "error_storage": "Photo storage is currently unavailable, so the photo could not be saved. Please try again later or contact your administrator.",
+    "error_not_found": "This photo no longer exists. Reload the page.",
+    "error_order": "The photo order could not be changed. Reload the page and try again.",
+    "delete_title": "Remove photo",
+    "delete_message": "Are you sure you want to remove this photo?",
+    "upload_failed": "Upload failed. Please try again.",
+    "delete_failed": "Could not remove the photo.",
+    "reorder_failed": "Could not change the photo order."
   },
   "directory": {
     "title": "Business Directory",
@@ -2817,7 +2846,18 @@
     "public_disabled": "Public directory access is closed for this organization. Listing inclusion settings are preserved.",
     "pro_required": "Business directory is available starting on the Starter plan.",
     "public_empty": "No businesses are listed on the public directory yet.",
-    "public_no_subdomain": "Open this page on your organization's subdomain to view the public directory."
+    "public_no_subdomain": "Open this page on your organization's subdomain to view the public directory.",
+    "card_details": "Details",
+    "member_since": "Member since {{year}}",
+    "detail_about": "About",
+    "detail_contact": "Contact",
+    "detail_online": "Online",
+    "detail_photos": "Photos",
+    "detail_open_map": "Open in maps",
+    "detail_full_page": "Open full page",
+    "member_cta_title": "Are you a member of {{org}} with a business?",
+    "member_cta_text": "Log in to list your company in the directory — members can register a business and get it published after approval.",
+    "member_cta_button": "Log in to list your company"
   },
   "whatsapp": {
     "title": "WhatsApp",

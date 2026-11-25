@@ -248,9 +248,10 @@ export function buildBusinessJsonLd(args: {
         : `${origin}${business.logoUrl}`
       : undefined,
     address:
-      business.city || business.country
+      business.address || business.city || business.country
         ? {
             '@type': 'PostalAddress',
+            streetAddress: business.address || undefined,
             addressLocality: business.city || undefined,
             addressCountry: business.country || undefined,
           }

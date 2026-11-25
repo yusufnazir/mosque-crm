@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        The whatsapp / scheduler / member_account permissions were first seeded with ids
+        79-84, which are already taken by the federation permissions
+        (79-80 partnership, 81-84 business_directory) on any install that had run
+        220/221/222 first. DataPermission UPSERTs by id, so those installs now hold
+        whatsapp/scheduler/member_account in 79-84 and the federation permissions are gone.
+
+        This changelog is additive and idempotent:
+          1. restores 79-84 to the federation permissions (permissions.code is UNIQUE, so
+             this must run BEFORE the new ids are inserted),
+          2. creates the feature permissions on the free ids 88-93,
+          3. re-applies the federation grants by code (INSERT IGNORE - a no-op where intact),
+          4. grants whatsapp/member_account to ADMIN roles and the ADMIN template, and puts
+             the new permissions in every assignable pool (scheduler.* stays platform-admin-only).
+
+        Already-applied changesets are never edited - see backend/LIQUIBASE.md.
+    -->
+
+    <changeSet id="5d1a0c74-3e88-4a1f-9a2b-6f0d1c7e8a01" author="mosque-crm">
+        <comment>Restore federation permissions 79-84 that the colliding feature ids overwrote</comment>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[79]]></param>
+            <param name="code"><![CDATA[partnership.view]]></param>
+            <param name="description"><![CDATA[View organization partnerships and federation sharing settings]]></param>
+            <param name="category"><![CDATA[partnership]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[80]]></param>
+            <param name="code"><![CDATA[partnership.manage]]></param>
+            <param name="description"><![CDATA[Invite, request, approve, and manage organization partnerships]]></param>
+            <param name="category"><![CDATA[partnership]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[81]]></param>
+            <param name="code"><![CDATA[business_directory.view]]></param>
+            <param name="description"><![CDATA[View local and federation business directory listings]]></param>
+            <param name="category"><![CDATA[business_directory]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[82]]></param>
+            <param name="code"><![CDATA[business_directory.manage]]></param>
+            <param name="description"><![CDATA[Register and manage business directory listings]]></param>
+            <param name="category"><![CDATA[business_directory]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[83]]></param>
+            <param name="code"><![CDATA[business_directory.register_own]]></param>
+            <param name="description"><![CDATA[Register and manage own business listings via member portal]]></param>
+            <param name="category"><![CDATA[business_directory]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[84]]></param>
+            <param name="code"><![CDATA[business_directory.approve]]></param>
+            <param name="description"><![CDATA[Approve or reject member-submitted business listings]]></param>
+            <param name="category"><![CDATA[business_directory]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="6e2b1d85-4f99-4b2a-8b3c-7a1e2d8f9b02" author="mosque-crm">
+        <comment>Create whatsapp (88-89), scheduler (90-91) and member account (92-93) permissions on free ids</comment>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[88]]></param>
+            <param name="code"><![CDATA[whatsapp.view]]></param>
+            <param name="description"><![CDATA[View the WhatsApp queue, replies and opt-outs]]></param>
+            <param name="category"><![CDATA[whatsapp]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[89]]></param>
+            <param name="code"><![CDATA[whatsapp.manage]]></param>
+            <param name="description"><![CDATA[Queue WhatsApp messages, cancel them and manage opt-outs]]></param>
+            <param name="category"><![CDATA[whatsapp]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[90]]></param>
+            <param name="code"><![CDATA[scheduler.view]]></param>
+            <param name="description"><![CDATA[View the platform scheduler runtime and job history]]></param>
+            <param name="category"><![CDATA[scheduler]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[91]]></param>
+            <param name="code"><![CDATA[scheduler.manage]]></param>
+            <param name="description"><![CDATA[Start, stop, run and reconfigure platform schedulers]]></param>
+            <param name="category"><![CDATA[scheduler]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[92]]></param>
+            <param name="code"><![CDATA[member_account.view]]></param>
+            <param name="description"><![CDATA[Preview member account eligibility]]></param>
+            <param name="category"><![CDATA[member_account]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[93]]></param>
+            <param name="code"><![CDATA[member_account.manage]]></param>
+            <param name="description"><![CDATA[Bulk create member accounts and send activation links]]></param>
+            <param name="category"><![CDATA[member_account]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="7f3c2e96-5a0a-4c3b-9c4d-8b2f3e9a0c03" author="mosque-crm">
+        <comment>Re-apply the federation grants by code (no-op where they are already intact)</comment>
+        <sql>
+            INSERT IGNORE INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('partnership.view', 'partnership.manage', 'business_directory.view', 'business_directory.manage')
+            WHERE r.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('partnership.view', 'partnership.manage', 'business_directory.view', 'business_directory.manage')
+            WHERE r.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('business_directory.approve', 'business_directory.moderate')
+            WHERE r.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('business_directory.approve', 'business_directory.moderate')
+            WHERE r.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('business_directory.register_own', 'business_directory.view')
+            WHERE r.name = 'MEMBER';
+
+            INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('business_directory.register_own', 'business_directory.view')
+            WHERE r.name = 'MEMBER';
+        </sql>
+    </changeSet>
+
+    <changeSet id="8a4d3fa7-6b1b-4d4c-8d5e-9c3a4f0b1d04" author="mosque-crm">
+        <comment>Grant the relocated permissions to ADMIN roles and the ADMIN template; add them to every assignable pool</comment>
+        <sql>
+            INSERT IGNORE INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('whatsapp.view', 'whatsapp.manage', 'member_account.view', 'member_account.manage')
+            WHERE r.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('whatsapp.view', 'whatsapp.manage', 'member_account.view', 'member_account.manage')
+            WHERE r.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_template_permissions (template_id, permission_id)
+            SELECT t.id, p.id FROM role_templates t
+            JOIN permissions p ON p.code IN ('whatsapp.view', 'whatsapp.manage', 'member_account.view', 'member_account.manage')
+            WHERE t.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_template_assignable_permissions (template_id, permission_id)
+            SELECT t.id, p.id FROM role_templates t
+            JOIN permissions p ON p.code IN ('whatsapp.view', 'whatsapp.manage', 'member_account.view', 'member_account.manage')
+            WHERE t.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+            SELECT r.id, p.id
+            FROM roles r
+            CROSS JOIN permissions p
+            WHERE r.name != 'SUPER_ADMIN'
+              AND p.category != 'superadmin';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

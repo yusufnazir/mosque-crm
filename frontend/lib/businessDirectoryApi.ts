@@ -17,6 +17,20 @@ export interface BusinessListingDTO {
   suspendedAt?: string;
 }
 
+export interface BusinessImageDTO {
+  id: number;
+  /** "full" variant (longest side ≤ 1600 px) — detail page / lightbox. */
+  url: string;
+  /** "thumb" variant (longest side ≤ 480 px) — cards, grids and dialogs. */
+  thumbUrl: string;
+  width?: number;
+  height?: number;
+}
+
+/** Constraints mirror {@code BusinessImageService} on the backend. */
+export const BUSINESS_IMAGE_MAX_COUNT = 5;
+export const BUSINESS_IMAGE_MAX_SIZE_MB = 5;
+
 export interface BusinessDTO {
   id: number;
   organizationId: number;
@@ -38,6 +52,8 @@ export interface BusinessDTO {
   city?: string;
   country?: string;
   logoUrl?: string;
+  /** Gallery images, first one is the cover (max 5). */
+  images?: BusinessImageDTO[];
   listing?: BusinessListingDTO;
   createdAt?: string;
   updatedAt?: string;
@@ -64,9 +80,14 @@ export interface PublicBusinessDTO {
   youtubeUrl?: string;
   linkedinUrl?: string;
   whatsappUrl?: string;
+  address?: string;
   city?: string;
   country?: string;
   logoUrl?: string;
+  /** Gallery images, first one is the cover (max 5). */
+  images?: BusinessImageDTO[];
+  /** When the business joined the directory (drives the “Member since” badge). */
+  createdAt?: string;
   listedByOrganizationName?: string;
   listedByOrganizationHandle?: string;
 }
@@ -190,4 +211,40 @@ export const businessDirectoryApi = {
     ApiClient.uploadFile<{ message: string; imageUrl: string }>(`/business-directory/${id}/logo`, file),
 
   deleteLogo: (id: number) => ApiClient.delete(`/business-directory/${id}/logo`),
+
+  // ----- gallery images (max 5 per business, 5 MB each) -----
+
+  listMyImages: (id: number) =>
+    ApiClient.get<{ images: BusinessImageDTO[] }>(`/business-directory/my/${id}/images`),
+
+  uploadMyImage: (id: number, file: File) =>
+    ApiClient.uploadFile<{ message: string; images: BusinessImageDTO[] }>(
+      `/business-directory/my/${id}/images`,
+      file,
+    ),
+
+  deleteMyImage: (id: number, imageId: number) =>
+    ApiClient.deleteWithResponse<{ message: string; images: BusinessImageDTO[] }>(
+      `/business-directory/my/${id}/images/${imageId}`,
+    ),
+
+  reorderMyImages: (id: number, imageIds: number[]) =>
+    ApiClient.put<{ images: BusinessImageDTO[] }>(`/business-directory/my/${id}/images/order`, { imageIds }),
+
+  listImages: (id: number) =>
+    ApiClient.get<{ images: BusinessImageDTO[] }>(`/business-directory/${id}/images`),
+
+  uploadImage: (id: number, file: File) =>
+    ApiClient.uploadFile<{ message: string; images: BusinessImageDTO[] }>(
+      `/business-directory/${id}/images`,
+      file,
+    ),
+
+  deleteImage: (id: number, imageId: number) =>
+    ApiClient.deleteWithResponse<{ message: string; images: BusinessImageDTO[] }>(
+      `/business-directory/${id}/images/${imageId}`,
+    ),
+
+  reorderImages: (id: number, imageIds: number[]) =>
+    ApiClient.put<{ images: BusinessImageDTO[] }>(`/business-directory/${id}/images/order`, { imageIds }),
 };

@@ -66,10 +66,10 @@
     <!-- Backfill edit_token so existing general-event registrations have a manage link -->
     <include file="db/changelog/changes/dml/227-data-general-event-registration-tokens.xml"/>
 
-    <!-- WhatsApp (WAHA) permissions: whatsapp.view (79) and whatsapp.manage (80) -->
+    <!-- WhatsApp (WAHA) permissions: whatsapp.view (79) and whatsapp.manage (80) - relocated to 88/89 by 240 -->
     <include file="db/changelog/changes/dml/228-data-whatsapp-permissions.xml"/>
 
-    <!-- Platform scheduler permissions: scheduler.view (81) and scheduler.manage (82) -->
+    <!-- Platform scheduler permissions: scheduler.view (81) and scheduler.manage (82) - relocated to 90/91 by 240 -->
     <include file="db/changelog/changes/dml/229-data-scheduler-permissions.xml"/>
 
     <!-- One-time Suriname contact phone backfill -->
@@ -83,4 +83,7 @@
     <include file="db/changelog/changes/dml/237-backfill-distribution-registrations-phone-country-code.xml"/>
     <include file="db/changelog/changes/dml/238-backfill-member-account-admin-permissions.xml"/>
     <include file="db/changelog/changes/dml/239-backfill-user-phones.xml"/>
+
+    <!-- Restore federation permissions 79-84 and move whatsapp/scheduler/member_account to 88-93 -->
+    <include file="db/changelog/changes/dml/240-relocate-feature-permissions-to-88-93.xml"/>
 </databaseChangeLog>

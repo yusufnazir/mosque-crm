@@ -20,9 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mosque.crm.dto.BusinessDTO;
 import com.mosque.crm.dto.BusinessDirectoryPageResponse;
+import com.mosque.crm.dto.BusinessImageOrderDTO;
 import com.mosque.crm.dto.BusinessListingDTO;
 import com.mosque.crm.dto.BusinessReviewDTO;
 import com.mosque.crm.dto.FederatedBusinessListingDTO;
+import com.mosque.crm.exception.BusinessImageException;
 import com.mosque.crm.service.BusinessDirectoryService;
 import com.mosque.crm.service.BusinessDirectoryService.StoredImage;
 import com.mosque.crm.subscription.FeatureKeys;
@@ -297,6 +299,132 @@ public class BusinessDirectoryController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Gallery images — max 5 per business, 5 MB each
+    // ------------------------------------------------------------------
+
+    @GetMapping("/my/{id}/images")
+    public ResponseEntity<?> listMyImages(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(Map.of("images", businessDirectoryService.listMyImages(id)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/my/{id}/images")
+    public ResponseEntity<?> uploadMyImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "message", "Image uploaded successfully",
+                    "images", businessDirectoryService.uploadMyImage(id, file)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/my/{id}/images/{imageId}")
+    public ResponseEntity<?> deleteMyImage(@PathVariable Long id, @PathVariable Long imageId) {
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "message", "Image deleted",
+                    "images", businessDirectoryService.deleteMyImage(id, imageId)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/my/{id}/images/order")
+    public ResponseEntity<?> reorderMyImages(@PathVariable Long id, @RequestBody BusinessImageOrderDTO dto) {
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "images",
+                    businessDirectoryService.reorderMyImages(id, dto != null ? dto.getImageIds() : null)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/images")
+    public ResponseEntity<?> listImages(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(Map.of("images", businessDirectoryService.listImages(id)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/images")
+    public ResponseEntity<?> uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "message", "Image uploaded successfully",
+                    "images", businessDirectoryService.uploadImage(id, file)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}/images/{imageId}")
+    public ResponseEntity<?> deleteImage(@PathVariable Long id, @PathVariable Long imageId) {
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "message", "Image deleted",
+                    "images", businessDirectoryService.deleteImage(id, imageId)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/images/order")
+    public ResponseEntity<?> reorderImages(@PathVariable Long id, @RequestBody BusinessImageOrderDTO dto) {
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "images",
+                    businessDirectoryService.reorderImages(id, dto != null ? dto.getImageIds() : null)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
+    /**
+     * Serve one gallery variant ({@code variant=thumb|full}). The bytes are
+     * pre-rendered and never change for a given image id, so they can be cached
+     * aggressively (bandwidth saving).
+     */
+    @GetMapping("/{id}/images/{imageId}")
+    public ResponseEntity<?> getImage(
+            @PathVariable Long id,
+            @PathVariable Long imageId,
+            @RequestParam(defaultValue = "full") String variant) {
+        try {
+            StoredImage image = businessDirectoryService.getImage(id, imageId, isThumbVariant(variant));
+            if (image == null) {
+                return ResponseEntity.noContent().build();
+            }
+            return imageResponse(image);
+        } catch (BusinessImageException | IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    private static boolean isThumbVariant(String variant) {
+        return "thumb".equalsIgnoreCase(variant);
+    }
+
+    private static ResponseEntity<?> imageResponse(StoredImage image) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, image.contentType() != null
+                        ? image.contentType()
+                        : MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000, immutable")
+                .body(image.bytes());
     }
 
     private Map<String, String> errorBody(String message) {

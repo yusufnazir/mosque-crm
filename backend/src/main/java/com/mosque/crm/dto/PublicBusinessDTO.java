@@ -1,5 +1,9 @@
 package com.mosque.crm.dto;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 public class PublicBusinessDTO {
 
     private Long id;
@@ -15,9 +19,14 @@ public class PublicBusinessDTO {
     private String youtubeUrl;
     private String linkedinUrl;
     private String whatsappUrl;
+    private String address;
     private String city;
     private String country;
     private String logoUrl;
+    /** Gallery images, first one is the cover. At most 5 per business. */
+    private List<BusinessImageDTO> images = new ArrayList<>();
+    /** When the business joined the directory — drives the “Member since” badge. */
+    private LocalDateTime createdAt;
     private String listedByOrganizationName;
     private String listedByOrganizationHandle;
 
@@ -60,6 +69,9 @@ public class PublicBusinessDTO {
     public String getWhatsappUrl() { return whatsappUrl; }
     public void setWhatsappUrl(String whatsappUrl) { this.whatsappUrl = whatsappUrl; }
 
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
 
@@ -68,6 +80,12 @@ public class PublicBusinessDTO {
 
     public String getLogoUrl() { return logoUrl; }
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+
+    public List<BusinessImageDTO> getImages() { return images; }
+    public void setImages(List<BusinessImageDTO> images) { this.images = images; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public String getListedByOrganizationName() { return listedByOrganizationName; }
     public void setListedByOrganizationName(String listedByOrganizationName) {

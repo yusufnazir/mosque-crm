@@ -19,6 +19,7 @@ export type BusinessFormValues = {
   youtubeUrl: string;
   linkedinUrl: string;
   whatsappUrl: string;
+  address: string;
   city: string;
   country: string;
 };
@@ -36,6 +37,7 @@ export const emptyBusinessForm: BusinessFormValues = {
   youtubeUrl: '',
   linkedinUrl: '',
   whatsappUrl: '',
+  address: '',
   city: '',
   country: '',
 };
@@ -105,6 +107,7 @@ export default function BusinessForm({ initial, saving, submitLabel, onCancel, o
       youtubeUrl: form.youtubeUrl.trim(),
       linkedinUrl: form.linkedinUrl.trim(),
       whatsappUrl: form.whatsappUrl.trim(),
+      address: form.address.trim(),
       city: form.city.trim(),
       country: form.country.trim(),
     });
@@ -230,6 +233,19 @@ export default function BusinessForm({ initial, saving, submitLabel, onCancel, o
       <section className="space-y-4 border-t border-stone-100 pt-6">
         <div>
           <h2 className="text-base font-semibold text-stone-900">{t('my_businesses.form.section_location')}</h2>
+          <p className="text-sm text-stone-500 mt-0.5">{t('my_businesses.form.section_location_hint')}</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-stone-700 mb-1">
+            {t('business_directory.fields.address')}
+          </label>
+          <input
+            type="text"
+            value={form.address}
+            onChange={(e) => update('address', e.target.value)}
+            placeholder={t('my_businesses.form.address_placeholder')}
+            className={fieldClass}
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

@@ -1,6 +1,8 @@
 package com.mosque.crm.dto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BusinessDTO {
 
@@ -24,6 +26,8 @@ public class BusinessDTO {
     private String city;
     private String country;
     private String logoUrl;
+    /** Gallery images, first one is the cover. At most 5 per business. */
+    private List<BusinessImageDTO> images = new ArrayList<>();
     private BusinessListingDTO listing;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -87,6 +91,9 @@ public class BusinessDTO {
 
     public String getLogoUrl() { return logoUrl; }
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+
+    public List<BusinessImageDTO> getImages() { return images; }
+    public void setImages(List<BusinessImageDTO> images) { this.images = images; }
 
     public BusinessListingDTO getListing() { return listing; }
     public void setListing(BusinessListingDTO listing) { this.listing = listing; }

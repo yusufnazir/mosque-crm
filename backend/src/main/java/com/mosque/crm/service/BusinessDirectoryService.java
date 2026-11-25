@@ -25,18 +25,21 @@ import org.springframework.web.server.ResponseStatusException;
 import com.mosque.crm.config.StorageProperties;
 import com.mosque.crm.dto.BusinessDTO;
 import com.mosque.crm.dto.BusinessDirectoryPageResponse;
+import com.mosque.crm.dto.BusinessImageDTO;
 import com.mosque.crm.dto.BusinessListingDTO;
 import com.mosque.crm.dto.FederatedBusinessListingDTO;
 import com.mosque.crm.dto.PublicBusinessDTO;
 import com.mosque.crm.dto.PublicBusinessDirectoryResponse;
 import com.mosque.crm.dto.PublicBusinessSitemapEntryDTO;
 import com.mosque.crm.entity.Business;
+import com.mosque.crm.entity.BusinessImage;
 import com.mosque.crm.entity.BusinessListing;
 import com.mosque.crm.entity.Organization;
 import com.mosque.crm.entity.OrganizationPartnership;
 import com.mosque.crm.entity.Person;
 import com.mosque.crm.entity.User;
 import com.mosque.crm.entity.UserMemberLink;
+import com.mosque.crm.exception.BusinessImageException;
 import com.mosque.crm.federation.FederationConstants;
 import com.mosque.crm.multitenancy.TenantContext;
 import com.mosque.crm.repository.BusinessListingRepository;
@@ -72,6 +75,7 @@ public class BusinessDirectoryService {
     private final OrganizationSubscriptionService organizationSubscriptionService;
     private final StorageService storageService;
     private final StorageProperties storageProperties;
+    private final BusinessImageService businessImageService;
 
     public BusinessDirectoryService(
             BusinessRepository businessRepository,
@@ -87,7 +91,8 @@ public class BusinessDirectoryService {
             BusinessCategoryService businessCategoryService,
             OrganizationSubscriptionService organizationSubscriptionService,
             StorageService storageService,
-            StorageProperties storageProperties) {
+            StorageProperties storageProperties,
+            BusinessImageService businessImageService) {
         this.businessRepository = businessRepository;
         this.businessListingRepository = businessListingRepository;
         this.personRepository = personRepository;
@@ -102,6 +107,7 @@ public class BusinessDirectoryService {
         this.organizationSubscriptionService = organizationSubscriptionService;
         this.storageService = storageService;
         this.storageProperties = storageProperties;
+        this.businessImageService = businessImageService;
     }
 
     public List<BusinessDTO> listLocalBusinesses() {
@@ -663,33 +669,138 @@ public class BusinessDirectoryService {
         return authorizationService.withoutOrganizationFilter(() -> {
             Business business = businessRepository.findById(businessId)
                     .orElseThrow(() -> new IllegalArgumentException("Business not found: " + businessId));
-            assertCanViewLogo(business, orgId);
+            assertCanViewBusinessMedia(business, orgId);
             return loadStoredImage(business);
         });
     }
 
     public StoredImage getPublicLogo(String orgHandle, Long businessId) {
-        Organization organization = organizationRepository.findByHandle(orgHandle.trim())
-                .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + orgHandle));
-        if (!isPublicDirectoryAvailable(organization.getId())) {
-            throw new AccessDeniedException("Public directory is not enabled.");
-        }
-        return authorizationService.withoutOrganizationFilter(() -> {
-            Business business = businessRepository.findById(businessId)
-                    .orElseThrow(() -> new IllegalArgumentException("Business not found: " + businessId));
-            if (!organization.getId().equals(business.getOrganizationId())) {
-                throw new AccessDeniedException("Business does not belong to this organization.");
-            }
-            BusinessListing listing = businessListingRepository.findByBusinessId(businessId)
-                    .orElseThrow(() -> new IllegalArgumentException("Listing not found"));
-            if (!BusinessListing.Status.PUBLISHED.name().equals(listing.getStatus())) {
-                throw new AccessDeniedException("Business is not publicly visible.");
-            }
-            return loadStoredImage(business);
-        });
+        return authorizationService.withoutOrganizationFilter(
+                () -> loadStoredImage(requirePublicBusiness(orgHandle, businessId)));
     }
 
     public record StoredImage(byte[] bytes, String contentType) {
+    }
+
+    // ------------------------------------------------------------------
+    // Gallery images (max 5 per business, 5 MB each — see BusinessImageService)
+    // ------------------------------------------------------------------
+
+    /** Owner view: the gallery of one of the current member's own businesses. */
+    public List<BusinessImageDTO> listMyImages(Long businessId) {
+        requireRegisterOwnPermission();
+        return toImageDtos(getOwnBusiness(businessId), null);
+    }
+
+    public List<BusinessImageDTO> uploadMyImage(Long businessId, MultipartFile file) {
+        requireRegisterOwnPermission();
+        Business business = getOwnBusiness(businessId);
+        businessImageService.upload(business, file);
+        return toImageDtos(business, null);
+    }
+
+    public List<BusinessImageDTO> deleteMyImage(Long businessId, Long imageId) {
+        requireRegisterOwnPermission();
+        Business business = getOwnBusiness(businessId);
+        deleteImage(business, imageId);
+        return toImageDtos(business, null);
+    }
+
+    public List<BusinessImageDTO> reorderMyImages(Long businessId, List<Long> imageIds) {
+        requireRegisterOwnPermission();
+        Business business = getOwnBusiness(businessId);
+        businessImageService.reorder(business, imageIds);
+        return toImageDtos(business, null);
+    }
+
+    /** Admin (directory manager) view of a business owned by the organization. */
+    public List<BusinessImageDTO> listImages(Long businessId) {
+        requireManagePermission();
+        Business business = getBusinessForCurrentOrg(businessId);
+        assertAdminMayEditContent(business);
+        return toImageDtos(business, null);
+    }
+
+    public List<BusinessImageDTO> uploadImage(Long businessId, MultipartFile file) {
+        requireManagePermission();
+        Business business = getBusinessForCurrentOrg(businessId);
+        assertAdminMayEditContent(business);
+        businessImageService.upload(business, file);
+        return toImageDtos(business, null);
+    }
+
+    public List<BusinessImageDTO> deleteImage(Long businessId, Long imageId) {
+        requireManagePermission();
+        Business business = getBusinessForCurrentOrg(businessId);
+        assertAdminMayEditContent(business);
+        deleteImage(business, imageId);
+        return toImageDtos(business, null);
+    }
+
+    public List<BusinessImageDTO> reorderImages(Long businessId, List<Long> imageIds) {
+        requireManagePermission();
+        Business business = getBusinessForCurrentOrg(businessId);
+        assertAdminMayEditContent(business);
+        businessImageService.reorder(business, imageIds);
+        return toImageDtos(business, null);
+    }
+
+    /** Serve one gallery variant to a signed-in user (own org or a partner that may view the listing). */
+    public StoredImage getImage(Long businessId, Long imageId, boolean thumbnail) {
+        requireViewPermission();
+        Long orgId = requireOrganizationId();
+        return authorizationService.withoutOrganizationFilter(() -> {
+            Business business = businessRepository.findById(businessId)
+                    .orElseThrow(() -> new IllegalArgumentException("Business not found: " + businessId));
+            assertCanViewBusinessMedia(business, orgId);
+            BusinessImage image = businessImageService.find(businessId, imageId)
+                    .orElseThrow(() -> new BusinessImageException(
+                            BusinessImageException.IMAGE_NOT_FOUND, "Image not found: " + imageId));
+            return toStoredImage(businessImageService.load(image, thumbnail));
+        });
+    }
+
+    /** Serve one gallery variant on the public directory. */
+    public StoredImage getPublicImage(String orgHandle, Long businessId, Long imageId, boolean thumbnail) {
+        return authorizationService.withoutOrganizationFilter(() -> {
+            requirePublicBusiness(orgHandle, businessId);
+            BusinessImage image = businessImageService.find(businessId, imageId)
+                    .orElseThrow(() -> new BusinessImageException(
+                            BusinessImageException.IMAGE_NOT_FOUND, "Image not found: " + imageId));
+            return toStoredImage(businessImageService.load(image, thumbnail));
+        });
+    }
+
+    private static StoredImage toStoredImage(BusinessImageService.StoredImage stored) {
+        return stored == null ? null : new StoredImage(stored.bytes(), stored.contentType());
+    }
+
+    private void deleteImage(Business business, Long imageId) {
+        BusinessImage image = businessImageService.find(business.getId(), imageId)
+                .orElseThrow(() -> new BusinessImageException(
+                        BusinessImageException.IMAGE_NOT_FOUND, "Image not found: " + imageId));
+        businessImageService.delete(image);
+    }
+
+    /**
+     * Build image DTOs. {@code publicOrgHandle} switches the URLs to the public
+     * endpoints; {@code null} keeps the authenticated organisation endpoints.
+     */
+    private List<BusinessImageDTO> toImageDtos(Business business, String publicOrgHandle) {
+        List<BusinessImageDTO> images = new ArrayList<>();
+        for (BusinessImage image : businessImageService.listForBusiness(business.getId())) {
+            String base = publicOrgHandle != null
+                    ? "/api/business-directory/public/" + publicOrgHandle + "/" + business.getId()
+                            + "/images/" + image.getId()
+                    : "/api/business-directory/" + business.getId() + "/images/" + image.getId();
+            images.add(new BusinessImageDTO(
+                    image.getId(),
+                    base,
+                    base + "?variant=thumb",
+                    image.getWidth(),
+                    image.getHeight()));
+        }
+        return images;
     }
 
     private String uploadLogoForBusiness(Business business, MultipartFile file) {
@@ -725,7 +836,11 @@ public class BusinessDirectoryService {
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("Logo upload failed: " + e.getMessage(), e);
+            log.error("Logo upload failed for business {} ({}): {}",
+                    business.getId(), file.getOriginalFilename(), e.toString(), e);
+            throw new IllegalStateException(BusinessImageService.isStorageUnavailable(e)
+                    ? BusinessImageService.STORAGE_UNAVAILABLE_MESSAGE
+                    : BusinessImageService.GENERIC_SAVE_FAILED_MESSAGE, e);
         }
     }
 
@@ -756,14 +871,14 @@ public class BusinessDirectoryService {
         }
     }
 
-    private void assertCanViewLogo(Business business, Long viewerOrgId) {
+    private void assertCanViewBusinessMedia(Business business, Long viewerOrgId) {
         if (viewerOrgId.equals(business.getOrganizationId())) {
             return;
         }
         BusinessListing listing = businessListingRepository.findByBusinessId(business.getId()).orElse(null);
         if (listing == null
                 || !BusinessListing.Status.PUBLISHED.name().equals(listing.getStatus())) {
-            throw new AccessDeniedException("You cannot view this business logo.");
+            throw new AccessDeniedException("You cannot view this business media.");
         }
         boolean isParent = partnershipRepository
                 .findByParentOrganizationIdAndStatus(viewerOrgId, OrganizationPartnership.Status.ACTIVE.name())
@@ -775,7 +890,7 @@ public class BusinessDirectoryService {
         var memberPartnership = partnershipRepository.findFirstByMemberOrganizationIdAndStatus(
                 viewerOrgId, OrganizationPartnership.Status.ACTIVE.name());
         if (memberPartnership.isEmpty() || listing.isFederationHidden()) {
-            throw new AccessDeniedException("You cannot view this business logo.");
+            throw new AccessDeniedException("You cannot view this business media.");
         }
         Long parentOrgId = memberPartnership.get().getParentOrganizationId();
         boolean siblingShare = partnershipRepository
@@ -783,7 +898,7 @@ public class BusinessDirectoryService {
                 .stream()
                 .anyMatch(p -> p.getMemberOrganizationId().equals(business.getOrganizationId()));
         if (!siblingShare) {
-            throw new AccessDeniedException("You cannot view this business logo.");
+            throw new AccessDeniedException("You cannot view this business media.");
         }
     }
 
@@ -872,6 +987,7 @@ public class BusinessDirectoryService {
                 log.warn("Failed to delete logo for business {}: {}", business.getId(), e.getMessage());
             }
         }
+        businessImageService.deleteAllForBusiness(business.getId());
         businessListingRepository.findByBusinessId(business.getId())
                 .ifPresent(businessListingRepository::delete);
         businessRepository.delete(business);
@@ -969,6 +1085,30 @@ public class BusinessDirectoryService {
         }
     }
 
+    /**
+     * Resolve a business that is publicly visible for the given organisation handle.
+     * Throws when the handle is unknown, the public directory is closed, or the
+     * listing is not published.
+     */
+    private Business requirePublicBusiness(String orgHandle, Long businessId) {
+        Organization organization = organizationRepository.findByHandle(orgHandle.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + orgHandle));
+        if (!isPublicDirectoryAvailable(organization.getId())) {
+            throw new AccessDeniedException("Public directory is not enabled.");
+        }
+        Business business = businessRepository.findById(businessId)
+                .orElseThrow(() -> new IllegalArgumentException("Business not found: " + businessId));
+        if (!organization.getId().equals(business.getOrganizationId())) {
+            throw new AccessDeniedException("Business does not belong to this organization.");
+        }
+        BusinessListing listing = businessListingRepository.findByBusinessId(businessId)
+                .orElseThrow(() -> new IllegalArgumentException("Listing not found"));
+        if (!BusinessListing.Status.PUBLISHED.name().equals(listing.getStatus())) {
+            throw new AccessDeniedException("Business is not publicly visible.");
+        }
+        return business;
+    }
+
     private void clearSuspension(BusinessListing listing) {
         listing.setSuspensionReason(null);
         listing.setSuspendedAt(null);
@@ -1030,6 +1170,7 @@ public class BusinessDirectoryService {
         if (business.getLogoImageKey() != null && !business.getLogoImageKey().isBlank()) {
             dto.setLogoUrl("/api/business-directory/" + business.getId() + "/logo");
         }
+        dto.setImages(toImageDtos(business, null));
 
         if (business.getOwnerPersonId() != null) {
             personRepository.findById(business.getOwnerPersonId())
@@ -1082,11 +1223,14 @@ public class BusinessDirectoryService {
         dto.setYoutubeUrl(business.getYoutubeUrl());
         dto.setLinkedinUrl(business.getLinkedinUrl());
         dto.setWhatsappUrl(business.getWhatsappUrl());
+        dto.setAddress(business.getAddress());
         dto.setCity(business.getCity());
         dto.setCountry(business.getCountry());
+        dto.setCreatedAt(business.getCreatedAt());
         if (business.getLogoImageKey() != null && !business.getLogoImageKey().isBlank()) {
             dto.setLogoUrl("/api/business-directory/public/" + orgHandle + "/" + business.getId() + "/logo");
         }
+        dto.setImages(toImageDtos(business, orgHandle));
         return dto;
     }
 
