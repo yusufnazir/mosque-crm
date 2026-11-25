@@ -54,43 +54,140 @@ function extractOrgHandle(): string {
   return '';
 }
 
-function CategoryFilterBar({
+function SearchForm({
   value,
   onChange,
-  available,
-  labelFor,
+  onSubmit,
 }: {
   value: string;
   onChange: (value: string) => void;
-  available: string[];
-  labelFor: (code: string | null | undefined) => string;
+  onSubmit: () => void;
 }) {
   const { t } = useTranslation();
-  if (available.length === 0) return null;
+  return (
+    <form
+      className="flex gap-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+    >
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={t('directory.search_placeholder')}
+        className="min-w-0 flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+      />
+      <button
+        type="submit"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-800"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+          <circle cx="11" cy="11" r="7" />
+          <path strokeLinecap="round" d="M20 20l-3.5-3.5" />
+        </svg>
+        {t('directory.search_button')}
+      </button>
+    </form>
+  );
+}
 
-  const chipClass = (active: boolean) =>
-    `px-3 py-1 rounded-full text-sm border transition-colors ${
-      active
-        ? 'bg-emerald-700 text-white border-emerald-700'
-        : 'bg-white text-gray-700 border-gray-300 hover:border-emerald-500'
+function LayersIcon() {
+  return (
+    <svg className="h-4 w-4 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l9 5-9 5-9-5 9-5z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13l9 5 9-5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 17l9 5 9-5" />
+    </svg>
+  );
+}
+
+function CategoryItems({
+  categories,
+  counts,
+  total,
+  selected,
+  onSelect,
+  labelFor,
+}: {
+  categories: string[];
+  counts: Record<string, number>;
+  total: number;
+  selected: string;
+  onSelect: (value: string) => void;
+  labelFor: (code: string | null | undefined) => string;
+}) {
+  const { t, language } = useTranslation();
+  const numberFormat = new Intl.NumberFormat(language);
+  const itemClass = (active: boolean) =>
+    `flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+      active ? 'bg-emerald-50 font-semibold text-emerald-900' : 'text-stone-700 hover:bg-stone-50'
     }`;
 
   return (
-    <div className="flex flex-wrap gap-2 mb-6">
-      <button type="button" onClick={() => onChange('')} className={chipClass(!value)}>
-        {t('directory.filter_all')}
+    <div className="space-y-0.5">
+      <button type="button" onClick={() => onSelect('')} className={itemClass(!selected)}>
+        <span className="truncate">{t('directory.all_businesses')}</span>
+        <span className="shrink-0 text-xs tabular-nums text-stone-400">{numberFormat.format(total)}</span>
       </button>
-      {available.map((key) => (
+      {categories.map((code) => (
         <button
-          key={key}
+          key={code}
           type="button"
-          onClick={() => onChange(value === key ? '' : key)}
-          className={chipClass(value === key)}
+          onClick={() => onSelect(selected === code ? '' : code)}
+          className={itemClass(selected === code)}
         >
-          {labelFor(key)}
+          <span className="truncate">{labelFor(code)}</span>
+          <span className="shrink-0 text-xs tabular-nums text-stone-400">
+            {numberFormat.format(counts[code] ?? 0)}
+          </span>
         </button>
       ))}
     </div>
+  );
+}
+
+function CategorySidebar(props: {
+  categories: string[];
+  counts: Record<string, number>;
+  total: number;
+  selected: string;
+  onSelect: (value: string) => void;
+  labelFor: (code: string | null | undefined) => string;
+}) {
+  const { t } = useTranslation();
+  if (props.categories.length === 0) return null;
+
+  return (
+    <aside className="lg:sticky lg:top-6 lg:self-start">
+      {/* Mobile: collapsible list */}
+      <details className="rounded-xl border border-stone-200 bg-white lg:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-stone-900">
+          <span className="inline-flex items-center gap-2">
+            <LayersIcon />
+            {t('directory.categories')}
+          </span>
+          <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+          </svg>
+        </summary>
+        <div className="max-h-72 overflow-y-auto border-t border-stone-100 p-2">
+          <CategoryItems {...props} />
+        </div>
+      </details>
+
+      {/* Desktop: sticky rail */}
+      <div className="hidden rounded-xl border border-stone-200 bg-white lg:block">
+        <div className="flex items-center gap-2 border-b border-stone-100 px-4 py-3">
+          <LayersIcon />
+          <h2 className="text-sm font-semibold text-stone-900">{t('directory.categories')}</h2>
+        </div>
+        <div className="max-h-[60vh] overflow-y-auto p-2">
+          <CategoryItems {...props} />
+        </div>
+      </div>
+    </aside>
   );
 }
 
@@ -211,8 +308,8 @@ function DirectoryPagination({
   );
 }
 
-export default function DirectoryBrowseClient() {
-  const { t } = useTranslation();
+export default function DirectoryBrowseClient({ seed }: { seed?: number } = {}) {
+  const { t, language } = useTranslation();
   const { categories, labelFor, isKnown } = useBusinessCategories();
   const { user, can, canAny, loading: authLoading, isSuperAdmin, selectedOrganization } = useAuth();
   const { hasFeature } = useSubscription();
@@ -231,7 +328,7 @@ export default function DirectoryBrowseClient() {
   const [orgHandle, setOrgHandle] = useState('');
   const [tab, setTab] = useState<Tab>('local');
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -239,6 +336,8 @@ export default function DirectoryBrowseClient() {
   const [federationBusinesses, setFederationBusinesses] = useState<FederatedBusinessListingDTO[]>([]);
   const [publicData, setPublicData] = useState<PublicBusinessDirectoryResponse | null>(null);
   const [availableCategoryCodes, setAvailableCategoryCodes] = useState<string[]>([]);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [totalAll, setTotalAll] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -253,26 +352,28 @@ export default function DirectoryBrowseClient() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  useEffect(() => {
     setPage(0);
-  }, [debouncedSearch, categoryFilter, tab, pageSize, mode]);
+  }, [appliedSearch, categoryFilter, tab, pageSize, mode]);
 
   useEffect(() => {
     setCategoryFilter('');
   }, [tab, mode]);
 
+  /** Explicit search: typing does not fetch; the button (or Enter) applies it. */
+  const submitSearch = () => {
+    setAppliedSearch(search.trim());
+    setPage(0);
+  };
+
   const browseParams = useMemo(
     () => ({
       page,
       size: pageSize,
-      search: debouncedSearch,
+      search: appliedSearch,
       category: categoryFilter,
+      seed,
     }),
-    [page, pageSize, debouncedSearch, categoryFilter]
+    [page, pageSize, appliedSearch, categoryFilter, seed]
   );
 
   const loadMemberPage = useCallback(async () => {
@@ -283,18 +384,24 @@ export default function DirectoryBrowseClient() {
         const data = await businessDirectoryApi.listPublishedPage(browseParams);
         setLocalBusinesses(data.content ?? []);
         setAvailableCategoryCodes(data.availableCategories ?? []);
+        setCategoryCounts(data.categoryCounts ?? {});
+        setTotalAll(data.totalAll ?? data.totalElements ?? 0);
         setTotalElements(data.totalElements ?? 0);
         setTotalPages(data.totalPages ?? 0);
       } else {
         const data = await businessDirectoryApi.listFederationPage(browseParams);
         setFederationBusinesses(data.content ?? []);
         setAvailableCategoryCodes(data.availableCategories ?? []);
+        setCategoryCounts(data.categoryCounts ?? {});
+        setTotalAll(data.totalAll ?? data.totalElements ?? 0);
         setTotalElements(data.totalElements ?? 0);
         setTotalPages(data.totalPages ?? 0);
       }
     } catch {
       setLocalBusinesses([]);
       setFederationBusinesses([]);
+      setCategoryCounts({});
+      setTotalAll(0);
       setLoadError(t('directory.load_error'));
     } finally {
       setLoading(false);
@@ -310,10 +417,14 @@ export default function DirectoryBrowseClient() {
         const data = await businessDirectoryApi.getPublic(handle, browseParams);
         setPublicData(data);
         setAvailableCategoryCodes(data.availableCategories ?? []);
+        setCategoryCounts(data.categoryCounts ?? {});
+        setTotalAll(data.totalAll ?? data.totalElements ?? data.businesses?.length ?? 0);
         setTotalElements(data.totalElements ?? data.businesses?.length ?? 0);
         setTotalPages(data.totalPages ?? 1);
       } catch {
         setPublicData(null);
+        setCategoryCounts({});
+        setTotalAll(0);
         setLoadError(t('directory.load_error'));
       } finally {
         setLoading(false);
@@ -443,7 +554,7 @@ export default function DirectoryBrowseClient() {
   if (mode === 'public') {
     const orgName = publicData?.organizationName;
     return (
-      <div className="p-8 max-w-5xl mx-auto">
+      <div className="p-8 max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
             {orgName ? t('directory.public_title', { org: orgName }) : t('directory.title')}
@@ -480,33 +591,42 @@ export default function DirectoryBrowseClient() {
           </div>
         ) : (
           <>
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('directory.search_placeholder')}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4"
-            />
-            <CategoryFilterBar
-              value={categoryFilter}
-              onChange={setCategoryFilter}
-              available={availableCategories}
-              labelFor={labelFor}
-            />
-            {loading ? (
-              <p className="text-gray-500">{t('common.loading')}</p>
-            ) : (publicData?.businesses?.length ?? 0) === 0 ? (
-              <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-500">
-                {search.trim() || categoryFilter ? t('directory.empty_search') : t('directory.public_empty')}
+            <div className="mb-6">
+              <SearchForm value={search} onChange={setSearch} onSubmit={submitSearch} />
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
+              <CategorySidebar
+                categories={availableCategories}
+                counts={categoryCounts}
+                total={totalAll}
+                selected={categoryFilter}
+                onSelect={setCategoryFilter}
+                labelFor={labelFor}
+              />
+
+              <div className="min-w-0">
+                <p className="mb-4 text-sm text-stone-500">
+                  {t(totalElements === 1 ? 'directory.result_count_one' : 'directory.result_count', {
+                    count: new Intl.NumberFormat(language).format(totalElements),
+                  })}
+                </p>
+                {loading ? (
+                  <p className="text-gray-500">{t('common.loading')}</p>
+                ) : (publicData?.businesses?.length ?? 0) === 0 ? (
+                  <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-500">
+                    {appliedSearch || categoryFilter ? t('directory.empty_search') : t('directory.public_empty')}
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))]">
+                      {publicData!.businesses.map((b) => renderPublicCard(b))}
+                    </div>
+                    {pagination}
+                  </>
+                )}
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  {publicData!.businesses.map((b) => renderPublicCard(b))}
-                </div>
-                {pagination}
-              </>
-            )}
+            </div>
           </>
         )}
 
@@ -601,14 +721,11 @@ export default function DirectoryBrowseClient() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('directory.search_placeholder')}
-          className="flex-1 min-w-[200px] border border-gray-300 rounded-lg px-3 py-2 text-sm"
-        />
+      <div className="mb-4">
+        <SearchForm value={search} onChange={setSearch} onSubmit={submitSearch} />
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setTab('local')}
@@ -625,35 +742,47 @@ export default function DirectoryBrowseClient() {
         </button>
       </div>
 
-      <CategoryFilterBar
-        value={categoryFilter}
-        onChange={setCategoryFilter}
-        available={availableCategories}
-        labelFor={labelFor}
-      />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
+        <CategorySidebar
+          categories={availableCategories}
+          counts={categoryCounts}
+          total={totalAll}
+          selected={categoryFilter}
+          onSelect={setCategoryFilter}
+          labelFor={labelFor}
+        />
 
-      {loading ? (
-        <p className="text-gray-500">{t('common.loading')}</p>
-      ) : loadError ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-500">
-          {loadError}
+        <div className="min-w-0">
+          <p className="mb-4 text-sm text-stone-500">
+            {t(totalElements === 1 ? 'directory.result_count_one' : 'directory.result_count', {
+              count: new Intl.NumberFormat(language).format(totalElements),
+            })}
+          </p>
+
+          {loading ? (
+            <p className="text-gray-500">{t('common.loading')}</p>
+          ) : loadError ? (
+            <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-500">
+              {loadError}
+            </div>
+          ) : activeList.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-500">
+              {appliedSearch || categoryFilter
+                ? t('directory.empty_search')
+                : t(tab === 'local' ? 'directory.empty_local' : 'directory.empty_federation')}
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))]">
+                {tab === 'local'
+                  ? localBusinesses.map(renderLocalCard)
+                  : federationBusinesses.map(renderFederationCard)}
+              </div>
+              {pagination}
+            </>
+          )}
         </div>
-      ) : activeList.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-500">
-          {search.trim() || categoryFilter
-            ? t('directory.empty_search')
-            : t(tab === 'local' ? 'directory.empty_local' : 'directory.empty_federation')}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            {tab === 'local'
-              ? localBusinesses.map(renderLocalCard)
-              : federationBusinesses.map(renderFederationCard)}
-          </div>
-          {pagination}
-        </>
-      )}
+      </div>
 
       {/* Signed-in viewers get the same detail view as the public page. */}
       <BusinessDetailDialog

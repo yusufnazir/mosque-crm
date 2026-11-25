@@ -3,19 +3,23 @@ package com.mosque.crm.service;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -155,7 +159,7 @@ public class BusinessDirectoryService {
     }
 
     public BusinessDirectoryPageResponse<BusinessDTO> listPublishedBusinessesPaged(
-            int page, int size, String search, String category) {
+            int page, int size, String search, String category, Long seed) {
         requireViewPermission();
         Long orgId = requireOrganizationId();
         int safeSize = clampPageSize(size);
@@ -163,33 +167,40 @@ public class BusinessDirectoryService {
         String searchTerm = normalizeFilter(search);
         String categoryTerm = normalizeFilter(category);
 
+        // Fetch all matches (ignoring the category) so the response can carry per-category
+        // counts, then filter by category in memory.
         Page<Business> result = businessListingRepository.searchPublishedBusinesses(
                 orgId,
                 BusinessListing.Status.PUBLISHED.name(),
                 searchTerm,
-                categoryTerm,
-                PageRequest.of(safePage, safeSize, Sort.by(Sort.Order.asc("name").ignoreCase())));
+                null,
+                Pageable.unpaged());
+        List<Business> all = result.getContent();
+        Map<String, Long> counts = countByCategory(all, Business::getCategory);
+        List<Business> matching = filterByCategory(all, Business::getCategory, categoryTerm);
+        List<Business> pageItems = seededPage(
+                matching, Business::getId, resolveSeed(seed), safePage, safeSize);
 
-        List<String> categories = businessListingRepository.findPublishedCategories(
-                orgId, BusinessListing.Status.PUBLISHED.name());
-
-        return new BusinessDirectoryPageResponse<>(
-                result.getContent().stream().map(this::toBusinessDto).collect(Collectors.toList()),
+        BusinessDirectoryPageResponse<BusinessDTO> response = new BusinessDirectoryPageResponse<>(
+                pageItems.stream().map(this::toBusinessDto).collect(Collectors.toList()),
                 safePage,
                 safeSize,
-                result.getTotalElements(),
-                categories);
+                matching.size(),
+                new ArrayList<>(counts.keySet()));
+        response.setTotalAll(all.size());
+        response.setCategoryCounts(counts);
+        return response;
     }
 
     public BusinessDirectoryPageResponse<FederatedBusinessListingDTO> listFederationDirectoryPaged(
-            int page, int size, String search, String category) {
+            int page, int size, String search, String category, Long seed) {
         requireViewPermission();
         Long orgId = requireOrganizationId();
         int safeSize = clampPageSize(size);
         int safePage = Math.max(page, 0);
         String searchTerm = normalizeFilter(search);
         String categoryTerm = normalizeFilter(category);
-        Pageable pageable = PageRequest.of(safePage, safeSize);
+        Pageable allRows = Pageable.unpaged();
 
         return authorizationService.withoutOrganizationFilter(() -> {
             boolean isParent = !partnershipRepository
@@ -197,16 +208,13 @@ public class BusinessDirectoryService {
                     .isEmpty();
 
             Page<BusinessListing> result;
-            List<String> categories;
             if (isParent) {
                 result = businessListingRepository.searchFederationListingsForParent(
                         orgId,
                         FederationConstants.MODULE_BUSINESS_DIRECTORY,
                         searchTerm,
-                        categoryTerm,
-                        pageable);
-                categories = businessListingRepository.findFederationCategoriesForParent(
-                        orgId, FederationConstants.MODULE_BUSINESS_DIRECTORY);
+                        null,
+                        allRows);
             } else {
                 var partnershipOpt = partnershipRepository.findFirstByMemberOrganizationIdAndStatus(
                         orgId, OrganizationPartnership.Status.ACTIVE.name());
@@ -220,21 +228,28 @@ public class BusinessDirectoryService {
                         orgId,
                         FederationConstants.MODULE_BUSINESS_DIRECTORY,
                         searchTerm,
-                        categoryTerm,
-                        pageable);
-                categories = businessListingRepository.findFederationCategoriesForSibling(
-                        parentOrgId, orgId, FederationConstants.MODULE_BUSINESS_DIRECTORY);
+                        null,
+                        allRows);
             }
 
-            List<FederatedBusinessListingDTO> content = result.getContent().stream()
-                    .map(this::toFederatedDto)
-                    .collect(Collectors.toList());
-            return new BusinessDirectoryPageResponse<>(
-                    content,
-                    safePage,
-                    safeSize,
-                    result.getTotalElements(),
-                    categories);
+            List<BusinessListing> all = result.getContent();
+            Map<Long, String> categoryByBusinessId = categoryByBusinessId(all);
+            Function<BusinessListing, String> categoryOf =
+                    listing -> categoryByBusinessId.get(listing.getBusinessId());
+            Map<String, Long> counts = countByCategory(all, categoryOf);
+            List<BusinessListing> matching = filterByCategory(all, categoryOf, categoryTerm);
+            List<BusinessListing> pageItems = seededPage(
+                    matching, BusinessListing::getId, resolveSeed(seed), safePage, safeSize);
+            BusinessDirectoryPageResponse<FederatedBusinessListingDTO> response =
+                    new BusinessDirectoryPageResponse<>(
+                            pageItems.stream().map(this::toFederatedDto).collect(Collectors.toList()),
+                            safePage,
+                            safeSize,
+                            matching.size(),
+                            new ArrayList<>(counts.keySet()));
+            response.setTotalAll(all.size());
+            response.setCategoryCounts(counts);
+            return response;
         });
     }
 
@@ -262,7 +277,7 @@ public class BusinessDirectoryService {
     }
 
     public PublicBusinessDirectoryResponse listPublicDirectory(
-            String orgHandle, int page, int size, String search, String category) {
+            String orgHandle, int page, int size, String search, String category, Long seed) {
         Organization organization = organizationRepository.findByHandle(orgHandle.trim())
                 .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + orgHandle));
 
@@ -291,20 +306,27 @@ public class BusinessDirectoryService {
             response.setIncludesFederationListings(isParent);
 
             if (isParent) {
-                Pageable pageable = PageRequest.of(safePage, safeSize);
                 Page<BusinessListing> result = businessListingRepository.searchPublicDirectoryForParent(
                         orgId,
                         FederationConstants.MODULE_BUSINESS_DIRECTORY,
                         searchTerm,
-                        categoryTerm,
-                        pageable);
-                List<String> categories = businessListingRepository.findPublicCategoriesForParent(
-                        orgId, FederationConstants.MODULE_BUSINESS_DIRECTORY);
-                response.setBusinesses(result.getContent().stream()
+                        null,
+                        Pageable.unpaged());
+                List<BusinessListing> all = result.getContent();
+                Map<Long, String> categoryByBusinessId = categoryByBusinessId(all);
+                Function<BusinessListing, String> categoryOf =
+                        listing -> categoryByBusinessId.get(listing.getBusinessId());
+                Map<String, Long> counts = countByCategory(all, categoryOf);
+                List<BusinessListing> matching = filterByCategory(all, categoryOf, categoryTerm);
+                List<BusinessListing> pageItems = seededPage(
+                        matching, BusinessListing::getId, resolveSeed(seed), safePage, safeSize);
+                response.setBusinesses(pageItems.stream()
                         .map(this::toPublicBusinessDtoFromListing)
                         .collect(Collectors.toList()));
-                response.setAvailableCategories(categories);
-                response.applyPageMeta(safePage, safeSize, result.getTotalElements());
+                response.setAvailableCategories(new ArrayList<>(counts.keySet()));
+                response.setCategoryCounts(counts);
+                response.setTotalAll(all.size());
+                response.applyPageMeta(safePage, safeSize, matching.size());
                 return response;
             }
 
@@ -312,17 +334,21 @@ public class BusinessDirectoryService {
                     orgId,
                     BusinessListing.Status.PUBLISHED.name(),
                     searchTerm,
-                    categoryTerm,
-                    PageRequest.of(safePage, safeSize, Sort.by(Sort.Order.asc("name").ignoreCase())));
+                    null,
+                    Pageable.unpaged());
 
-            List<String> categories = businessListingRepository.findPublicCategories(
-                    orgId, BusinessListing.Status.PUBLISHED.name());
-
-            response.setBusinesses(result.getContent().stream()
+            List<Business> all = result.getContent();
+            Map<String, Long> counts = countByCategory(all, Business::getCategory);
+            List<Business> matching = filterByCategory(all, Business::getCategory, categoryTerm);
+            List<Business> pageItems = seededPage(
+                    matching, Business::getId, resolveSeed(seed), safePage, safeSize);
+            response.setBusinesses(pageItems.stream()
                     .map(b -> toPublicBusinessDto(b, handle))
                     .collect(Collectors.toList()));
-            response.setAvailableCategories(categories);
-            response.applyPageMeta(safePage, safeSize, result.getTotalElements());
+            response.setAvailableCategories(new ArrayList<>(counts.keySet()));
+            response.setCategoryCounts(counts);
+            response.setTotalAll(all.size());
+            response.applyPageMeta(safePage, safeSize, matching.size());
             return response;
         });
     }
@@ -1409,6 +1435,62 @@ public class BusinessDirectoryService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    /** Fallback seed for clients that do not send one: rotates once per day. */
+    private static long resolveSeed(Long seed) {
+        return seed != null ? seed : LocalDateTime.now().toLocalDate().toEpochDay();
+    }
+
+    /**
+     * Deterministic seeded shuffle + slice.
+     *
+     * <p>Sorting by id first makes the shuffle reproducible for a given seed, so moving
+     * between pages never repeats or skips a listing, while every visit can use a new
+     * seed to give other companies the top spots.</p>
+     */
+    private static <T> List<T> seededPage(
+            List<T> items, Function<T, Long> idOf, long seed, int page, int size) {
+        List<T> shuffled = new ArrayList<>(items.size());
+        shuffled.addAll(items);
+        shuffled.sort(Comparator.comparing(idOf, Comparator.nullsLast(Comparator.naturalOrder())));
+        Collections.shuffle(shuffled, new Random(seed));
+        int from = (int) Math.min(shuffled.size(), (long) page * size);
+        int to = Math.min(shuffled.size(), from + size);
+        return new ArrayList<>(shuffled.subList(from, to));
+    }
+
+    /** Count non-blank categories (sorted map, so the sidebar order is stable). */
+    private static <T> Map<String, Long> countByCategory(List<T> items, Function<T, String> categoryOf) {
+        Map<String, Long> counts = new TreeMap<>();
+        for (T item : items) {
+            String category = categoryOf.apply(item);
+            if (category != null && !category.isBlank()) {
+                counts.merge(category, 1L, Long::sum);
+            }
+        }
+        return counts;
+    }
+
+    private static <T> List<T> filterByCategory(
+            List<T> items, Function<T, String> categoryOf, String category) {
+        if (category == null) {
+            return items;
+        }
+        return items.stream().filter(item -> category.equals(categoryOf.apply(item))).toList();
+    }
+
+    /** Batch-resolve the category of the businesses behind a set of listings. */
+    private Map<Long, String> categoryByBusinessId(List<BusinessListing> listings) {
+        Set<Long> ids = listings.stream().map(BusinessListing::getBusinessId).collect(Collectors.toSet());
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, String> categories = new HashMap<>();
+        for (Business business : businessRepository.findAllById(ids)) {
+            categories.put(business.getId(), business.getCategory());
+        }
+        return categories;
     }
 
     private void requireViewPermission() {

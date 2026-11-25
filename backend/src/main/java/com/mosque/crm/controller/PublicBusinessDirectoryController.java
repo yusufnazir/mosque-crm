@@ -36,10 +36,11 @@ public class PublicBusinessDirectoryController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) String category) {
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Long seed) {
         try {
             return ResponseEntity.ok(
-                    businessDirectoryService.listPublicDirectory(orgHandle, page, size, search, category));
+                    businessDirectoryService.listPublicDirectory(orgHandle, page, size, search, category, seed));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }

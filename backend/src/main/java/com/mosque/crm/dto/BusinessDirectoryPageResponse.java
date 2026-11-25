@@ -1,7 +1,9 @@
 package com.mosque.crm.dto;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Paginated business-directory browse response with category chips for the current scope.
@@ -16,6 +18,10 @@ public class BusinessDirectoryPageResponse<T> {
     private boolean first;
     private boolean last;
     private List<String> availableCategories = new ArrayList<>();
+    /** Total matches for the current search before the category filter (drives "All businesses"). */
+    private long totalAll;
+    /** Category code -> number of listings, sorted by code. */
+    private Map<String, Long> categoryCounts = new LinkedHashMap<>();
 
     public BusinessDirectoryPageResponse() {
     }
@@ -56,5 +62,13 @@ public class BusinessDirectoryPageResponse<T> {
     public List<String> getAvailableCategories() { return availableCategories; }
     public void setAvailableCategories(List<String> availableCategories) {
         this.availableCategories = availableCategories;
+    }
+
+    public long getTotalAll() { return totalAll; }
+    public void setTotalAll(long totalAll) { this.totalAll = totalAll; }
+
+    public Map<String, Long> getCategoryCounts() { return categoryCounts; }
+    public void setCategoryCounts(Map<String, Long> categoryCounts) {
+        this.categoryCounts = categoryCounts != null ? categoryCounts : new LinkedHashMap<>();
     }
 }

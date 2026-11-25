@@ -70,9 +70,10 @@ public class BusinessDirectoryController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) String category) {
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Long seed) {
         return ResponseEntity.ok(
-                businessDirectoryService.listPublishedBusinessesPaged(page, size, search, category));
+                businessDirectoryService.listPublishedBusinessesPaged(page, size, search, category, seed));
     }
 
     @GetMapping("/federation")
@@ -85,9 +86,10 @@ public class BusinessDirectoryController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) String category) {
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Long seed) {
         return ResponseEntity.ok(
-                businessDirectoryService.listFederationDirectoryPaged(page, size, search, category));
+                businessDirectoryService.listFederationDirectoryPaged(page, size, search, category, seed));
     }
 
     @GetMapping("/usage")

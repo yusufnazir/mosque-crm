@@ -41,7 +41,11 @@ export default async function DirectoryPage() {
   const proto = headerStore.get('x-forwarded-proto');
   const orgHandle = extractOrgHandleFromHost(host);
   const origin = absoluteOrigin(host, proto);
-  const data = orgHandle ? await fetchPublicDirectory(orgHandle, { page: 0, size: 48 }) : null;
+  // Fresh shuffle per page load: every company gets a turn near the top.
+  // This is a server component (headers() above), so a per-request random seed is intentional.
+  // eslint-disable-next-line react-hooks/purity -- server component, not re-rendered on the client
+  const seed = Math.floor(Math.random() * 2_000_000_000) + 1;
+  const data = orgHandle ? await fetchPublicDirectory(orgHandle, { page: 0, size: 48, seed }) : null;
 
   const jsonLd =
     data?.enabled && data.businesses?.length
@@ -80,7 +84,7 @@ export default async function DirectoryPage() {
           </div>
         </noscript>
       ) : null}
-      <DirectoryBrowseClient />
+      <DirectoryBrowseClient seed={seed} />
     </>
   );
 }

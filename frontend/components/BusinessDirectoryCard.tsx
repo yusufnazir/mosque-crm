@@ -295,7 +295,7 @@ export default function BusinessDirectoryCard({
                   className="inline-flex items-center gap-2 text-emerald-800 hover:text-emerald-950 hover:underline min-w-0"
                 >
                   <MailIcon />
-                  <span className="truncate">{business.email}</span>
+                  <span className="min-w-0 break-all" title={business.email}>{business.email}</span>
                 </a>
               </li>
             )}

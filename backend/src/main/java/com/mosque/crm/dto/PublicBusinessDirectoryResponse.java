@@ -1,7 +1,9 @@
 package com.mosque.crm.dto;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PublicBusinessDirectoryResponse {
 
@@ -16,6 +18,10 @@ public class PublicBusinessDirectoryResponse {
     private boolean first = true;
     private boolean last = true;
     private List<String> availableCategories = new ArrayList<>();
+    /** Total matches for the current search before the category filter (drives "All businesses"). */
+    private long totalAll;
+    /** Category code -> number of listings, sorted by code. */
+    private Map<String, Long> categoryCounts = new LinkedHashMap<>();
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -52,6 +58,14 @@ public class PublicBusinessDirectoryResponse {
     public List<String> getAvailableCategories() { return availableCategories; }
     public void setAvailableCategories(List<String> availableCategories) {
         this.availableCategories = availableCategories;
+    }
+
+    public long getTotalAll() { return totalAll; }
+    public void setTotalAll(long totalAll) { this.totalAll = totalAll; }
+
+    public Map<String, Long> getCategoryCounts() { return categoryCounts; }
+    public void setCategoryCounts(Map<String, Long> categoryCounts) {
+        this.categoryCounts = categoryCounts != null ? categoryCounts : new LinkedHashMap<>();
     }
 
     public void applyPageMeta(int page, int size, long totalElements) {

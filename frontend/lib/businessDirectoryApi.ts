@@ -104,10 +104,18 @@ export interface PublicBusinessDirectoryResponse {
   first?: boolean;
   last?: boolean;
   availableCategories?: string[];
+  /** Total matches for the search before the category filter (sidebar "All"). */
+  totalAll?: number;
+  /** Category code -> number of listings. */
+  categoryCounts?: Record<string, number>;
 }
 
 export interface BusinessDirectoryPageResponse<T> extends PageResponse<T> {
   availableCategories?: string[];
+  /** Total matches for the search before the category filter (sidebar "All"). */
+  totalAll?: number;
+  /** Category code -> number of listings. */
+  categoryCounts?: Record<string, number>;
 }
 
 export type DirectoryBrowseParams = {
@@ -115,6 +123,8 @@ export type DirectoryBrowseParams = {
   size?: number;
   search?: string;
   category?: string;
+  /** Seed for a stable-but-random listing order (same seed = same pagination). */
+  seed?: number;
 };
 
 function browseQuery(params: DirectoryBrowseParams = {}): string {
@@ -123,6 +133,7 @@ function browseQuery(params: DirectoryBrowseParams = {}): string {
   searchParams.set('size', String(params.size ?? 12));
   if (params.search?.trim()) searchParams.set('search', params.search.trim());
   if (params.category?.trim()) searchParams.set('category', params.category.trim());
+  if (params.seed != null) searchParams.set('seed', String(params.seed));
   return searchParams.toString();
 }
 

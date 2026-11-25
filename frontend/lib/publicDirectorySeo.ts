@@ -49,7 +49,7 @@ export function parseBusinessKey(key: string): number | null {
 
 export async function fetchPublicDirectory(
   orgHandle: string,
-  params: { page?: number; size?: number; search?: string; category?: string } = {}
+  params: { page?: number; size?: number; search?: string; category?: string; seed?: number } = {}
 ): Promise<PublicBusinessDirectoryResponse | null> {
   if (!orgHandle) return null;
   const searchParams = new URLSearchParams();
@@ -57,6 +57,7 @@ export async function fetchPublicDirectory(
   searchParams.set('size', String(params.size ?? 48));
   if (params.search?.trim()) searchParams.set('search', params.search.trim());
   if (params.category?.trim()) searchParams.set('category', params.category.trim());
+  if (params.seed != null) searchParams.set('seed', String(params.seed));
   try {
     const res = await fetch(
       `${BACKEND_URL}/business-directory/public/${encodeURIComponent(orgHandle)}?${searchParams}`,
