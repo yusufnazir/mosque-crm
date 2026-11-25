@@ -5,7 +5,9 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
+    <!-- Installs that already ran the temporary 88/89 ids (see 240) keep that stored checksum. -->
     <changeSet id="a1f2b3c4-0079-4wha-aaaa-whatsappview079" author="mosque-crm">
+        <validCheckSum>9:b6d567f39cd3e28cd730aeafa3eed79c</validCheckSum>
         <customChange class="com.mosque.crm.liquibase.DataPermission">
             <param name="id"><![CDATA[79]]></param>
             <param name="code"><![CDATA[whatsapp.view]]></param>
@@ -15,6 +17,7 @@
     </changeSet>
 
     <changeSet id="b2a3c4d5-0080-4wha-bbbb-whatsappmana080" author="mosque-crm">
+        <validCheckSum>9:1da8086b6313cfec1e1255bbeeb6e0d3</validCheckSum>
         <customChange class="com.mosque.crm.liquibase.DataPermission">
             <param name="id"><![CDATA[80]]></param>
             <param name="code"><![CDATA[whatsapp.manage]]></param>
@@ -25,6 +28,7 @@
 
     <!-- ADMIN → whatsapp.view (79) -->
     <changeSet id="c3b4d5e6-0079-4wha-cccc-whatsadminv079" author="mosque-crm">
+        <validCheckSum>9:09162160b57b18fc73faffca0144748e</validCheckSum>
         <customChange class="com.mosque.crm.liquibase.DataRolePermission">
             <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[79]]></param>
         </customChange>
@@ -32,6 +36,7 @@
 
     <!-- ADMIN → whatsapp.manage (80) -->
     <changeSet id="d4c5e6f7-0080-4wha-dddd-whatsadminm080" author="mosque-crm">
+        <validCheckSum>9:7c80c302d4d4656eac874a964d315d32</validCheckSum>
         <customChange class="com.mosque.crm.liquibase.DataRolePermission">
             <param name="roleId"><![CDATA[1]]></param><param name="permissionId"><![CDATA[80]]></param>
         </customChange>

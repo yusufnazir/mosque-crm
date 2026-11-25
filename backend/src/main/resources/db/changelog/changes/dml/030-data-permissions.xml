@@ -687,7 +687,9 @@
         </changeSet>
 
     <!-- Bulk member accounts (83-84) -->
+    <!-- Installs that already ran the temporary 92/93 ids (see 240) keep that stored checksum. -->
     <changeSet id="1bb68e58-35bd-48d8-a2dd-c36b43bddfa4" author="mosque-crm">
+        <validCheckSum>9:c3cfe86ddda39d3005c037e4b7779894</validCheckSum>
         <customChange class="com.mosque.crm.liquibase.DataPermission">
             <param name="id" value="83"/>
             <param name="code" value="member_account.view"/>
@@ -696,6 +698,7 @@
         </customChange>
     </changeSet>
     <changeSet id="c8be305e-65c6-41bc-91b6-364c89658f18" author="mosque-crm">
+        <validCheckSum>9:f2e210b97d28bc0fa05c0897ee7fcaa1</validCheckSum>
         <customChange class="com.mosque.crm.liquibase.DataPermission">
             <param name="id" value="84"/>
             <param name="code" value="member_account.manage"/>

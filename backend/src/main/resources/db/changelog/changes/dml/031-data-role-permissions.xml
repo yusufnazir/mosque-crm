@@ -578,12 +578,15 @@
 		</customChange>
 	</changeSet>
 
+    <!-- Installs that already ran the temporary 92/93 grant ids (see 240) keep that stored checksum. -->
     <changeSet id="5c0d7341-bb5b-419f-a7a3-7d0dba4d8a63" author="mosque-crm">
+        <validCheckSum>9:1efc042e30785e1079b0993a35b646ab</validCheckSum>
         <customChange class="com.mosque.crm.liquibase.DataRolePermission">
             <param name="roleId" value="1"/><param name="permissionId" value="83"/>
         </customChange>
     </changeSet>
     <changeSet id="7e9f7fc7-abfd-4937-9674-897e97b3a71c" author="mosque-crm">
+        <validCheckSum>9:72b49d67c4f6f3d655d90b8272f8b87d</validCheckSum>
         <customChange class="com.mosque.crm.liquibase.DataRolePermission">
             <param name="roleId" value="1"/><param name="permissionId" value="84"/>
         </customChange>
