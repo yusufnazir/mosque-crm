@@ -199,6 +199,7 @@ export default function BusinessDirectoryCard({
   const style = businessHeaderStyle(business);
   const location = [business.city, business.country].filter(Boolean).join(', ');
   // Prefer the logo; otherwise use the cover photo's *thumbnail* (never the full image).
+  const hasLogo = !!business.logoUrl;
   const coverUrl = business.logoUrl || business.images?.[0]?.thumbUrl || null;
   const hasContact = !!(business.email || business.phone || location);
   const hasSocial = !!(
@@ -230,24 +231,25 @@ export default function BusinessDirectoryCard({
         <div className="absolute inset-0 bg-black/30" aria-hidden />
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/25" aria-hidden />
 
-        <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/20 ring-2 ring-white/50 flex items-center justify-center shadow-lg backdrop-blur-[2px] overflow-hidden shrink-0">
+        {/* Solid white tile: keeps transparent PNGs with dark wordmarks readable on every gradient. */}
+        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-lg ring-1 ring-black/5 sm:h-16 sm:w-16">
           {coverUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={coverUrl}
               alt=""
               loading="lazy"
-              className="w-full h-full object-cover"
+              className={`h-full w-full ${hasLogo ? 'object-contain' : 'object-cover'}`}
             />
           ) : (
-            <span className="text-white text-lg sm:text-xl font-semibold tracking-wide select-none drop-shadow-sm">
+            <span className="select-none text-lg font-semibold tracking-wide text-stone-600 sm:text-xl">
               {initials}
             </span>
           )}
         </div>
 
         {hasSocial && (
-          <div className="relative mt-auto w-full pt-3" onClick={(e) => e.stopPropagation()}>
+          <div className="relative mt-auto w-full pt-4" onClick={(e) => e.stopPropagation()}>
             <BusinessSocialLinks business={business} variant="rail" className="items-center mt-0" />
           </div>
         )}

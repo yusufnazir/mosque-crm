@@ -53,7 +53,7 @@ type Props = {
   images: BusinessImageDTO[];
   /** Parent busy state (e.g. the business form is saving). */
   disabled?: boolean;
-  onUpload: (file: File) => Promise<void>;
+  onUpload: (file: File, onProgress?: (percent: number) => void) => Promise<void>;
   onDelete: (imageId: number) => Promise<void>;
   onReorder: (imageIds: number[]) => Promise<void>;
 };
@@ -75,10 +75,13 @@ export default function BusinessGalleryEditor({
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [working, setWorking] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [uploadingName, setUploadingName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<BusinessImageDTO | null>(null);
 
-  const busy = working || disabled;
+  const busy = working || uploading || disabled;
   const atLimit = images.length >= BUSINESS_IMAGE_MAX_COUNT;
 
   const handleFiles = async (fileList: FileList | null) => {
@@ -109,15 +112,19 @@ export default function BusinessGalleryEditor({
       setError(t('business_gallery.error_limit'));
     }
 
-    setWorking(true);
+    setUploading(true);
     try {
       for (const file of accepted) {
-        await onUpload(file);
+        setUploadingName(file.name);
+        setProgress(null);
+        await onUpload(file, (percent) => setProgress(percent));
       }
     } catch (e) {
       setError(apiErrorMessage(e, t('business_gallery.upload_failed'), t));
     } finally {
-      setWorking(false);
+      setUploading(false);
+      setProgress(null);
+      setUploadingName('');
       if (inputRef.current) inputRef.current.value = '';
     }
   };
@@ -235,15 +242,41 @@ export default function BusinessGalleryEditor({
             onClick={() => inputRef.current?.click()}
             className="aspect-4/3 rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 text-stone-500 hover:border-emerald-400 hover:text-emerald-700 disabled:opacity-50 flex flex-col items-center justify-center gap-1"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
-            </svg>
+            {uploading ? (
+              <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+            ) : (
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+              </svg>
+            )}
             <span className="text-xs font-medium">
-              {working ? t('business_gallery.uploading') : t('business_gallery.add')}
+              {uploading ? t('business_gallery.uploading') : t('business_gallery.add')}
             </span>
           </button>
         )}
       </div>
+
+      {uploading && (
+        <div className="mt-4" role="status" aria-live="polite">
+          <div className="mb-1 flex items-center justify-between gap-3 text-xs text-stone-600">
+            <span className="truncate">
+              {uploadingName
+                ? t('business_gallery.uploading_named', { name: uploadingName })
+                : t('business_gallery.uploading')}
+            </span>
+            {progress != null && <span className="tabular-nums">{progress}%</span>}
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
+            <div
+              className={`h-full rounded-full bg-emerald-600 ${progress != null ? 'transition-all duration-200' : 'animate-pulse'}`}
+              style={{ width: progress != null ? `${Math.max(progress, 4)}%` : '100%' }}
+            />
+          </div>
+        </div>
+      )}
 
       {images.length === 0 && (
         <p className="mt-3 text-xs text-stone-400">{t('business_gallery.empty')}</p>

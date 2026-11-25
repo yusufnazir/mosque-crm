@@ -7,6 +7,7 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import ToastNotification from '@/components/ToastNotification';
+import BusinessLogoEditor from '@/components/BusinessLogoEditor';
 import { businessDirectoryApi } from '@/lib/businessDirectoryApi';
 import BusinessForm, { BusinessFormValues } from '../BusinessForm';
 
@@ -23,6 +24,14 @@ export default function NewBusinessPage() {
   const [saving, setSaving] = useState(false);
   const [atLimit, setAtLimit] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    };
+  }, [logoPreviewUrl]);
 
   useEffect(() => {
     if (!canRegister) return;
@@ -92,23 +101,74 @@ export default function NewBusinessPage() {
     );
   }
 
+  const handleError = (err: unknown) => {
+    const msg = err instanceof Error ? err.message : '';
+    if (msg.includes('PLAN_LIMIT_EXCEEDED') || msg.includes('Plan limit exceeded')) {
+      setToast({
+        message: t('plan.listings_limit_reached', { limit: String(listingsLimit ?? '') }),
+        type: 'error',
+      });
+      setAtLimit(true);
+    } else {
+      setToast({ message: t('my_businesses.save_error'), type: 'error' });
+    }
+    setSaving(false);
+  };
+
+  const handleLogoSelect = (file: File) => {
+    setLogoFile(file);
+    setLogoPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleLogoRemove = () => {
+    setLogoFile(null);
+    setLogoPreviewUrl(null);
+  };
+
+  /** Upload the staged logo after the business exists; false means it still needs one. */
+  const uploadStagedLogo = async (businessId: number): Promise<boolean> => {
+    if (!logoFile) return true;
+    try {
+      await businessDirectoryApi.uploadMyLogo(businessId, logoFile);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleSubmit = async (values: BusinessFormValues) => {
     setSaving(true);
     try {
-      await businessDirectoryApi.createMy(values);
+      const created = await businessDirectoryApi.createMy(values);
+      if (created?.id) {
+        const logoUploaded = await uploadStagedLogo(created.id);
+        router.push(logoUploaded ? '/my-businesses' : `/my-businesses/${created.id}/edit`);
+        return;
+      }
       router.push('/my-businesses');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '';
-      if (msg.includes('PLAN_LIMIT_EXCEEDED') || msg.includes('Plan limit exceeded')) {
-        setToast({
-          message: t('plan.listings_limit_reached', { limit: String(listingsLimit ?? '') }),
-          type: 'error',
-        });
-        setAtLimit(true);
-      } else {
-        setToast({ message: t('my_businesses.save_error'), type: 'error' });
+      handleError(err);
+    }
+  };
+
+  const handleSaveAndPublish = async (values: BusinessFormValues) => {
+    setSaving(true);
+    try {
+      const created = await businessDirectoryApi.createMy(values);
+      if (created?.id) {
+        const logoUploaded = await uploadStagedLogo(created.id);
+        // The draft exists even if publishing fails — don't create a duplicate on retry.
+        try {
+          await businessDirectoryApi.publishMy(created.id);
+        } catch {
+          /* publish can be retried from My Businesses */
+        }
+        router.push(logoUploaded ? '/my-businesses' : `/my-businesses/${created.id}/edit`);
+        return;
       }
-      setSaving(false);
+      router.push('/my-businesses');
+    } catch (err: unknown) {
+      handleError(err);
     }
   };
 
@@ -126,9 +186,19 @@ export default function NewBusinessPage() {
         <p className="text-stone-500 text-sm mt-1">{t('my_businesses.form_page_subtitle')}</p>
       </div>
 
+      <BusinessLogoEditor
+        previewUrl={logoPreviewUrl}
+        uploading={false}
+        onSelect={handleLogoSelect}
+        onDelete={handleLogoRemove}
+        hint={t('my_businesses.logo.create_hint')}
+      />
+
       <BusinessForm
         saving={saving}
         submitLabel={t('my_businesses.save_draft')}
+        secondarySubmitLabel={t('my_businesses.save_and_publish')}
+        onSecondarySubmit={handleSaveAndPublish}
         onCancel={() => router.push('/my-businesses')}
         onSubmit={handleSubmit}
       />

@@ -7,6 +7,7 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useSubscription } from '@/lib/subscription/SubscriptionContext';
 import ToastNotification from '@/components/ToastNotification';
+import BusinessLogoEditor from '@/components/BusinessLogoEditor';
 import { businessDirectoryApi } from '@/lib/businessDirectoryApi';
 import BusinessForm, { BusinessFormValues } from '@/app/(dashboard)/my-businesses/BusinessForm';
 
@@ -21,6 +22,14 @@ export default function AdminNewBusinessPage() {
   const [saving, setSaving] = useState(false);
   const [atLimit, setAtLimit] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    };
+  }, [logoPreviewUrl]);
 
   useEffect(() => {
     if (!canManage) return;
@@ -79,10 +88,29 @@ export default function AdminNewBusinessPage() {
     );
   }
 
+  const handleLogoSelect = (file: File) => {
+    setLogoFile(file);
+    setLogoPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleLogoRemove = () => {
+    setLogoFile(null);
+    setLogoPreviewUrl(null);
+  };
+
   const handleSubmit = async (values: BusinessFormValues) => {
     setSaving(true);
     try {
-      await businessDirectoryApi.create(values);
+      const created = await businessDirectoryApi.create(values);
+      if (created?.id && logoFile) {
+        try {
+          await businessDirectoryApi.uploadLogo(created.id, logoFile);
+        } catch {
+          // The listing exists; the logo can be retried from the admin edit page.
+          router.push(`/business-directory/admin/${created.id}/edit`);
+          return;
+        }
+      }
       router.push('/business-directory/admin');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '';
@@ -112,6 +140,14 @@ export default function AdminNewBusinessPage() {
         <h1 className="text-2xl font-bold text-stone-900 mt-3">{t('business_directory.add_business')}</h1>
         <p className="text-stone-500 text-sm mt-1">{t('business_directory.admin_form_subtitle')}</p>
       </div>
+
+      <BusinessLogoEditor
+        previewUrl={logoPreviewUrl}
+        uploading={false}
+        onSelect={handleLogoSelect}
+        onDelete={handleLogoRemove}
+        hint={t('my_businesses.logo.create_hint')}
+      />
 
       <BusinessForm
         saving={saving}

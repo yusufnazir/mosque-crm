@@ -105,9 +105,9 @@ const CHIP_STYLES = {
   },
   rail: {
     website:
-      'inline-flex items-center justify-center w-9 h-9 rounded-full bg-black/30 text-white ring-1 ring-white/50 hover:bg-black/50 hover:ring-white/80 backdrop-blur-[2px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
+      'inline-flex items-center justify-center w-7 h-7 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80',
     social:
-      'inline-flex items-center justify-center w-9 h-9 rounded-full bg-black/25 text-white ring-1 ring-white/40 hover:bg-black/45 hover:ring-white/75 backdrop-blur-[2px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
+      'inline-flex items-center justify-center w-7 h-7 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80',
   },
 } as const;
 
@@ -129,7 +129,7 @@ export default function BusinessSocialLinks({
   if (links.length === 0 && !business.website) return null;
 
   const layout = isRail
-    ? `flex flex-col gap-1.5 w-full ${className}`
+    ? `flex flex-col gap-2 w-full ${className}`
     : `flex flex-wrap gap-2 ${className}`;
 
   return (
@@ -143,7 +143,7 @@ export default function BusinessSocialLinks({
           title={t('business_directory.fields.website')}
           aria-label={t('business_directory.fields.website')}
         >
-          <WebsiteIcon className={isRail ? 'w-[18px] h-[18px]' : 'w-4 h-4'} />
+          <WebsiteIcon className="w-4 h-4" />
           {isRail ? (
             <span className="sr-only">{t('business_directory.fields.website')}</span>
           ) : (
@@ -161,7 +161,7 @@ export default function BusinessSocialLinks({
           title={t(labelKey)}
           aria-label={t(labelKey)}
         >
-          <Icon className={isRail ? 'w-[18px] h-[18px]' : 'w-4 h-4'} />
+          <Icon className="w-4 h-4" />
           {isRail ? <span className="sr-only">{t(labelKey)}</span> : t(labelKey)}
         </a>
       ))}

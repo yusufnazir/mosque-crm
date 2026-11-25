@@ -128,10 +128,10 @@ export default function AdminEditBusinessPage() {
     }
   };
 
-  const handleLogoUpload = async (file: File) => {
+  const handleLogoUpload = async (file: File, onProgress?: (percent: number) => void) => {
     setLogoUploading(true);
     try {
-      const result = await businessDirectoryApi.uploadLogo(id, file);
+      const result = await businessDirectoryApi.uploadLogo(id, file, onProgress);
       setLogoUrl(result.imageUrl);
       setToast({ message: t('my_businesses.logo.upload_success'), type: 'success' });
     } catch {
@@ -154,8 +154,8 @@ export default function AdminEditBusinessPage() {
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-    const result = await businessDirectoryApi.uploadImage(id, file);
+  const handleImageUpload = async (file: File, onProgress?: (percent: number) => void) => {
+    const result = await businessDirectoryApi.uploadImage(id, file, onProgress);
     setImages(result.images);
   };
 

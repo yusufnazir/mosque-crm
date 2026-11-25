@@ -82,10 +82,10 @@ You will see the status of each business:
 
 | Status | Meaning |
 |--------|---------|
-| **Draft** | Saved, not yet sent for review |
-| **Pending approval** | Waiting for an admin |
+| **Draft** | Saved, not yet visible in the directory |
 | **Published** | Visible in the directory |
 | **Suspended** | Temporarily removed by an admin |
+| **Pending approval** | Legacy only — older listings waiting for an admin |
 
 ### Fill in the form
 
@@ -94,9 +94,10 @@ On **Register Business**, enter:
 - Business name and category  
 - Optional description, email, phone  
 - Optional website and social links  
+- Optional logo — drag to reposition and use the zoom slider to crop the square  
 - City and country  
 
-Then **Save as draft**. When you are ready, open the business again and choose **Submit for approval**.
+Then **Save as draft**. When you are ready, open the business again and choose **Publish** — or use **Save & publish** straight away.
 
 ![Register a business form](images/en/05-register-business.png)
 
@@ -104,28 +105,26 @@ Then **Save as draft**. When you are ready, open the business again and choose *
 
 ---
 
-## 5. Approve businesses (admins)
+## 5. Manage businesses (admins)
 
 Mosque admins open **Administration → Directory Admin** (or **Directory Administration**).
 
 Here you can:
 
 - See all local businesses  
-- Review **Pending approval**  
-- Publish, reject, or suspend listings  
+- Review listings (including legacy items waiting for approval)  
+- Publish, unpublish, reject, or suspend listings  
 - Manage what is shared with federation partners  
 
 ![Directory Administration](images/en/07-directory-admin.png)
 
-### Approve a pending listing
+### Publish or unpublish a listing
 
-1. Open the **Pending approval** tab.
-2. Review the business details.
-3. Choose **Approve** (or reject with a reason if needed).
+1. Open the **Directory Admin** local list.
+2. Pick a business and choose **Publish** (or **Unpublish** to take it back to draft).
+3. Legacy rows in the **Pending approval** tab can still be approved or rejected with a reason.
 
-![Pending approvals](images/en/08-directory-pending.png)
-
-After approval, the business appears in the Business Directory for your members (and in the federation when sharing is enabled).
+Published businesses appear immediately in the Business Directory for your members (and in the federation when sharing is enabled).
 
 ---
 

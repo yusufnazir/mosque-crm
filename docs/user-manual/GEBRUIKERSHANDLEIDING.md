@@ -82,10 +82,10 @@ U ziet de status van elk bedrijf:
 
 | Status | Betekenis |
 |--------|-----------|
-| **Draft** / Concept | Opgeslagen, nog niet ter review aangeboden |
-| **Pending approval** / Wacht op goedkeuring | Wacht op een beheerder |
+| **Draft** / Concept | Opgeslagen, nog niet zichtbaar in de gids |
 | **Published** / Gepubliceerd | Zichtbaar in de gids |
 | **Suspended** / Opgeschort | Tijdelijk verwijderd door een beheerder |
+| **Pending approval** / Wacht op goedkeuring | Alleen voor oudere vermeldingen die nog op een beheerder wachten |
 
 ### Het formulier invullen
 
@@ -94,9 +94,10 @@ Op **Bedrijf registreren** vult u in:
 - Bedrijfsnaam en categorie  
 - Optioneel: omschrijving, e-mail, telefoon  
 - Optioneel: website en socialemedialinks  
+- Optioneel: logo — sleep om te verplaatsen en zoom om het vierkant bij te snijden  
 - Stad en land  
 
-Klik daarna op **Save as draft** / **Opslaan als concept**. Als u klaar bent, opent u het bedrijf opnieuw en kiest u **Submit for approval** / **Indienen ter goedkeuring**.
+Klik daarna op **Save as draft** / **Opslaan als concept**. Als u klaar bent, opent u het bedrijf opnieuw en kiest u **Publish** / **Publiceren** — of gebruik direct **Save & publish** / **Opslaan en publiceren**.
 
 ![Formulier bedrijf registreren](images/nl/05-register-business.png)
 
@@ -104,28 +105,26 @@ Klik daarna op **Save as draft** / **Opslaan als concept**. Als u klaar bent, op
 
 ---
 
-## 5. Bedrijven goedkeuren (beheerders)
+## 5. Bedrijven beheren (beheerders)
 
 Moskeebeheerders openen **Administration → Directory Admin** (of **Directorybeheer**).
 
 Hier kunt u:
 
 - Alle lokale bedrijven bekijken  
-- Aanvragen onder **Pending approval** / **Wacht op goedkeuring** beoordelen  
-- Vermeldingen publiceren, afwijzen of opschorten  
+- Vermeldingen beoordelen (ook oudere items die nog op goedkeuring wachten)  
+- Vermeldingen publiceren, depubliceren, afwijzen of opschorten  
 - Beheren wat met federatiepartners wordt gedeeld  
 
 ![Directorybeheer](images/nl/07-directory-admin.png)
 
-### Een aanvraag goedkeuren
+### Een vermelding publiceren of depubliceren
 
-1. Open het tabblad **Pending approval** / **Wacht op goedkeuring**.
-2. Controleer de bedrijfsgegevens.
-3. Kies **Approve** / **Goedkeuren** (of wijs af met een reden).
+1. Open de lokale lijst in **Directory Admin** / **Directorybeheer**.
+2. Kies een bedrijf en klik op **Publish** / **Publiceren** (of **Unpublish** / **Publicatie intrekken** om het terug te zetten naar concept).
+3. Oudere rijen in het tabblad **Pending approval** / **Wacht op goedkeuring** kunnen nog steeds worden goedgekeurd of afgewezen met een reden.
 
-![Wachtende goedkeuringen](images/nl/08-directory-pending.png)
-
-Na goedkeuring verschijnt het bedrijf in de bedrijvengids voor uw leden (en in de federatie als delen is ingeschakeld).
+Gepubliceerde bedrijven verschijnen direct in de bedrijvengids voor uw leden (en in de federatie als delen is ingeschakeld).
 
 ---
 

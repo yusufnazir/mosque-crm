@@ -39,9 +39,12 @@ public class BusinessImageProcessor {
     public static final int FULL_MAX_DIMENSION = 1600;
     /** Longest side of the "thumb" variant used by cards and grids. */
     public static final int THUMB_MAX_DIMENSION = 480;
+    /** Longest side of a stored business logo — it is only shown in small cards. */
+    public static final int LOGO_MAX_DIMENSION = 512;
 
     private static final float FULL_QUALITY = 0.82f;
     private static final float THUMB_QUALITY = 0.75f;
+    private static final float LOGO_QUALITY = 0.88f;
 
     /** Guard against decompression bombs: 40 MP is far beyond any shop photo. */
     private static final long MAX_PIXELS = 40_000_000L;
@@ -52,6 +55,10 @@ public class BusinessImageProcessor {
     }
 
     public record ProcessedImage(Variant full, Variant thumb) {
+    }
+
+    /** A downscaled logo: PNG when the source has transparency, otherwise JPEG. */
+    public record LogoImage(byte[] bytes, String contentType, String extension) {
     }
 
     public ProcessedImage process(byte[] source) {
@@ -80,6 +87,61 @@ public class BusinessImageProcessor {
         return new ProcessedImage(full, thumb);
     }
 
+    /**
+     * Shrink an uploaded logo so directory cards load quickly.
+     *
+     * <p>Never upscales, strips EXIF/GPS and keeps transparency by writing PNG when the
+     * source has an alpha channel (JPEG cannot store it). Returns {@code null} when the
+     * bytes cannot be decoded — the caller then stores the original file unchanged, so
+     * formats such as WebP keep working instead of failing.</p>
+     */
+    public LogoImage processLogo(byte[] source) {
+        if (source == null || source.length == 0) {
+            return null;
+        }
+        BufferedImage original;
+        try {
+            original = ImageIO.read(new ByteArrayInputStream(source));
+        } catch (Exception ex) {
+            return null;
+        }
+        if (original == null) {
+            return null;
+        }
+        long pixels = (long) original.getWidth() * original.getHeight();
+        if (pixels > MAX_PIXELS) {
+            return null;
+        }
+
+        boolean keepAlpha = original.getColorModel() != null && original.getColorModel().hasAlpha();
+        int sourceWidth = original.getWidth();
+        int sourceHeight = original.getHeight();
+        int longest = Math.max(sourceWidth, sourceHeight);
+        double ratio = longest > LOGO_MAX_DIMENSION ? (double) LOGO_MAX_DIMENSION / longest : 1d;
+        int targetWidth = Math.max(1, (int) Math.round(sourceWidth * ratio));
+        int targetHeight = Math.max(1, (int) Math.round(sourceHeight * ratio));
+
+        BufferedImage scaled = new BufferedImage(
+                targetWidth, targetHeight, keepAlpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = scaled.createGraphics();
+        try {
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (!keepAlpha) {
+                graphics.setColor(Color.WHITE);
+                graphics.fillRect(0, 0, targetWidth, targetHeight);
+            }
+            graphics.drawImage(original, 0, 0, targetWidth, targetHeight, null);
+        } finally {
+            graphics.dispose();
+        }
+
+        return keepAlpha
+                ? new LogoImage(write(scaled, "png", 1f), "image/png", ".png")
+                : new LogoImage(write(scaled, "jpeg", LOGO_QUALITY), "image/jpeg", ".jpg");
+    }
+
     private Variant encode(BufferedImage original, int maxDimension, float quality) {
         int sourceWidth = original.getWidth();
         int sourceHeight = original.getHeight();
@@ -106,16 +168,22 @@ public class BusinessImageProcessor {
     }
 
     private byte[] writeJpeg(BufferedImage image, float quality) {
-        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
+        return write(image, "jpeg", quality);
+    }
+
+    private byte[] write(BufferedImage image, String format, float quality) {
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(format);
         if (!writers.hasNext()) {
-            throw new IllegalStateException("No JPEG encoder available on this runtime");
+            throw new IllegalStateException("No " + format + " encoder available on this runtime");
         }
         ImageWriter writer = writers.next();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (ImageOutputStream ios = ImageIO.createImageOutputStream(out)) {
             ImageWriteParam param = writer.getDefaultWriteParam();
-            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-            param.setCompressionQuality(quality);
+            if ("jpeg".equals(format) && param.canWriteCompressed()) {
+                param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                param.setCompressionQuality(quality);
+            }
             writer.setOutput(ios);
             writer.write(null, new IIOImage(image, null, null), param);
         } catch (Exception ex) {

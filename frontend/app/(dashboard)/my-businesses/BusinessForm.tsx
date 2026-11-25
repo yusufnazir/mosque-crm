@@ -46,8 +46,11 @@ type Props = {
   initial?: BusinessFormValues;
   saving: boolean;
   submitLabel: string;
+  /** Optional second action next to the primary button, e.g. "Save & publish". */
+  secondarySubmitLabel?: string;
   onCancel: () => void;
   onSubmit: (values: BusinessFormValues) => Promise<void>;
+  onSecondarySubmit?: (values: BusinessFormValues) => Promise<void>;
 };
 
 const SOCIAL_FIELDS: Array<{ key: keyof BusinessFormValues; labelKey: string; placeholder: string }> = [
@@ -59,7 +62,15 @@ const SOCIAL_FIELDS: Array<{ key: keyof BusinessFormValues; labelKey: string; pl
   { key: 'whatsappUrl', labelKey: 'business_directory.fields.whatsapp', placeholder: 'https://wa.me/…' },
 ];
 
-export default function BusinessForm({ initial, saving, submitLabel, onCancel, onSubmit }: Props) {
+export default function BusinessForm({
+  initial,
+  saving,
+  submitLabel,
+  secondarySubmitLabel,
+  onCancel,
+  onSubmit,
+  onSecondarySubmit,
+}: Props) {
   const { t, language } = useTranslation();
   const { isKnown } = useBusinessCategories();
   const [form, setForm] = useState<BusinessFormValues>(initial ?? emptyBusinessForm);
@@ -83,17 +94,16 @@ export default function BusinessForm({ initial, saving, submitLabel, onCancel, o
     if (field === 'email' && emailError) setEmailError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const buildValues = (): BusinessFormValues | null => {
     if (!form.name.trim()) {
       setNameError(t('my_businesses.form.name_required'));
-      return;
+      return null;
     }
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       setEmailError(t('my_businesses.form.email_invalid'));
-      return;
+      return null;
     }
-    await onSubmit({
+    return {
       ...form,
       name: form.name.trim(),
       category: isKnown(form.category) ? form.category.trim() : '',
@@ -110,7 +120,21 @@ export default function BusinessForm({ initial, saving, submitLabel, onCancel, o
       address: form.address.trim(),
       city: form.city.trim(),
       country: form.country.trim(),
-    });
+    };
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const values = buildValues();
+    if (!values) return;
+    await onSubmit(values);
+  };
+
+  const handleSecondary = async () => {
+    if (!onSecondarySubmit) return;
+    const values = buildValues();
+    if (!values) return;
+    await onSecondarySubmit(values);
   };
 
   const fieldClass =
@@ -287,6 +311,16 @@ export default function BusinessForm({ initial, saving, submitLabel, onCancel, o
         >
           {t('common.cancel')}
         </button>
+        {onSecondarySubmit && secondarySubmitLabel && (
+          <button
+            type="button"
+            disabled={saving}
+            onClick={handleSecondary}
+            className="px-4 py-2 border border-emerald-700 text-emerald-800 rounded-lg text-sm hover:bg-emerald-50 disabled:opacity-50"
+          >
+            {saving ? t('common.saving') : secondarySubmitLabel}
+          </button>
+        )}
         <button
           type="submit"
           disabled={saving}

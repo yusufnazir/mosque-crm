@@ -76,7 +76,7 @@ public class PublicBusinessDirectoryController {
                     .header(HttpHeaders.CONTENT_TYPE, image.contentType() != null
                             ? image.contentType()
                             : MediaType.APPLICATION_OCTET_STREAM_VALUE)
-                    .header(HttpHeaders.CACHE_CONTROL, "public, max-age=3600")
+                    .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000, immutable")
                     .body(image.bytes());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

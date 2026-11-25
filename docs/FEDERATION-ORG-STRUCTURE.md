@@ -165,9 +165,11 @@ These remain **strictly local** to the member org tenant.
 
 | Action | Effect |
 |--------|--------|
-| Admin **approves** | → `PUBLISHED` (live everywhere above that applies) |
+| Owner **publishes** | → `PUBLISHED` immediately — no admin approval (live everywhere above that applies) |
+| Owner **unpublishes** | → `DRAFT` (removed from org directory, federation and public website) |
+| Admin **approves** | Legacy pending queue only: → `PUBLISHED` |
 | Admin **suspends** | → `SUSPENDED` (hidden from org directory, federation, and public website) |
-| Owner edits a published listing | → `PENDING_APPROVAL` again (off until re-approved) |
+| Owner edits a published listing | Stays `PUBLISHED` — the edits are live immediately |
 
 **Member org public pages** (`baiturrochim…/directory`) show **only that org’s** published listings.  
 **Parent/federation host public pages** (`sis…/directory`) show **own + federation** listings (see table above).
@@ -205,25 +207,28 @@ Categories use global vocabulary tables (`business_categories` + translations), 
 ### Listing lifecycle
 
 ```
-DRAFT ──submit──► PENDING_APPROVAL ──approve──► PUBLISHED
-  ▲                      │                         │
-  │                   reject                    suspend
-  │                   (reason)                  (reason)
-  │                      │                         │
-  └──────────────────────┴──── owner edit / ───────┘
-       (back to DRAFT)         resubmit
+DRAFT ──publish──► PUBLISHED
+  ▲                    │
+  │                unpublish
+  └────────────────────┘
+
+SUSPENDED ──publish──► PUBLISHED
+
+(PENDING_APPROVAL remains only for legacy rows created before owners
+ could publish directly; the admin queue can still approve/reject those.)
 ```
 
 | Transition | Notes |
 |------------|--------|
 | Create (member) | Starts `DRAFT` |
-| Submit | From `DRAFT`, `SUSPENDED`, or already pending → `PENDING_APPROVAL`; notifies org admins |
-| Approve | → `PUBLISHED`; listing is live (org + public site if org gate on + federation if module shared) |
-| Reject | **Reason required** → `DRAFT`; notifies owner |
-| Owner edits while `PUBLISHED` | → `PENDING_APPROVAL`; notifies admins |
+| Publish (owner) | From `DRAFT`, `SUSPENDED` or legacy `PENDING_APPROVAL` → `PUBLISHED`; **no admin approval required** |
+| Unpublish (owner) | `PUBLISHED` → `DRAFT`; listing is kept and can be published again |
+| Approve (admin) | Legacy `PENDING_APPROVAL` rows → `PUBLISHED` |
+| Reject (admin) | **Reason required** → `DRAFT`; notifies owner |
+| Owner edits while `PUBLISHED` | Stays `PUBLISHED` — changes are live immediately |
 | Suspend | **Published + member-owned only**; reason required → `SUSPENDED`; off all directories; notifies owner |
-| Owner delete | Allowed for draft/suspended/published; **blocked** while `PENDING_APPROVAL` |
-| Org-owned unpublish | Via listing status / delete — **not** suspend |
+| Owner delete | Allowed for any status (draft/suspended/pending/published) |
+| Org-owned publish/unpublish | Via listing status (admin with `business_directory.manage`) |
 
 ### Permissions
 
@@ -232,8 +237,8 @@ Plan entitlement **`business.directory`** (LIMIT) is required in addition to the
 | Permission | Powers |
 |------------|--------|
 | `business_directory.view` | Browse published local + federation directory |
-| `business_directory.register_own` | My Businesses CRUD / submit (own listings) |
-| `business_directory.approve` | Approve / reject pending; suspend (with manage) |
+| `business_directory.register_own` | My Businesses CRUD / publish (own listings) |
+| `business_directory.approve` | Legacy pending queue (approve/reject); suspend member-owned with manage |
 | `business_directory.manage` | Org-owned CRUD; listing status; suspend member-owned |
 | `business_directory.moderate` | Parent hide/unhide federation listings of active members |
 
@@ -242,7 +247,7 @@ Plan entitlement **`business.directory`** (LIMIT) is required in addition to the
 | Route | Audience | Purpose |
 |-------|----------|---------|
 | `/directory` | Members with `view` (+ public on subdomain) | Browse published local + federation tab; paginated search |
-| `/my-businesses` (+ `/new`, `/[id]/edit`) | `register_own` | Create/edit/submit own listings |
+| `/my-businesses` (+ `/new`, `/[id]/edit`) | `register_own` | Create/edit/publish own listings |
 | `/business-directory/admin` (+ new/edit) | `manage` / `approve` / `moderate` | Pending queue, org-owned CRUD, suspend, federation hide |
 | `/business-directory` | — | Redirects to `/directory` |
 

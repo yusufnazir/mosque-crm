@@ -27,7 +27,8 @@ export default function MyBusinessesPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [submitId, setSubmitId] = useState<number | null>(null);
+  const [publishId, setPublishId] = useState<number | null>(null);
+  const [unpublishId, setUnpublishId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     if (!canRegister) return;
@@ -112,16 +113,29 @@ export default function MyBusinessesPage() {
 
   const atLimit = listingsLimit != null && listingCount >= listingsLimit;
 
-  const confirmSubmit = async () => {
-    if (!submitId) return;
+  const confirmPublish = async () => {
+    if (!publishId) return;
     try {
-      await businessDirectoryApi.submitMy(submitId);
-      setToast({ message: t('my_businesses.submit_success'), type: 'success' });
+      await businessDirectoryApi.publishMy(publishId);
+      setToast({ message: t('my_businesses.publish_success'), type: 'success' });
       load();
     } catch {
-      setToast({ message: t('my_businesses.submit_error'), type: 'error' });
+      setToast({ message: t('my_businesses.publish_error'), type: 'error' });
     } finally {
-      setSubmitId(null);
+      setPublishId(null);
+    }
+  };
+
+  const confirmUnpublish = async () => {
+    if (!unpublishId) return;
+    try {
+      await businessDirectoryApi.unpublishMy(unpublishId);
+      setToast({ message: t('my_businesses.unpublish_success'), type: 'success' });
+      load();
+    } catch {
+      setToast({ message: t('my_businesses.unpublish_error'), type: 'error' });
+    } finally {
+      setUnpublishId(null);
     }
   };
 
@@ -252,22 +266,28 @@ export default function MyBusinessesPage() {
                           >
                             {t('common.edit')}
                           </Link>
-                          {(isDraft || isSuspended) && (
+                          {(isDraft || isSuspended || isPending) && (
                             <button
-                              onClick={() => setSubmitId(business.id)}
+                              onClick={() => setPublishId(business.id)}
                               className="px-3 py-1.5 bg-emerald-700 text-white rounded-lg text-sm hover:bg-emerald-800"
                             >
-                              {t('my_businesses.submit_for_approval')}
+                              {t('my_businesses.publish')}
                             </button>
                           )}
-                          {(isDraft || isSuspended || isPublished) && (
+                          {isPublished && (
                             <button
-                              onClick={() => setDeleteId(business.id)}
-                              className="px-3 py-1.5 border border-red-300 text-red-700 rounded-lg text-sm hover:bg-red-50"
+                              onClick={() => setUnpublishId(business.id)}
+                              className="px-3 py-1.5 border border-emerald-300 text-emerald-800 rounded-lg text-sm hover:bg-emerald-50"
                             >
-                              {t('common.delete')}
+                              {t('my_businesses.unpublish')}
                             </button>
                           )}
+                          <button
+                            onClick={() => setDeleteId(business.id)}
+                            className="px-3 py-1.5 border border-red-300 text-red-700 rounded-lg text-sm hover:bg-red-50"
+                          >
+                            {t('common.delete')}
+                          </button>
                         </div>
                       )}
                     </div>
@@ -284,12 +304,24 @@ export default function MyBusinessesPage() {
       )}
 
       <ConfirmDialog
-        open={submitId != null}
-        title={t('my_businesses.submit_title')}
-        message={t('my_businesses.submit_message')}
-        confirmLabel={t('my_businesses.submit_for_approval')}
-        onConfirm={confirmSubmit}
-        onCancel={() => setSubmitId(null)}
+        open={publishId != null}
+        title={t('my_businesses.publish_title')}
+        message={t('my_businesses.publish_message')}
+        confirmLabel={t('my_businesses.publish')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={confirmPublish}
+        onCancel={() => setPublishId(null)}
+      />
+
+      <ConfirmDialog
+        open={unpublishId != null}
+        title={t('my_businesses.unpublish_title')}
+        message={t('my_businesses.unpublish_message')}
+        confirmLabel={t('my_businesses.unpublish')}
+        cancelLabel={t('common.cancel')}
+        variant="warning"
+        onConfirm={confirmUnpublish}
+        onCancel={() => setUnpublishId(null)}
       />
 
       <ConfirmDialog

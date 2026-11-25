@@ -1,5 +1,6 @@
 package com.mosque.crm.service;
 
+import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -76,6 +77,7 @@ public class BusinessDirectoryService {
     private final StorageService storageService;
     private final StorageProperties storageProperties;
     private final BusinessImageService businessImageService;
+    private final BusinessImageProcessor businessImageProcessor;
 
     public BusinessDirectoryService(
             BusinessRepository businessRepository,
@@ -92,7 +94,8 @@ public class BusinessDirectoryService {
             OrganizationSubscriptionService organizationSubscriptionService,
             StorageService storageService,
             StorageProperties storageProperties,
-            BusinessImageService businessImageService) {
+            BusinessImageService businessImageService,
+            BusinessImageProcessor businessImageProcessor) {
         this.businessRepository = businessRepository;
         this.businessListingRepository = businessListingRepository;
         this.personRepository = personRepository;
@@ -108,6 +111,7 @@ public class BusinessDirectoryService {
         this.storageService = storageService;
         this.storageProperties = storageProperties;
         this.businessImageService = businessImageService;
+        this.businessImageProcessor = businessImageProcessor;
     }
 
     public List<BusinessDTO> listLocalBusinesses() {
@@ -440,43 +444,65 @@ public class BusinessDirectoryService {
     public BusinessDTO updateMyBusiness(Long id, BusinessDTO dto) {
         requireRegisterOwnPermission();
         Business business = getOwnBusiness(id);
-        BusinessListing listing = getListingForBusiness(business.getId());
-        boolean wasPublished = BusinessListing.Status.PUBLISHED.name().equals(listing.getStatus());
         applyBusinessFields(business, dto);
         business.setOwnerPersonId(requireLinkedPersonId());
         business = businessRepository.save(business);
-
-        if (wasPublished) {
-            // Content changes on a live listing require re-approval.
-            listing.setStatus(BusinessListing.Status.PENDING_APPROVAL.name());
-            listing.setSubmittedAt(LocalDateTime.now());
-            listing.setVisibility(BusinessListing.Visibility.LOCAL_ONLY.name());
-            listing.setPublicVisible(false);
-            listing.setRejectionReason(null);
-            clearSuspension(listing);
-            businessListingRepository.save(listing);
-            federationNotificationService.notifyBusinessSubmittedForApproval(
-                    business.getOrganizationId(), business.getName());
-        }
+        // Owners publish their own listings; editing keeps the current listing status as-is.
         return toBusinessDto(business);
     }
 
-    public BusinessDTO submitMyBusinessForApproval(Long id) {
+    /** Owner publishes a draft/suspended/pending listing directly — no admin approval needed. */
+    public BusinessDTO publishMyBusiness(Long id) {
         requireRegisterOwnPermission();
         Business business = getOwnBusiness(id);
         BusinessListing listing = getListingForBusiness(business.getId());
+        if (BusinessListing.Status.PUBLISHED.name().equals(listing.getStatus())) {
+            return toBusinessDto(business);
+        }
         if (!BusinessListing.Status.DRAFT.name().equals(listing.getStatus())
                 && !BusinessListing.Status.SUSPENDED.name().equals(listing.getStatus())
                 && !BusinessListing.Status.PENDING_APPROVAL.name().equals(listing.getStatus())) {
-            throw new IllegalStateException("Only draft or suspended listings can be submitted for approval.");
+            throw new IllegalStateException("Only draft, suspended or pending listings can be published.");
         }
-        listing.setStatus(BusinessListing.Status.PENDING_APPROVAL.name());
+        listing.setStatus(BusinessListing.Status.PUBLISHED.name());
+        listing.setVisibility(BusinessListing.Visibility.SHARED_WITH_FEDERATION.name());
+        listing.setPublicVisible(true);
+        listing.setPublishedAt(LocalDateTime.now());
         listing.setSubmittedAt(LocalDateTime.now());
+        listing.setReviewedAt(LocalDateTime.now());
+        listing.setReviewedByUserId(currentUserId());
         listing.setRejectionReason(null);
         clearSuspension(listing);
         businessListingRepository.save(listing);
-        federationNotificationService.notifyBusinessSubmittedForApproval(business.getOrganizationId(), business.getName());
+        log.info("Business published by owner: id={} org={}", business.getId(), business.getOrganizationId());
         return toBusinessDto(business);
+    }
+
+    /** Owner takes a published listing back to draft (kept, not deleted). */
+    public BusinessDTO unpublishMyBusiness(Long id) {
+        requireRegisterOwnPermission();
+        Business business = getOwnBusiness(id);
+        BusinessListing listing = getListingForBusiness(business.getId());
+        if (!BusinessListing.Status.PUBLISHED.name().equals(listing.getStatus())) {
+            throw new IllegalStateException("Only published listings can be unpublished.");
+        }
+        listing.setStatus(BusinessListing.Status.DRAFT.name());
+        listing.setVisibility(BusinessListing.Visibility.LOCAL_ONLY.name());
+        listing.setPublicVisible(false);
+        listing.setRejectionReason(null);
+        clearSuspension(listing);
+        businessListingRepository.save(listing);
+        log.info("Business unpublished by owner: id={} org={}", business.getId(), business.getOrganizationId());
+        return toBusinessDto(business);
+    }
+
+    /**
+     * @deprecated owners publish directly; kept for older clients that still call
+     *             {@code POST /business-directory/my/{id}/submit}.
+     */
+    @Deprecated
+    public BusinessDTO submitMyBusinessForApproval(Long id) {
+        return publishMyBusiness(id);
     }
 
     public BusinessDTO approveBusiness(Long id) {
@@ -552,12 +578,7 @@ public class BusinessDirectoryService {
 
     public void deleteMyBusiness(Long id) {
         requireRegisterOwnPermission();
-        Business business = getOwnBusiness(id);
-        BusinessListing listing = getListingForBusiness(business.getId());
-        if (BusinessListing.Status.PENDING_APPROVAL.name().equals(listing.getStatus())) {
-            throw new IllegalStateException("Listings pending approval cannot be deleted. Wait for a decision or ask an admin.");
-        }
-        deleteBusinessInternal(business);
+        deleteBusinessInternal(getOwnBusiness(id));
     }
 
     public BusinessListingDTO updateListing(Long businessId, BusinessListingDTO dto) {
@@ -819,6 +840,16 @@ public class BusinessDirectoryService {
         }
 
         try {
+            byte[] source = file.getBytes();
+            // Downscale and strip metadata; logos render in small cards, so full-size
+            // uploads only slow the directory down. Unknown formats fall back to the original.
+            BusinessImageProcessor.LogoImage optimized = businessImageProcessor.processLogo(source);
+            byte[] payload = optimized != null ? optimized.bytes() : source;
+            String storedContentType = optimized != null ? optimized.contentType() : contentType;
+            String extension = optimized != null
+                    ? optimized.extension()
+                    : logoExtension(file.getOriginalFilename(), contentType);
+
             if (business.getLogoImageKey() != null) {
                 try {
                     storageService.delete(business.getLogoImageKey());
@@ -826,13 +857,15 @@ public class BusinessDirectoryService {
                     log.warn("Failed to delete old logo for business {}: {}", business.getId(), e.getMessage());
                 }
             }
-            String extension = logoExtension(file.getOriginalFilename(), contentType);
+            String version = UUID.randomUUID().toString();
             String key = "business-logos/" + business.getOrganizationId() + "/" + business.getId()
-                    + "/" + UUID.randomUUID() + extension;
-            storageService.upload(key, file.getInputStream(), contentType, file.getSize());
+                    + "/" + version + extension;
+            storageService.upload(key, new ByteArrayInputStream(payload), storedContentType, payload.length);
             business.setLogoImageKey(key);
             businessRepository.save(business);
-            return "/api/business-directory/" + business.getId() + "/logo";
+            log.info("Business logo stored: business={} source={}B stored={}B ({})",
+                    business.getId(), source.length, payload.length, storedContentType);
+            return "/api/business-directory/" + business.getId() + "/logo?v=" + version;
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
@@ -842,6 +875,18 @@ public class BusinessDirectoryService {
                     ? BusinessImageService.STORAGE_UNAVAILABLE_MESSAGE
                     : BusinessImageService.GENERIC_SAVE_FAILED_MESSAGE, e);
         }
+    }
+
+    /** Cache-busting fragment of the stored logo key (unique per upload), or {@code null}. */
+    private static String logoVersion(Business business) {
+        String key = business.getLogoImageKey();
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        int slash = key.lastIndexOf('/');
+        String name = slash >= 0 ? key.substring(slash + 1) : key;
+        int dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
     }
 
     private void deleteLogoForBusiness(Business business) {
@@ -1167,8 +1212,9 @@ public class BusinessDirectoryService {
         dto.setCountry(business.getCountry());
         dto.setCreatedAt(business.getCreatedAt());
         dto.setUpdatedAt(business.getUpdatedAt());
-        if (business.getLogoImageKey() != null && !business.getLogoImageKey().isBlank()) {
-            dto.setLogoUrl("/api/business-directory/" + business.getId() + "/logo");
+        String logoVersion = logoVersion(business);
+        if (logoVersion != null) {
+            dto.setLogoUrl("/api/business-directory/" + business.getId() + "/logo?v=" + logoVersion);
         }
         dto.setImages(toImageDtos(business, null));
 
@@ -1227,8 +1273,10 @@ public class BusinessDirectoryService {
         dto.setCity(business.getCity());
         dto.setCountry(business.getCountry());
         dto.setCreatedAt(business.getCreatedAt());
-        if (business.getLogoImageKey() != null && !business.getLogoImageKey().isBlank()) {
-            dto.setLogoUrl("/api/business-directory/public/" + orgHandle + "/" + business.getId() + "/logo");
+        String logoVersion = logoVersion(business);
+        if (logoVersion != null) {
+            dto.setLogoUrl("/api/business-directory/public/" + orgHandle + "/" + business.getId()
+                    + "/logo?v=" + logoVersion);
         }
         dto.setImages(toImageDtos(business, orgHandle));
         return dto;

@@ -140,6 +140,28 @@ public class BusinessDirectoryController {
         }
     }
 
+    @PostMapping("/my/{id}/publish")
+    public ResponseEntity<?> publishMy(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(businessDirectoryService.publishMyBusiness(id));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(409).body(errorBody(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/my/{id}/unpublish")
+    public ResponseEntity<?> unpublishMy(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(businessDirectoryService.unpublishMyBusiness(id));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(409).body(errorBody(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(errorBody(e.getMessage()));
+        }
+    }
+
     @DeleteMapping("/my/{id}")
     public ResponseEntity<Void> deleteMy(@PathVariable Long id) {
         businessDirectoryService.deleteMyBusiness(id);
@@ -294,7 +316,7 @@ public class BusinessDirectoryController {
                     .header(HttpHeaders.CONTENT_TYPE, image.contentType() != null
                             ? image.contentType()
                             : MediaType.APPLICATION_OCTET_STREAM_VALUE)
-                    .header(HttpHeaders.CACHE_CONTROL, "public, max-age=3600")
+                    .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000, immutable")
                     .body(image.bytes());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

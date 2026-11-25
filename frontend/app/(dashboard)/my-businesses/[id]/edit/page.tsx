@@ -29,7 +29,7 @@ export default function EditBusinessPage() {
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [images, setImages] = useState<BusinessImageDTO[]>([]);
-  const [wasPublished, setWasPublished] = useState(false);
+  const [listingStatus, setListingStatus] = useState<string | null>(null);
   const [initial, setInitial] = useState<BusinessFormValues | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -54,7 +54,7 @@ export default function EditBusinessPage() {
         router.replace('/my-businesses');
         return;
       }
-      setWasPublished(status === 'PUBLISHED');
+      setListingStatus(status ?? null);
       setLogoUrl(business.logoUrl || null);
       setImages(business.images || []);
       setInitial({
@@ -127,6 +127,9 @@ export default function EditBusinessPage() {
     );
   }
 
+  const wasPublished = listingStatus === 'PUBLISHED';
+  const canPublish = listingStatus === 'DRAFT' || listingStatus === 'SUSPENDED' || listingStatus === 'PENDING_APPROVAL';
+
   const handleSubmit = async (values: BusinessFormValues) => {
     setSaving(true);
     try {
@@ -138,10 +141,22 @@ export default function EditBusinessPage() {
     }
   };
 
-  const handleLogoUpload = async (file: File) => {
+  const handleSaveAndPublish = async (values: BusinessFormValues) => {
+    setSaving(true);
+    try {
+      await businessDirectoryApi.updateMy(id, values);
+      await businessDirectoryApi.publishMy(id);
+      router.push('/my-businesses');
+    } catch {
+      setToast({ message: t('my_businesses.publish_error'), type: 'error' });
+      setSaving(false);
+    }
+  };
+
+  const handleLogoUpload = async (file: File, onProgress?: (percent: number) => void) => {
     setLogoUploading(true);
     try {
-      const result = await businessDirectoryApi.uploadMyLogo(id, file);
+      const result = await businessDirectoryApi.uploadMyLogo(id, file, onProgress);
       setLogoUrl(result.imageUrl);
       setToast({ message: t('my_businesses.logo.upload_success'), type: 'success' });
     } catch {
@@ -164,8 +179,8 @@ export default function EditBusinessPage() {
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-    const result = await businessDirectoryApi.uploadMyImage(id, file);
+  const handleImageUpload = async (file: File, onProgress?: (percent: number) => void) => {
+    const result = await businessDirectoryApi.uploadMyImage(id, file, onProgress);
     setImages(result.images);
   };
 
@@ -217,9 +232,9 @@ export default function EditBusinessPage() {
           <BusinessForm
             initial={initial}
             saving={saving}
-            submitLabel={
-              wasPublished ? t('my_businesses.save_and_resubmit') : t('common.save')
-            }
+            submitLabel={t('common.save')}
+            secondarySubmitLabel={canPublish ? t('my_businesses.save_and_publish') : undefined}
+            onSecondarySubmit={canPublish ? handleSaveAndPublish : undefined}
             onCancel={() => router.push('/my-businesses')}
             onSubmit={handleSubmit}
           />

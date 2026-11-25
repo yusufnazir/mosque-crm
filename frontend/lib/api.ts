@@ -333,6 +333,53 @@ export class ApiClient {
   }
 
   /**
+   * Upload a file like {@link uploadFile}, but report upload progress (0–100).
+   *
+   * `fetch` exposes no upload progress, so this uses XMLHttpRequest and feeds the
+   * browser's `upload.progress` events to the caller — the UI can then show a real
+   * progress bar instead of an opaque spinner.
+   */
+  static uploadFileWithProgress<T>(
+    endpoint: string,
+    file: File,
+    onProgress?: (percent: number) => void,
+    fieldName = 'file',
+  ): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const organizationId = typeof window !== 'undefined' ? localStorage.getItem('selectedOrganizationId') : null;
+      const formData = new FormData();
+      formData.append(fieldName, file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE_URL}${endpoint}`);
+      if (organizationId) xhr.setRequestHeader('X-Organization-Id', organizationId);
+
+      if (onProgress) {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable && event.total > 0) {
+            onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+          }
+        };
+      }
+
+      xhr.onload = async () => {
+        const response = new Response(xhr.responseText, {
+          status: xhr.status,
+          statusText: xhr.statusText,
+        });
+        try {
+          resolve(await ApiClient.handleResponse<T>(response));
+        } catch (err) {
+          reject(err);
+        }
+      };
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.onabort = () => reject(new Error('Upload cancelled'));
+      xhr.send(formData);
+    });
+  }
+
+  /**
    * Fetch a binary resource (e.g. PDF) and return it as a Blob.
    */
   static async getBlob(endpoint: string): Promise<Blob> {

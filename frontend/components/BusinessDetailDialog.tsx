@@ -107,12 +107,12 @@ export default function BusinessDetailDialog({ business, onClose, fullPageHref, 
           <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/25" aria-hidden />
 
           <div className="relative flex items-start gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/20 shadow-lg ring-2 ring-white/50 backdrop-blur-[2px]">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-lg ring-1 ring-black/5">
               {business.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={business.logoUrl} alt="" className="h-full w-full object-cover" />
+                <img src={business.logoUrl} alt="" className="h-full w-full object-contain" />
               ) : (
-                <span className="select-none text-xl font-semibold tracking-wide text-white drop-shadow-sm">
+                <span className="select-none text-xl font-semibold tracking-wide text-stone-600">
                   {initials}
                 </span>
               )}

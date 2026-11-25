@@ -175,6 +175,12 @@ export const businessDirectoryApi = {
 
   submitMy: (id: number) => ApiClient.post<BusinessDTO>(`/business-directory/my/${id}/submit`, {}),
 
+  /** Owner publishes a draft listing immediately (no admin approval). */
+  publishMy: (id: number) => ApiClient.post<BusinessDTO>(`/business-directory/my/${id}/publish`, {}),
+
+  /** Owner moves a published listing back to draft. */
+  unpublishMy: (id: number) => ApiClient.post<BusinessDTO>(`/business-directory/my/${id}/unpublish`, {}),
+
   deleteMy: (id: number) => ApiClient.delete(`/business-directory/my/${id}`),
 
   updateMyListing: (id: number, data: Partial<BusinessListingDTO>) =>
@@ -202,13 +208,21 @@ export const businessDirectoryApi = {
   updateListing: (id: number, data: Partial<BusinessListingDTO>) =>
     ApiClient.put<BusinessListingDTO>(`/business-directory/${id}/listing`, data),
 
-  uploadMyLogo: (id: number, file: File) =>
-    ApiClient.uploadFile<{ message: string; imageUrl: string }>(`/business-directory/my/${id}/logo`, file),
+  uploadMyLogo: (id: number, file: File, onProgress?: (percent: number) => void) =>
+    ApiClient.uploadFileWithProgress<{ message: string; imageUrl: string }>(
+      `/business-directory/my/${id}/logo`,
+      file,
+      onProgress,
+    ),
 
   deleteMyLogo: (id: number) => ApiClient.delete(`/business-directory/my/${id}/logo`),
 
-  uploadLogo: (id: number, file: File) =>
-    ApiClient.uploadFile<{ message: string; imageUrl: string }>(`/business-directory/${id}/logo`, file),
+  uploadLogo: (id: number, file: File, onProgress?: (percent: number) => void) =>
+    ApiClient.uploadFileWithProgress<{ message: string; imageUrl: string }>(
+      `/business-directory/${id}/logo`,
+      file,
+      onProgress,
+    ),
 
   deleteLogo: (id: number) => ApiClient.delete(`/business-directory/${id}/logo`),
 
@@ -217,10 +231,11 @@ export const businessDirectoryApi = {
   listMyImages: (id: number) =>
     ApiClient.get<{ images: BusinessImageDTO[] }>(`/business-directory/my/${id}/images`),
 
-  uploadMyImage: (id: number, file: File) =>
-    ApiClient.uploadFile<{ message: string; images: BusinessImageDTO[] }>(
+  uploadMyImage: (id: number, file: File, onProgress?: (percent: number) => void) =>
+    ApiClient.uploadFileWithProgress<{ message: string; images: BusinessImageDTO[] }>(
       `/business-directory/my/${id}/images`,
       file,
+      onProgress,
     ),
 
   deleteMyImage: (id: number, imageId: number) =>
@@ -234,10 +249,11 @@ export const businessDirectoryApi = {
   listImages: (id: number) =>
     ApiClient.get<{ images: BusinessImageDTO[] }>(`/business-directory/${id}/images`),
 
-  uploadImage: (id: number, file: File) =>
-    ApiClient.uploadFile<{ message: string; images: BusinessImageDTO[] }>(
+  uploadImage: (id: number, file: File, onProgress?: (percent: number) => void) =>
+    ApiClient.uploadFileWithProgress<{ message: string; images: BusinessImageDTO[] }>(
       `/business-directory/${id}/images`,
       file,
+      onProgress,
     ),
 
   deleteImage: (id: number, imageId: number) =>
