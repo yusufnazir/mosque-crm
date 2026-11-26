@@ -12,9 +12,12 @@ import com.mosque.crm.dto.WhatsAppSkippedRecipientDTO;
 import com.mosque.crm.entity.Organization;
 import com.mosque.crm.entity.Person;
 import com.mosque.crm.entity.User;
+import com.mosque.crm.entity.WhatsAppChannel;
 import com.mosque.crm.entity.WhatsAppOutboundMessage;
 import com.mosque.crm.repository.OrganizationRepository;
 import com.mosque.crm.util.PhoneUtils;
+import com.mosque.crm.waha.WahaClient;
+import com.mosque.crm.waha.WahaSessionStatus;
 
 /**
  * Delivers an account activation / set-password link to a member who has no usable email address.
@@ -44,6 +47,7 @@ public class AccountActivationNotifier {
     private final WhatsAppOutboundService outboundService;
     private final WahaClient wahaClient;
     private final WahaSettingsService wahaSettings;
+    private final WhatsAppChannelService channelService;
     private final OrganizationRepository organizationRepository;
     private final EmailService emailService;
     private final ConfigurationService configurationService;
@@ -52,6 +56,7 @@ public class AccountActivationNotifier {
     public AccountActivationNotifier(WhatsAppOutboundService outboundService,
                                      WahaClient wahaClient,
                                      WahaSettingsService wahaSettings,
+                                     WhatsAppChannelService channelService,
                                      OrganizationRepository organizationRepository,
                                      EmailService emailService,
                                      ConfigurationService configurationService,
@@ -59,6 +64,7 @@ public class AccountActivationNotifier {
         this.outboundService = outboundService;
         this.wahaClient = wahaClient;
         this.wahaSettings = wahaSettings;
+        this.channelService = channelService;
         this.organizationRepository = organizationRepository;
         this.emailService = emailService;
         this.configurationService = configurationService;
@@ -111,22 +117,32 @@ public class AccountActivationNotifier {
             return Channel.MANUAL;
         }
 
+        WhatsAppChannel channel;
+        try {
+            channel = channelService.requireChannel(null, WhatsAppChannelService.FLOW_NOTIFICATIONS);
+        } catch (IllegalArgumentException e) {
+            logManual(who, e.getMessage(), username, activationUrl);
+            return Channel.MANUAL;
+        }
+
         try {
             WhatsAppEnqueueRequest request = new WhatsAppEnqueueRequest();
             request.setRecipientType("CUSTOM");
             request.setPhones(List.of(phone));
+            request.setChannelId(channel.getId());
             request.setProfile(WhatsAppOutboundMessage.Profile.CONVERSATION);
             request.setDefaultCountryCode(wahaSettings.effective().getDefaultCountryCode());
             request.setTemplate(buildMessage(username, activationUrl, language, organizationId));
 
             WhatsAppEnqueueResultDTO result = outboundService.enqueue(request, null);
             if (result.getQueued() > 0) {
-                String status = wahaClient.getSessionStatus();
-                if (!"WORKING".equals(status)) {
-                    log.warn("Activation link for {} queued on WhatsApp ({}), but the WAHA session is {} — it will be sent once the session is connected",
-                            who, PhoneUtils.mask(phone), status);
+                WahaSessionStatus status = wahaClient.status(channel.getWahaSession());
+                if (!status.isWorking()) {
+                    log.warn("Activation link for {} queued on WhatsApp via channel '{}' ({}), but that session is {} — it will be sent once the number is connected",
+                            who, channel.getLabel(), channel.getWahaSession(), status);
                 } else {
-                    log.info("Activation link for {} queued on WhatsApp ({})", who, PhoneUtils.mask(phone));
+                    log.info("Activation link for {} queued on WhatsApp via channel '{}' ({})",
+                            who, channel.getLabel(), PhoneUtils.mask(phone));
                 }
                 return Channel.WHATSAPP;
             }

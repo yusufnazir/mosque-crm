@@ -12,11 +12,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * A message received on the shared WhatsApp session (WAHA webhook).
+ * A message received on one of the WhatsApp numbers (WAHA webhook).
  *
- * Deliberately NOT tenant-filtered: the installation shares one WhatsApp number, so an
- * inbound reply cannot always be attributed to a single organisation. {@code organizationId}
- * is a best-effort match against the member records and may be null.
+ * Deliberately NOT tenant-filtered: {@code organizationId} is a best-effort match against the
+ * member records and may be null. A thread is identified by (channel, remote number), so the
+ * same contact writing to two of our numbers produces two threads.
  */
 @Entity
 @Table(name = "whatsapp_inbound_messages")
@@ -25,6 +25,10 @@ public class WhatsAppInboundMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** The number that received this message. */
+    @Column(name = "channel_id")
+    private Long channelId;
 
     @Column(name = "organization_id")
     private Long organizationId;
@@ -56,6 +60,9 @@ public class WhatsAppInboundMessage {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public Long getChannelId() { return channelId; }
+    public void setChannelId(Long channelId) { this.channelId = channelId; }
 
     public Long getOrganizationId() { return organizationId; }
     public void setOrganizationId(Long organizationId) { this.organizationId = organizationId; }

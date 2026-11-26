@@ -15,6 +15,11 @@ public class WhatsAppMessageDTO {
     private LocalDateTime nextAttemptAt;
     private String lastError;
     private String waMessageId;
+    /** The number this message was queued for. */
+    private Long channelId;
+    private String channelLabel;
+    /** The WAHA session the row was queued for (audit — a retry keeps using it). */
+    private String channelSession;
     private LocalDateTime createdAt;
     private LocalDateTime sentAt;
 
@@ -50,6 +55,15 @@ public class WhatsAppMessageDTO {
 
     public String getWaMessageId() { return waMessageId; }
     public void setWaMessageId(String waMessageId) { this.waMessageId = waMessageId; }
+
+    public Long getChannelId() { return channelId; }
+    public void setChannelId(Long channelId) { this.channelId = channelId; }
+
+    public String getChannelLabel() { return channelLabel; }
+    public void setChannelLabel(String channelLabel) { this.channelLabel = channelLabel; }
+
+    public String getChannelSession() { return channelSession; }
+    public void setChannelSession(String channelSession) { this.channelSession = channelSession; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

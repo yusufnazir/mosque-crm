@@ -42,11 +42,13 @@ public interface WhatsAppOutboundRepository extends JpaRepository<WhatsAppOutbou
 
     /**
      * One claimable message, locked so that concurrent app instances cannot send the same row.
+     * Rows queued for a disabled (or deleted) channel are skipped: that number must not be used.
      * Runs without a tenant context, so the Hibernate organization filter is not applied.
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT m FROM WhatsAppOutboundMessage m "
             + "WHERE m.status = 'QUEUED' AND m.nextAttemptAt <= :now "
+            + "AND EXISTS (SELECT c.id FROM WhatsAppChannel c WHERE c.id = m.channelId AND c.enabled = true) "
             + "ORDER BY m.nextAttemptAt ASC, m.id ASC")
     List<WhatsAppOutboundMessage> findDueForUpdate(@Param("now") LocalDateTime now, Pageable pageable);
 
@@ -73,4 +75,14 @@ public interface WhatsAppOutboundRepository extends JpaRepository<WhatsAppOutbou
 
     @Query("SELECT COUNT(m) FROM WhatsAppOutboundMessage m WHERE m.recipientPhone = :phone AND m.status IN ('QUEUED', 'SENDING')")
     long countPendingForPhone(@Param("phone") String phone);
+
+    @Query("SELECT COUNT(m) FROM WhatsAppOutboundMessage m WHERE m.recipientPhone = :phone AND m.status IN ('QUEUED', 'SENDING') "
+            + "AND m.channelId = :channelId")
+    long countPendingForPhoneAndChannel(@Param("phone") String phone, @Param("channelId") Long channelId);
+
+    long countByChannelId(Long channelId);
+
+    long countByStatusAndChannelId(String status, Long channelId);
+
+    long countByStatusAndChannelIdAndSentAtAfter(String status, Long channelId, LocalDateTime after);
 }

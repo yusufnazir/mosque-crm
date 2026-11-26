@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        WhatsApp channels = one row per linked WhatsApp number (one WAHA session).
+
+        Before this changeset the installation had exactly one global session, so a single
+        sender answered for every message. A channel is now a first-class, admin-managed row:
+        outbound messages store the channel (and the session used) at enqueue time, inbound
+        events are routed to the channel that received them.
+
+        Platform level on purpose (no organization_id): the WAHA base URL and API key are
+        global, so two organisations may not own the same session/row.
+
+        This is the ONLY migration allowed to name a default session: it copies whatever the
+        installation currently has configured (configurations.WAHA_SESSION) and only falls
+        back to the historical default when that setting was never written.
+    -->
+
+    <changeSet id="b1000201-0000-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="whatsapp_channels"/></not>
+        </preConditions>
+        <comment>Admin-managed WhatsApp channels (one row per linked number / WAHA session)</comment>
+        <createTable tableName="whatsapp_channels">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(120)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="purpose" type="VARCHAR(255)"/>
+            <column name="waha_session" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_wa_channel_session"/>
+            </column>
+            <column name="display_number" type="VARCHAR(40)"/>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_default" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="webhook_token" type="VARCHAR(128)"/>
+            <column name="webhook_url" type="VARCHAR(500)"/>
+            <column name="webhook_events" type="VARCHAR(500)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="whatsapp_channels" indexName="idx_wa_channel_enabled">
+            <column name="enabled"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Import the currently configured session as the first (default) channel. -->
+    <changeSet id="b1000201-0000-0000-0000-000000000002" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="whatsapp_channels"/>
+            <tableExists tableName="configurations"/>
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM whatsapp_channels</sqlCheck>
+        </preConditions>
+        <comment>Seed the channel list from the session that was configured before channels existed</comment>
+        <sql>
+            INSERT INTO whatsapp_channels (label, purpose, waha_session, enabled, is_default, created_at, updated_at)
+            SELECT 'Primary number',
+                   'Imported from the single-session WhatsApp configuration',
+                   COALESCE(
+                     (SELECT NULLIF(TRIM(c.value), '')
+                        FROM configurations c
+                       WHERE c.name = 'WAHA_SESSION' AND c.organization_id IS NULL),
+                     'default'),
+                   TRUE, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+              FROM (SELECT 1 AS one) AS seed
+             WHERE NOT EXISTS (SELECT 1 FROM whatsapp_channels)
+        </sql>
+    </changeSet>
+
+    <!-- ══════════════ OUTBOX: channel + audit of the session actually used ══════════════ -->
+    <changeSet id="b1000201-0000-0000-0000-000000000003" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="whatsapp_outbound_messages"/>
+            <not><columnExists tableName="whatsapp_outbound_messages" columnName="channel_id"/></not>
+        </preConditions>
+        <comment>
+            channel_id = which number must send this message (resolved at enqueue time, never
+            re-resolved when a retry happens). waha_session is the audit snapshot of the session
+            name the row was queued for.
+        </comment>
+        <addColumn tableName="whatsapp_outbound_messages">
+            <column name="channel_id" type="BIGINT"/>
+            <column name="waha_session" type="VARCHAR(100)"/>
+        </addColumn>
+        <createIndex tableName="whatsapp_outbound_messages" indexName="idx_wa_out_channel">
+            <column name="channel_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ══════════════ INBOUND: which number received the reply ══════════════ -->
+    <changeSet id="b1000201-0000-0000-0000-000000000004" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="whatsapp_inbound_messages"/>
+            <not><columnExists tableName="whatsapp_inbound_messages" columnName="channel_id"/></not>
+        </preConditions>
+        <comment>A thread is (channel, remote number): the same contact on two numbers gives two threads</comment>
+        <addColumn tableName="whatsapp_inbound_messages">
+            <column name="channel_id" type="BIGINT"/>
+        </addColumn>
+        <createIndex tableName="whatsapp_inbound_messages" indexName="idx_wa_in_channel_phone">
+            <column name="channel_id"/>
+            <column name="from_phone"/>
+            <column name="received_at"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ══════════════ OPT-OUTS: keyed by (channel, phone) ══════════════ -->
+    <changeSet id="b1000201-0000-0000-0000-000000000005" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="whatsapp_opt_outs"/>
+            <not><columnExists tableName="whatsapp_opt_outs" columnName="channel_id"/></not>
+        </preConditions>
+        <comment>A STOP protects the number that was messaged, so the do-not-message key is (channel, phone)</comment>
+        <addColumn tableName="whatsapp_opt_outs">
+            <column name="channel_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="b1000201-0000-0000-0000-000000000006" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="whatsapp_opt_outs" indexName="uk_wa_optout_phone"/>
+        </preConditions>
+        <comment>Replace the global phone uniqueness with the per-channel key</comment>
+        <dropIndex tableName="whatsapp_opt_outs" indexName="uk_wa_optout_phone"/>
+        <createIndex tableName="whatsapp_opt_outs" indexName="uk_wa_optout_channel_phone" unique="true">
+            <column name="channel_id"/>
+            <column name="phone_e164"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ══════════════ BACKFILL existing rows onto the default channel ══════════════ -->
+    <changeSet id="b1000201-0000-0000-0000-000000000007" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="whatsapp_channels"/>
+            <columnExists tableName="whatsapp_outbound_messages" columnName="channel_id"/>
+        </preConditions>
+        <comment>Backwards compatibility: every row that existed before channels belongs to the imported channel</comment>
+        <sql>
+            UPDATE whatsapp_outbound_messages
+               SET channel_id = (SELECT id FROM whatsapp_channels ORDER BY is_default DESC, id ASC LIMIT 1),
+                   waha_session = (SELECT waha_session FROM whatsapp_channels ORDER BY is_default DESC, id ASC LIMIT 1)
+             WHERE channel_id IS NULL;
+        </sql>
+        <sql>
+            UPDATE whatsapp_inbound_messages
+               SET channel_id = (SELECT id FROM whatsapp_channels ORDER BY is_default DESC, id ASC LIMIT 1)
+             WHERE channel_id IS NULL;
+        </sql>
+        <sql>
+            UPDATE whatsapp_opt_outs
+               SET channel_id = (SELECT id FROM whatsapp_channels ORDER BY is_default DESC, id ASC LIMIT 1)
+             WHERE channel_id IS NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

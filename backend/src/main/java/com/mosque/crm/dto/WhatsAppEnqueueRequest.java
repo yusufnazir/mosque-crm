@@ -20,6 +20,12 @@ public class WhatsAppEnqueueRequest {
 
     private String template;
 
+    /**
+     * Which WhatsApp number sends this batch. {@code null} means "the configured default",
+     * and the resolved channel is stored on every queued row so a retry cannot switch numbers.
+     */
+    private Long channelId;
+
     /** COLD (15-45 s spacing) or CONVERSATION (5-15 s spacing). Defaults to COLD. */
     private String profile;
 
@@ -37,6 +43,9 @@ public class WhatsAppEnqueueRequest {
 
     public String getTemplate() { return template; }
     public void setTemplate(String template) { this.template = template; }
+
+    public Long getChannelId() { return channelId; }
+    public void setChannelId(Long channelId) { this.channelId = channelId; }
 
     public String getProfile() { return profile; }
     public void setProfile(String profile) { this.profile = profile; }

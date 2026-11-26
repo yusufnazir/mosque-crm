@@ -38,6 +38,7 @@ class WhatsAppOutboundServiceTest {
     @Mock private SpintaxResolver spintaxResolver;
     @Mock private WhatsAppRateLimiter rateLimiter;
     @Mock private WahaSettingsService wahaSettings;
+    @Mock private WhatsAppChannelService channelService;
     @Mock private AuthorizationService authorizationService;
     @InjectMocks private WhatsAppOutboundService service;
 

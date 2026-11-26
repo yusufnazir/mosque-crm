@@ -52,7 +52,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
      * Users whose account phone or phone-number username ends with the national significant number,
-     * e.g. {@code 612345678} matches {@code +31612345678}.
+     * e.g. {@code 612345678} matches {@code <countrycode>612345678} in E.164 form.
      * Used by {@link com.mosque.crm.service.LoginIdentifierResolver} for national-format logins.
      */
     @Query("SELECT u FROM User u WHERE u.username LIKE CONCAT('+%', :nationalNumber) "

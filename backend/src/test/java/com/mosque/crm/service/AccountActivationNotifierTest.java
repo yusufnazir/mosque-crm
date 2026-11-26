@@ -25,7 +25,10 @@ import com.mosque.crm.dto.WhatsAppEnqueueResultDTO;
 import com.mosque.crm.entity.Organization;
 import com.mosque.crm.entity.Person;
 import com.mosque.crm.entity.User;
+import com.mosque.crm.entity.WhatsAppChannel;
 import com.mosque.crm.repository.OrganizationRepository;
+import com.mosque.crm.waha.WahaClient;
+import com.mosque.crm.waha.WahaSessionStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,6 +48,7 @@ class AccountActivationNotifierTest {
     @Mock private WhatsAppOutboundService outboundService;
     @Mock private WahaClient wahaClient;
     @Mock private WahaSettingsService wahaSettings;
+    @Mock private WhatsAppChannelService channelService;
     @Mock private OrganizationRepository organizationRepository;
     @Mock private EmailService emails;
     @Mock private ConfigurationService configuration;
@@ -111,9 +115,14 @@ class AccountActivationNotifierTest {
         Organization organization = new Organization("Example");
         WhatsAppEnqueueResultDTO result = new WhatsAppEnqueueResultDTO();
         result.setQueued(1);
+        WhatsAppChannel channel = new WhatsAppChannel();
+        channel.setId(5L);
+        channel.setLabel("Members");
+        channel.setWahaSession("members");
         when(wahaSettings.effective()).thenReturn(new WahaProperties());
         when(wahaClient.isConfigured()).thenReturn(true);
-        when(wahaClient.getSessionStatus()).thenReturn("WORKING");
+        when(channelService.requireChannel(isNull(), anyString())).thenReturn(channel);
+        when(wahaClient.status("members")).thenReturn(WahaSessionStatus.WORKING);
         when(organizationRepository.findById(3L)).thenReturn(Optional.of(organization));
         when(outboundService.enqueue(any(WhatsAppEnqueueRequest.class), isNull())).thenReturn(result);
 
@@ -122,6 +131,7 @@ class AccountActivationNotifierTest {
 
         ArgumentCaptor<WhatsAppEnqueueRequest> request = ArgumentCaptor.forClass(WhatsAppEnqueueRequest.class);
         verify(outboundService).enqueue(request.capture(), isNull());
+        assertThat(request.getValue().getChannelId()).isEqualTo(5L);
         assertThat(request.getValue().getTemplate())
                 .contains("Example heeft een ledenaccount", "Uw gebruikersnaam: member", "https://example.invalid/token");
     }

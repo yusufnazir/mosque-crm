@@ -175,7 +175,7 @@ public class ExcelImportService {
 			existingPerson.setEmail(updatedData.getEmail());
 		}
 		if (updatedData.getPhone() != null) {
-			// Extract phone number from formats like "8407043/ +31616255904" to get just
+			// Extract the number from a cell that also holds other text, to get just
 			// the phone part
 //			String phoneValue = extractPhoneNumber(updatedData.getPhone());
 //			if (phoneValue != null && phoneValue.length() > 20) {

@@ -59,6 +59,17 @@ public class WhatsAppOutboundMessage implements OrganizationAware {
     @Column(name = "organization_id")
     private Long organizationId;
 
+    /**
+     * The number that must send this message. Resolved when the row is queued and never
+     * re-resolved afterwards, so a retry can never leave from a different number.
+     */
+    @Column(name = "channel_id")
+    private Long channelId;
+
+    /** Audit snapshot of the WAHA session this row was queued for. */
+    @Column(name = "waha_session", length = 100)
+    private String wahaSession;
+
     @Column(name = "campaign_id", length = 64)
     private String campaignId;
 
@@ -116,6 +127,12 @@ public class WhatsAppOutboundMessage implements OrganizationAware {
     public Long getOrganizationId() { return organizationId; }
     @Override
     public void setOrganizationId(Long organizationId) { this.organizationId = organizationId; }
+
+    public Long getChannelId() { return channelId; }
+    public void setChannelId(Long channelId) { this.channelId = channelId; }
+
+    public String getWahaSession() { return wahaSession; }
+    public void setWahaSession(String wahaSession) { this.wahaSession = wahaSession; }
 
     public String getCampaignId() { return campaignId; }
     public void setCampaignId(String campaignId) { this.campaignId = campaignId; }

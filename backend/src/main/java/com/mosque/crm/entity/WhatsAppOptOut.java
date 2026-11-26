@@ -12,10 +12,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * A phone number that must never be messaged again.
+ * A phone number that must never be messaged again from one particular number.
  *
- * Global on purpose: the installation sends from one WhatsApp number, so one contact's
- * "STOP" protects the reputation of the whole number, not just one organisation.
+ * Keyed by (channel, phone): a "STOP" protects the number that was messaged, and the same
+ * contact can still be reached from the organisation's other WhatsApp number. A null channel
+ * means the row predates channels, and it is treated as global by the lookup helpers.
  */
 @Entity
 @Table(name = "whatsapp_opt_outs")
@@ -33,7 +34,10 @@ public class WhatsAppOptOut {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "phone_e164", nullable = false, length = 32, unique = true)
+    @Column(name = "channel_id")
+    private Long channelId;
+
+    @Column(name = "phone_e164", nullable = false, length = 32)
     private String phoneE164;
 
     @Column(name = "organization_id")
@@ -65,6 +69,9 @@ public class WhatsAppOptOut {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public Long getChannelId() { return channelId; }
+    public void setChannelId(Long channelId) { this.channelId = channelId; }
 
     public String getPhoneE164() { return phoneE164; }
     public void setPhoneE164(String phoneE164) { this.phoneE164 = phoneE164; }

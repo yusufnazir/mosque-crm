@@ -12,6 +12,10 @@ public class WahaSettingsDTO {
     private String apiKey;
     private String session;
     private String webhookSecret;
+    /** Default WAHA events for channels that do not configure their own (comma separated). */
+    private String webhookEvents;
+    /** Reply keywords that trigger an automatic opt-out (comma separated). */
+    private String optOutKeywords;
 
     // ─── anti-ban pacing / caps (all editable) ───
     private Integer coldDelayMinSeconds;
@@ -54,6 +58,12 @@ public class WahaSettingsDTO {
 
     public String getWebhookSecret() { return webhookSecret; }
     public void setWebhookSecret(String webhookSecret) { this.webhookSecret = webhookSecret; }
+
+    public String getWebhookEvents() { return webhookEvents; }
+    public void setWebhookEvents(String webhookEvents) { this.webhookEvents = webhookEvents; }
+
+    public String getOptOutKeywords() { return optOutKeywords; }
+    public void setOptOutKeywords(String optOutKeywords) { this.optOutKeywords = optOutKeywords; }
 
     public Integer getColdDelayMinSeconds() { return coldDelayMinSeconds; }
     public void setColdDelayMinSeconds(Integer coldDelayMinSeconds) { this.coldDelayMinSeconds = coldDelayMinSeconds; }

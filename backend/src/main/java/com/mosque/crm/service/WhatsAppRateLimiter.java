@@ -68,7 +68,7 @@ public class WhatsAppRateLimiter {
         long sentLastHour = outboundRepository.countByStatusAndSentAtAfter(
                 WhatsAppOutboundMessage.Status.SENT, now.minusHours(1));
         if (sentLastHour >= settings().getMaxPerHour()) {
-            return Decision.blocked(now.plusMinutes(15), REASON_HOURLY_CAP);
+            return Decision.blocked(now.plusMinutes(Math.max(1, settings().getCapRetryMinutes())), REASON_HOURLY_CAP);
         }
 
         int dailyCap = effectiveDailyCap(now);
@@ -137,7 +137,8 @@ public class WhatsAppRateLimiter {
         return next.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
     }
 
-    private LocalDateTime startOfDay(LocalDateTime now) {
+    /** Midnight of the current day in the configured WhatsApp time zone. */
+    public LocalDateTime startOfDay(LocalDateTime now) {
         ZoneId zone = zone();
         return now.atZone(ZoneId.systemDefault())
                 .withZoneSameInstant(zone)
@@ -146,7 +147,6 @@ public class WhatsAppRateLimiter {
                 .withZoneSameInstant(ZoneId.systemDefault())
                 .toLocalDateTime();
     }
-
     private LocalDateTime startOfNextDay(LocalDateTime now) {
         ZoneId zone = zone();
         return now.atZone(ZoneId.systemDefault())

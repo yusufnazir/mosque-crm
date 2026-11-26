@@ -40,6 +40,14 @@ public class WhatsAppStatsDTO {
 
     private List<WhatsAppReplyDTO> recentReplies = new ArrayList<>();
 
+    /** One entry per configured number, so the screen can show each number's own state. */
+    private List<WhatsAppChannelStatsDTO> channels = new ArrayList<>();
+
+    public List<WhatsAppChannelStatsDTO> getChannels() { return channels; }
+    public void setChannels(List<WhatsAppChannelStatsDTO> channels) {
+        this.channels = channels == null ? new ArrayList<>() : channels;
+    }
+
     public long getQueued() { return queued; }
     public void setQueued(long queued) { this.queued = queued; }
 

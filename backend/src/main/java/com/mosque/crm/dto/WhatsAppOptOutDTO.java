@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 public class WhatsAppOptOutDTO {
 
     private Long id;
+    /** The number this stop applies to (null for rows that predate channels). */
+    private Long channelId;
+    private String channelLabel;
     private String phoneE164;
     private String keyword;
     private String reason;
@@ -13,6 +16,12 @@ public class WhatsAppOptOutDTO {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public Long getChannelId() { return channelId; }
+    public void setChannelId(Long channelId) { this.channelId = channelId; }
+
+    public String getChannelLabel() { return channelLabel; }
+    public void setChannelLabel(String channelLabel) { this.channelLabel = channelLabel; }
 
     public String getPhoneE164() { return phoneE164; }
     public void setPhoneE164(String phoneE164) { this.phoneE164 = phoneE164; }

@@ -8,7 +8,7 @@ const stats = {
   quietHours: false, quietHoursStart: 20, quietHoursEndHour: 20, timezone: 'UTC',
   coldDelayMinSeconds: 15, coldDelayMaxSeconds: 45,
   conversationDelayMinSeconds: 5, conversationDelayMaxSeconds: 15,
-  typingSimulationEnabled: false, recentReplies: [],
+  typingSimulationEnabled: false, recentReplies: [], channels: [],
 };
 
 const message = (id: number, status: 'QUEUED' | 'SENDING' | 'SENT') => ({

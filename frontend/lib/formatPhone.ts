@@ -1,14 +1,13 @@
 /**
  * Phone number display helpers.
  *
- * Businesses store numbers in E.164-ish form (`+5976584562`). A raw run of digits
- * is hard to scan — especially on a phone — so we group the national part for
- * display while keeping the exact digits for the `tel:` link.
+ * Businesses store numbers in E.164-ish form (a leading `+` and the country code). A raw run of
+ * digits is hard to scan — especially on a phone — so we group the national part for display while
+ * keeping the exact digits for the `tel:` link.
  *
  * Examples
- *   formatPhoneNumber('+5976584562')  -> '+597 658-4562'
- *   formatPhoneNumber('+5978706021')  -> '+597 870-6021'
- *   formatPhoneNumber('06 12345678')  -> '06 1234 5678'
+ *   formatPhoneNumber('+CCNNNNNNNNNN') -> '+CC NNN-NNNN'
+ *   formatPhoneNumber('0NNNNNNNNN')    -> '0NN NNNN NNNN'
  */
 
 /** Calling codes we can reliably split off a leading `+` number (longest first). */

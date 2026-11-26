@@ -1,6 +1,7 @@
 package com.mosque.crm.config;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +21,20 @@ import com.mosque.crm.controller.SchedulerController;
 import com.mosque.crm.controller.WhatsAppController;
 import com.mosque.crm.controller.MemberController;
 import com.mosque.crm.multitenancy.TenantInterceptor;
+import com.mosque.crm.entity.WhatsAppChannel;
 import com.mosque.crm.scheduler.SchedulerService;
 import com.mosque.crm.security.JwtRequestFilter;
 import com.mosque.crm.security.JwtUtil;
 import com.mosque.crm.service.AuthorizationService;
 import com.mosque.crm.service.MemberService;
 import com.mosque.crm.service.BulkMemberAccountService;
-import com.mosque.crm.service.WahaClient;
 import com.mosque.crm.service.WahaSettingsService;
+import com.mosque.crm.service.WhatsAppChannelService;
 import com.mosque.crm.service.WhatsAppOutboundService;
 import com.mosque.crm.service.WhatsAppWebhookService;
 import com.mosque.crm.subscription.SubscriptionEnforcementInterceptor;
+import com.mosque.crm.waha.WahaClient;
+import com.mosque.crm.waha.WahaSessionStatus;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,6 +58,7 @@ class PlatformAdminSecurityTest {
     @MockBean private AuthorizationService authorizationService;
     @MockBean private WhatsAppOutboundService outboundService;
     @MockBean private WhatsAppWebhookService webhookService;
+    @MockBean private WhatsAppChannelService channelService;
     @MockBean private WahaClient wahaClient;
     @MockBean private WahaSettingsService wahaSettingsService;
     @MockBean private MemberService memberService;
@@ -107,22 +112,35 @@ class PlatformAdminSecurityTest {
     void platformAdminCanAccessBothFeatures() throws Exception {
         when(authorizationService.hasPermission("scheduler.view")).thenReturn(true);
         when(schedulerService.list()).thenReturn(List.of());
-        when(wahaClient.getSessionStatus()).thenReturn("WORKING");
 
         mvc.perform(get("/schedulers")).andExpect(status().isOk());
         mvc.perform(get("/whatsapp/session")).andExpect(status().isOk());
     }
 
     @Test
-    void webhookRemainsPublicButRequiresItsSharedSecret() throws Exception {
-        when(webhookService.isWebhookConfigured()).thenReturn(true);
-        when(webhookService.isAuthorized("valid")).thenReturn(true);
+    void webhookRemainsPublicButRequiresItsChannelSecret() throws Exception {
+        WhatsAppChannel channel = new WhatsAppChannel();
+        channel.setId(7L);
+        channel.setLabel("Members");
+        channel.setWahaSession("members");
+        when(webhookService.resolveChannel(org.mockito.ArgumentMatchers.any())).thenReturn(Optional.of(channel));
+        when(webhookService.isWebhookConfigured(channel)).thenReturn(true);
+        when(webhookService.isAuthorized(channel, "valid")).thenReturn(true);
 
         mvc.perform(post("/whatsapp/webhook").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isForbidden());
         mvc.perform(post("/whatsapp/webhook").header("X-Webhook-Token", "valid")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isOk());
-        verify(webhookService).isAuthorized("valid");
+        verify(webhookService).isAuthorized(channel, "valid");
+    }
+
+    @Test
+    void webhookRefusesAnEventItCannotAttribute() throws Exception {
+        when(webhookService.resolveChannel(org.mockito.ArgumentMatchers.any())).thenReturn(Optional.empty());
+
+        mvc.perform(post("/whatsapp/webhook").header("X-Webhook-Token", "valid")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"session\":\"unknown\"}"))
+                .andExpect(status().isBadRequest());
     }
 }

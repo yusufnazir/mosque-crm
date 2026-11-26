@@ -5,6 +5,7 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useAppName } from '@/lib/AppNameContext';
 import { useDateFormat, DATE_FORMAT_PRESETS, DEFAULT_DATE_FORMAT } from '@/lib/DateFormatContext';
 import { useAuth } from '@/lib/auth/AuthContext';
+import WhatsAppChannelManager from '@/components/WhatsAppChannelManager';
 
 interface MailServerConfig {
   host: string;
@@ -28,8 +29,11 @@ interface MinioConfig {
 interface WahaSettings {
   baseUrl: string;
   apiKey: string;
+  /** Fallback only: the numbers themselves are channel rows (see WhatsAppChannelManager). */
   session: string;
   webhookSecret: string;
+  webhookEvents: string;
+  optOutKeywords: string;
   configured: boolean;
   apiKeyConfigured: boolean;
   webhookSecretConfigured: boolean;
@@ -142,6 +146,8 @@ export default function SettingsPage() {
     apiKey: '',
     session: 'default',
     webhookSecret: '',
+    webhookEvents: 'message',
+    optOutKeywords: '',
     configured: false,
     apiKeyConfigured: false,
     webhookSecretConfigured: false,
@@ -204,8 +210,9 @@ export default function SettingsPage() {
         body: JSON.stringify({
           baseUrl: wahaSettings.baseUrl,
           apiKey: wahaSettings.apiKey,
-          session: wahaSettings.session,
           webhookSecret: wahaSettings.webhookSecret,
+          webhookEvents: wahaSettings.webhookEvents,
+          optOutKeywords: wahaSettings.optOutKeywords,
           coldDelayMinSeconds: wahaSettings.coldDelayMinSeconds,
           coldDelayMaxSeconds: wahaSettings.coldDelayMaxSeconds,
           conversationDelayMinSeconds: wahaSettings.conversationDelayMinSeconds,
@@ -248,7 +255,6 @@ export default function SettingsPage() {
         body: JSON.stringify({
           baseUrl: wahaSettings.baseUrl,
           apiKey: wahaSettings.apiKey,
-          session: wahaSettings.session,
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -782,7 +788,7 @@ export default function SettingsPage() {
                   setAppBaseDomainError('');
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                placeholder="memflox.com"
+                placeholder="example.com"
               />
               {appBaseDomainError && (
                 <p className="mt-1 text-sm text-red-600">{appBaseDomainError}</p>
@@ -1328,19 +1334,7 @@ export default function SettingsPage() {
               <p className="mt-1 text-xs text-gray-500">{t('settings.waha_api_key_hint')}</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('settings.waha_session')}
-              </label>
-              <input
-                type="text"
-                value={wahaSettings.session}
-                onChange={(e) => setWahaSettings({ ...wahaSettings, session: e.target.value })}
-                placeholder="default"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
-              <p className="mt-1 text-xs text-gray-500">{t('settings.waha_session_hint')}</p>
-            </div>
+            <WhatsAppChannelManager onChanged={fetchWahaSettings} />
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1371,6 +1365,33 @@ export default function SettingsPage() {
                   </span>
                 </p>
               )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.waha_webhook_events')}
+              </label>
+              <input
+                type="text"
+                value={wahaSettings.webhookEvents ?? ''}
+                onChange={(e) => setWahaSettings({ ...wahaSettings, webhookEvents: e.target.value })}
+                placeholder="message"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+              <p className="mt-1 text-xs text-gray-500">{t('settings.waha_webhook_events_hint')}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.waha_optout_keywords')}
+              </label>
+              <textarea
+                value={wahaSettings.optOutKeywords ?? ''}
+                onChange={(e) => setWahaSettings({ ...wahaSettings, optOutKeywords: e.target.value })}
+                rows={2}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+              <p className="mt-1 text-xs text-gray-500">{t('settings.waha_optout_keywords_hint')}</p>
             </div>
 
             {/* ─── Sending safety ─── */}

@@ -20,4 +20,8 @@ public interface WhatsAppInboundRepository extends JpaRepository<WhatsAppInbound
     List<WhatsAppInboundMessage> findAllByOrderByReceivedAtDesc(Pageable pageable);
 
     boolean existsByFromPhoneAndReceivedAtAfter(String fromPhone, LocalDateTime after);
+
+    boolean existsByChannelIdAndFromPhoneAndReceivedAtAfter(Long channelId, String fromPhone, LocalDateTime after);
+
+    long countByChannelId(Long channelId);
 }

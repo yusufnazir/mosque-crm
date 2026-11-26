@@ -1,7 +1,9 @@
 package com.mosque.crm.service;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.slf4j.Logger;
@@ -10,21 +12,34 @@ import org.springframework.stereotype.Component;
 
 import com.mosque.crm.config.WahaProperties;
 import com.mosque.crm.entity.ScheduledJobConfig;
+import com.mosque.crm.entity.WhatsAppChannel;
 import com.mosque.crm.entity.WhatsAppOutboundMessage;
 import com.mosque.crm.repository.WhatsAppOptOutRepository;
 import com.mosque.crm.scheduler.ScheduledJob;
 import com.mosque.crm.util.PhoneUtils;
+import com.mosque.crm.waha.WahaChatId;
+import com.mosque.crm.waha.WahaClient;
+import com.mosque.crm.waha.WahaException;
+import com.mosque.crm.waha.WahaSessionStatus;
 
 /**
  * Sends queued WhatsApp messages — one at a time, never in a loop, never from a request.
+ *
+ * Every row already carries the channel it was queued for, so this worker never chooses a
+ * number: it reads {@code channel_id} plus the session snapshot, confirms that channel is still
+ * enabled, and sends through exactly that session. A retry reuses the same session, so a
+ * message can never drift to another number.
  *
  * Every tick:
  * <ol>
  *   <li>asks the rate limiter whether sending is allowed right now (quiet hours, hourly and
  *       warm-up daily caps). If not, the whole queue is pushed to the next permitted moment;</li>
- *   <li>claims exactly one due message (pessimistic lock, so instances cannot double-send);</li>
- *   <li>shows a typing indicator for 2–4 s scaled to the message length;</li>
- *   <li>sends it, then pushes the next queued message out by a randomized delay.</li>
+ *   <li>claims exactly one due message from an enabled channel (pessimistic lock, so instances
+ *       cannot double-send);</li>
+ *   <li>checks that this message's session is connected (cached briefly per session) — a number
+ *       that is offline holds its messages instead of burning delivery attempts;</li>
+ *   <li>shows a typing indicator for 2–4 s scaled to the message length, sends it, then pushes
+ *       the next queued message out by a randomized delay.</li>
  * </ol>
  *
  * Registered as a {@link ScheduledJob} so the platform admin can pause sending, change the
@@ -39,25 +54,32 @@ public class WhatsAppDispatcher implements ScheduledJob {
     public static final int DEFAULT_POLL_SECONDS = 5;
     private static final long DEFAULT_INITIAL_DELAY_SECONDS = 15L;
 
+    /** A session whose state is known is not polled more often than this. */
+    private static final long SESSION_CACHE_MILLIS = 60_000L;
+
     private final WhatsAppOutboundService outboundService;
     private final WhatsAppRateLimiter rateLimiter;
     private final WhatsAppOptOutRepository optOutRepository;
+    private final WhatsAppChannelService channelService;
     private final WahaClient wahaClient;
     private final WahaSettingsService wahaSettings;
 
-    /** Session status is cached briefly so an offline WAHA is not polled every 5 seconds. */
-    private volatile String cachedSessionStatus = "UNKNOWN";
-    private volatile long cachedSessionStatusAt = 0L;
-    private static final long SESSION_CACHE_MILLIS = 60_000L;
+    /** Last known state per WAHA session, so an offline number is not polled every tick. */
+    private final Map<String, CachedStatus> sessionStates = new ConcurrentHashMap<>();
+
+    private record CachedStatus(WahaSessionStatus status, long checkedAt) {
+    }
 
     public WhatsAppDispatcher(WhatsAppOutboundService outboundService,
                               WhatsAppRateLimiter rateLimiter,
                               WhatsAppOptOutRepository optOutRepository,
+                              WhatsAppChannelService channelService,
                               WahaClient wahaClient,
                               WahaSettingsService wahaSettings) {
         this.outboundService = outboundService;
         this.rateLimiter = rateLimiter;
         this.optOutRepository = optOutRepository;
+        this.channelService = channelService;
         this.wahaClient = wahaClient;
         this.wahaSettings = wahaSettings;
     }
@@ -76,7 +98,7 @@ public class WhatsAppDispatcher implements ScheduledJob {
 
     @Override
     public String description() {
-        return "Sends one queued WhatsApp message per tick, respecting the pacing, caps and quiet hours configured in Settings → WhatsApp.";
+        return "Sends one queued WhatsApp message per tick from the channel it was queued for, respecting the pacing, caps and quiet hours configured in Settings → WhatsApp.";
     }
 
     @Override
@@ -105,11 +127,6 @@ public class WhatsAppDispatcher implements ScheduledJob {
             return;
         }
         try {
-            // Nothing can be sent while the WhatsApp session is logged out or scanning
-            if (!"WORKING".equals(sessionStatus())) {
-                return;
-            }
-
             WhatsAppRateLimiter.Decision decision = rateLimiter.check(LocalDateTime.now());
             if (!decision.allowed()) {
                 int deferred = outboundService.deferDue(decision.retryAt());
@@ -131,53 +148,93 @@ public class WhatsAppDispatcher implements ScheduledJob {
         }
     }
 
-    private void send(WhatsAppOutboundMessage message) {        String phone = message.getRecipientPhone();
+    private void send(WhatsAppOutboundMessage message) {
+        String phone = message.getRecipientPhone();
+
+        // Which number must this leave from? Read from the row, never re-resolved.
+        WhatsAppChannel channel = channelService.findById(message.getChannelId()).orElse(null);
+        if (channel == null) {
+            outboundService.markSkipped(message.getId(),
+                    "The WhatsApp channel for this message no longer exists");
+            log.warn("Skipped WhatsApp message {}: channel {} is gone", message.getId(), message.getChannelId());
+            return;
+        }
+        if (!channel.isEnabled()) {
+            outboundService.markSkipped(message.getId(),
+                    "The WhatsApp channel '" + channel.getLabel() + "' is disabled");
+            log.info("Skipped WhatsApp message {}: channel '{}' is disabled", message.getId(), channel.getLabel());
+            return;
+        }
+        String session = message.getWahaSession() != null && !message.getWahaSession().isBlank()
+                ? message.getWahaSession()
+                : channel.getWahaSession();
+
+        // Nothing can be sent while this number is logged out or scanning
+        WahaSessionStatus status = status(session);
+        if (!status.isWorking()) {
+            int holdMinutes = Math.max(1, wahaSettings.effective().getOfflineRetryMinutes());
+            LocalDateTime retryAt = LocalDateTime.now().plusMinutes(holdMinutes);
+            outboundService.release(message.getId(), retryAt,
+                    "WAHA session '" + session + "' is " + status.name());
+            log.info("WhatsApp message {} held: session '{}' is {} (retry at {})",
+                    message.getId(), session, status, retryAt);
+            return;
+        }
 
         // Last-moment opt-out check: a STOP reply may have arrived while this was queued
-        if (optOutRepository.existsByPhoneE164(phone)) {
+        if (optOutRepository.existsByChannelIdAndPhoneE164(channel.getId(), phone)
+                || optOutRepository.existsByPhoneE164AndChannelIdIsNull(phone)) {
             outboundService.markSkipped(message.getId(), "Recipient opted out before sending");
             log.info("Skipped WhatsApp message {}: {} opted out", message.getId(), PhoneUtils.mask(phone));
             return;
         }
 
-        String chatId = PhoneUtils.toChatId(phone);
+        String chatId = WahaChatId.toChatId(phone);
         try {
-            simulateTyping(chatId, message.getRenderedBody());
-            String waMessageId = wahaClient.sendText(chatId, message.getRenderedBody());
+            simulateTyping(session, chatId, message.getRenderedBody());
+            String waMessageId = wahaClient.sendText(session, chatId, message.getRenderedBody());
 
             outboundService.markSent(message.getId(), waMessageId);
             outboundService.paceNextQueued(LocalDateTime.now());
 
-            log.info("WhatsApp message {} sent to {} (campaign {})",
-                    message.getId(), PhoneUtils.mask(phone), message.getCampaignId());
-        } catch (WahaClient.WahaException e) {
+            log.info("WhatsApp message {} sent to {} via session '{}' (campaign {})",
+                    message.getId(), PhoneUtils.mask(phone), session, message.getCampaignId());
+        } catch (WahaException e) {
+            invalidate(session);
             outboundService.markAttemptFailed(message.getId(), e.getMessage(), e.isRetryable());
-            log.warn("WhatsApp message {} to {} failed (retryable={}): {}",
-                    message.getId(), PhoneUtils.mask(phone), e.isRetryable(), e.getMessage());
+            log.warn("WhatsApp message {} to {} via session '{}' failed (retryable={}): {}",
+                    message.getId(), PhoneUtils.mask(phone), session, e.isRetryable(), e.getMessage());
         }
+    }
+
+    /** Session state, cached briefly per session so an offline number is not polled every tick. */
+    private WahaSessionStatus status(String session) {
+        long now = System.currentTimeMillis();
+        CachedStatus cached = sessionStates.get(session);
+        if (cached != null && now - cached.checkedAt() <= SESSION_CACHE_MILLIS) {
+            return cached.status();
+        }
+        WahaSessionStatus status = wahaClient.status(session);
+        sessionStates.put(session, new CachedStatus(status, now));
+        return status;
+    }
+
+    private void invalidate(String session) {
+        sessionStates.remove(session);
     }
 
     /**
      * WhatsApp's anti-spam heuristics expect a human typing before a message appears:
      * startTyping → wait (scaled by length) → stopTyping → send.
      */
-    private String sessionStatus() {
-        long now = System.currentTimeMillis();
-        if (now - cachedSessionStatusAt > SESSION_CACHE_MILLIS) {
-            cachedSessionStatus = wahaClient.getSessionStatus();
-            cachedSessionStatusAt = now;
-        }
-        return cachedSessionStatus;
-    }
-
-    private void simulateTyping(String chatId, String text) {
+    private void simulateTyping(String session, String chatId, String text) {
         int min = wahaSettings.effective().getTypingMinSeconds();
         int max = wahaSettings.effective().getTypingMaxSeconds();
         if (min <= 0 || max <= 0) {
             return;
         }
 
-        wahaClient.startTyping(chatId);
+        wahaClient.startTyping(session, chatId);
 
         int length = text == null ? 0 : text.length();
         // Longer text → longer "typing", but never outside the configured window
@@ -191,6 +248,6 @@ public class WhatsAppDispatcher implements ScheduledJob {
             return;
         }
 
-        wahaClient.stopTyping(chatId);
+        wahaClient.stopTyping(session, chatId);
     }
 }

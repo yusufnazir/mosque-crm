@@ -3,11 +3,14 @@ package com.mosque.crm.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import com.mosque.crm.waha.WahaEvent;
+
 /**
  * WAHA (WhatsApp HTTP API) connection + anti-ban tuning.
  *
- * One shared WhatsApp session is used for the whole installation; all values can be
- * overridden through environment variables so nothing has to be edited in code.
+ * This class is the single source of truth for every documented default: the values below are
+ * the fallbacks used when neither the {@code configurations} table nor an environment variable
+ * provides one. Which WhatsApp number sends is NOT configured here — that is a channel row.
  */
 @Component
 @ConfigurationProperties(prefix = "waha")
@@ -19,11 +22,25 @@ public class WahaProperties {
     /** Optional WAHA API key (sent as X-Api-Key). Empty when the container runs without auth. */
     private String apiKey = "";
 
-    /** WAHA session name that holds the WhatsApp login. */
+    /**
+     * Fallback session name, used only while no channel row exists yet (fresh installation).
+     * Sending always resolves a channel; this value never overrides one.
+     */
     private String session = "default";
 
-    /** Shared secret that WAHA must present on the inbound webhook (X-Webhook-Token or ?token=). */
+    /** Global webhook secret. A channel with its own token ignores this value. */
     private String webhookSecret = "";
+
+    /** Default WAHA event list for channels that do not configure their own (comma separated). */
+    private String webhookEvents = WahaEvent.MESSAGE;
+
+    /**
+     * Reply keywords that mean "never message this number again from this number" (comma
+     * separated, matched against the first words of a reply). Editable so a deployment can add
+     * its own language without a code change.
+     */
+    private String optOutKeywords = "stop,stop all,stop alle,stop maar,unsubscribe,uitschrijven,"
+            + "afmelden,afgemeld,spam,block,blokkeren,niet meer,remove,verwijder,opt out,opt-out";
 
     /** How often the dispatcher looks for work. */
     private long workerPollMillis = 5000;
@@ -62,6 +79,12 @@ public class WahaProperties {
     /** Give up on a message after this many attempts. */
     private int maxAttempts = 3;
 
+    /** How long a message waits when its own number is not connected (session offline). */
+    private int offlineRetryMinutes = 5;
+
+    /** How long the queue waits when the hourly cap is reached. */
+    private int capRetryMinutes = 15;
+
     /** HTTP timeouts (milliseconds). */
     private int connectTimeoutMillis = 5000;
     private int readTimeoutMillis = 20000;
@@ -81,6 +104,12 @@ public class WahaProperties {
 
     public String getWebhookSecret() { return webhookSecret; }
     public void setWebhookSecret(String webhookSecret) { this.webhookSecret = webhookSecret; }
+
+    public String getWebhookEvents() { return webhookEvents; }
+    public void setWebhookEvents(String webhookEvents) { this.webhookEvents = webhookEvents; }
+
+    public String getOptOutKeywords() { return optOutKeywords; }
+    public void setOptOutKeywords(String optOutKeywords) { this.optOutKeywords = optOutKeywords; }
 
     public long getWorkerPollMillis() { return workerPollMillis; }
     public void setWorkerPollMillis(long workerPollMillis) { this.workerPollMillis = workerPollMillis; }
@@ -132,6 +161,12 @@ public class WahaProperties {
 
     public int getMaxAttempts() { return maxAttempts; }
     public void setMaxAttempts(int maxAttempts) { this.maxAttempts = maxAttempts; }
+
+    public int getOfflineRetryMinutes() { return offlineRetryMinutes; }
+    public void setOfflineRetryMinutes(int offlineRetryMinutes) { this.offlineRetryMinutes = offlineRetryMinutes; }
+
+    public int getCapRetryMinutes() { return capRetryMinutes; }
+    public void setCapRetryMinutes(int capRetryMinutes) { this.capRetryMinutes = capRetryMinutes; }
 
     public int getConnectTimeoutMillis() { return connectTimeoutMillis; }
     public void setConnectTimeoutMillis(int connectTimeoutMillis) { this.connectTimeoutMillis = connectTimeoutMillis; }

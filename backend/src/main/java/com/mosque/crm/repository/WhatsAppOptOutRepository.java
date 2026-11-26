@@ -15,5 +15,14 @@ public interface WhatsAppOptOutRepository extends JpaRepository<WhatsAppOptOut, 
 
     boolean existsByPhoneE164(String phoneE164);
 
+    Optional<WhatsAppOptOut> findByChannelIdAndPhoneE164(Long channelId, String phoneE164);
+
+    boolean existsByChannelIdAndPhoneE164(Long channelId, String phoneE164);
+
+    /** Rows without a channel predate channels and are treated as a global stop. */
+    boolean existsByPhoneE164AndChannelIdIsNull(String phoneE164);
+
+    long countByChannelId(Long channelId);
+
     List<WhatsAppOptOut> findAllByOrderByCreatedAtDesc();
 }

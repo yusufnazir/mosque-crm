@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.mosque.crm.config.WahaProperties;
 import com.mosque.crm.dto.WahaSettingsDTO;
+import com.mosque.crm.waha.WahaEvent;
 
 /**
  * Effective WAHA settings (connection + anti-ban pacing).
@@ -28,6 +29,8 @@ public class WahaSettingsService {
     public static final String KEY_API_KEY = "WAHA_API_KEY";
     public static final String KEY_SESSION = "WAHA_SESSION";
     public static final String KEY_WEBHOOK_SECRET = "WAHA_WEBHOOK_SECRET";
+    public static final String KEY_WEBHOOK_EVENTS = "WAHA_WEBHOOK_EVENTS";
+    public static final String KEY_OPT_OUT_KEYWORDS = "WAHA_OPT_OUT_KEYWORDS";
 
     public static final String KEY_COLD_DELAY_MIN = "WAHA_COLD_DELAY_MIN_SECONDS";
     public static final String KEY_COLD_DELAY_MAX = "WAHA_COLD_DELAY_MAX_SECONDS";
@@ -65,6 +68,19 @@ public class WahaSettingsService {
     public String apiKey() { return effective().getApiKey(); }
     public String session() { return effective().getSession(); }
     public String webhookSecret() { return effective().getWebhookSecret(); }
+    public String webhookEvents() { return effective().getWebhookEvents(); }
+
+    /** Reply keywords that trigger an automatic opt-out, lower-cased and trimmed. */
+    public java.util.List<String> optOutKeywords() {
+        java.util.List<String> keywords = new java.util.ArrayList<>();
+        for (String part : effective().getOptOutKeywords().split(",")) {
+            String keyword = part.trim().toLowerCase(java.util.Locale.ROOT);
+            if (!keyword.isEmpty() && !keywords.contains(keyword)) {
+                keywords.add(keyword);
+            }
+        }
+        return keywords;
+    }
 
     public boolean isConfigured() {
         String url = baseUrl();
@@ -98,6 +114,8 @@ public class WahaSettingsService {
         dto.setApiKey(settings.getApiKey());
         dto.setSession(settings.getSession());
         dto.setWebhookSecret(settings.getWebhookSecret());
+        dto.setWebhookEvents(settings.getWebhookEvents());
+        dto.setOptOutKeywords(settings.getOptOutKeywords());
         dto.setConfigured(isConfigured());
         dto.setApiKeyConfigured(settings.getApiKey() != null && !settings.getApiKey().isBlank());
         dto.setWebhookSecretConfigured(settings.getWebhookSecret() != null && !settings.getWebhookSecret().isBlank());
@@ -144,8 +162,15 @@ public class WahaSettingsService {
         }
         String session = trimToEmpty(dto.getSession());
         if (session.isEmpty()) {
-            session = "default";
+            // Blank keeps what is effective — the number itself lives in the channel list now.
+            session = effective().getSession();
         }
+        String webhookEvents = WahaEvent.parseList(dto.getWebhookEvents()).isEmpty()
+                ? defaults.getWebhookEvents()
+                : String.join(",", WahaEvent.parseList(dto.getWebhookEvents()));
+        String optOutKeywords = dto.getOptOutKeywords() == null || dto.getOptOutKeywords().isBlank()
+                ? defaults.getOptOutKeywords()
+                : dto.getOptOutKeywords().trim();
 
         // ─── pacing / caps (validated before anything is written) ───
         int coldMin = intValue(dto.getColdDelayMinSeconds(), defaults.getColdDelayMinSeconds(), 1, 600, "Cold delay (minimum)");
@@ -198,6 +223,8 @@ public class WahaSettingsService {
         configurationService.setValue(KEY_API_KEY, trimToEmpty(dto.getApiKey()));
         configurationService.setValue(KEY_SESSION, session);
         configurationService.setValue(KEY_WEBHOOK_SECRET, trimToEmpty(dto.getWebhookSecret()));
+        configurationService.setValue(KEY_WEBHOOK_EVENTS, webhookEvents);
+        configurationService.setValue(KEY_OPT_OUT_KEYWORDS, optOutKeywords);
 
         configurationService.setValue(KEY_COLD_DELAY_MIN, String.valueOf(coldMin));
         configurationService.setValue(KEY_COLD_DELAY_MAX, String.valueOf(coldMax));
@@ -237,13 +264,17 @@ public class WahaSettingsService {
         p.setBaseUrl(resolveString(KEY_BASE_URL, defaults.getBaseUrl(), ""));
         p.setApiKey(resolveString(KEY_API_KEY, defaults.getApiKey(), ""));
         p.setWebhookSecret(resolveString(KEY_WEBHOOK_SECRET, defaults.getWebhookSecret(), ""));
-        String session = resolveString(KEY_SESSION, defaults.getSession(), "default");
-        p.setSession(session.isBlank() ? "default" : session);
+        p.setWebhookEvents(resolveString(KEY_WEBHOOK_EVENTS, defaults.getWebhookEvents(), WahaEvent.MESSAGE));
+        p.setOptOutKeywords(resolveString(KEY_OPT_OUT_KEYWORDS, defaults.getOptOutKeywords(), defaults.getOptOutKeywords()));
+        String session = resolveString(KEY_SESSION, defaults.getSession(), defaults.getSession());
+        p.setSession(session.isBlank() ? defaults.getSession() : session);
 
         // Infrastructure-only values stay on the environment defaults (not shown in the UI)
         p.setWorkerPollMillis(defaults.getWorkerPollMillis());
         p.setConnectTimeoutMillis(defaults.getConnectTimeoutMillis());
         p.setReadTimeoutMillis(defaults.getReadTimeoutMillis());
+        p.setOfflineRetryMinutes(defaults.getOfflineRetryMinutes());
+        p.setCapRetryMinutes(defaults.getCapRetryMinutes());
 
         p.setColdDelayMinSeconds(resolveInt(KEY_COLD_DELAY_MIN, defaults.getColdDelayMinSeconds()));
         p.setColdDelayMaxSeconds(resolveInt(KEY_COLD_DELAY_MAX, defaults.getColdDelayMaxSeconds()));

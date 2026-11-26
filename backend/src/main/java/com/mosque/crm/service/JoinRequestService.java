@@ -202,7 +202,7 @@ public class JoinRequestService {
 
     /**
      * Normalizes a phone number. Values sent by the registration form are already in
-     * E.164 format ({@code +31612345678}); anything else is kept as typed so the admin
+     * E.164 format ({@code +<country><number>}); anything else is kept as typed so the admin
      * can still see what the applicant entered.
      */
     private String normalizePhone(String phone) {

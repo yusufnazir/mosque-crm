@@ -13,24 +13,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mosque.crm.config.WahaProperties;
 import com.mosque.crm.entity.Person;
+import com.mosque.crm.entity.WhatsAppChannel;
 import com.mosque.crm.entity.WhatsAppInboundMessage;
 import com.mosque.crm.entity.WhatsAppOptOut;
 import com.mosque.crm.repository.PersonRepository;
 import com.mosque.crm.repository.WhatsAppInboundRepository;
 import com.mosque.crm.repository.WhatsAppOptOutRepository;
 import com.mosque.crm.util.PhoneUtils;
+import com.mosque.crm.waha.WahaChatId;
 
 /**
  * Handles inbound WAHA webhook events.
  *
- * Two jobs:
+ * An event is only accepted when the channel that received it can be identified from the
+ * payload ({@code session}, else the account jid {@code me.id}) and that channel is enabled —
+ * anything else is refused before a single row is written, because a reply that cannot be
+ * attributed is worse than a dropped one.
+ *
+ * Two jobs after routing:
  * <ul>
- *   <li><b>Replies</b> — stored so a contact who answered gets the shorter "conversation"
- *       delay instead of cold-outreach spacing.</li>
- *   <li><b>Opt-out</b> — a reply containing STOP / unsubscribe / spam immediately adds the
- *       number to the do-not-message list and cancels anything still queued for it.
+ *   <li><b>Replies</b> — stored per (channel, number), so a contact writing to two of our
+ *       numbers gets two threads and each number gets the shorter "conversation" delay only
+ *       for its own threads.</li>
+ *   <li><b>Opt-out</b> — a reply containing STOP / unsubscribe / spam adds the number to the
+ *       do-not-message list for that channel and cancels what is still queued for it there.
  *       "Report &amp; Block" is the fastest route to a permanent ban, so this is automatic.</li>
  * </ul>
  */
@@ -39,62 +46,80 @@ public class WhatsAppWebhookService {
 
     private static final Logger log = LoggerFactory.getLogger(WhatsAppWebhookService.class);
 
-    /** Keyword → normalized opt-out token. Compared against the first words of the reply. */
-    private static final List<String> OPT_OUT_KEYWORDS = List.of(
-            "stop", "stop all", "stop alle", "stop maar",
-            "unsubscribe", "uitschrijven", "afmelden", "afgemeld",
-            "spam", "block", "blokkeren", "niet meer",
-            "remove", "verwijder", "opt out", "opt-out");
-
     private final WhatsAppInboundRepository inboundRepository;
     private final WhatsAppOptOutRepository optOutRepository;
     private final WhatsAppOutboundService outboundService;
+    private final WhatsAppChannelService channelService;
     private final PersonRepository personRepository;
-    private final WahaProperties properties;
     private final WahaSettingsService settings;
 
     public WhatsAppWebhookService(WhatsAppInboundRepository inboundRepository,
                                   WhatsAppOptOutRepository optOutRepository,
                                   WhatsAppOutboundService outboundService,
+                                  WhatsAppChannelService channelService,
                                   PersonRepository personRepository,
-                                  WahaProperties properties,
                                   WahaSettingsService settings) {
         this.inboundRepository = inboundRepository;
         this.optOutRepository = optOutRepository;
         this.outboundService = outboundService;
+        this.channelService = channelService;
         this.personRepository = personRepository;
-        this.properties = properties;
         this.settings = settings;
     }
 
-    /** True only when the shared secret is configured and matches. */
-    public boolean isAuthorized(String presentedSecret) {
-        String expected = settings.webhookSecret();
-        if (expected == null || expected.isBlank()) {
-            return false;
-        }
-        return presentedSecret != null && java.security.MessageDigest.isEqual(
-                expected.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                presentedSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-    }
-
-    public boolean isWebhookConfigured() {
-        String secret = settings.webhookSecret();
-        return secret != null && !secret.isBlank();
-    }
+    // ==================== Routing + authentication ====================
 
     /**
-     * Processes one WAHA event. Unknown events are ignored; duplicate deliveries are
-     * deduplicated on the WAHA message id.
+     * Finds the channel that received this event: the {@code session} name is authoritative,
+     * the account jid ({@code me.id}) is the fallback. Both lookups are table driven.
+     */
+    @Transactional(readOnly = true)
+    public Optional<WhatsAppChannel> resolveChannel(JsonNode event) {
+        if (event == null) {
+            return Optional.empty();
+        }
+        String sessionName = firstNonBlank(
+                text(event.path("session")),
+                text(event.path("payload").path("session")));
+        Optional<WhatsAppChannel> bySession = channelService.findByWahaSession(sessionName);
+        if (bySession.isPresent()) {
+            return bySession;
+        }
+        String account = firstNonBlank(
+                text(event.path("me").path("id")),
+                text(event.path("payload").path("me").path("id")),
+                text(event.path("payload").path("to")));
+        return channelService.findByAccount(account);
+    }
+
+    /** True when the presented token matches this channel's own token (or the global fallback). */
+    public boolean isAuthorized(WhatsAppChannel channel, String presentedSecret) {
+        return channel != null && channelService.tokenMatches(channel, presentedSecret);
+    }
+
+    /** False when no secret at all is configured, so the controller can answer 503 instead of 403. */
+    public boolean isWebhookConfigured(WhatsAppChannel channel) {
+        if (channel == null) {
+            return false;
+        }
+        String expected = channelService.expectedWebhookToken(channel);
+        return expected != null && !expected.isBlank();
+    }
+
+    // ==================== Event handling ====================
+
+    /**
+     * Processes one WAHA event for an already resolved channel. Unknown events are ignored;
+     * duplicate deliveries are deduplicated on the WAHA message id.
      */
     @Transactional
-    public void handleEvent(JsonNode event) {
-        if (event == null) {
+    public void handleEvent(JsonNode event, WhatsAppChannel channel) {
+        if (event == null || channel == null) {
             return;
         }
         String eventType = event.path("event").asText("");
         if (!eventType.isEmpty() && !eventType.startsWith("message")) {
-            log.debug("Ignoring WAHA event '{}'", eventType);
+            log.debug("Ignoring WAHA event '{}' for channel '{}'", eventType, channel.getLabel());
             return;
         }
 
@@ -107,7 +132,7 @@ public class WhatsAppWebhookService {
             return;
         }
 
-        String fromPhone = PhoneUtils.fromChatId(payload.path("from").asText(null));
+        String fromPhone = WahaChatId.toPhoneE164(payload.path("from").asText(null));
         if (fromPhone == null) {
             log.debug("WAHA event without a usable 'from' field, ignored");
             return;
@@ -124,6 +149,7 @@ public class WhatsAppWebhookService {
         boolean optOut = keyword != null;
 
         WhatsAppInboundMessage inbound = new WhatsAppInboundMessage();
+        inbound.setChannelId(channel.getId());
         inbound.setWaMessageId(waMessageId != null ? waMessageId : "unknown-" + Instant.now().toEpochMilli());
         inbound.setFromPhone(fromPhone);
         inbound.setContactName(payload.path("notifyName").asText(null));
@@ -134,21 +160,24 @@ public class WhatsAppWebhookService {
         inboundRepository.save(inbound);
 
         if (optOut) {
-            registerOptOut(fromPhone, keyword, inbound.getOrganizationId());
+            registerOptOut(channel, fromPhone, keyword, inbound.getOrganizationId());
         }
     }
 
-    private void registerOptOut(String phone, String keyword, Long organizationId) {
-        if (!optOutRepository.existsByPhoneE164(phone)) {
+    private void registerOptOut(WhatsAppChannel channel, String phone, String keyword, Long organizationId) {
+        if (!optOutRepository.existsByChannelIdAndPhoneE164(channel.getId(), phone)) {
             WhatsAppOptOut optOut = new WhatsAppOptOut(phone, organizationId, keyword,
                     "Automatic opt-out from an inbound WhatsApp reply",
                     WhatsAppOptOut.Source.REPLY);
+            optOut.setChannelId(channel.getId());
             optOutRepository.save(optOut);
-            log.info("WhatsApp opt-out registered for {} (keyword '{}')", PhoneUtils.mask(phone), keyword);
+            log.info("WhatsApp opt-out registered for {} on channel '{}' (keyword '{}')",
+                    PhoneUtils.mask(phone), channel.getLabel(), keyword);
         }
-        int cancelled = outboundService.cancelPendingForPhone(phone, "Recipient opted out");
+        int cancelled = outboundService.cancelPendingForPhone(channel.getId(), phone, "Recipient opted out");
         if (cancelled > 0) {
-            log.info("Cancelled {} queued WhatsApp message(s) for {}", cancelled, PhoneUtils.mask(phone));
+            log.info("Cancelled {} queued WhatsApp message(s) for {} on channel '{}'",
+                    cancelled, PhoneUtils.mask(phone), channel.getLabel());
         }
     }
 
@@ -161,7 +190,7 @@ public class WhatsAppWebhookService {
                 .replaceAll("[^a-z0-9 ]", " ")
                 .replaceAll("\\s+", " ")
                 .trim();
-        for (String keyword : OPT_OUT_KEYWORDS) {
+        for (String keyword : settings.optOutKeywords()) {
             if (normalized.equals(keyword) || normalized.startsWith(keyword + " ")) {
                 return keyword;
             }
@@ -169,13 +198,27 @@ public class WhatsAppWebhookService {
         return null;
     }
 
-    /** Best-effort org attribution (the installation shares one WhatsApp number). */
+    private static String text(JsonNode node) {
+        return node == null || node.isMissingNode() || node.isNull() ? null : node.asText(null);
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return null;
+    }
+
+    /** Best-effort org attribution (a reply can match members of several organisations). */
     private Long matchOrganization(String phone) {
         try {
             String digits = phone.replaceAll("[^0-9]", "");
-            String cc = properties.getDefaultCountryCode() == null ? "" : properties.getDefaultCountryCode();
+            String cc = settings.effective().getDefaultCountryCode();
+            cc = cc == null ? "" : cc;
             List<String> candidates = new java.util.ArrayList<>();
-            candidates.add(phone);                    // +31612345678
+            candidates.add(phone);                    // E.164, e.g. +<country><number>
             candidates.add(digits);                   // 31612345678
             candidates.add("00" + digits);            // 0031612345678
             if (!cc.isEmpty() && digits.startsWith(cc)) {

@@ -183,6 +183,7 @@
 
     <!-- ======================== WHATSAPP (WAHA) ======================== -->
     <include file="db/changelog/changes/ddl/197-create-whatsapp-messaging-tables.xml"/>
+    <include file="db/changelog/changes/ddl/201-create-whatsapp-channels.xml"/>
 
     <!-- ======================== PLATFORM SCHEDULERS ======================== -->
     <include file="db/changelog/changes/ddl/198-create-scheduler-job-configs.xml"/>

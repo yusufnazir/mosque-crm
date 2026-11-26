@@ -1,7 +1,7 @@
 /**
  * Shared app base-domain resolution for subdomain multi-tenancy.
  *
- * Handles nested bases such as `demo.memflox.com` (host `admin.demo.memflox.com`)
+ * Handles nested bases such as `demo.example.com` (host `admin.demo.example.com`)
  * without hardcoding environment-specific domains.
  *
  * Convention: tenant / role subdomains are a single DNS label
@@ -25,11 +25,11 @@ export function hostMatchesBaseDomain(hostname: string, baseDomain: string): boo
  * Fallback when nothing is configured: treat the first label as the subdomain
  * and the remainder as the app base domain.
  *
- * - admin.memflox.com              → memflox.com
- * - admin.demo.memflox.com         → demo.memflox.com
- * - demo-baiturrochim.demo.memflox.com → demo.memflox.com
+ * - admin.example.com              → example.com
+ * - admin.demo.example.com         → demo.example.com
+ * - branch.demo.example.com        → demo.example.com
  *
- * Note: apex hosts that ARE the base domain (e.g. demo.memflox.com) cannot be
+ * Note: apex hosts that ARE the base domain (e.g. demo.example.com) cannot be
  * detected this way — prefer auth.<base> or set APP_BASE_DOMAIN / cookie.
  */
 export function inferBaseDomainFromHost(hostname: string): string | undefined {
@@ -44,7 +44,7 @@ export function inferBaseDomainFromHost(hostname: string): string | undefined {
  * Resolve the effective app base domain for a request/page.
  *
  * Prefers configured candidates that match the current host (longest match
- * wins, so `demo.memflox.com` beats `memflox.com`). Falls back to inference.
+ * wins, so `demo.example.com` beats `example.com`). Falls back to inference.
  */
 export function resolveBaseDomain(
   hostname: string,

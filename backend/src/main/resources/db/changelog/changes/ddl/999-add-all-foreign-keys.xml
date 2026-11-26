@@ -1397,4 +1397,27 @@
             onDelete="CASCADE"/>
     </changeSet>
 
+    <changeSet id="b1000099-9990-0000-0000-000000000018" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="whatsapp_channels"/>
+            <columnExists tableName="whatsapp_outbound_messages" columnName="channel_id"/>
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_wa_out_channel"/>
+            </not>
+        </preConditions>
+        <comment>Every WhatsApp row points at the channel (number) it belongs to</comment>
+        <addForeignKeyConstraint constraintName="fk_wa_out_channel"
+            baseTableName="whatsapp_outbound_messages" baseColumnNames="channel_id"
+            referencedTableName="whatsapp_channels" referencedColumnNames="id"
+            onDelete="RESTRICT"/>
+        <addForeignKeyConstraint constraintName="fk_wa_in_channel"
+            baseTableName="whatsapp_inbound_messages" baseColumnNames="channel_id"
+            referencedTableName="whatsapp_channels" referencedColumnNames="id"
+            onDelete="RESTRICT"/>
+        <addForeignKeyConstraint constraintName="fk_wa_optout_channel"
+            baseTableName="whatsapp_opt_outs" baseColumnNames="channel_id"
+            referencedTableName="whatsapp_channels" referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>

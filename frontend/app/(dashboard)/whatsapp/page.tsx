@@ -9,6 +9,7 @@ import { parseApiErrorBody } from '@/lib/api';
 import {
   whatsappApi,
   type PageResponse,
+  type WhatsAppChannelDTO,
   type WhatsAppEnqueueResultDTO,
   type WhatsAppMessageDTO,
   type WhatsAppOptOutDTO,
@@ -51,6 +52,23 @@ const SKIP_REASON_STYLES: Record<string, string> = {
   DUPLICATE: 'bg-gray-100 text-gray-600',
   ALREADY_QUEUED: 'bg-sky-100 text-sky-800',
 };
+
+/** Live WAHA state of one number → i18n key. */
+const CHANNEL_STATUS_KEYS: Record<string, string> = {
+  WORKING: 'whatsapp.channel_status_working',
+  SCAN_QR_CODE: 'whatsapp.channel_status_qr',
+  STARTING: 'whatsapp.channel_status_starting',
+  STOPPED: 'whatsapp.channel_status_stopped',
+  FAILED: 'whatsapp.channel_status_failed',
+  UNREACHABLE: 'whatsapp.channel_status_unreachable',
+  NOT_CONFIGURED: 'whatsapp.channel_status_missing',
+};
+
+function channelDotClass(status?: string): string {
+  if (status === 'WORKING') return 'bg-emerald-500';
+  if (status === 'SCAN_QR_CODE' || status === 'STARTING') return 'bg-amber-500';
+  return 'bg-red-500';
+}
 
 /** Client-side preview only — the server does the real (randomized) resolution. */
 function resolveSpintax(template: string, name: string, org: string, randomize: boolean): string {
@@ -101,6 +119,12 @@ export default function WhatsAppPage() {
   const [stats, setStats] = useState<WhatsAppStatsDTO | null>(null);
   const [statsError, setStatsError] = useState('');
 
+  // Channels = the numbers this installation may send from. Which one is used is never implicit:
+  // the compose tab sends an explicit channel id and the server falls back to its default.
+  const [channels, setChannels] = useState<WhatsAppChannelDTO[]>([]);
+  const [channelId, setChannelId] = useState<number | null>(null);
+  const [optOutChannelId, setOptOutChannelId] = useState<number | null>(null);
+
   // Compose
   const [template, setTemplate] = useState('');
   const [recipientType, setRecipientType] = useState<'CUSTOM' | 'ACTIVE_MEMBERS' | 'ALL_MEMBERS'>('CUSTOM');
@@ -140,6 +164,32 @@ export default function WhatsAppPage() {
     }
   }, [t]);
 
+  const loadChannels = useCallback(async () => {
+    try {
+      const data = await whatsappApi.channels();
+      setChannels(data);
+      const preferred = data.find((channel) => channel.isDefault && channel.enabled)
+        ?? data.find((channel) => channel.enabled)
+        ?? data[0]
+        ?? null;
+      setChannelId((current) => {
+        if (current != null && data.some((channel) => channel.id === current && channel.enabled)) {
+          return current;
+        }
+        return preferred ? preferred.id : null;
+      });
+      setOptOutChannelId((current) => {
+        if (current != null && data.some((channel) => channel.id === current && channel.enabled)) {
+          return current;
+        }
+        return preferred ? preferred.id : null;
+      });
+    } catch {
+      // A tenant admin cannot read the platform channel list; the page still works.
+      setChannels([]);
+    }
+  }, []);
+
   const loadQueue = useCallback(async () => {
     setQueueLoading(true);
     try {
@@ -173,6 +223,10 @@ export default function WhatsAppPage() {
     }, 45_000);
     return () => clearInterval(timer);
   }, [loadStats]);
+
+  useEffect(() => {
+    loadChannels();
+  }, [loadChannels]);
 
   useEffect(() => {
     if (tab === 'queue') loadQueue();
@@ -211,6 +265,7 @@ export default function WhatsAppPage() {
         recipientType,
         phones: recipientType === 'CUSTOM' ? phoneList : undefined,
         template,
+        channelId: channelId ?? undefined,
         profile,
         defaultCountryCode: countryCode.replace(/[^0-9]/g, '') || undefined,
       });
@@ -277,7 +332,7 @@ export default function WhatsAppPage() {
     if (!newOptOutPhone.trim()) return;
     setOptOutSaving(true);
     try {
-      await whatsappApi.addOptOut(newOptOutPhone.trim(), newOptOutReason.trim() || undefined);
+      await whatsappApi.addOptOut(newOptOutPhone.trim(), newOptOutReason.trim() || undefined, optOutChannelId ?? undefined);
       setNewOptOutPhone('');
       setNewOptOutReason('');
       setToast({ message: t('whatsapp.optout_added'), type: 'success' });
@@ -327,14 +382,41 @@ export default function WhatsAppPage() {
           <h1 className="text-2xl font-bold text-charcoal">{t('whatsapp.title')}</h1>
           <p className="text-gray-600 mt-1 max-w-2xl">{t('whatsapp.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
-          <span className={`h-2.5 w-2.5 rounded-full ${sessionOk ? 'bg-emerald-500' : 'bg-red-500'}`} />
-          <div className="text-xs">
-            <p className="font-semibold text-charcoal">{sessionLabel}</p>
-            <p className="text-gray-500">
-              {t('whatsapp.session_label', { session: stats?.sessionName ?? '—' })}
-            </p>
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {(stats?.channels ?? []).length === 0 ? (
+            <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+              <div className="text-xs">
+                <p className="font-semibold text-charcoal">{sessionLabel}</p>
+                <p className="text-gray-500">{t('whatsapp.channels_none')}</p>
+              </div>
+            </div>
+          ) : (
+            (stats?.channels ?? []).map((channel) => (
+              <div
+                key={channel.id}
+                className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm"
+              >
+                <span className={`h-2.5 w-2.5 rounded-full ${channelDotClass(channel.status)}`} />
+                <div className="text-xs">
+                  <p className="font-semibold text-charcoal">
+                    {channel.label}
+                    {channel.isDefault && (
+                      <span className="ml-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-emerald-800">
+                        {t('whatsapp.channel_default_badge')}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-gray-500">
+                    {channel.displayNumber || channel.wahaSession}
+                    {' · '}
+                    {t(CHANNEL_STATUS_KEYS[channel.status] ?? 'whatsapp.channel_status_unknown')}
+                    {!channel.enabled && ` · ${t('whatsapp.channel_disabled_badge')}`}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -414,12 +496,31 @@ export default function WhatsAppPage() {
               </p>
             </div>
 
+            <div>
+              <label className="mb-1 block text-sm font-medium text-charcoal">{t('whatsapp.channel')}</label>
+              <select
+                value={channelId ?? ''}
+                onChange={(event) => setChannelId(event.target.value ? Number(event.target.value) : null)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+              >
+                {channels.filter((channel) => channel.enabled).map((channel) => (
+                  <option key={channel.id} value={channel.id}>
+                    {channel.label} · {channel.displayNumber || channel.wahaSession}
+                    {channel.isDefault ? ` (${t('whatsapp.channel_default_badge')})` : ''}
+                  </option>
+                ))}
+                {channels.filter((channel) => channel.enabled).length === 0 && (
+                  <option value="">{t('whatsapp.channels_none')}</option>
+                )}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">{t('whatsapp.channel_hint')}</p>
+            </div>
+
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-sm font-medium text-charcoal">
                   {t('whatsapp.recipients')}
-                </label>
-                <select
+                </label>                <select
                   value={recipientType}
                   onChange={(event) => setRecipientType(event.target.value as typeof recipientType)}
                   className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
@@ -452,7 +553,7 @@ export default function WhatsAppPage() {
                     value={phones}
                     onChange={(event) => setPhones(event.target.value)}
                     rows={4}
-                    placeholder={'+31612345678\n0612345678'}
+                    placeholder={t('whatsapp.phone_list_placeholder')}
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -477,8 +578,7 @@ export default function WhatsAppPage() {
               className="w-full rounded-lg bg-emerald-700 py-2.5 font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-50"
             >
               {submitting ? t('whatsapp.queueing') : t('whatsapp.queue_button')}
-            </button>
-            <p className="text-xs text-gray-500">{t('whatsapp.queue_note')}</p>
+            </button>            <p className="text-xs text-gray-500">{t('whatsapp.queue_note')}</p>
           </div>
 
           {/* Preview */}
@@ -622,6 +722,9 @@ export default function WhatsAppPage() {
                       {t('whatsapp.col_recipient')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      {t('whatsapp.col_channel')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                       {t('whatsapp.col_message')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -639,6 +742,12 @@ export default function WhatsAppPage() {
                       <td className="px-4 py-3 text-sm">
                         <p className="font-medium text-gray-900">{message.recipientName || '—'}</p>
                         <p className="text-xs text-gray-500">{message.recipientPhone}</p>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-600">
+                        <p>{message.channelLabel || '—'}</p>
+                        {message.channelSession && (
+                          <p className="font-mono text-[11px] text-gray-400">{message.channelSession}</p>
+                        )}
                       </td>
                       <td className="max-w-xs px-4 py-3 text-sm text-gray-600">
                         <p className="line-clamp-2">{message.body}</p>
@@ -760,10 +869,24 @@ export default function WhatsAppPage() {
             <h2 className="mb-1 text-sm font-semibold text-charcoal">{t('whatsapp.optout_add_title')}</h2>
             <p className="mb-3 text-xs text-gray-500">{t('whatsapp.optout_add_hint')}</p>
             <div className="space-y-3">
+              <select
+                value={optOutChannelId ?? ''}
+                onChange={(event) => setOptOutChannelId(event.target.value ? Number(event.target.value) : null)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+              >
+                {channels.filter((channel) => channel.enabled).map((channel) => (
+                  <option key={channel.id} value={channel.id}>
+                    {channel.label} · {channel.displayNumber || channel.wahaSession}
+                  </option>
+                ))}
+                {channels.filter((channel) => channel.enabled).length === 0 && (
+                  <option value="">{t('whatsapp.channels_none')}</option>
+                )}
+              </select>
               <input
                 value={newOptOutPhone}
                 onChange={(event) => setNewOptOutPhone(event.target.value)}
-                placeholder="+31612345678"
+                placeholder={t('whatsapp.phone_placeholder')}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
               />
               <input
@@ -801,6 +924,11 @@ export default function WhatsAppPage() {
                 {optOuts.map((optOut) => (
                   <li key={optOut.id} className="flex flex-wrap items-center gap-2 py-2.5">
                     <span className="text-sm font-medium text-gray-900">{optOut.phoneE164}</span>
+                    {optOut.channelLabel && (
+                      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-medium text-sky-800">
+                        {optOut.channelLabel}
+                      </span>
+                    )}
                     <span
                       className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
                         optOut.source === 'REPLY'

@@ -12,7 +12,7 @@ import { resolveBaseDomain } from '@/lib/auth/base-domain';
  * 5. Returns the rest of the user data to the browser (without the token)
  *
  * Cookie domain prefers backend APP_BASE_DOMAIN when it matches the request host
- * (so demo.memflox.com works under admin.demo.memflox.com), then env, then inference.
+ * (so demo.example.com works under admin.demo.example.com), then env, then inference.
  */
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8200/api';

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mosque.crm.config.WahaProperties;
+import com.mosque.crm.dto.WhatsAppChannelStatsDTO;
 import com.mosque.crm.dto.WhatsAppEnqueueRequest;
 import com.mosque.crm.dto.WhatsAppEnqueueResultDTO;
 import com.mosque.crm.dto.WhatsAppMessageDTO;
@@ -30,6 +31,7 @@ import com.mosque.crm.dto.WhatsAppSkippedRecipientDTO;
 import com.mosque.crm.dto.WhatsAppStatsDTO;
 import com.mosque.crm.entity.Organization;
 import com.mosque.crm.entity.Person;
+import com.mosque.crm.entity.WhatsAppChannel;
 import com.mosque.crm.entity.WhatsAppInboundMessage;
 import com.mosque.crm.entity.WhatsAppOptOut;
 import com.mosque.crm.entity.WhatsAppOutboundMessage;
@@ -64,6 +66,7 @@ public class WhatsAppOutboundService {
     private final SpintaxResolver spintaxResolver;
     private final WhatsAppRateLimiter rateLimiter;
     private final WahaSettingsService wahaSettings;
+    private final WhatsAppChannelService channelService;
     private final AuthorizationService authorizationService;
 
     public WhatsAppOutboundService(WhatsAppOutboundRepository outboundRepository,
@@ -74,6 +77,7 @@ public class WhatsAppOutboundService {
                                    SpintaxResolver spintaxResolver,
                                    WhatsAppRateLimiter rateLimiter,
                                    WahaSettingsService wahaSettings,
+                                   WhatsAppChannelService channelService,
                                    AuthorizationService authorizationService) {
         this.outboundRepository = outboundRepository;
         this.optOutRepository = optOutRepository;
@@ -83,6 +87,7 @@ public class WhatsAppOutboundService {
         this.spintaxResolver = spintaxResolver;
         this.rateLimiter = rateLimiter;
         this.wahaSettings = wahaSettings;
+        this.channelService = channelService;
         this.authorizationService = authorizationService;
     }
 
@@ -106,6 +111,10 @@ public class WhatsAppOutboundService {
         String countryCode = request.getDefaultCountryCode() != null && !request.getDefaultCountryCode().isBlank()
                 ? request.getDefaultCountryCode().replaceAll("[^0-9]", "")
                 : settings().getDefaultCountryCode();
+
+        // The number is chosen once, here. Nothing downstream re-resolves it, so a retry can
+        // never switch senders.
+        WhatsAppChannel channel = channelService.requireChannel(request.getChannelId(), null);
 
         String organizationName = currentOrganizationName();
         String campaignId = UUID.randomUUID().toString();
@@ -141,13 +150,14 @@ public class WhatsAppOutboundService {
                         WhatsAppSkippedRecipientDTO.Reason.DUPLICATE, describe(WhatsAppSkippedRecipientDTO.Reason.DUPLICATE));
                 continue;
             }
-            if (optOutRepository.existsByPhoneE164(phone)) {
+            if (optOutRepository.existsByChannelIdAndPhoneE164(channel.getId(), phone)
+                    || optOutRepository.existsByPhoneE164AndChannelIdIsNull(phone)) {
                 result.incrementSkippedOptOut();
                 result.addSkipped(recipient.name(), recipient.rawPhone(),
                         WhatsAppSkippedRecipientDTO.Reason.OPT_OUT, describe(WhatsAppSkippedRecipientDTO.Reason.OPT_OUT));
                 continue;
             }
-            if (outboundRepository.countPendingForPhone(phone) > 0) {
+            if (outboundRepository.countPendingForPhoneAndChannel(phone, channel.getId()) > 0) {
                 result.incrementSkippedDuplicate();
                 result.addSkipped(recipient.name(), recipient.rawPhone(),
                         WhatsAppSkippedRecipientDTO.Reason.ALREADY_QUEUED,
@@ -162,6 +172,8 @@ public class WhatsAppOutboundService {
 
             WhatsAppOutboundMessage message = new WhatsAppOutboundMessage();
             message.setCampaignId(campaignId);
+            message.setChannelId(channel.getId());
+            message.setWahaSession(channel.getWahaSession());
             message.setRecipientPhone(phone);
             message.setRecipientName(recipient.name());
             message.setRenderedBody(body);
@@ -177,8 +189,8 @@ public class WhatsAppOutboundService {
             result.incrementQueued();
         }
 
-        log.info("Queued WhatsApp campaign {}: {} queued, {} opt-out, {} invalid, {} no phone, {} duplicate",
-                campaignId, result.getQueued(), result.getSkippedOptOut(),
+        log.info("Queued WhatsApp campaign {} on channel '{}' ({}): {} queued, {} opt-out, {} invalid, {} no phone, {} duplicate",
+                campaignId, channel.getLabel(), channel.getWahaSession(), result.getQueued(), result.getSkippedOptOut(),
                 result.getSkippedInvalid(), result.getSkippedNoPhone(), result.getSkippedDuplicate());
         // Name the people who were dropped so the admin can fix their data instead of guessing
         logSkipped(campaignId, result);
@@ -321,6 +333,20 @@ public class WhatsAppOutboundService {
         });
     }
 
+    /**
+     * Puts a claimed message back in the queue without counting a delivery attempt — used when
+     * the number itself is not available (session logged out, WAHA unreachable).
+     */
+    @Transactional
+    public void release(Long id, LocalDateTime retryAt, String reason) {
+        outboundRepository.findById(id).ifPresent(message -> {
+            message.setStatus(WhatsAppOutboundMessage.Status.QUEUED);
+            message.setNextAttemptAt(retryAt);
+            message.setLastError(reason);
+            outboundRepository.save(message);
+        });
+    }
+
     /** Pushes every due message to {@code retryAt} (caps reached / quiet hours). */
     @Transactional
     public int deferDue(LocalDateTime retryAt) {
@@ -338,7 +364,7 @@ public class WhatsAppOutboundService {
             return;
         }
         WhatsAppOutboundMessage message = next.get(0);
-        String profile = effectiveProfile(message.getRecipientPhone(), message.getProfile());
+        String profile = effectiveProfile(message.getChannelId(), message.getRecipientPhone(), message.getProfile());
         LocalDateTime earliest = sentAt.plusSeconds(randomDelaySeconds(profile));
         if (message.getNextAttemptAt() == null || message.getNextAttemptAt().isBefore(earliest)) {
             message.setNextAttemptAt(earliest);
@@ -346,25 +372,34 @@ public class WhatsAppOutboundService {
         }
     }
 
-    /** A contact who replied recently gets the shorter "conversation" spacing. */
-    public String effectiveProfile(String phone, String fallbackProfile) {
+    /** A contact who replied on this number recently gets the shorter "conversation" spacing. */
+    public String effectiveProfile(Long channelId, String phone, String fallbackProfile) {
         LocalDateTime windowStart = LocalDateTime.now().minusHours(settings().getConversationWindowHours());
-        if (inboundRepository.existsByFromPhoneAndReceivedAtAfter(phone, windowStart)) {
+        boolean replied = channelId == null
+                ? inboundRepository.existsByFromPhoneAndReceivedAtAfter(phone, windowStart)
+                : inboundRepository.existsByChannelIdAndFromPhoneAndReceivedAtAfter(channelId, phone, windowStart);
+        if (replied) {
             return WhatsAppOutboundMessage.Profile.CONVERSATION;
         }
         return fallbackProfile == null ? WhatsAppOutboundMessage.Profile.COLD : fallbackProfile;
     }
 
     @Transactional
-    public int cancelPendingForPhone(String phone, String reason) {
+    public int cancelPendingForPhone(Long channelId, String phone, String reason) {
         List<WhatsAppOutboundMessage> pending = outboundRepository.findByRecipientPhoneAndStatus(
                 phone, WhatsAppOutboundMessage.Status.QUEUED);
+        int cancelled = 0;
         for (WhatsAppOutboundMessage message : pending) {
+            if (channelId != null && message.getChannelId() != null
+                    && !channelId.equals(message.getChannelId())) {
+                continue;
+            }
             message.setStatus(WhatsAppOutboundMessage.Status.CANCELLED);
             message.setLastError(reason);
             outboundRepository.save(message);
+            cancelled++;
         }
-        return pending.size();
+        return cancelled;
     }
 
     // ==================== Queries (admin UI) ====================
@@ -379,7 +414,8 @@ public class WhatsAppOutboundService {
         } else {
             page = outboundRepository.findByDeletedAtIsNullOrderByCreatedAtDesc(pageable);
         }
-        return page.map(this::toDTO);
+        Map<Long, String> labels = channelService.labelMap();
+        return page.map(message -> toDTO(message, labels));
     }
 
     @Transactional
@@ -421,11 +457,11 @@ public class WhatsAppOutboundService {
         }
         message.setStatus(WhatsAppOutboundMessage.Status.CANCELLED);
         message.setLastError("Cancelled by an administrator");
-        return toDTO(outboundRepository.save(message));
+        return toDTO(outboundRepository.save(message), channelService.labelMap());
     }
 
-    @Transactional(readOnly = true)
-    public WhatsAppStatsDTO stats(String sessionStatus) {
+    /** Queue counters per number. Not transactional: it also asks WAHA for the live states. */
+    public WhatsAppStatsDTO stats() {
         LocalDateTime now = LocalDateTime.now();
         WhatsAppStatsDTO dto = new WhatsAppStatsDTO();
         dto.setQueued(outboundRepository.countByStatus(WhatsAppOutboundMessage.Status.QUEUED));
@@ -435,8 +471,37 @@ public class WhatsAppOutboundService {
         dto.setCancelled(outboundRepository.countByStatus(WhatsAppOutboundMessage.Status.CANCELLED));
         dto.setOptOuts(optOutRepository.count());
 
-        dto.setSessionStatus(sessionStatus);
-        dto.setSessionName(wahaSettings.session());
+        // One entry per number: each has its own queue, its own counter and its own state.
+        List<WhatsAppChannelStatsDTO> channelStats = channelService.list().stream()
+                .map(channel -> {
+                    WhatsAppChannelStatsDTO item = new WhatsAppChannelStatsDTO();
+                    item.setId(channel.getId());
+                    item.setLabel(channel.getLabel());
+                    item.setWahaSession(channel.getWahaSession());
+                    item.setDisplayNumber(channel.getMeId() != null ? channel.getMeId() : channel.getDisplayNumber());
+                    item.setEnabled(channel.isEnabled());
+                    item.setDefault(channel.isDefault());
+                    item.setStatus(channel.getStatus());
+                    item.setQueued(outboundRepository.countByStatusAndChannelId(
+                            WhatsAppOutboundMessage.Status.QUEUED, channel.getId()));
+                    item.setSentToday(outboundRepository.countByStatusAndChannelIdAndSentAtAfter(
+                            WhatsAppOutboundMessage.Status.SENT, channel.getId(), rateLimiter.startOfDay(now)));
+                    item.setSentTotal(outboundRepository.countByStatusAndChannelId(
+                            WhatsAppOutboundMessage.Status.SENT, channel.getId()));
+                    return item;
+                })
+                .collect(Collectors.toList());
+        dto.setChannels(channelStats);
+
+        // Legacy single-session fields describe the default number (kept for older clients).
+        WhatsAppChannelStatsDTO primary = channelStats.stream()
+                .filter(WhatsAppChannelStatsDTO::isDefault)
+                .findFirst()
+                .orElse(channelStats.isEmpty() ? null : channelStats.get(0));
+        if (primary != null) {
+            dto.setSessionStatus(primary.getStatus());
+            dto.setSessionName(primary.getWahaSession());
+        }
 
         WahaProperties settings = settings();
         dto.setSentLastHour(rateLimiter.sentLastHour(now));
@@ -469,25 +534,29 @@ public class WhatsAppOutboundService {
 
     @Transactional(readOnly = true)
     public List<WhatsAppOptOutDTO> listOptOuts() {
+        Map<Long, String> labels = channelService.labelMap();
         return optOutRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(this::toOptOutDTO)
+                .map(optOut -> toOptOutDTO(optOut, labels))
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public WhatsAppOptOutDTO addOptOut(String rawPhone, String reason) {
+    public WhatsAppOptOutDTO addOptOut(String rawPhone, Long channelId, String reason) {
         String phone = PhoneUtils.toE164(rawPhone, settings().getDefaultCountryCode());
         if (phone == null) {
             throw new IllegalArgumentException("A valid phone number is required.");
         }
-        Optional<WhatsAppOptOut> existing = optOutRepository.findByPhoneE164(phone);
+        WhatsAppChannel channel = channelService.requireChannel(channelId, null);
+        Optional<WhatsAppOptOut> existing = optOutRepository.findByChannelIdAndPhoneE164(channel.getId(), phone);
         if (existing.isPresent()) {
-            return toOptOutDTO(existing.get());
+            return toOptOutDTO(existing.get(), channelService.labelMap());
         }
         WhatsAppOptOut optOut = new WhatsAppOptOut(phone, TenantContext.getCurrentOrganizationId(),
                 null, reason, WhatsAppOptOut.Source.MANUAL);
-        cancelPendingForPhone(phone, "Recipient opted out");
-        return toOptOutDTO(optOutRepository.save(optOut));
+        optOut.setChannelId(channel.getId());
+        cancelPendingForPhone(channel.getId(), phone, "Recipient opted out");
+        WhatsAppOptOut saved = optOutRepository.save(optOut);
+        return toOptOutDTO(saved, channelService.labelMap());
     }
 
     @Transactional
@@ -536,10 +605,13 @@ public class WhatsAppOutboundService {
         return space > 0 ? trimmed.substring(0, space) : trimmed;
     }
 
-    private WhatsAppMessageDTO toDTO(WhatsAppOutboundMessage message) {
+    private WhatsAppMessageDTO toDTO(WhatsAppOutboundMessage message, Map<Long, String> labels) {
         WhatsAppMessageDTO dto = new WhatsAppMessageDTO();
         dto.setId(message.getId());
         dto.setCampaignId(message.getCampaignId());
+        dto.setChannelId(message.getChannelId());
+        dto.setChannelLabel(message.getChannelId() == null ? null : labels.get(message.getChannelId()));
+        dto.setChannelSession(message.getWahaSession());
         dto.setRecipientPhone(message.getRecipientPhone());
         dto.setRecipientName(message.getRecipientName());
         dto.setBody(message.getRenderedBody());
@@ -554,9 +626,11 @@ public class WhatsAppOutboundService {
         return dto;
     }
 
-    private WhatsAppOptOutDTO toOptOutDTO(WhatsAppOptOut optOut) {
+    private WhatsAppOptOutDTO toOptOutDTO(WhatsAppOptOut optOut, Map<Long, String> labels) {
         WhatsAppOptOutDTO dto = new WhatsAppOptOutDTO();
         dto.setId(optOut.getId());
+        dto.setChannelId(optOut.getChannelId());
+        dto.setChannelLabel(optOut.getChannelId() == null ? null : labels.get(optOut.getChannelId()));
         dto.setPhoneE164(optOut.getPhoneE164());
         dto.setKeyword(optOut.getKeyword());
         dto.setReason(optOut.getReason());

@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 /**
  * Phone number helpers for the WhatsApp module.
  *
- * Stored and sent numbers are always E.164 ({@code +31612345678}). This normalizes what
+ * Stored and sent numbers are always E.164 ({@code +<country><number>}). This normalizes what
  * people type in the compose screen and what WAHA reports in webhooks.
  */
 public final class PhoneUtils {
@@ -50,22 +50,6 @@ public final class PhoneUtils {
 
         String candidate = "+" + digits;
         return E164.matcher(candidate).matches() ? candidate : null;
-    }
-
-    /** "{@code +31612345678}" -> "{@code 31612345678@c.us}" (WAHA chat id). */
-    public static String toChatId(String phoneE164) {
-        String digits = phoneE164 == null ? "" : phoneE164.replaceAll("[^0-9]", "");
-        return digits + "@c.us";
-    }
-
-    /** "{@code 31612345678@c.us}" -> "{@code +31612345678}". */
-    public static String fromChatId(String chatId) {
-        if (chatId == null || chatId.isBlank()) {
-            return null;
-        }
-        String digits = chatId.contains("@") ? chatId.substring(0, chatId.indexOf('@')) : chatId;
-        digits = digits.replaceAll("[^0-9]", "");
-        return digits.isEmpty() ? null : "+" + digits;
     }
 
     public static boolean isValidE164(String phoneE164) {
