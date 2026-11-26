@@ -223,7 +223,7 @@ export default function MyBusinessesPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))]">
           {businesses.map((business) => {
             const listing = business.listing;
             const isDraft = listing?.status === 'DRAFT';

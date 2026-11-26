@@ -586,7 +586,7 @@ export default function BusinessDirectoryAdminPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))]">
             {filteredLocalBusinesses.map(renderLocalCard)}
           </div>
         )
@@ -594,14 +594,14 @@ export default function BusinessDirectoryAdminPage() {
         pendingBusinesses.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-500">{t('business_directory.empty_pending')}</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))]">
             {pendingBusinesses.map(renderPendingCard)}
           </div>
         )
       ) : federationBusinesses.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-500">{t('business_directory.empty_federation')}</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))]">
           {federationBusinesses.map(renderFederationCard)}
         </div>
       )}
