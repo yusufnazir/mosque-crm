@@ -192,6 +192,12 @@
     <!-- ======================== BUSINESS DIRECTORY GALLERY ======================== -->
     <include file="db/changelog/changes/ddl/200-create-business-images-table.xml"/>
 
+    <!-- ======================== ORGANIZATION MESSAGE TEMPLATES ======================== -->
+    <include file="db/changelog/changes/ddl/202-create-organization-message-templates.xml"/>
+
+    <!-- ======================== WHATSAPP DOCUMENTS ======================== -->
+    <include file="db/changelog/changes/ddl/203-add-whatsapp-outbound-media.xml"/>
+
     <!-- ======================== FOREIGN KEYS (loaded LAST) ======================== -->
     <include file="db/changelog/changes/ddl/999-add-all-foreign-keys.xml"/>
 

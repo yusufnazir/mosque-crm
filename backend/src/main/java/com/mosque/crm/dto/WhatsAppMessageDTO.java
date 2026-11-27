@@ -9,6 +9,9 @@ public class WhatsAppMessageDTO {
     private String recipientPhone;
     private String recipientName;
     private String body;
+    /** File name of the document sent with this message, when it carries one. */
+    private String mediaFilename;
+    private String mediaMimetype;
     private String profile;
     private String status;
     private Integer attemptCount;
@@ -37,6 +40,12 @@ public class WhatsAppMessageDTO {
 
     public String getBody() { return body; }
     public void setBody(String body) { this.body = body; }
+
+    public String getMediaFilename() { return mediaFilename; }
+    public void setMediaFilename(String mediaFilename) { this.mediaFilename = mediaFilename; }
+
+    public String getMediaMimetype() { return mediaMimetype; }
+    public void setMediaMimetype(String mediaMimetype) { this.mediaMimetype = mediaMimetype; }
 
     public String getProfile() { return profile; }
     public void setProfile(String profile) { this.profile = profile; }

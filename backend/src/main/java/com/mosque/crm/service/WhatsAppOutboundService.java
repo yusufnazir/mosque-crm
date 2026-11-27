@@ -100,7 +100,8 @@ public class WhatsAppOutboundService {
 
     @Transactional
     public WhatsAppEnqueueResultDTO enqueue(WhatsAppEnqueueRequest request, Long createdBy) {
-        if (request.getTemplate() == null || request.getTemplate().isBlank()) {
+        boolean hasMedia = request.getMediaBase64() != null && !request.getMediaBase64().isBlank();
+        if ((request.getTemplate() == null || request.getTemplate().isBlank()) && !hasMedia) {
             throw new IllegalArgumentException("A message template is required.");
         }
 
@@ -165,10 +166,12 @@ public class WhatsAppOutboundService {
                 continue;
             }
 
-            String body = spintaxResolver.resolve(request.getTemplate(), Map.of(
-                    "name", recipient.name() == null ? "" : recipient.name(),
-                    "first_name", firstName(recipient.name()),
-                    "org", organizationName));
+            String body = request.getTemplate() == null || request.getTemplate().isBlank()
+                    ? ""
+                    : spintaxResolver.resolve(request.getTemplate(), Map.of(
+                            "name", recipient.name() == null ? "" : recipient.name(),
+                            "first_name", firstName(recipient.name()),
+                            "org", organizationName));
 
             WhatsAppOutboundMessage message = new WhatsAppOutboundMessage();
             message.setCampaignId(campaignId);
@@ -177,6 +180,11 @@ public class WhatsAppOutboundService {
             message.setRecipientPhone(phone);
             message.setRecipientName(recipient.name());
             message.setRenderedBody(body);
+            if (hasMedia) {
+                message.setMediaFilename(request.getMediaFilename());
+                message.setMediaMimetype(request.getMediaMimetype());
+                message.setMediaData(request.getMediaBase64());
+            }
             message.setProfile(profile);
             message.setStatus(WhatsAppOutboundMessage.Status.QUEUED);
             message.setAttemptCount(0);
@@ -615,6 +623,8 @@ public class WhatsAppOutboundService {
         dto.setRecipientPhone(message.getRecipientPhone());
         dto.setRecipientName(message.getRecipientName());
         dto.setBody(message.getRenderedBody());
+        dto.setMediaFilename(message.getMediaFilename());
+        dto.setMediaMimetype(message.getMediaMimetype());
         dto.setProfile(message.getProfile());
         dto.setStatus(message.getStatus());
         dto.setAttemptCount(message.getAttemptCount());

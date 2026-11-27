@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        Documents on the WhatsApp outbox.
+
+        WAHA can send a file (POST /api/sendFile) with a caption. The queue needs to carry the
+        document until the dispatcher picks the row up, so the Base64 payload is stored on the
+        row. Terms PDFs are small (tens of KB), hence LONGTEXT.
+    -->
+
+    <changeSet id="b1000203-0000-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="whatsapp_outbound_messages"/>
+            <not><columnExists tableName="whatsapp_outbound_messages" columnName="media_filename"/></not>
+        </preConditions>
+        <comment>Optional document attached to a queued WhatsApp message</comment>
+        <addColumn tableName="whatsapp_outbound_messages">
+            <column name="media_filename" type="VARCHAR(255)"/>
+            <column name="media_mimetype" type="VARCHAR(100)"/>
+            <column name="media_data" type="LONGTEXT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

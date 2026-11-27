@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import TermsContentRenderer from '@/components/TermsContentRenderer';
+import MessageTemplatesEditor from '@/components/MessageTemplatesEditor';
 import { useAppName } from '@/lib/AppNameContext';
 import { organizationApi } from '@/lib/organizationApi';
 import { membershipTermsApi, MembershipTermsVersionDTO } from '@/lib/membershipTermsApi';
@@ -26,7 +27,7 @@ const HIDDEN_TENANT_SETTING_KEYS = new Set([
   'BANK_ACCOUNT_2',
 ]);
 
-type TenantSettingsTab = 'profile' | 'registration' | 'terms' | 'settings';
+type TenantSettingsTab = 'profile' | 'registration' | 'terms' | 'templates' | 'settings';
 type TermsEditorLanguage = 'en' | 'nl';
 const HISTORY_PAGE_SIZE = 5;
 const FALLBACK_TERMS_PLACEHOLDERS = [
@@ -45,7 +46,7 @@ const FALLBACK_TERMS_PLACEHOLDERS = [
 export default function TenantSettingsPage() {
   const { t, language } = useTranslation();
   const { setAppName } = useAppName();
-  const { isSuperAdmin, selectedOrganization } = useAuth();
+  const { isSuperAdmin, selectedOrganization, can } = useAuth();
   const [fields, setFields] = useState<TenantSettingField[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -151,6 +152,9 @@ export default function TenantSettingsPage() {
     ...(orgId !== undefined ? [{ key: 'profile' as const, label: t('tenant_settings.org_profile') }] : []),
     ...(orgId !== undefined && orgHandle ? [{ key: 'registration' as const, label: t('tenant_settings.public_links_tab') }] : []),
     { key: 'terms' as const, label: t('tenant_settings.terms_title') },
+    ...(orgId !== undefined && can('message_template.view')
+      ? [{ key: 'templates' as const, label: t('tenant_settings.message_templates_tab') }]
+      : []),
   ];
 
   useEffect(() => {
@@ -573,9 +577,9 @@ export default function TenantSettingsPage() {
 
   if (fields.length === 0) {
     return (
-      <div className="p-4 md:p-8">
+      <div className="mx-auto w-full max-w-5xl px-4 py-8 md:px-8">
         <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-6 md:mb-8">{t('tenant_settings.title')}</h1>
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl text-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
           <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
@@ -587,16 +591,16 @@ export default function TenantSettingsPage() {
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-6 md:mb-8">{t('tenant_settings.title')}</h1>
+      <h1 className="mx-auto max-w-5xl text-2xl md:text-3xl font-bold text-charcoal mb-6 md:mb-8">{t('tenant_settings.title')}</h1>
 
       {isSuperAdmin && !selectedOrganization && (
-        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 max-w-3xl">
+        <p className="mx-auto max-w-5xl text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6">
           {t('tenant_settings.super_admin_select_org')}
         </p>
       )}
 
       {orgId !== undefined && !orgHandle && (
-        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 max-w-3xl">
+        <p className="mx-auto max-w-5xl text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6">
           {t('tenant_settings.missing_handle_hint')}{' '}
           <button
             type="button"
@@ -609,12 +613,12 @@ export default function TenantSettingsPage() {
         </p>
       )}
 
-      <div className="flex gap-1 mb-6 border-b border-stone-200 overflow-x-auto max-w-3xl">
+      <div className="mx-auto mb-6 flex w-full max-w-5xl gap-1 overflow-x-auto border-b border-stone-200">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${
+            className={`shrink-0 whitespace-nowrap rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === tab.key
                 ? 'bg-emerald-50 text-emerald-700 border-b-2 border-emerald-700'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
@@ -627,7 +631,7 @@ export default function TenantSettingsPage() {
 
       {/* Organization Profile card */}
       {activeTab === 'profile' && orgId !== undefined && (
-        <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl mb-6">
+        <div className="mx-auto max-w-5xl bg-white rounded-lg shadow-lg p-4 md:p-8 mb-6">
           <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-6">
             {t('tenant_settings.org_profile')}
           </h2>
@@ -709,7 +713,7 @@ export default function TenantSettingsPage() {
 
       {/* Member Registration Link card */}
       {activeTab === 'registration' && orgId !== undefined && orgHandle && (
-        <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl mb-6">
+        <div className="mx-auto max-w-5xl bg-white rounded-lg shadow-lg p-4 md:p-8 mb-6">
           <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-2">
             {t('tenant_settings.registration_link_title')}
           </h2>
@@ -744,7 +748,7 @@ export default function TenantSettingsPage() {
       )}
 
       {activeTab === 'registration' && orgId !== undefined && orgHandle && (
-        <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl mb-6">
+        <div className="mx-auto max-w-5xl bg-white rounded-lg shadow-lg p-4 md:p-8 mb-6">
           <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
             <div>
               <h2 className="text-xl md:text-2xl font-bold text-charcoal">
@@ -819,7 +823,7 @@ export default function TenantSettingsPage() {
       )}
 
       {activeTab === 'terms' && (
-      <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl mb-6">
+      <div className="mx-auto max-w-5xl bg-white rounded-lg shadow-lg p-4 md:p-8 mb-6">
         <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-charcoal">{t('tenant_settings.terms_title')}</h2>
@@ -1229,11 +1233,17 @@ export default function TenantSettingsPage() {
       </div>
       )}
 
+      {activeTab === 'templates' && orgId !== undefined && can('message_template.view') && (
+        <div className="mx-auto max-w-5xl bg-white rounded-lg shadow-lg p-4 md:p-8 mb-6">
+          <MessageTemplatesEditor />
+        </div>
+      )}
+
       {activeTab === 'settings' && categories.map(cat => {
         const catFields = fields.filter(f => f.category === cat);
         if (catFields.length === 0) return null;
         return (
-          <div key={cat} className="bg-white rounded-lg shadow-lg p-4 md:p-8 max-w-3xl mb-6">
+          <div key={cat} className="mx-auto max-w-5xl bg-white rounded-lg shadow-lg p-4 md:p-8 mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-6 capitalize">
               {t(`tenant_settings.categories.${cat}`) !== `tenant_settings.categories.${cat}`
                 ? t(`tenant_settings.categories.${cat}`)
@@ -1249,7 +1259,7 @@ export default function TenantSettingsPage() {
       {activeTab === 'settings' && (
         <>
           {message && (
-            <div className={`max-w-3xl mb-4 p-4 rounded-lg ${
+            <div className={`mx-auto max-w-5xl mb-4 p-4 rounded-lg ${
               message.includes('success') || message.includes('successfully') || message.includes('succesvol')
                 ? 'bg-emerald-50 text-emerald-700'
                 : 'bg-red-50 text-red-700'
@@ -1258,7 +1268,7 @@ export default function TenantSettingsPage() {
             </div>
           )}
 
-          <div className="max-w-3xl">
+          <div className="mx-auto max-w-5xl">
             <button
               onClick={handleSave}
               disabled={saving}

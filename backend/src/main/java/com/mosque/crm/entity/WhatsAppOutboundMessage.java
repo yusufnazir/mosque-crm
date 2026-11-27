@@ -82,6 +82,16 @@ public class WhatsAppOutboundMessage implements OrganizationAware {
     @Column(name = "rendered_body", nullable = false, columnDefinition = "TEXT")
     private String renderedBody;
 
+    /** Optional document sent instead of a plain text message (Base64, sent via WAHA sendFile). */
+    @Column(name = "media_filename", length = 255)
+    private String mediaFilename;
+
+    @Column(name = "media_mimetype", length = 100)
+    private String mediaMimetype;
+
+    @Column(name = "media_data", columnDefinition = "LONGTEXT")
+    private String mediaData;
+
     @Column(name = "profile", nullable = false, length = 20)
     private String profile = Profile.COLD;
 
@@ -145,6 +155,20 @@ public class WhatsAppOutboundMessage implements OrganizationAware {
 
     public String getRenderedBody() { return renderedBody; }
     public void setRenderedBody(String renderedBody) { this.renderedBody = renderedBody; }
+
+    public String getMediaFilename() { return mediaFilename; }
+    public void setMediaFilename(String mediaFilename) { this.mediaFilename = mediaFilename; }
+
+    public String getMediaMimetype() { return mediaMimetype; }
+    public void setMediaMimetype(String mediaMimetype) { this.mediaMimetype = mediaMimetype; }
+
+    public String getMediaData() { return mediaData; }
+    public void setMediaData(String mediaData) { this.mediaData = mediaData; }
+
+    /** true when this row carries a document instead of a plain text message. */
+    public boolean hasMedia() {
+        return mediaData != null && !mediaData.isBlank();
+    }
 
     public String getProfile() { return profile; }
     public void setProfile(String profile) { this.profile = profile; }

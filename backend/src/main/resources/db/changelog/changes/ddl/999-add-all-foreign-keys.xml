@@ -1420,4 +1420,19 @@
             onDelete="CASCADE"/>
     </changeSet>
 
+    <changeSet id="b1000099-9990-0000-0000-000000000019" author="mosque-crm" runAlways="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="organization_message_templates"/>
+            <tableExists tableName="organizations"/>
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_org_message_template_org"/>
+            </not>
+        </preConditions>
+        <comment>Message templates belong to the organization that owns them</comment>
+        <addForeignKeyConstraint constraintName="fk_org_message_template_org"
+            baseTableName="organization_message_templates" baseColumnNames="organization_id"
+            referencedTableName="organizations" referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>

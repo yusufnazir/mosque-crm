@@ -48,6 +48,8 @@ public class WahaClient {
         public static final String SESSIONS = "/api/sessions";
         public static final String SESSIONS_ALL = SESSIONS + "?all=true";
         public static final String SEND_TEXT = "/api/sendText";
+        /** Sends a document/image with an optional caption (Base64 or URL). */
+        public static final String SEND_FILE = "/api/sendFile";
         public static final String START_TYPING = "/api/startTyping";
         public static final String STOP_TYPING = "/api/stopTyping";
         /** {@code GET /api/{session}/chats} — kept for the documented protocol surface. */
@@ -89,6 +91,11 @@ public class WahaClient {
         public static final String SESSION = "session";
         public static final String CHAT_ID = "chatId";
         public static final String TEXT = "text";
+        public static final String FILE = "file";
+        public static final String MIMETYPE = "mimetype";
+        public static final String FILENAME = "filename";
+        public static final String DATA = "data";
+        public static final String CAPTION = "caption";
         public static final String NAME = "name";
         public static final String STATUS = "status";
         public static final String ME = "me";
@@ -257,10 +264,44 @@ public class WahaClient {
         }
     }
 
+    /**
+     * Sends a document (Base64 content) with an optional caption and returns WAHA's message id.
+     *
+     * @throws WahaException same contract as {@link #sendText(String, String, String)}.
+     */
+    public String sendFile(String session, String chatId, String filename, String mimetype,
+                           String base64Data, String caption) {
+        Map<String, Object> file = new LinkedHashMap<>();
+        file.put(Field.MIMETYPE, mimetype);
+        file.put(Field.FILENAME, filename);
+        file.put(Field.DATA, base64Data);
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put(Field.SESSION, session);
+        body.put(Field.CHAT_ID, chatId);
+        body.put(Field.FILE, file);
+        if (caption != null && !caption.isBlank()) {
+            body.put(Field.CAPTION, caption);
+        }
+
+        try {
+            ResponseEntity<JsonNode> response = restTemplate.postForEntity(
+                    url(settings.baseUrl(), Path.SEND_FILE),
+                    new HttpEntity<>(body, headers(settings.apiKey())),
+                    JsonNode.class);
+            return messageIdOf(response.getBody());
+        } catch (HttpStatusCodeException e) {
+            int status = e.getStatusCode().value();
+            throw new WahaException("WAHA sendFile failed with HTTP " + status + ": "
+                    + shorten(e.getResponseBodyAsString()), status == 429 || status >= 500, e);
+        } catch (RestClientException e) {
+            throw new WahaException("WAHA sendFile failed: " + e.getMessage(), true, e);
+        }
+    }
+
     public void startTyping(String session, String chatId) {
         postTyping(Path.START_TYPING, session, chatId);
     }
-
     public void stopTyping(String session, String chatId) {
         postTyping(Path.STOP_TYPING, session, chatId);
     }

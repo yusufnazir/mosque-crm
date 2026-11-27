@@ -1,9 +1,12 @@
 package com.mosque.crm.service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -18,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
+import com.mosque.crm.dto.EmailAttachment;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -653,6 +658,100 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Error sending bulk email: {}", e.getMessage());
             return 0;
+        }
+    }
+
+    /**
+     * Sends an already-rendered HTML email, optionally with attachments.
+     *
+     * Attachment support depends on the configured mail service; when the service rejects a
+     * payload that carries attachments, the email is retried once WITHOUT them so the message
+     * itself is never lost. The caller receives {@code true} when the email was accepted.
+     *
+     * @param toEmail    recipient address
+     * @param subject    email subject
+     * @param bodyHtml   HTML body
+     * @param attachments optional attachments (Base64 encoded)
+     * @return {@code true} when the mail service accepted the message
+     */
+    public boolean sendTemplateEmail(String toEmail, String subject, String bodyHtml,
+            List<EmailAttachment> attachments) {
+        if (toEmail == null || toEmail.isBlank()) {
+            log.warn("sendTemplateEmail: no email address provided.");
+            return false;
+        }
+
+        String host = configurationService.getMailServerHost();
+        if (host == null || host.isEmpty()) {
+            log.info("=== EMAIL (Fallback - Mail server not configured) ===");
+            log.info("To: {}", toEmail);
+            log.info("Subject: {}", subject);
+            log.info("Body:\n{}", bodyHtml);
+            log.info("=====================================================");
+            return false;
+        }
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("to", Arrays.asList(toEmail));
+        payload.put("subject", subject);
+        payload.put("text", bodyHtml);
+        payload.put("projectId", configurationService.getMailServerProjectUuid());
+
+        boolean hasAttachments = attachments != null && !attachments.isEmpty();
+        if (hasAttachments) {
+            payload.put("attachments", buildAttachmentPayload(attachments));
+        }
+
+        boolean sent = postMail(host, payload);
+        if (!sent && hasAttachments) {
+            log.warn("Mail service rejected the message to {} with {} attachment(s); retrying without attachments",
+                    toEmail, attachments.size());
+            payload.remove("attachments");
+            sent = postMail(host, payload);
+        }
+        return sent;
+    }
+
+    private List<Map<String, Object>> buildAttachmentPayload(List<EmailAttachment> attachments) {
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (EmailAttachment attachment : attachments) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("filename", attachment.getFilename());
+            item.put("contentType", attachment.getContentType());
+            item.put("content", attachment.getBase64Content());
+            items.add(item);
+        }
+        return items;
+    }
+
+    private boolean postMail(String host, Map<String, Object> payload) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String mailUsername = configurationService.getMailServerUsername();
+            String mailPassword = configurationService.getMailServerPassword();
+            if (mailUsername != null && !mailUsername.isEmpty()
+                    && mailPassword != null && !mailPassword.isEmpty()) {
+                String auth = mailUsername + ":" + mailPassword;
+                byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+                headers.set("Authorization", "Basic " + new String(encodedAuth));
+            }
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+            String mailEndpoint = host + "/rest/v1/api/register-mail";
+            ResponseEntity<String> response = restTemplate.postForEntity(mailEndpoint, request, String.class);
+            HttpStatus status = (HttpStatus) response.getStatusCode();
+            if (!status.is2xxSuccessful()) {
+                log.error("Failed to send email to {}. Status: {}, Response: {}",
+                        payload.get("to"), status, response.getBody());
+                return false;
+            }
+            log.info("Email sent successfully to: {}", payload.get("to"));
+            return true;
+        } catch (Exception e) {
+            log.error("Error sending email to {}: {}", payload.get("to"), e.getMessage());
+            return false;
         }
     }
 }

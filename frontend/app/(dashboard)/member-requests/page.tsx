@@ -227,12 +227,13 @@ export default function MemberRequestsPage() {
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('member_requests.col_name')}</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('member_requests.col_email')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('member_requests.col_phone')}</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('member_requests.col_date')}</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('member_requests.col_status')}</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('member_requests.col_actions')}</th>
@@ -242,7 +243,8 @@ export default function MemberRequestsPage() {
                 {requests.map((req) => (
                   <tr key={req.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => openDetail(req)}>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{req.firstName} {req.lastName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{req.email || req.phone}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{req.email || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{req.phone || '—'}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{new Date(req.submittedAt).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[req.status] || 'bg-gray-100 text-gray-700'}`}>
@@ -294,7 +296,8 @@ export default function MemberRequestsPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-medium text-gray-900">{req.firstName} {req.lastName}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">{req.email || req.phone}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{req.email || '—'}</p>
+                    {req.phone && <p className="text-sm text-gray-500">{req.phone}</p>}
                     <p className="text-xs text-gray-400 mt-1">{new Date(req.submittedAt).toLocaleDateString()}</p>
                   </div>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[req.status] || 'bg-gray-100 text-gray-700'}`}>

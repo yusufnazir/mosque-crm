@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        Organization message templates.
+
+        One row per (organization, template key, language) and only when the tenant
+        has customised the template. When no row exists the application falls back to
+        the built-in default text shipped in MessageTemplateDefinitions, so newly
+        created organizations need no seed data.
+
+        The template can be delivered over EMAIL or WHATSAPP. `attach_terms` adds the
+        active membership terms & conditions (rendered to PDF) as an email attachment.
+    -->
+
+    <changeSet id="b1000202-0000-0000-0000-000000000001" author="mosque-crm">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="organization_message_templates"/></not>
+        </preConditions>
+        <comment>Tenant-editable email / WhatsApp message templates</comment>
+        <createTable tableName="organization_message_templates">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="template_key" type="VARCHAR(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="language" type="VARCHAR(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="channel" type="VARCHAR(20)" defaultValue="EMAIL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject" type="VARCHAR(255)"/>
+            <column name="body" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attach_terms" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="organization_message_templates"
+            columnNames="organization_id, template_key, language"
+            constraintName="uk_org_message_template"/>
+        <createIndex tableName="organization_message_templates" indexName="idx_org_message_template_org">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

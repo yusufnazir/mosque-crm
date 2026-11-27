@@ -192,7 +192,13 @@ public class WhatsAppDispatcher implements ScheduledJob {
         String chatId = WahaChatId.toChatId(phone);
         try {
             simulateTyping(session, chatId, message.getRenderedBody());
-            String waMessageId = wahaClient.sendText(session, chatId, message.getRenderedBody());
+            String waMessageId = message.hasMedia()
+                    ? wahaClient.sendFile(session, chatId,
+                            message.getMediaFilename() == null ? "attachment" : message.getMediaFilename(),
+                            message.getMediaMimetype() == null ? "application/octet-stream" : message.getMediaMimetype(),
+                            message.getMediaData(),
+                            message.getRenderedBody())
+                    : wahaClient.sendText(session, chatId, message.getRenderedBody());
 
             outboundService.markSent(message.getId(), waMessageId);
             outboundService.paceNextQueued(LocalDateTime.now());

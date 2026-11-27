@@ -86,4 +86,7 @@
 
     <!-- Restore federation permissions 79-84 and move whatsapp/scheduler/member_account to 88-93 -->
     <include file="db/changelog/changes/dml/240-relocate-feature-permissions-to-88-93.xml"/>
+
+    <!-- Organization message templates (email / WhatsApp): message_template.view (94), .manage (95) -->
+    <include file="db/changelog/changes/dml/241-data-message-template-permissions.xml"/>
 </databaseChangeLog>

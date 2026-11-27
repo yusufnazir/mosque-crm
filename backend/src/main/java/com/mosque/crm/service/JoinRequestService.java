@@ -1,10 +1,13 @@
 package com.mosque.crm.service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -57,6 +60,7 @@ public class JoinRequestService {
     private final AccountActivationNotifier accountActivationNotifier;
     private final MessageLanguageService messageLanguageService;
     private final UserContactService userContacts;
+    private final MessageTemplateService messageTemplateService;
 
     public JoinRequestService(
             JoinRequestRepository joinRequestRepository,
@@ -72,7 +76,8 @@ public class JoinRequestService {
             MembershipTermsVersionRepository membershipTermsVersionRepository,
             AccountActivationNotifier accountActivationNotifier,
             MessageLanguageService messageLanguageService,
-            UserContactService userContacts) {
+            UserContactService userContacts,
+            MessageTemplateService messageTemplateService) {
         this.joinRequestRepository = joinRequestRepository;
         this.organizationRepository = organizationRepository;
         this.personRepository = personRepository;
@@ -87,6 +92,7 @@ public class JoinRequestService {
         this.accountActivationNotifier = accountActivationNotifier;
         this.messageLanguageService = messageLanguageService;
         this.userContacts = userContacts;
+        this.messageTemplateService = messageTemplateService;
     }
 
     /**
@@ -315,28 +321,29 @@ public class JoinRequestService {
         String activationUrl = buildOrgUrl(org.getHandle(), "/reset-password?token=" + setupToken);
         String language = messageLanguageService.resolve(user.getId(), org.getId());
 
-        // Send approval email with password setup link (only when an email address exists)
-        boolean emailed = false;
-        if (normalizeEmail(request.getEmail()) != null) {
-            try {
-                String appName = configurationService.getAppName();
-                emailService.sendJoinRequestApprovedEmail(
-                        request.getEmail(), request.getFirstName(), org.getName(), appName, activationUrl, language);
-                emailed = true;
-            } catch (Exception e) {
-                log.warn("Failed to send approval email: {}", e.getMessage());
-            }
-        }
-
-        // No email (or the email failed): try WhatsApp before asking the admin to share the link by hand
         String displayName = ((request.getFirstName() == null ? "" : request.getFirstName().trim()) + " "
                 + (request.getLastName() == null ? "" : request.getLastName().trim())).trim();
-        accountActivationNotifier.deliver(
-                displayName.isEmpty() ? null : displayName,
+
+        // Tenant-configured "membership approved" message (email or WhatsApp, with optional terms)
+        MessageTemplateService.DeliveryResult delivery = messageTemplateService.dispatch(
+                MessageTemplateDefinitions.JOIN_REQUEST_APPROVED,
+                org,
+                language,
+                displayName.isEmpty() ? "applicant" : displayName,
+                normalizeEmail(request.getEmail()),
                 request.getPhone(),
-                loginIdentifier,
-                activationUrl,
-                emailed, language, org.getId());
+                buildMessageVariables(request, activationUrl, null));
+
+        // Nothing went out (no email, email failed, or WhatsApp could not be queued):
+        // fall back to the activation-link notifier so the member still hears about the account.
+        if (!delivery.isDelivered()) {
+            accountActivationNotifier.deliver(
+                    displayName.isEmpty() ? null : displayName,
+                    request.getPhone(),
+                    loginIdentifier,
+                    activationUrl,
+                    false, language, org.getId());
+        }
 
         JoinRequestDTO dto = toDTO(request);
         if (normalizeEmail(request.getEmail()) == null) {
@@ -417,16 +424,25 @@ public class JoinRequestService {
 
         joinRequestRepository.save(request);
 
-        // Send rejection email
+        // Tenant-configured "membership rejected" message (email or WhatsApp)
         try {
             Organization org = organizationRepository.findById(request.getOrganizationId())
                     .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
-            String appName = configurationService.getAppName();
-            emailService.sendJoinRequestRejectedEmail(
-                    request.getEmail(), request.getFirstName(), org.getName(), appName, rejectionReason,
-                    messageLanguageService.organizationLanguage(org.getId()));
+            String displayName = ((request.getFirstName() == null ? "" : request.getFirstName().trim()) + " "
+                    + (request.getLastName() == null ? "" : request.getLastName().trim())).trim();
+            MessageTemplateService.DeliveryResult delivery = messageTemplateService.dispatch(
+                    MessageTemplateDefinitions.JOIN_REQUEST_REJECTED,
+                    org,
+                    messageLanguageService.organizationLanguage(org.getId()),
+                    displayName.isEmpty() ? "applicant" : displayName,
+                    normalizeEmail(request.getEmail()),
+                    request.getPhone(),
+                    buildMessageVariables(request, null, rejectionReason));
+            if (!delivery.isDelivered()) {
+                log.info("Rejection decision for join request {} could not be delivered to the applicant", request.getId());
+            }
         } catch (Exception e) {
-            log.warn("Failed to send rejection email: {}", e.getMessage());
+            log.warn("Failed to send rejection message: {}", e.getMessage());
         }
 
         return toDTO(request);
@@ -555,6 +571,28 @@ public class JoinRequestService {
         String protocol = configurationService.getFrontendProtocol();
         String baseDomain = configurationService.getFrontendBaseDomain();
         return protocol + "://" + orgHandle + "." + baseDomain + path;
+    }
+
+    /**
+     * Placeholder values available to the "membership request" message templates.
+     */
+    private Map<String, String> buildMessageVariables(JoinRequest request, String activationUrl, String rejectionReason) {
+        Map<String, String> variables = new LinkedHashMap<>();
+        String firstName = request.getFirstName() == null ? "" : request.getFirstName().trim();
+        String lastName = request.getLastName() == null ? "" : request.getLastName().trim();
+        variables.put("person.firstName", firstName);
+        variables.put("person.lastName", lastName);
+        variables.put("person.fullName", (firstName + " " + lastName).trim());
+        variables.put("person.email", request.getEmail() == null ? "" : request.getEmail().trim());
+        variables.put("person.phone", request.getPhone() == null ? "" : request.getPhone().trim());
+        variables.put("request.submittedAt", request.getSubmittedAt() == null
+                ? ""
+                : request.getSubmittedAt().format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)));
+        if (activationUrl != null) {
+            variables.put("activation.url", activationUrl);
+        }
+        variables.put("rejection.reason", rejectionReason == null ? "" : rejectionReason.trim());
+        return variables;
     }
 
     private JoinRequestDTO toDTO(JoinRequest r) {

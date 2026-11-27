@@ -30,6 +30,7 @@ const SEGMENT_TO_KEY: Record<string, string> = {
   organizations: 'sidebar.organizations',
   subscription: 'sidebar.subscription',
   settings: 'sidebar.settings',
+  'tenant-settings': 'sidebar.tenant_settings',
   account: 'sidebar.account',
   persons: 'sidebar.members',
   'member-requests': 'sidebar.member_requests',

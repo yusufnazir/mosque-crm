@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        Message templates in the organization settings (email / WhatsApp).
+        Ids continue after member_account.manage (93).
+    -->
+
+    <changeSet id="9d1e4b72-3c47-4a90-8f21-5b7d6c8e1a01" author="mosque-crm">
+        <comment>Permissions for the organization message templates</comment>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[94]]></param>
+            <param name="code"><![CDATA[message_template.view]]></param>
+            <param name="description"><![CDATA[View organization message templates]]></param>
+            <param name="category"><![CDATA[message_template]]></param>
+        </customChange>
+        <customChange class="com.mosque.crm.liquibase.DataPermission">
+            <param name="id"><![CDATA[95]]></param>
+            <param name="code"><![CDATA[message_template.manage]]></param>
+            <param name="description"><![CDATA[Edit and reset organization message templates]]></param>
+            <param name="category"><![CDATA[message_template]]></param>
+        </customChange>
+    </changeSet>
+
+    <changeSet id="9d1e4b72-3c47-4a90-8f21-5b7d6c8e1a02" author="mosque-crm">
+        <comment>Grant message templates to ADMIN roles/templates and add them to every assignable pool</comment>
+        <sql>
+            INSERT IGNORE INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('message_template.view', 'message_template.manage')
+            WHERE r.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_template_permissions (template_id, permission_id)
+            SELECT t.id, p.id FROM role_templates t
+            JOIN permissions p ON p.code IN ('message_template.view', 'message_template.manage')
+            WHERE t.name = 'ADMIN';
+
+            INSERT IGNORE INTO role_assignable_permissions (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.code IN ('message_template.view', 'message_template.manage')
+            WHERE r.name != 'SUPER_ADMIN';
+
+            INSERT IGNORE INTO role_template_assignable_permissions (template_id, permission_id)
+            SELECT t.id, p.id FROM role_templates t
+            JOIN permissions p ON p.code IN ('message_template.view', 'message_template.manage')
+            WHERE t.name != 'SUPER_ADMIN';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

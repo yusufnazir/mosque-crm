@@ -21,6 +21,14 @@ public class WhatsAppEnqueueRequest {
     private String template;
 
     /**
+     * Optional document sent with the message (Base64). When set, the dispatcher uses
+     * WAHA's sendFile and the template becomes the caption.
+     */
+    private String mediaFilename;
+    private String mediaMimetype;
+    private String mediaBase64;
+
+    /**
      * Which WhatsApp number sends this batch. {@code null} means "the configured default",
      * and the resolved channel is stored on every queued row so a retry cannot switch numbers.
      */
@@ -43,6 +51,15 @@ public class WhatsAppEnqueueRequest {
 
     public String getTemplate() { return template; }
     public void setTemplate(String template) { this.template = template; }
+
+    public String getMediaFilename() { return mediaFilename; }
+    public void setMediaFilename(String mediaFilename) { this.mediaFilename = mediaFilename; }
+
+    public String getMediaMimetype() { return mediaMimetype; }
+    public void setMediaMimetype(String mediaMimetype) { this.mediaMimetype = mediaMimetype; }
+
+    public String getMediaBase64() { return mediaBase64; }
+    public void setMediaBase64(String mediaBase64) { this.mediaBase64 = mediaBase64; }
 
     public Long getChannelId() { return channelId; }
     public void setChannelId(Long channelId) { this.channelId = channelId; }
